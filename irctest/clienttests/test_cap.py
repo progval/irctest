@@ -6,6 +6,5 @@ class CapTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
         self.readCapLs()
 
     def testEmptyCapLs(self):
-        self.readCapLs()
-        m = self.negociateCapabilities([])
+        m = self.negotiateCapabilities([])
         self.assertEqual(m, Message([], None, 'CAP', ['END']))

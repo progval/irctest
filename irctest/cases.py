@@ -68,6 +68,8 @@ class ClientNegociationHelper:
             self.protocol_version = 301
         elif m.params == ['LS', '302']:
             self.protocol_version = 302
+        elif m.params == ['END']:
+            self.protocol_version = None
         else:
             raise AssertionError('Unknown CAP params: {}'
                     .format(m.params))
@@ -86,7 +88,11 @@ class ClientNegociationHelper:
         else:
             return True
 
-    def negociateCapabilities(self, cap_ls):
+    def negotiateCapabilities(self, cap_ls):
+        self.readCapLs()
+        if not self.protocol_version:
+            # No negotiation.
+            return
         self.sendLine('CAP * LS :')
         while True:
             m = self.getMessage(filter_pred=self.userNickPredicate)
