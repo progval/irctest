@@ -60,4 +60,12 @@ make -j 4
 make install
 python3 -m irctest irctest.controllers.inspircd
 ```
-```
+
+## What `irctest` is not
+
+A formal proof that a given software follows any of the IRC specification,
+or anything near that.
+
+At best, `irctest` can help you find issues in your software, but it may
+still have false positives (because it does not implement itself a
+full-featured client/server, so it supports only “usual” behavior).
