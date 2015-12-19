@@ -1,6 +1,7 @@
 import socket
 import unittest
 
+from . import authentication
 from .irc_utils import message_parser
 
 class _IrcTestCase(unittest.TestCase):
@@ -20,11 +21,14 @@ class _IrcTestCase(unittest.TestCase):
 class BaseClientTestCase(_IrcTestCase):
     """Basic class for client tests. Handles spawning a client and getting
     messages from it."""
+    nick = None
+    user = None
     def setUp(self):
         self.controller = self.controllerClass()
         self._setUpServer()
     def tearDown(self):
-        del self.controller
+        self.controller.kill()
+        self.conn.sendall(b'QUIT :end of test.')
         self.conn_file.close()
         self.conn.close()
         self.server.close()
@@ -49,16 +53,17 @@ class BaseClientTestCase(_IrcTestCase):
         assert self.conn.sendall(line.encode()) is None
         if not line.endswith('\r\n'):
             assert self.conn.sendall(b'\r\n') is None
-        print('S: {}'.format(line.strip()))
+        if self.show_io:
+            print('S: {}'.format(line.strip()))
 
 class ClientNegociationHelper:
     """Helper class for tests handling capabilities negociation."""
-    def readCapLs(self):
+    def readCapLs(self, auth=None):
         (hostname, port) = self.server.getsockname()
         self.controller.run(
                 hostname=hostname,
                 port=port,
-                authentication=None,
+                auth=auth,
                 )
         self.acceptClient()
         m = self.getMessage()
@@ -83,26 +88,34 @@ class ClientNegociationHelper:
             return False
         elif msg.command == 'USER':
             self.assertEqual(len(msg.params), 4, msg)
-            self.nick = msg.params
+            self.user = msg.params
             return False
         else:
             return True
 
-    def negotiateCapabilities(self, cap_ls):
-        self.readCapLs()
-        if not self.protocol_version:
-            # No negotiation.
-            return
-        self.sendLine('CAP * LS :')
+    def negotiateCapabilities(self, capabilities, cap_ls=True, auth=None):
+        if cap_ls:
+            self.readCapLs(auth)
+            if not self.protocol_version:
+                # No negotiation.
+                return
+            self.sendLine('CAP * LS :{}'.format(' '.join(capabilities)))
         while True:
             m = self.getMessage(filter_pred=self.userNickPredicate)
-            self.assertEqual(m.command, 'CAP')
+            if m.command != 'CAP':
+                return m
             self.assertGreater(len(m.params), 0, m)
             if m.params[0] == 'REQ':
                 self.assertEqual(len(m.params), 2, m)
                 requested = frozenset(m.params[1].split())
-                if not requested.issubset(cap_ls):
-                    self.sendLine('CAP * NAK :{}'.format(m.params[1])[0:100])
+                if not requested.issubset(capabilities):
+                    self.sendLine('CAP {} NAK :{}'.format(
+                        self.nick or '*',
+                        m.params[1][0:100]))
+                else:
+                    self.sendLine('CAP {} ACK :{}'.format(
+                        self.nick or '*',
+                        m.params[1]))
             else:
                 return m
 

@@ -34,7 +34,7 @@ import os
 import sys
 from distutils.core import setup
 
-if sys.version_info < (3, 2, 0):
+if sys.version_info < (3, 4, 0):
     sys.stderr.write("This script requires Python 3.2 or newer.")
     sys.stderr.write(os.linesep)
     sys.exit(-1)
