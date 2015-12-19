@@ -10,6 +10,9 @@ from irctest.basecontrollers import BaseServerController, DirectoryBasedControll
 TEMPLATE_CONFIG = """
 <bind address="{hostname}" port="{port}" type="clients">
 <module name="cap">
+<module name="ircv3">
+<module name="ircv3_capnotify">
+<connect allow="*" resolvehostnames="no"> # Faster
 """
 
 class InspircdController(BaseServerController, DirectoryBasedController):
