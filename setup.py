@@ -40,11 +40,10 @@ setup(
     # Installation data
     packages=[
             'irctest',
+            'irctest.client_tests',
+            'irctest.controllers',
+            'irctest.irc_utils',
             ],
-
-    package_dir={
-            'irctest': 'irctest',
-            },
     )
 
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
