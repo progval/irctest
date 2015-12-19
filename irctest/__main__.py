@@ -16,7 +16,7 @@ def main(args):
 
     controller_class = module.get_irctest_controller_class()
     if issubclass(controller_class, BaseClientController):
-        module = 'irctest.clienttests'
+        module = 'irctest.client_tests'
     elif issubclass(controller_class, BaseClientController):
         module = 'irctest.servertests'
     else:
