@@ -20,10 +20,13 @@ have no side effect, with [the exception of Sopel](https://github.com/sopel-irc/
 ## Prerequisites
 
 
-Install dependencies:
+Install irctest and dependencies:
 
 ```
+git clone https://github.com/ProgVal/irctest.git
+cd irctest
 pip3 install --user -r requirements.txt
+python3 setup.py install --user
 ```
 
 Add `~/.local/bin/` to your `PATH` if it is not.
@@ -53,7 +56,7 @@ To run tests with InspIRCd:
 
 ```
 cd /tmp/
-wget git clone git@github.com:inspircd/inspircd.git
+git clone https://github.com/inspircd/inspircd.git
 cd inspircd
 ./configure --prefix=$HOME/.local/ --development
 make -j 4
