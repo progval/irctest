@@ -18,6 +18,22 @@ class _IrcTestCase(unittest.TestCase):
             msg = message_parser.parse_message(self.getLine(*args))
             if not filter_pred or filter_pred(msg):
                 return msg
+    def assertMessageEqual(self, msg, subcommand=None, subparams=None,
+            target=None, **kwargs):
+        for (key, value) in kwargs.items():
+            with self.subTest(key=key):
+                self.assertEqual(getattr(msg, key), value, msg)
+        if subcommand is not None or subparams is not None:
+            self.assertGreater(len(msg.params), 2, msg)
+            msg_target = msg.params[0]
+            msg_subcommand = msg.params[1]
+            msg_subparams = msg.params[2:]
+            if subcommand:
+                with self.subTest(key='subcommand'):
+                    self.assertEqual(msg_subcommand, subcommand, msg)
+            if subparams is not None:
+                with self.subTest(key='subparams'):
+                    self.assertEqual(msg_subparams, subparams, msg)
 
 class BaseClientTestCase(_IrcTestCase):
     """Basic class for client tests. Handles spawning a client and exchanging
