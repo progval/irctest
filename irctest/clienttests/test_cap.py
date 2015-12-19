@@ -7,6 +7,5 @@ class CapTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
 
     def testEmptyCapLs(self):
         self.readCapLs()
-        self.sendLine('CAP * LS :')
-        m = self.getMessage(filter_pred=self.userNickPredicate)
+        m = self.negociateCapabilities([])
         self.assertEqual(m, Message([], None, 'CAP', ['END']))

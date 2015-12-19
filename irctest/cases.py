@@ -86,3 +86,17 @@ class ClientNegociationHelper:
         else:
             return True
 
+    def negociateCapabilities(self, cap_ls):
+        self.sendLine('CAP * LS :')
+        while True:
+            m = self.getMessage(filter_pred=self.userNickPredicate)
+            self.assertEqual(m.command, 'CAP')
+            self.assertGreater(len(m.params), 0, m)
+            if m.params[0] == 'REQ':
+                self.assertEqual(len(m.params), 2, m)
+                requested = frozenset(m.params[1].split())
+                if not requested.issubset(cap_ls):
+                    self.sendLine('CAP * NAK :{}'.format(m.params[1])[0:100])
+            else:
+                return m
+
