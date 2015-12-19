@@ -100,6 +100,8 @@ class ClientNegociationHelper:
                 # No negotiation.
                 return
             self.sendLine('CAP * LS :{}'.format(' '.join(capabilities)))
+        capability_names = {x.split('=')[0] for x in capabilities}
+        self.acked_capabilities = set()
         while True:
             m = self.getMessage(filter_pred=self.userNickPredicate)
             if m.command != 'CAP':
@@ -108,7 +110,7 @@ class ClientNegociationHelper:
             if m.params[0] == 'REQ':
                 self.assertEqual(len(m.params), 2, m)
                 requested = frozenset(m.params[1].split())
-                if not requested.issubset(capabilities):
+                if not requested.issubset(capability_names):
                     self.sendLine('CAP {} NAK :{}'.format(
                         self.nick or '*',
                         m.params[1][0:100]))
@@ -116,6 +118,7 @@ class ClientNegociationHelper:
                     self.sendLine('CAP {} ACK :{}'.format(
                         self.nick or '*',
                         m.params[1]))
+                    self.acked_capabilities.update(requested)
             else:
                 return m
 
