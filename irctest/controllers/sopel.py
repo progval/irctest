@@ -32,9 +32,9 @@ class SopelController(BaseClientController):
             except OSError: # File does not exist
                 pass
 
-    def open_file(self, filename):
+    def open_file(self, filename, mode='a'):
         return open(os.path.join(os.path.expanduser('~/.sopel/'), filename),
-                'a')
+                mode)
 
     def create_config(self):
         self.directory = tempfile.TemporaryDirectory()
