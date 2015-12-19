@@ -56,7 +56,6 @@ class CapTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
                 )
         authstring = base64.b64encode(b'\x00'.join(
             [b'foo', b'foo', b'quux'*148])).decode()
-        print(len(authstring))
         m = self.negotiateCapabilities(['sasl'], auth=auth)
         self.assertEqual(m.command, 'AUTHENTICATE', m)
         self.sendLine('AUTHENTICATE +')
