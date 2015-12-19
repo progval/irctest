@@ -34,7 +34,6 @@ class CapTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
         self.assertEqual(m.command, 'AUTHENTICATE', m)
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
-        print(authstring[0:400])
         self.assertEqual(m, Message([], None, 'AUTHENTICATE',
             [authstring[0:400]]), m)
         m = self.getMessage()
@@ -43,7 +42,34 @@ class CapTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
         m = self.getMessage()
         self.assertEqual(m, Message([], None, 'AUTHENTICATE',
             [authstring[800:]]))
-        self.sendLine('900 * * {} :You are now logged in.'.format('foo'*100))
+        self.sendLine('900 * * {} :You are now logged in.'.format('foo'))
+        self.sendLine('903 * :SASL authentication successful')
+        m = self.negotiateCapabilities(['sasl'], False)
+        self.assertEqual(m, Message([], None, 'CAP', ['END']))
+
+    def testPlainLargeMultiple(self):
+        # TODO: authzid is optional
+        auth = authentication.Authentication(
+                mechanisms=[authentication.Mechanisms.plain],
+                username='foo',
+                password='quux'*148,
+                )
+        authstring = base64.b64encode(b'\x00'.join(
+            [b'foo', b'foo', b'quux'*148])).decode()
+        print(len(authstring))
+        m = self.negotiateCapabilities(['sasl'], auth=auth)
+        self.assertEqual(m.command, 'AUTHENTICATE', m)
+        self.sendLine('AUTHENTICATE +')
+        m = self.getMessage()
+        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+            [authstring[0:400]]), m)
+        m = self.getMessage()
+        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+            [authstring[400:800]]))
+        m = self.getMessage()
+        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+            ['+']))
+        self.sendLine('900 * * {} :You are now logged in.'.format('foo'))
         self.sendLine('903 * :SASL authentication successful')
         m = self.negotiateCapabilities(['sasl'], False)
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
