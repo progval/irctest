@@ -37,7 +37,6 @@ class SopelController(BaseClientController):
                 mode)
 
     def create_config(self):
-        self.directory = tempfile.TemporaryDirectory()
         with self.open_file(self.filename) as fd:
             pass
 
@@ -53,7 +52,7 @@ class SopelController(BaseClientController):
                 password=auth.password if auth else '',
                 auth_method='auth_method = sasl' if auth else '',
                 ))
-        self.proc = subprocess.Popen(['sopel', '-c', self.filename])
+        self.proc = subprocess.Popen(['sopel', '--quiet', '-c', self.filename])
 
 def get_irctest_controller_class():
     return SopelController
