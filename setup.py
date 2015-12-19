@@ -50,7 +50,7 @@ setup(
     platforms=['linux', 'linux2'],
     long_description="""This script aims at testing interoperability of
     software using the IRC protocol, by running them against test suites
-    and making different software communicate with each other..""",
+    and making different software communicate with each other.""",
     classifiers = [
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Console',
