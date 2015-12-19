@@ -10,17 +10,29 @@ It is very young and does not contain a lot of test cases yet.
 
 This project contains:
 
-* IRC protocol test cases (only for clients for the moment)
+* IRC protocol test cases
 * small wrappers around existing software to run tests on them
-  (only Limnoria and Sopel for the moment)
+  (only Limnoria, Sopel, and InspIRCd for the moment)
 
-## How to use it
+Wrappers run software in temporary directories, so running `irctest` should
+have no side effect, with [the exception of Sopel](https://github.com/sopel-irc/sopel/issues/946).
 
-First, install dependencies:
+## Prerequisites
+
+
+Install dependencies:
 
 ```
 pip3 install --user -r requirements.txt
 ```
+
+Add `~/.local/bin/` to your `PATH` if it is not.
+
+```
+export PATH=$HOME/.local/bin/:$PATH
+```
+
+## Run tests
 
 To run tests with Limnoria:
 
@@ -35,4 +47,17 @@ To run tests with Sopel:
 pip3 install --user sopel
 mkdir ~/.sopel/
 python3 -m irctest irctest.controllers.sopel
+```
+
+To run tests with InspIRCd:
+
+```
+cd /tmp/
+wget git clone git@github.com:inspircd/inspircd.git
+cd inspircd
+./configure --prefix=$HOME/.local/ --development
+make -j 4
+make install
+python3 -m irctest irctest.controllers.inspircd
+```
 ```
