@@ -5,6 +5,8 @@ from irctest import authentication
 from irctest.basecontrollers import BaseClientController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
+supybot.directories.conf: {directory}/conf
+supybot.directories.data: {directory}/data
 supybot.log.stdout.level: {loglevel}
 supybot.networks: testnet
 supybot.networks.testnet.servers: {hostname}:{port}
@@ -32,6 +34,7 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
             mechanisms = ''
         with self.open_file('bot.conf') as fd:
             fd.write(TEMPLATE_CONFIG.format(
+                directory=self.directory,
                 loglevel='CRITICAL',
                 hostname=hostname,
                 port=port,
