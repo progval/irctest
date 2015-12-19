@@ -1,5 +1,6 @@
 import socket
 import unittest
+import collections
 
 from . import authentication
 from .irc_utils import message_parser
@@ -9,18 +10,18 @@ class _IrcTestCase(unittest.TestCase):
 
     def getLine(self):
         raise NotImplementedError()
-    def getMessage(self, filter_pred=None):
+    def getMessage(self, *args, filter_pred=None):
         """Gets a message and returns it. If a filter predicate is given,
         fetches messages until the predicate returns a False on a message,
         and returns this message."""
         while True:
-            msg = message_parser.parse_message(self.getLine())
+            msg = message_parser.parse_message(self.getLine(*args))
             if not filter_pred or filter_pred(msg):
                 return msg
 
 class BaseClientTestCase(_IrcTestCase):
-    """Basic class for client tests. Handles spawning a client and getting
-    messages from it."""
+    """Basic class for client tests. Handles spawning a client and exchanging
+    messages with it."""
     nick = None
     user = None
     def setUp(self):
@@ -50,9 +51,11 @@ class BaseClientTestCase(_IrcTestCase):
             print('C: {}'.format(line.strip()))
         return line
     def sendLine(self, line):
-        assert self.conn.sendall(line.encode()) is None
+        ret = self.conn.sendall(line.encode())
+        assert ret is None
         if not line.endswith('\r\n'):
-            assert self.conn.sendall(b'\r\n') is None
+            ret = self.conn.sendall(b'\r\n')
+            assert ret is None
         if self.show_io:
             print('S: {}'.format(line.strip()))
 
@@ -122,3 +125,54 @@ class ClientNegociationHelper:
             else:
                 return m
 
+Client = collections.namedtuple('Client',
+        'conn conn_file')
+
+class BaseServerTestCase(_IrcTestCase):
+    """Basic class for server tests. Handles spawning a server and exchanging
+    messages with it."""
+    def setUp(self):
+        self.find_hostname_and_port()
+        self.controller = self.controllerClass()
+        self.controller.run(self.hostname, self.port)
+        self.clients = {}
+    def tearDown(self):
+        self.controller.kill()
+        for client in list(self.clients):
+            self.removeClient(client)
+    def find_hostname_and_port(self):
+        """Find available hostname/port to listen on."""
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(("",0))
+        (self.hostname, self.port) = s.getsockname()
+        s.close()
+
+    def addClient(self, name=None):
+        """Connects a client to the server and adds it to the dict.
+        If 'name' is not given, uses the lowest unused non-negative integer."""
+        if not name:
+            name = max(map(int, list(self.clients)+[0]))+1
+        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        conn.connect((self.hostname, self.port))
+        conn_file = conn.makefile(newline='\r\n', encoding='utf8')
+        self.clients[name] = Client(conn=conn, conn_file=conn_file)
+
+    def removeClient(self, name):
+        assert name in self.clients
+        self.clients[name].conn.close()
+        del self.clients[name]
+
+    def getLine(self, client):
+        assert client in self.clients
+        line = self.clients[client].conn_file.readline()
+        if self.show_io:
+            print('S -> {}: {}'.format(client, line.strip()))
+        return line
+    def sendLine(self, client, line):
+        ret = self.clients[client].conn.sendall(line.encode())
+        assert ret is None
+        if not line.endswith('\r\n'):
+            ret = self.clients[client].conn.sendall(b'\r\n')
+            assert ret is None
+        if self.show_io:
+            print('{} -> S: {}'.format(client, line.strip()))

@@ -43,6 +43,7 @@ setup(
             'irctest.client_tests',
             'irctest.controllers',
             'irctest.irc_utils',
+            'irctest.server_tests',
             ],
     )
 

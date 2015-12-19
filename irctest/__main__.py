@@ -17,11 +17,11 @@ def main(args):
     controller_class = module.get_irctest_controller_class()
     if issubclass(controller_class, BaseClientController):
         module = 'irctest.client_tests'
-    elif issubclass(controller_class, BaseClientController):
-        module = 'irctest.servertests'
+    elif issubclass(controller_class, BaseServerController):
+        module = 'irctest.server_tests'
     else:
-        print('{}.Controller should be a subclass of '
-                'irctest.basecontroller.Base{Client,Server}Controller'
+        print(r'{}.Controller should be a subclass of '
+                r'irctest.basecontroller.Base{{Client,Server}}Controller'
                 .format(args.module),
                 file=sys.stderr)
         exit(1)

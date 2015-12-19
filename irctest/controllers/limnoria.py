@@ -1,10 +1,8 @@
 import os
-import shutil
-import tempfile
 import subprocess
 
 from irctest import authentication
-from irctest.basecontrollers import BaseClientController
+from irctest.basecontrollers import BaseClientController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
 supybot.log.stdout.level: {loglevel}
@@ -15,32 +13,9 @@ supybot.networks.testnet.sasl.password: {password}
 supybot.networks.testnet.sasl.mechanisms: {mechanisms}
 """
 
-class LimnoriaController(BaseClientController):
-    def __init__(self):
-        super().__init__()
-        self.directory = None
-        self.proc = None
-    def kill(self):
-        if self.proc:
-            self.proc.terminate()
-            try:
-                self.proc.wait(5)
-            except subprocess.TimeoutExpired:
-                self.proc.kill()
-            self.proc = None
-        if self.directory:
-            shutil.rmtree(self.directory)
-    def open_file(self, name, mode='a'):
-        assert self.directory
-        if os.sep in name:
-            dir_ = os.path.join(self.directory, os.path.dirname(name))
-            if not os.path.isdir(dir_):
-                os.makedirs(dir_)
-            assert os.path.isdir(dir_)
-        return open(os.path.join(self.directory, name), mode)
-
+class LimnoriaController(BaseClientController, DirectoryBasedController):
     def create_config(self):
-        self.directory = tempfile.mkdtemp()
+        super().create_config()
         with self.open_file('bot.conf'):
             pass
         with self.open_file('conf/users.conf'):
