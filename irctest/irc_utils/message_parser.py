@@ -29,7 +29,7 @@ def parse_tags(s):
     return tags
 
 Message = collections.namedtuple('Message',
-        'tags prefix command subcommand params')
+        'tags prefix command params')
 
 def parse_message(s):
     """Parse a message according to
@@ -52,15 +52,10 @@ def parse_message(s):
     else:
         prefix = None
     command = tokens.pop(0)
-    if command == 'CAP':
-        subcommand = tokens.pop(0)
-    else:
-        subcommand = None
     params = tokens
     return Message(
             tags=tags,
             prefix=prefix,
             command=command,
-            subcommand=subcommand,
             params=params,
             )

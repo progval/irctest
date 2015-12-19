@@ -6,6 +6,17 @@ from .irc_utils import message_parser
 class _IrcTestCase(unittest.TestCase):
     controllerClass = None # Will be set by __main__.py
 
+    def getLine(self):
+        raise NotImplementedError()
+    def getMessage(self, filter_pred=None):
+        """Gets a message and returns it. If a filter predicate is given,
+        fetches messages until the predicate returns a False on a message,
+        and returns this message."""
+        while True:
+            msg = message_parser.parse_message(self.getLine())
+            if not filter_pred or filter_pred(msg):
+                return msg
+
 class BaseClientTestCase(_IrcTestCase):
     """Basic class for client tests. Handles spawning a client and getting
     messages from it."""
@@ -26,14 +37,21 @@ class BaseClientTestCase(_IrcTestCase):
     def acceptClient(self):
         """Make the server accept a client connection. Blocking."""
         (self.conn, addr) = self.server.accept()
-        self.conn_file = self.conn.makefile(newline='\r\n')
+        self.conn_file = self.conn.makefile(newline='\r\n',
+                encoding='utf8')
 
     def getLine(self):
-        return self.conn_file.readline().strip()
-    def getMessage(self):
-        return message_parser.parse_message(self.conn_file.readline())
+        line = self.conn_file.readline()
+        if self.show_io:
+            print('C: {}'.format(line.strip()))
+        return line
+    def sendLine(self, line):
+        assert self.conn.sendall(line.encode()) is None
+        if not line.endswith('\r\n'):
+            assert self.conn.sendall(b'\r\n') is None
+        print('S: {}'.format(line.strip()))
 
-class NegociationHelper:
+class ClientNegociationHelper:
     """Helper class for tests handling capabilities negociation."""
     def readCapLs(self):
         (hostname, port) = self.server.getsockname()
@@ -46,12 +64,25 @@ class NegociationHelper:
         m = self.getMessage()
         self.assertEqual(m.command, 'CAP',
                 'First message is not CAP LS.')
-        self.assertEqual(m.subcommand, 'LS',
-                'First message is not CAP LS.')
-        if m.params == []:
+        if m.params == ['LS']:
             self.protocol_version = 301
-        elif m.params == ['302']:
+        elif m.params == ['LS', '302']:
             self.protocol_version = 302
         else:
-            raise AssertionError('Unknown protocol version {}'
+            raise AssertionError('Unknown CAP params: {}'
                     .format(m.params))
+
+    def userNickPredicate(self, msg):
+        """Predicate to be used with getMessage to handle NICK/USER
+        transparently."""
+        if msg.command == 'NICK':
+            self.assertEqual(len(msg.params), 1, msg)
+            self.nick = msg.params[0]
+            return False
+        elif msg.command == 'USER':
+            self.assertEqual(len(msg.params), 4, msg)
+            self.nick = msg.params
+            return False
+        else:
+            return True
+

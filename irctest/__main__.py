@@ -26,6 +26,7 @@ def main(args):
                 file=sys.stderr)
         exit(1)
     _IrcTestCase.controllerClass = controller_class
+    _IrcTestCase.show_io = args.show_io
     unittest.main(module=module, argv=[sys.argv[0], 'discover'])
 
 
@@ -33,6 +34,8 @@ parser = argparse.ArgumentParser(
         description='A script to test interoperability of IRC software.')
 parser.add_argument('module', type=str,
         help='The module used to run the tested program.')
+parser.add_argument('--show-io', action='store_true',
+        help='Show input/outputs with the tested program.')
 
 args = parser.parse_args()
 main(args)
