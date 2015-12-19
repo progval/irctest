@@ -1,6 +1,8 @@
 import socket
 import unittest
 
+from .irc_utils import message_parser
+
 class _IrcTestCase(unittest.TestCase):
     controllerClass = None # Will be set by __main__.py
 
@@ -22,7 +24,9 @@ class ClientTestCase(_IrcTestCase):
     def acceptClient(self):
         """Make the server accept a client connection. Blocking."""
         (self.conn, addr) = self.server.accept()
-        self.conn_file = self.conn.makefile()
+        self.conn_file = self.conn.makefile(newline='\r\n')
 
     def getLine(self):
         return self.conn_file.readline().strip()
+    def getMessage(self):
+        return message_parser.parse_message(self.conn_file.readline())
