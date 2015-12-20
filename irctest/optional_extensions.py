@@ -2,6 +2,10 @@ import unittest
 import operator
 import itertools
 
+class NotImplementedByController(unittest.SkipTest):
+    def __str__(self):
+        return 'Not implemented by controller: {}'.format(self.args[0])
+
 class OptionalExtensionNotSupported(unittest.SkipTest):
     def __str__(self):
         return 'Unsupported extension: {}'.format(self.args[0])
@@ -19,6 +23,6 @@ class OptionalityReportingTextTestRunner(unittest.TextTestRunner):
                     'specifications/mechanisms are not supported:')
             msg_to_tests = itertools.groupby(result.skipped,
                     key=operator.itemgetter(1))
-            for (msg, tests) in msg_to_tests:
+            for (msg, tests) in sorted(msg_to_tests):
                 print('\t{} ({} test(s))'.format(msg, sum(1 for x in tests)))
         return result
