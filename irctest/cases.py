@@ -1,3 +1,4 @@
+import time
 import socket
 import unittest
 import collections
@@ -15,6 +16,9 @@ class _IrcTestCase(unittest.TestCase):
             print('---- new test ----')
     def getLine(self):
         raise NotImplementedError()
+    def getMessages(self, *args):
+        lines = self.getLines(*args)
+        return map(message_parser.parse_message, lines)
     def getMessage(self, *args, filter_pred=None):
         """Gets a message and returns it. If a filter predicate is given,
         fetches messages until the predicate returns a False on a message,
@@ -180,12 +184,28 @@ class BaseServerTestCase(_IrcTestCase):
         conn.connect((self.hostname, self.port))
         conn_file = conn.makefile(newline='\r\n', encoding='utf8')
         self.clients[name] = Client(conn=conn, conn_file=conn_file)
+        return name
 
     def removeClient(self, name):
         assert name in self.clients
         self.clients[name].conn.close()
         del self.clients[name]
 
+    def getLines(self, client):
+        data = b''
+        conn = self.clients[client].conn
+        try:
+            conn.setblocking(False)
+            while True:
+                time.sleep(0.1) # TODO: do better than this (use ping?)
+                data += conn.recv(4096)
+        except BlockingIOError:
+            for line in data.decode().split('\r\n'):
+                if line:
+                    print('S -> {}: {}'.format(client, line.strip()))
+                    yield line + '\r\n'
+        finally:
+            conn.setblocking(True) # required for readline()
     def getLine(self, client):
         assert client in self.clients
         line = self.clients[client].conn_file.readline()

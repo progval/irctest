@@ -4,6 +4,8 @@ import socket
 import tempfile
 import subprocess
 
+from .optional_extensions import NotImplementedByController
+
 class _BaseController:
     pass
 
@@ -41,4 +43,8 @@ class BaseClientController(_BaseController):
         raise NotImplementedError()
 
 class BaseServerController(_BaseController):
-    pass
+    def run(self, hostname, port, start_wait):
+        raise NotImplementedError()
+    def registerUser(self, case, username):
+        raise NotImplementedByController('registration')
+

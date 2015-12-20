@@ -2,7 +2,7 @@ import unittest
 import operator
 import itertools
 
-class NotImplementedByController(unittest.SkipTest):
+class NotImplementedByController(unittest.SkipTest, NotImplementedError):
     def __str__(self):
         return 'Not implemented by controller: {}'.format(self.args[0])
 

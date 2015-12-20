@@ -41,7 +41,10 @@ logs:
   {{
   }}
 register:
-  foo: bar
+  enabled_callbacks:
+  - none
+  verify_timeout:
+    days: 1
 roles:
   "placeholder":
     title: "Just a placeholder"
@@ -73,6 +76,22 @@ class MammonController(BaseServerController, DirectoryBasedController):
         self.proc = subprocess.Popen(['mammond', '--nofork', #'--debug',
             '--config', os.path.join(self.directory, 'server.yml')])
         time.sleep(start_wait) # FIXME: do better than this to wait for Mammon to start
+
+    def registerUser(self, case, username):
+        # XXX: Move this somewhere else when
+        # https://github.com/ircv3/ircv3-specifications/pull/152 becomes
+        # part of the specification
+        client = case.addClient()
+        case.sendLine(client, 'CAP LS 302')
+        case.sendLine(client, 'NICK registration_user')
+        case.sendLine(client, 'USER r e g :user')
+        case.sendLine(client, 'CAP END')
+        list(case.getLines(client))
+        case.sendLine(client, 'REG CREATE {} passphrase temporarypassword'.format(username))
+        msg = case.getMessage(client)
+        assert msg.command == '920'
+        list(case.getLines(client))
+        case.removeClient(client)
 
 def get_irctest_controller_class():
     return MammonController
