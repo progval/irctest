@@ -12,6 +12,7 @@ supybot.networks: testnet
 supybot.networks.testnet.servers: {hostname}:{port}
 supybot.networks.testnet.sasl.username: {username}
 supybot.networks.testnet.sasl.password: {password}
+supybot.networks.testnet.sasl.ecdsa_key: {directory}/ecdsa_key.pem
 supybot.networks.testnet.sasl.mechanisms: {mechanisms}
 """
 
@@ -30,6 +31,9 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
         if auth:
             mechanisms = ' '.join(map(authentication.Mechanisms.as_string,
                 auth.mechanisms))
+            if auth.ecdsa_key:
+                with self.open_file('ecdsa_key.pem') as fd:
+                    fd.write(auth.ecdsa_key)
         else:
             mechanisms = ''
         with self.open_file('bot.conf') as fd:

@@ -1,9 +1,22 @@
+import ecdsa
 import base64
 from irctest import cases
 from irctest import authentication
 from irctest.irc_utils.message_parser import Message
 
-class CapTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
+ECDSA_KEY = """
+-----BEGIN EC PARAMETERS-----
+BggqhkjOPQMBBw==
+-----END EC PARAMETERS-----
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIIJueQ3W2IrGbe9wKdOI75yGS7PYZSj6W4tg854hlsvmoAoGCCqGSM49
+AwEHoUQDQgAEAZmaVhNSMmV5r8FXPvKuMnqDKyIA9pDHN5TNMfiF3mMeikGgK10W
+IRX9cyi2wdYg9mUUYyh9GKdBCYHGUJAiCA==
+-----END EC PRIVATE KEY-----
+"""
+ENCODED_FOOBAR = """gqpuPoR0vaTIKiEQyqrj48RIT13R3hJuJI2Os7ySXwLWbjizpdmGPNtJdv396FkvZVPwZpC4cCfabhEby4ytGA=="""
+
+class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
     def testPlain(self):
         auth = authentication.Authentication(
                 mechanisms=[authentication.Mechanisms.plain],
@@ -35,7 +48,6 @@ class CapTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
         self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('904 {} :SASL auth failed'.format(self.nick))
         m = self.getMessage()
-        print(m)
 
 
     def testPlainLarge(self):
@@ -86,6 +98,33 @@ class CapTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
         self.assertEqual(m, Message([], None, 'AUTHENTICATE',
             ['+']))
         self.sendLine('900 * * {} :You are now logged in.'.format('foo'))
+        self.sendLine('903 * :SASL authentication successful')
+        m = self.negotiateCapabilities(['sasl'], False)
+        self.assertEqual(m, Message([], None, 'CAP', ['END']))
+
+    def testEcdsa(self):
+        auth = authentication.Authentication(
+                mechanisms=[authentication.Mechanisms.ecdsa_nist256p_challenge],
+                username='jilles',
+                ecdsa_key=ECDSA_KEY,
+                )
+        m = self.negotiateCapabilities(['sasl'], auth=auth)
+        self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['ECDSA-NIST256P-CHALLENGE']))
+        self.sendLine('AUTHENTICATE +')
+        m = self.getMessage()
+        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+            ['amlsbGVz'])) # jilles
+        self.sendLine('AUTHENTICATE Zm9vYmFy') # foobar
+        m = self.getMessage()
+        self.assertMessageEqual(m, command='AUTHENTICATE')
+        sk = ecdsa.SigningKey.from_pem(ECDSA_KEY)
+        vk = sk.get_verifying_key()
+        signature = base64.b64decode(m.params[0])
+        try:
+            vk.verify(signature, b'foobar')
+        except ecdsa.BadSignatureError:
+            raise AssertionError('Bad signature')
+        self.sendLine('900 * * foo :You are now logged in.')
         self.sendLine('903 * :SASL authentication successful')
         m = self.negotiateCapabilities(['sasl'], False)
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
