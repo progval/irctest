@@ -88,7 +88,7 @@ class BaseClientTestCase(_IrcTestCase):
     def getLine(self):
         line = self.conn_file.readline()
         if self.show_io:
-            print('C: {}'.format(line.strip()))
+            print('{:.3f} C: {}'.format(time.time(), line.strip()))
         return line
     def sendLine(self, line):
         ret = self.conn.sendall(line.encode())
@@ -97,7 +97,7 @@ class BaseClientTestCase(_IrcTestCase):
             ret = self.conn.sendall(b'\r\n')
             assert ret is None
         if self.show_io:
-            print('S: {}'.format(line.strip()))
+            print('{:.3f} S: {}'.format(time.time(), line.strip()))
 
 class ClientNegociationHelper:
     """Helper class for tests handling capabilities negociation."""
@@ -199,14 +199,14 @@ class BaseServerTestCase(_IrcTestCase):
         conn_file = conn.makefile(newline='\r\n', encoding='utf8')
         self.clients[name] = Client(conn=conn, conn_file=conn_file)
         if self.show_io:
-            print('{}: connects to server.'.format(name))
+            print('{:.3f} {}: connects to server.'.format(time.time(), name))
         return name
 
     def removeClient(self, name):
         """Disconnects the client, without QUIT."""
         assert name in self.clients
         if self.show_io:
-            print('{}: disconnects from server.'.format(name))
+            print('{:.3f} {}: disconnects from server.'.format(time.time(), name))
         self.clients[name].conn.close()
         del self.clients[name]
 
@@ -224,7 +224,7 @@ class BaseServerTestCase(_IrcTestCase):
         except BlockingIOError:
             for line in data.decode().split('\r\n'):
                 if line and self.show_io:
-                    print('S -> {}: {}'.format(client, line.strip()))
+                    print('{:.3f} S -> {}: {}'.format(time.time(), client, line.strip()))
                     yield line + '\r\n'
         finally:
             conn.setblocking(True) # required for readline()
@@ -232,7 +232,7 @@ class BaseServerTestCase(_IrcTestCase):
         assert client in self.clients
         line = self.clients[client].conn_file.readline()
         if self.show_io:
-            print('S -> {}: {}'.format(client, line.strip()))
+            print('{:.3f} S -> {}: {}'.format(time.time(), client, line.strip()))
         return line
     def sendLine(self, client, line):
         ret = self.clients[client].conn.sendall(line.encode())
@@ -241,7 +241,7 @@ class BaseServerTestCase(_IrcTestCase):
             ret = self.clients[client].conn.sendall(b'\r\n')
             assert ret is None
         if self.show_io:
-            print('{} -> S: {}'.format(client, line.strip()))
+            print('{:.3f} {} -> S: {}'.format(time.time(), client, line.strip()))
 
     def getCapLs(self, client, as_list=False):
         """Waits for a CAP LS block, parses all CAP LS messages, and return
