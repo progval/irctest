@@ -44,8 +44,8 @@ class BaseClientTestCase(_IrcTestCase):
         self.controller = self.controllerClass()
         self._setUpServer()
     def tearDown(self):
-        self.controller.kill()
         self.conn.sendall(b'QUIT :end of test.')
+        self.controller.kill()
         self.conn_file.close()
         self.conn.close()
         self.server.close()
