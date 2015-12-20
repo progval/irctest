@@ -23,6 +23,8 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
             pass
         with self.open_file('conf/users.conf'):
             pass
+        self.supported_sasl_mechanisms = [
+            'PLAIN', 'ECDSA-NIST256P-CHALLENGE', 'EXTERNAL']
 
     def run(self, hostname, port, auth):
         # Runs a client with the config given as arguments

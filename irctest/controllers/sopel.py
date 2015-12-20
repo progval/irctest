@@ -22,6 +22,7 @@ class SopelController(BaseClientController):
         super().__init__()
         self.filename = next(tempfile._get_candidate_names()) + '.cfg'
         self.proc = None
+        self.supported_sasl_mechanisms = ['PLAIN']
     def kill(self):
         if self.proc:
             self.proc.kill()
