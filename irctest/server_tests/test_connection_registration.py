@@ -47,3 +47,22 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         m = self.getMessage(1)
         self.assertMessageEqual(m, command='ERROR')
         self.assertDisconnected(1)
+
+    def testNickCollision(self):
+        self.connectClient('foo')
+        self.addClient()
+        self.sendLine(2, 'NICK foo')
+        self.sendLine(2, 'USER username * * :Realname')
+        m = self.getMessage(2, filter_pred=lambda m:m.command != 'NOTICE')
+        self.assertNotEqual(m.command, '001')
+
+    def testEarlyNickCollision(self):
+        self.addClient()
+        self.addClient()
+        self.sendLine(1, 'NICK foo')
+        self.sendLine(2, 'NICK foo')
+        self.sendLine(1, 'USER username * * :Realname')
+        self.sendLine(2, 'USER username * * :Realname')
+        m1 = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        m2 = self.getMessage(2, filter_pred=lambda m:m.command != 'NOTICE')
+        self.assertNotEqual((m1.command, m2.command), ('001', '001'))
