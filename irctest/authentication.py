@@ -3,6 +3,7 @@ import collections
 
 @enum.unique
 class Mechanisms(enum.Enum):
+    """Enumeration for representing possible mechanisms."""
     @classmethod
     def as_string(cls, mech):
         return {cls.plain: 'PLAIN',

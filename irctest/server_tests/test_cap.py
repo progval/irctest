@@ -3,6 +3,8 @@ from irctest.irc_utils.message_parser import Message
 
 class CapTestCase(cases.BaseServerTestCase):
     def testNoReq(self):
+        """Test the server handles gracefully clients which do not send
+        REQs."""
         self.addClient(1)
         self.sendLine(1, 'CAP LS 302')
         self.getCapLs(1)
@@ -13,6 +15,8 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(m, command='001')
 
     def testReqUnavailable(self):
+        """Test the server handles gracefully clients which request
+        capabilities that are not available"""
         self.addClient(1)
         self.sendLine(1, 'CAP LS 302')
         self.getCapLs(1)

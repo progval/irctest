@@ -25,6 +25,7 @@ class SaslMechanismCheck:
 class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                    SaslMechanismCheck):
     def testPlain(self):
+        """Test PLAIN authentication."""
         auth = authentication.Authentication(
                 mechanisms=[authentication.Mechanisms.plain],
                 username='jilles',
@@ -43,6 +44,8 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
 
     def testPlainNotAvailable(self):
+        """Test the client handles gracefully servers that don't provide a
+        mechanism it could use."""
         auth = authentication.Authentication(
                 mechanisms=[authentication.Mechanisms.plain],
                 username='jilles',
@@ -61,6 +64,8 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
 
 
     def testPlainLarge(self):
+        """Test the client splits large AUTHENTICATE messages whose payload
+        is not a multiple of 400."""
         # TODO: authzid is optional
         auth = authentication.Authentication(
                 mechanisms=[authentication.Mechanisms.plain],
@@ -88,6 +93,8 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
 
     def testPlainLargeMultiple(self):
+        """Test the client splits large AUTHENTICATE messages whose payload
+        is a multiple of 400."""
         # TODO: authzid is optional
         auth = authentication.Authentication(
                 mechanisms=[authentication.Mechanisms.plain],
@@ -115,6 +122,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
 
     def testEcdsa(self):
+        """Test ECDSA authentication."""
         auth = authentication.Authentication(
                 mechanisms=[authentication.Mechanisms.ecdsa_nist256p_challenge],
                 username='jilles',
@@ -145,6 +153,8 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
 class Irc302SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                          SaslMechanismCheck):
     def testPlainNotAvailable(self):
+        """Test the client does not try to authenticate using a mechanism the
+        server does not advertise."""
         auth = authentication.Authentication(
                 mechanisms=[authentication.Mechanisms.plain],
                 username='jilles',

@@ -7,6 +7,7 @@ from . import authentication
 from .irc_utils import message_parser
 
 class _IrcTestCase(unittest.TestCase):
+    """Base class for test cases."""
     controllerClass = None # Will be set by __main__.py
 
     def setUp(self):
@@ -29,6 +30,13 @@ class _IrcTestCase(unittest.TestCase):
                 return msg
     def assertMessageEqual(self, msg, subcommand=None, subparams=None,
             target=None, **kwargs):
+        """Helper for partially comparing a message.
+
+        Takes the message as first arguments, and comparisons to be made
+        as keyword arguments.
+
+        Deals with subcommands (eg. `CAP`) if any of `subcommand`,
+        `subparams`, and `target` are given."""
         for (key, value) in kwargs.items():
             with self.subTest(key=key):
                 self.assertEqual(getattr(msg, key), value, msg)
@@ -122,6 +130,8 @@ class ClientNegociationHelper:
             return True
 
     def negotiateCapabilities(self, capabilities, cap_ls=True, auth=None):
+        """Performes a complete capability negociation process, without
+        ending it, so the caller can continue the negociation."""
         if cap_ls:
             self.readCapLs(auth)
             if not self.protocol_version:
@@ -187,6 +197,7 @@ class BaseServerTestCase(_IrcTestCase):
         return name
 
     def removeClient(self, name):
+        """Disconnects the client, without QUIT."""
         assert name in self.clients
         self.clients[name].conn.close()
         del self.clients[name]
@@ -222,6 +233,8 @@ class BaseServerTestCase(_IrcTestCase):
             print('{} -> S: {}'.format(client, line.strip()))
 
     def getCapLs(self, client):
+        """Waits for a CAP LS block, parses all CAP LS messages, and return
+        the list of capabilities."""
         capabilities = []
         while True:
             m = self.getMessage(client,
