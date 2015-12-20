@@ -17,8 +17,6 @@ IRX9cyi2wdYg9mUUYyh9GKdBCYHGUJAiCA==
 
 class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
     def checkMechanismSupport(self, mechanism):
-        if not hasattr(self.controller, 'supported_sasl_mechanisms'):
-            return
         if mechanism in self.controller.supported_sasl_mechanisms:
             return
         self.skipTest('SASL Mechanism not supported: {}'.format(mechanism))
@@ -30,6 +28,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
                 password='sesame',
                 )
         m = self.negotiateCapabilities(['sasl'], auth=auth)
+        self.checkMechanismSupport('PLAIN')
         self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
@@ -47,6 +46,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
                 password='sesame',
                 )
         m = self.negotiateCapabilities(['sasl=EXTERNAL'], auth=auth)
+        self.checkMechanismSupport('PLAIN')
         self.assertEqual(self.acked_capabilities, {'sasl'})
         if m == Message([], None, 'CAP', ['END']):
             # IRCv3.2-style
@@ -66,6 +66,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
         authstring = base64.b64encode(b'\x00'.join(
             [b'foo', b'foo', b'bar'*200])).decode()
         m = self.negotiateCapabilities(['sasl'], auth=auth)
+        self.checkMechanismSupport('PLAIN')
         self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
@@ -92,6 +93,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
         authstring = base64.b64encode(b'\x00'.join(
             [b'foo', b'foo', b'quux'*148])).decode()
         m = self.negotiateCapabilities(['sasl'], auth=auth)
+        self.checkMechanismSupport('PLAIN')
         self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
@@ -144,5 +146,6 @@ class Irc302SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper
                 password='sesame',
                 )
         m = self.negotiateCapabilities(['sasl=EXTERNAL'], auth=auth)
+        self.checkMechanismSupport('PLAIN')
         self.assertEqual(self.acked_capabilities, {'sasl'})
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
