@@ -8,6 +8,11 @@ from .irc_utils import message_parser
 class _IrcTestCase(unittest.TestCase):
     controllerClass = None # Will be set by __main__.py
 
+    def setUp(self):
+        super().setUp()
+        self.controller = self.controllerClass()
+        if self.show_io:
+            print('---- new test ----')
     def getLine(self):
         raise NotImplementedError()
     def getMessage(self, *args, filter_pred=None):
@@ -41,7 +46,7 @@ class BaseClientTestCase(_IrcTestCase):
     nick = None
     user = None
     def setUp(self):
-        self.controller = self.controllerClass()
+        super().setUp()
         self._setUpServer()
     def tearDown(self):
         self.conn.sendall(b'QUIT :end of test.')
@@ -148,8 +153,8 @@ class BaseServerTestCase(_IrcTestCase):
     """Basic class for server tests. Handles spawning a server and exchanging
     messages with it."""
     def setUp(self):
+        super().setUp()
         self.find_hostname_and_port()
-        self.controller = self.controllerClass()
         self.controller.run(self.hostname, self.port)
         self.clients = {}
     def tearDown(self):
@@ -192,3 +197,15 @@ class BaseServerTestCase(_IrcTestCase):
             assert ret is None
         if self.show_io:
             print('{} -> S: {}'.format(client, line.strip()))
+
+    def getCapLs(self, client):
+        capabilities = []
+        while True:
+            m = self.getMessage(client,
+                    filter_pred=lambda m:m.command != 'NOTICE')
+            self.assertMessageEqual(m, command='CAP', subcommand='LS')
+            if m.params[2] == '*':
+                capabilities.extend(m.params[3].split())
+            else:
+                capabilities.extend(m.params[2].split())
+                return capabilities

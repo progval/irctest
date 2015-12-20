@@ -5,9 +5,7 @@ class CapTestCase(cases.BaseServerTestCase):
     def testNoReq(self):
         self.addClient(1)
         self.sendLine(1, 'CAP LS 302')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
-        self.assertMessageEqual(m, command='CAP', target='*',
-                subcommand='LS')
+        self.getCapLs(1)
         self.sendLine(1, 'USER foo foo foo :foo')
         self.sendLine(1, 'NICK foo')
         self.sendLine(1, 'CAP END')
@@ -17,10 +15,7 @@ class CapTestCase(cases.BaseServerTestCase):
     def testReqUnavailable(self):
         self.addClient(1)
         self.sendLine(1, 'CAP LS 302')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
-        self.assertMessageEqual(m, command='CAP')
-        self.assertMessageEqual(m, command='CAP', target='*',
-                subcommand='LS')
+        self.getCapLs(1)
         self.sendLine(1, 'USER foo foo foo :foo')
         self.sendLine(1, 'NICK foo')
         self.sendLine(1, 'CAP REQ :invalid-capability')
@@ -36,10 +31,7 @@ class CapTestCase(cases.BaseServerTestCase):
         required by the spec <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-nak-subcommand>"""
         self.addClient(1)
         self.sendLine(1, 'CAP LS 302')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
-        self.assertMessageEqual(m, command='CAP')
-        self.assertMessageEqual(m, command='CAP', target='*',
-                subcommand='LS')
+        self.getCapLs(1)
         # Five should be enough to check there is no reordering, even
         # alphabetical
         self.sendLine(1, 'CAP REQ :foo bar baz qux quux')

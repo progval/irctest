@@ -12,14 +12,17 @@ class DirectoryBasedController(_BaseController):
         super().__init__()
         self.directory = None
         self.proc = None
+
+    def kill_proc(self):
+        self.proc.terminate()
+        try:
+            self.proc.wait(5)
+        except subprocess.TimeoutExpired:
+            self.proc.kill()
+        self.proc = None
     def kill(self):
         if self.proc:
-            self.proc.terminate()
-            try:
-                self.proc.wait(5)
-            except subprocess.TimeoutExpired:
-                self.proc.kill()
-            self.proc = None
+            self.kill_proc()
         if self.directory:
             shutil.rmtree(self.directory)
     def open_file(self, name, mode='a'):
