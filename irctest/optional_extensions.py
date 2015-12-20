@@ -1,6 +1,6 @@
 import unittest
 import operator
-import itertools
+import collections
 
 class NotImplementedByController(unittest.SkipTest, NotImplementedError):
     def __str__(self):
@@ -22,10 +22,11 @@ class OptionalityReportingTextTestRunner(unittest.TextTestRunner):
         result = super().run(test)
         if result.skipped:
             print()
-            print('Some tests were skipped because the following optional'
+            print('Some tests were skipped because the following optional '
                     'specifications/mechanisms are not supported:')
-            msg_to_tests = itertools.groupby(result.skipped,
-                    key=operator.itemgetter(1))
-            for (msg, tests) in sorted(msg_to_tests):
-                print('\t{} ({} test(s))'.format(msg, sum(1 for x in tests)))
+            msg_to_count = collections.defaultdict(lambda: 0)
+            for (test, msg) in result.skipped:
+                msg_to_count[msg] += 1
+            for (msg, count) in sorted(msg_to_count.items()):
+                print('\t{} ({} test(s))'.format(msg, count))
         return result
