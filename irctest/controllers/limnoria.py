@@ -5,6 +5,9 @@ from irctest import authentication
 from irctest.basecontrollers import BaseClientController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
+supybot.plugins: Authentication
+supybot.plugins.Authentication: True
+supybot.plugins.Authentication.public: True
 supybot.directories.conf: {directory}/conf
 supybot.directories.data: {directory}/data
 supybot.log.stdout.level: {loglevel}
