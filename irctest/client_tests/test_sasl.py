@@ -16,6 +16,13 @@ IRX9cyi2wdYg9mUUYyh9GKdBCYHGUJAiCA==
 """
 
 class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
+    def checkMechanismSupport(self, mechanism):
+        if not hasattr(self.controller, 'supported_sasl_mechanisms'):
+            return
+        if mechanism in self.controller.supported_sasl_mechanisms:
+            return
+        self.skipTest('SASL Mechanism not supported: {}'.format(mechanism))
+
     def testPlain(self):
         auth = authentication.Authentication(
                 mechanisms=[authentication.Mechanisms.plain],
@@ -108,6 +115,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
                 ecdsa_key=ECDSA_KEY,
                 )
         m = self.negotiateCapabilities(['sasl'], auth=auth)
+        self.checkMechanismSupport('ECDSA-NIST256P-CHALLENGE')
         self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['ECDSA-NIST256P-CHALLENGE']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
