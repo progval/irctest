@@ -29,7 +29,7 @@ def main(args):
     _IrcTestCase.controllerClass = controller_class
     _IrcTestCase.show_io = args.show_io
     ts = module.discover()
-    testRunner = OptionalityReportingTextTestRunner()
+    testRunner = OptionalityReportingTextTestRunner(verbosity=args.verbose)
     testLoader = unittest.loader.defaultTestLoader
     testRunner.run(ts)
 
@@ -40,6 +40,8 @@ parser.add_argument('module', type=str,
         help='The module used to run the tested program.')
 parser.add_argument('--show-io', action='store_true',
         help='Show input/outputs with the tested program.')
+parser.add_argument('-v', '--verbose', action='count', default=1,
+        help='Verbosity.')
 
 
 args = parser.parse_args()
