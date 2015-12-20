@@ -28,7 +28,8 @@ class _IrcTestCase(unittest.TestCase):
         fetches messages until the predicate returns a False on a message,
         and returns this message."""
         while True:
-            msg = message_parser.parse_message(self.getLine(*args))
+            line = self.getLine(*args)
+            msg = message_parser.parse_message(line)
             if not filter_pred or filter_pred(msg):
                 return msg
     def assertMessageEqual(self, msg, subcommand=None, subparams=None,
@@ -216,7 +217,10 @@ class BaseServerTestCase(_IrcTestCase):
             conn.setblocking(False)
             while True:
                 time.sleep(0.1) # TODO: do better than this (use ping?)
-                data += conn.recv(4096)
+                new_data = conn.recv(4096) # May raise BlockingIOError
+                if not new_data:
+                    raise BlockingIOError
+                data += new_data
         except BlockingIOError:
             for line in data.decode().split('\r\n'):
                 if line and self.show_io:
@@ -257,6 +261,22 @@ class BaseServerTestCase(_IrcTestCase):
                 if not as_list:
                     caps = capabilities.cap_list_to_dict(caps)
                 return caps
+
+    def assertDisconnected(self, client):
+        try:
+            self.getLines(client)
+            self.sendLine(client, 'PING foo')
+            while True:
+                l = self.getLine(client)
+                self.assertNotEqual(line, '')
+                m = message_parser.parse_message(l)
+                self.assertNotEqual(m.command, 'PONG',
+                        'Client not disconnected.')
+        except socket.error:
+            del self.clients[client]
+            return
+        else:
+            raise AssertionError('Client not disconnected.')
 
 class OptionalityHelper:
     def checkMechanismSupport(self, mechanism):
