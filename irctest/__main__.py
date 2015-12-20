@@ -20,6 +20,7 @@ def main(args):
         import irctest.client_tests as module
     elif issubclass(controller_class, BaseServerController):
         import irctest.server_tests as module
+        _IrcTestCase.server_start_delay = args.server_start_delay
     else:
         print(r'{}.Controller should be a subclass of '
                 r'irctest.basecontroller.Base{{Client,Server}}Controller'
@@ -40,6 +41,9 @@ parser.add_argument('module', type=str,
         help='The module used to run the tested program.')
 parser.add_argument('--show-io', action='store_true',
         help='Show input/outputs with the tested program.')
+parser.add_argument('--server-start-delay', type=float, default=None,
+        help='Number of seconds to wait before querying a server.')
+
 
 args = parser.parse_args()
 main(args)
