@@ -15,12 +15,14 @@ IRX9cyi2wdYg9mUUYyh9GKdBCYHGUJAiCA==
 -----END EC PRIVATE KEY-----
 """
 
-class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
+class SaslMechanismCheck:
     def checkMechanismSupport(self, mechanism):
         if mechanism in self.controller.supported_sasl_mechanisms:
             return
         self.skipTest('SASL Mechanism not supported: {}'.format(mechanism))
 
+class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
+                   SaslMechanismCheck):
     def testPlain(self):
         auth = authentication.Authentication(
                 mechanisms=[authentication.Mechanisms.plain],
@@ -138,7 +140,8 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
         m = self.negotiateCapabilities(['sasl'], False)
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
 
-class Irc302SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
+class Irc302SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
+                         SaslMechanismCheck):
     def testPlainNotAvailable(self):
         auth = authentication.Authentication(
                 mechanisms=[authentication.Mechanisms.plain],
