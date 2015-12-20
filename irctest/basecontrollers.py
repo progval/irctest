@@ -2,7 +2,9 @@ import os
 import shutil
 import socket
 import tempfile
+import time
 import subprocess
+import psutil
 
 from .optional_extensions import NotImplementedByController
 
@@ -60,4 +62,11 @@ class BaseServerController(_BaseController):
         raise NotImplementedError()
     def registerUser(self, case, username):
         raise NotImplementedByController('registration')
+    def wait_for_port(self, proc, port):
+        port_open = False
+        while not port_open:
+            time.sleep(0.1)
+            for conn in psutil.Process(proc.pid).connections():
+                if conn.laddr[1] == port:
+                    port_open = True
 
