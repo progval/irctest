@@ -2,7 +2,7 @@
 
 import os
 import sys
-from distutils.core import setup
+from setuptools import setup
 
 if sys.version_info < (3, 4, 0):
     sys.stderr.write("This script requires Python 3.4 or newer.")
@@ -10,7 +10,7 @@ if sys.version_info < (3, 4, 0):
     sys.exit(-1)
 
 with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as fd:
-    requirements = [x.split('#')[0].strip().replace(' >', ' (>')+')'
+    requirements = [x.split('#')[0]
                     for x in fd.readlines()]
 
 setup(
@@ -48,7 +48,7 @@ setup(
             'irctest.irc_utils',
             'irctest.server_tests',
             ],
-    requires=requirements,
+    install_requires=requirements,
     )
 
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
