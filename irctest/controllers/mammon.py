@@ -64,7 +64,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
         # Mammon does not seem to handle SIGTERM very well
         self.proc.kill()
 
-    def run(self, hostname, port, start_wait=0.5):
+    def run(self, hostname, port):
         assert self.proc is None
         self.create_config()
         with self.open_file('server.yml') as fd:
@@ -75,7 +75,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
                 ))
         self.proc = subprocess.Popen(['mammond', '--nofork', #'--debug',
             '--config', os.path.join(self.directory, 'server.yml')])
-        time.sleep(start_wait) # FIXME: do better than this to wait for Mammon to start
+        self.wait_for_port(self.proc, port)
 
     def registerUser(self, case, username):
         # XXX: Move this somewhere else when

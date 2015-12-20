@@ -22,7 +22,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         with self.open_file('server.conf'):
             pass
 
-    def run(self, hostname, port, start_wait=0.1):
+    def run(self, hostname, port):
         assert self.proc is None
         self.create_config()
         with self.open_file('server.conf') as fd:
@@ -32,7 +32,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                 ))
         self.proc = subprocess.Popen(['inspircd', '--nofork', '--config',
             os.path.join(self.directory, 'server.conf')])
-        time.sleep(start_wait) # FIXME: do better than this to wait for InspIRCd to start
+        self.wait_for_port(self.proc, port)
 
 def get_irctest_controller_class():
     return InspircdController
