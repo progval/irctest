@@ -59,6 +59,3 @@ docs/_build/
 
 # PyBuilder
 target/
-
-# mammon
-.mammon.data.json
