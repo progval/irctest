@@ -10,6 +10,7 @@ supybot.plugins.Authentication: True
 supybot.plugins.Authentication.public: True
 supybot.directories.conf: {directory}/conf
 supybot.directories.data: {directory}/data
+supybot.directories.migrations: {directory}/migrations
 supybot.log.stdout.level: {loglevel}
 supybot.networks: testnet
 supybot.networks.testnet.servers: {hostname}:{port}
