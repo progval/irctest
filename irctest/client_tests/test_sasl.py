@@ -56,6 +56,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('904 {} :SASL auth failed'.format(self.nick))
         m = self.getMessage()
+        self.assertMessageEqual(m, command='CAP')
 
 
     def testPlainLarge(self):
