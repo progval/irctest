@@ -2,6 +2,7 @@ import ecdsa
 import base64
 from irctest import cases
 from irctest import authentication
+from irctest import optional_extensions
 from irctest.irc_utils.message_parser import Message
 
 ECDSA_KEY = """
@@ -19,7 +20,7 @@ class SaslMechanismCheck:
     def checkMechanismSupport(self, mechanism):
         if mechanism in self.controller.supported_sasl_mechanisms:
             return
-        self.skipTest('SASL Mechanism not supported: {}'.format(mechanism))
+        raise optional_extensions.OptionalSaslMechanismNotSupported(mechanism)
 
 class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                    SaslMechanismCheck):
