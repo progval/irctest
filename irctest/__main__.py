@@ -16,9 +16,9 @@ def main(args):
 
     controller_class = module.get_irctest_controller_class()
     if issubclass(controller_class, BaseClientController):
-        module = 'irctest.client_tests'
+        import irctest.client_tests as module
     elif issubclass(controller_class, BaseServerController):
-        module = 'irctest.server_tests'
+        import irctest.server_tests as module
     else:
         print(r'{}.Controller should be a subclass of '
                 r'irctest.basecontroller.Base{{Client,Server}}Controller'
@@ -27,7 +27,10 @@ def main(args):
         exit(1)
     _IrcTestCase.controllerClass = controller_class
     _IrcTestCase.show_io = args.show_io
-    unittest.main(module=module, argv=[sys.argv[0], 'discover'])
+    ts = module.discover()
+    testRunner = unittest.runner.TextTestRunner()
+    testLoader = unittest.loader.defaultTestLoader
+    testRunner.run(ts)
 
 
 parser = argparse.ArgumentParser(
