@@ -17,14 +17,15 @@ supybot.networks.testnet.sasl.mechanisms: {mechanisms}
 """
 
 class LimnoriaController(BaseClientController, DirectoryBasedController):
+    supported_sasl_mechanisms = {
+            'PLAIN', 'ECDSA-NIST256P-CHALLENGE', 'EXTERNAL',
+            }
     def create_config(self):
         super().create_config()
         with self.open_file('bot.conf'):
             pass
         with self.open_file('conf/users.conf'):
             pass
-        self.supported_sasl_mechanisms = [
-            'PLAIN', 'ECDSA-NIST256P-CHALLENGE', 'EXTERNAL']
 
     def run(self, hostname, port, auth):
         # Runs a client with the config given as arguments
