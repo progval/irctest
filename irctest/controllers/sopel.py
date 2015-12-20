@@ -12,15 +12,16 @@ use_ssl = false
 port = {port}
 owner = me
 channels = 
+timeout = 5
 auth_username = {username}
 auth_password = {password}
 {auth_method}
 """
 
 class SopelController(BaseClientController):
-    supported_sasl_mechanisms = [
+    supported_sasl_mechanisms = {
             'PLAIN',
-            ]
+            }
     def __init__(self):
         super().__init__()
         self.filename = next(tempfile._get_candidate_names()) + '.cfg'
