@@ -2,7 +2,6 @@ import ecdsa
 import base64
 from irctest import cases
 from irctest import authentication
-from irctest import optional_extensions
 from irctest.irc_utils.message_parser import Message
 
 ECDSA_KEY = """
@@ -16,14 +15,9 @@ IRX9cyi2wdYg9mUUYyh9GKdBCYHGUJAiCA==
 -----END EC PRIVATE KEY-----
 """
 
-class SaslMechanismCheck:
-    def checkMechanismSupport(self, mechanism):
-        if mechanism in self.controller.supported_sasl_mechanisms:
-            return
-        raise optional_extensions.OptionalSaslMechanismNotSupported(mechanism)
-
 class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
-                   SaslMechanismCheck):
+                   cases.OptionalityHelper):
+    @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlain(self):
         """Test PLAIN authentication."""
         auth = authentication.Authentication(
@@ -32,7 +26,6 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                 password='sesame',
                 )
         m = self.negotiateCapabilities(['sasl'], auth=auth)
-        self.checkMechanismSupport('PLAIN')
         self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
@@ -43,6 +36,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         m = self.negotiateCapabilities(['sasl'], False)
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
 
+    @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlainNotAvailable(self):
         """Test the client handles gracefully servers that don't provide a
         mechanism it could use."""
@@ -52,7 +46,6 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                 password='sesame',
                 )
         m = self.negotiateCapabilities(['sasl=EXTERNAL'], auth=auth)
-        self.checkMechanismSupport('PLAIN')
         self.assertEqual(self.acked_capabilities, {'sasl'})
         if m == Message([], None, 'CAP', ['END']):
             # IRCv3.2-style
@@ -63,6 +56,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         self.assertMessageEqual(m, command='CAP')
 
 
+    @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlainLarge(self):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400."""
@@ -75,7 +69,6 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         authstring = base64.b64encode(b'\x00'.join(
             [b'foo', b'foo', b'bar'*200])).decode()
         m = self.negotiateCapabilities(['sasl'], auth=auth)
-        self.checkMechanismSupport('PLAIN')
         self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
@@ -92,6 +85,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         m = self.negotiateCapabilities(['sasl'], False)
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
 
+    @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlainLargeMultiple(self):
         """Test the client splits large AUTHENTICATE messages whose payload
         is a multiple of 400."""
@@ -104,7 +98,6 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         authstring = base64.b64encode(b'\x00'.join(
             [b'foo', b'foo', b'quux'*148])).decode()
         m = self.negotiateCapabilities(['sasl'], auth=auth)
-        self.checkMechanismSupport('PLAIN')
         self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
@@ -121,6 +114,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         m = self.negotiateCapabilities(['sasl'], False)
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
 
+    @cases.OptionalityHelper.skipUnlessHasMechanism('ECDSA-NIST256P-CHALLENGE')
     def testEcdsa(self):
         """Test ECDSA authentication."""
         auth = authentication.Authentication(
@@ -129,7 +123,6 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                 ecdsa_key=ECDSA_KEY,
                 )
         m = self.negotiateCapabilities(['sasl'], auth=auth)
-        self.checkMechanismSupport('ECDSA-NIST256P-CHALLENGE')
         self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['ECDSA-NIST256P-CHALLENGE']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
@@ -151,7 +144,8 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
 
 class Irc302SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
-                         SaslMechanismCheck):
+                         cases.OptionalityHelper):
+    @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlainNotAvailable(self):
         """Test the client does not try to authenticate using a mechanism the
         server does not advertise."""
@@ -161,6 +155,5 @@ class Irc302SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper
                 password='sesame',
                 )
         m = self.negotiateCapabilities(['sasl=EXTERNAL'], auth=auth)
-        self.checkMechanismSupport('PLAIN')
         self.assertEqual(self.acked_capabilities, {'sasl'})
         self.assertEqual(m, Message([], None, 'CAP', ['END']))

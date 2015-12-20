@@ -55,6 +55,9 @@ server:
 """
 
 class MammonController(BaseServerController, DirectoryBasedController):
+    supported_sasl_mechanisms = {
+            'PLAIN', 'ECDSA-NIST256P-CHALLENGE',
+            }
     def create_config(self):
         super().create_config()
         with self.open_file('server.conf'):
@@ -77,7 +80,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
             '--config', os.path.join(self.directory, 'server.yml')])
         self.wait_for_port(self.proc, port)
 
-    def registerUser(self, case, username):
+    def registerUser(self, case, username, password=None):
         # XXX: Move this somewhere else when
         # https://github.com/ircv3/ircv3-specifications/pull/152 becomes
         # part of the specification
@@ -87,7 +90,8 @@ class MammonController(BaseServerController, DirectoryBasedController):
         case.sendLine(client, 'USER r e g :user')
         case.sendLine(client, 'CAP END')
         list(case.getLines(client))
-        case.sendLine(client, 'REG CREATE {} passphrase temporarypassword'.format(username))
+        case.sendLine(client, 'REG CREATE {} passphrase {}'.format(
+            username, password))
         msg = case.getMessage(client)
         assert msg.command == '920'
         list(case.getLines(client))

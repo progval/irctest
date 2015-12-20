@@ -60,7 +60,7 @@ class BaseServerController(_BaseController):
     """Base controller for IRC server."""
     def run(self, hostname, port, start_wait):
         raise NotImplementedError()
-    def registerUser(self, case, username):
+    def registerUser(self, case, username, password=None):
         raise NotImplementedByController('registration')
     def wait_for_port(self, proc, port):
         port_open = False

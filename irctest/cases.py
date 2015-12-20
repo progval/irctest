@@ -1,10 +1,13 @@
 import time
 import socket
 import unittest
+import functools
 import collections
 
 from . import authentication
+from . import optional_extensions
 from .irc_utils import message_parser
+from .irc_utils import capabilities
 
 class _IrcTestCase(unittest.TestCase):
     """Base class for test cases."""
@@ -59,12 +62,15 @@ class BaseClientTestCase(_IrcTestCase):
     user = None
     def setUp(self):
         super().setUp()
+        self.conn = None
         self._setUpServer()
     def tearDown(self):
-        self.conn.sendall(b'QUIT :end of test.')
+        if self.conn:
+            self.conn.sendall(b'QUIT :end of test.')
         self.controller.kill()
-        self.conn_file.close()
-        self.conn.close()
+        if self.conn:
+            self.conn_file.close()
+            self.conn.close()
         self.server.close()
 
     def _setUpServer(self):
@@ -129,7 +135,7 @@ class ClientNegociationHelper:
         else:
             return True
 
-    def negotiateCapabilities(self, capabilities, cap_ls=True, auth=None):
+    def negotiateCapabilities(self, caps, cap_ls=True, auth=None):
         """Performes a complete capability negociation process, without
         ending it, so the caller can continue the negociation."""
         if cap_ls:
@@ -137,8 +143,8 @@ class ClientNegociationHelper:
             if not self.protocol_version:
                 # No negotiation.
                 return
-            self.sendLine('CAP * LS :{}'.format(' '.join(capabilities)))
-        capability_names = {x.split('=')[0] for x in capabilities}
+            self.sendLine('CAP * LS :{}'.format(' '.join(caps)))
+        capability_names = frozenset(capabilities.cap_list_to_dict(caps))
         self.acked_capabilities = set()
         while True:
             m = self.getMessage(filter_pred=self.userNickPredicate)
@@ -191,11 +197,15 @@ class BaseServerTestCase(_IrcTestCase):
         conn.connect((self.hostname, self.port))
         conn_file = conn.makefile(newline='\r\n', encoding='utf8')
         self.clients[name] = Client(conn=conn, conn_file=conn_file)
+        if self.show_io:
+            print('{}: connects to server.'.format(name))
         return name
 
     def removeClient(self, name):
         """Disconnects the client, without QUIT."""
         assert name in self.clients
+        if self.show_io:
+            print('{}: disconnects from server.'.format(name))
         self.clients[name].conn.close()
         del self.clients[name]
 
@@ -209,7 +219,7 @@ class BaseServerTestCase(_IrcTestCase):
                 data += conn.recv(4096)
         except BlockingIOError:
             for line in data.decode().split('\r\n'):
-                if line:
+                if line and self.show_io:
                     print('S -> {}: {}'.format(client, line.strip()))
                     yield line + '\r\n'
         finally:
@@ -229,16 +239,37 @@ class BaseServerTestCase(_IrcTestCase):
         if self.show_io:
             print('{} -> S: {}'.format(client, line.strip()))
 
-    def getCapLs(self, client):
+    def getCapLs(self, client, as_list=False):
         """Waits for a CAP LS block, parses all CAP LS messages, and return
-        the list of capabilities."""
-        capabilities = []
+        the dict capabilities, with their values.
+
+        If as_list is given, returns the raw list (ie. key/value not split)
+        in case the order matters (but it shouldn't)."""
+        caps = []
         while True:
             m = self.getMessage(client,
                     filter_pred=lambda m:m.command != 'NOTICE')
             self.assertMessageEqual(m, command='CAP', subcommand='LS')
             if m.params[2] == '*':
-                capabilities.extend(m.params[3].split())
+                caps.extend(m.params[3].split())
             else:
-                capabilities.extend(m.params[2].split())
-                return capabilities
+                caps.extend(m.params[2].split())
+                if not as_list:
+                    caps = capabilities.cap_list_to_dict(caps)
+                return caps
+
+class OptionalityHelper:
+    def checkMechanismSupport(self, mechanism):
+        if mechanism in self.controller.supported_sasl_mechanisms:
+            return
+        raise optional_extensions.OptionalSaslMechanismNotSupported(mechanism)
+
+    def skipUnlessHasMechanism(mech):
+        def decorator(f):
+            @functools.wraps(f)
+            def newf(self):
+                self.checkMechanismSupport(mech)
+                return f(self)
+            return newf
+        return decorator
+

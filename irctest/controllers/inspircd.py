@@ -17,6 +17,7 @@ TEMPLATE_CONFIG = """
 """
 
 class InspircdController(BaseServerController, DirectoryBasedController):
+    supported_sasl_mechanisms = {}
     def create_config(self):
         super().create_config()
         with self.open_file('server.conf'):
