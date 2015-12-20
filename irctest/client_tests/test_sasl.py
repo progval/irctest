@@ -14,7 +14,6 @@ AwEHoUQDQgAEAZmaVhNSMmV5r8FXPvKuMnqDKyIA9pDHN5TNMfiF3mMeikGgK10W
 IRX9cyi2wdYg9mUUYyh9GKdBCYHGUJAiCA==
 -----END EC PRIVATE KEY-----
 """
-ENCODED_FOOBAR = """gqpuPoR0vaTIKiEQyqrj48RIT13R3hJuJI2Os7ySXwLWbjizpdmGPNtJdv396FkvZVPwZpC4cCfabhEby4ytGA=="""
 
 class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
     def testPlain(self):
