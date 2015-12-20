@@ -155,7 +155,10 @@ class BaseServerTestCase(_IrcTestCase):
     def setUp(self):
         super().setUp()
         self.find_hostname_and_port()
-        self.controller.run(self.hostname, self.port)
+        kwargs = {}
+        if self.server_start_delay is not None:
+            kwargs['start_wait'] = self.server_start_delay
+        self.controller.run(self.hostname, self.port, **kwargs)
         self.clients = {}
     def tearDown(self):
         self.controller.kill()

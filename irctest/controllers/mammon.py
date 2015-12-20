@@ -1,10 +1,7 @@
 import os
 import time
-import shutil
-import tempfile
 import subprocess
 
-from irctest import authentication
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
@@ -54,7 +51,7 @@ server:
   recvq_len: 20
 """
 
-class InspircdController(BaseServerController, DirectoryBasedController):
+class MammonController(BaseServerController, DirectoryBasedController):
     def create_config(self):
         super().create_config()
         with self.open_file('server.conf'):
@@ -64,7 +61,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         # Mammon does not seem to handle SIGTERM very well
         self.proc.kill()
 
-    def run(self, hostname, port):
+    def run(self, hostname, port, start_wait=0.5):
         assert self.proc is None
         self.create_config()
         with self.open_file('server.yml') as fd:
@@ -73,11 +70,9 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                 hostname=hostname,
                 port=port,
                 ))
-        self.proc = subprocess.Popen(['python3', '-m', 'mammon', '--nofork', #'--debug',
+        self.proc = subprocess.Popen(['mammond', '--nofork', #'--debug',
             '--config', os.path.join(self.directory, 'server.yml')])
-        time.sleep(0.5) # FIXME: do better than this to wait for Mammon to start
+        time.sleep(start_wait) # FIXME: do better than this to wait for Mammon to start
 
 def get_irctest_controller_class():
-    return InspircdController
-
-
+    return MammonController
