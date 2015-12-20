@@ -18,10 +18,10 @@ class CapTestCase(cases.BaseServerTestCase):
         self.getCapLs(1)
         self.sendLine(1, 'USER foo foo foo :foo')
         self.sendLine(1, 'NICK foo')
-        self.sendLine(1, 'CAP REQ :invalid-capability')
+        self.sendLine(1, 'CAP REQ :foo')
         m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
         self.assertMessageEqual(m, command='CAP',
-                subcommand='NAK', subparams=['invalid-capability'])
+                subcommand='NAK', subparams=['foo'])
         self.sendLine(1, 'CAP END')
         m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
         self.assertEqual(m.command, '001')
@@ -38,3 +38,26 @@ class CapTestCase(cases.BaseServerTestCase):
         m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
         self.assertMessageEqual(m, command='CAP',
                 subcommand='NAK', subparams=['foo bar baz qux quux'])
+
+    def testNakWhole(self):
+        """Makes sure the server NAKS all capabilities in a single REQ."""
+        self.addClient(1)
+        self.sendLine(1, 'CAP LS 302')
+        self.assertIn('multi-prefix', self.getCapLs(1))
+        self.sendLine(1, 'CAP REQ :foo multi-prefix bar')
+        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        self.assertMessageEqual(m, command='CAP',
+                subcommand='NAK', subparams=['foo multi-prefix bar'])
+        self.sendLine(1, 'CAP REQ :multi-prefix bar')
+        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        self.assertMessageEqual(m, command='CAP',
+                subcommand='NAK', subparams=['multi-prefix bar'])
+        self.sendLine(1, 'CAP REQ :foo multi-prefix')
+        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        self.assertMessageEqual(m, command='CAP',
+                subcommand='NAK', subparams=['foo multi-prefix'])
+        # TODO: make sure multi-prefix is not enabled at this point
+        self.sendLine(1, 'CAP REQ :multi-prefix')
+        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        self.assertMessageEqual(m, command='CAP',
+                subcommand='ACK', subparams=['multi-prefix'])

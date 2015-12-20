@@ -12,6 +12,7 @@ TEMPLATE_CONFIG = """
 <module name="cap">
 <module name="ircv3">
 <module name="ircv3_capnotify">
+<module name="namesx"> # For multi-prefix
 <connect allow="*" resolvehostnames="no"> # Faster
 """
 
