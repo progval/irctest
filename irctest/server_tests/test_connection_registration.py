@@ -7,6 +7,7 @@ from irctest import cases
 from irctest import authentication
 from irctest.irc_utils.message_parser import Message
 from irctest.basecontrollers import NotImplementedByController
+from irctest.client_mock import ConnectionClosed
 
 class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
     password = 'testpassword'
@@ -53,7 +54,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.connectClient('foo')
         self.getMessages(1)
         self.sendLine(1, 'QUIT')
-        self.assertRaises(cases.ConnectionClosed, self.getMessages, 1)
+        self.assertRaises(ConnectionClosed, self.getMessages, 1)
 
     def testNickCollision(self):
         """A user connects and requests the same nickname as an already
