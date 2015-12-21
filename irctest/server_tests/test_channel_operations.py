@@ -38,17 +38,27 @@ class JoinTestCase(cases.BaseServerTestCase):
             "( "=" / "*" / "@" ) <channel>
              :[ "@" / "+" ] <nick> *( " " [ "@" / "+" ] <nick> )”
         -- <https://tools.ietf.org/html/rfc2812#section-5.2>
+
+        This test makes a user join and check what is sent to them.
         """
         self.connectClient('foo')
         self.sendLine(1, 'JOIN #chan')
 
         for m in self.getMessages(1):
             if m.command == '353':
-                self.assertIn(len(m.params), (3, 4), m)
+                self.assertIn(len(m.params), (3, 4), m,
+                        fail_msg='RPL_NAM_REPLY with number of arguments '
+                        '<3 or >4: {msg}')
                 params = ambiguities.normalize_namreply_params(m.params)
-                self.assertIn(params[1], '=*@', m)
-                self.assertEqual(params[2], '#chan', m)
-                self.assertIn(params[3], {'foo', '@foo', '+foo'}, m)
+                self.assertIn(params[1], '=*@', m,
+                        fail_msg='Bad channel prefix: {got} not in {expects}: {msg}')
+                self.assertEqual(params[2], '#chan', m,
+                        fail_msg='Bad channel name: {got} instead of '
+                        '{expects}: {msg}')
+                self.assertIn(params[3], {'foo', '@foo', '+foo'}, m,
+                        fail_msg='Bad user list: should contain only user '
+                        '"foo" with an optional "+" or "@" prefix, but got: '
+                        '{msg}')
 
 
     def testPartNotInEmptyChannel(self):
@@ -77,16 +87,24 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.connectClient('foo')
         self.sendLine(1, 'PART #chan')
         m = self.getMessage(1)
-        self.assertIn(m.command, {'442', '403'}) # ERR_NOTONCHANNEL, ERR_NOSUCHCHANNEL
+        self.assertIn(m.command, {'442', '403'}, m, # ERR_NOTONCHANNEL, ERR_NOSUCHCHANNEL
+                fail_msg='Expected ERR_NOTONCHANNEL (442) or '
+                'ERR_NOSUCHCHANNEL (403) after PARTing an empty channel '
+                'one is not on, but got: {msg}')
 
     def testPartNotInNonEmptyChannel(self):
         self.connectClient('foo')
         self.connectClient('bar')
         self.sendLine(1, 'JOIN #chan')
+        self.getMessages(1) # Synchronize
         self.sendLine(2, 'PART #chan')
-        self.getMessages(1)
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command='442') # ERR_NOTONCHANNEL
+        self.assertMessageEqual(m, command='442', # ERR_NOTONCHANNEL
+                fail_msg='Expected ERR_NOTONCHANNEL (442) '
+                'after PARTing a non-empty channel '
+                'one is not on, but got: {msg}')
+        self.assertEqual(self.getMessages(2), [])
+    testPartNotInNonEmptyChannel.__doc__ = testPartNotInEmptyChannel.__doc__
 
     def testJoinTwice(self):
         self.connectClient('foo')

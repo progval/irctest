@@ -32,7 +32,7 @@ class _IrcTestCase(unittest.TestCase):
         if self.show_io:
             print('---- new test ----')
     def assertMessageEqual(self, msg, subcommand=None, subparams=None,
-            target=None, **kwargs):
+            target=None, fail_msg=None, **kwargs):
         """Helper for partially comparing a message.
 
         Takes the message as first arguments, and comparisons to be made
@@ -41,19 +41,27 @@ class _IrcTestCase(unittest.TestCase):
         Deals with subcommands (eg. `CAP`) if any of `subcommand`,
         `subparams`, and `target` are given."""
         for (key, value) in kwargs.items():
-            #with self.subTest(key=key):
-                self.assertEqual(getattr(msg, key), value, msg)
+            self.assertEqual(getattr(msg, key), value, msg, fail_msg)
         if subcommand is not None or subparams is not None:
-            self.assertGreater(len(msg.params), 2, msg)
+            self.assertGreater(len(msg.params), 2, fail_msg)
             msg_target = msg.params[0]
             msg_subcommand = msg.params[1]
             msg_subparams = msg.params[2:]
             if subcommand:
                 with self.subTest(key='subcommand'):
-                    self.assertEqual(msg_subcommand, subcommand, msg)
+                    self.assertEqual(msg_subcommand, subcommand, msg, fail_msg)
             if subparams is not None:
                 with self.subTest(key='subparams'):
-                    self.assertEqual(msg_subparams, subparams, msg)
+                    self.assertEqual(msg_subparams, subparams, msg, fail_msg)
+
+    def assertIn(self, got, expects, msg=None, fail_msg=None):
+        if fail_msg:
+            fail_msg = fail_msg.format(got=got, expects=expects, msg=msg)
+        super().assertIn(got, expects, fail_msg)
+    def assertEqual(self, got, expects, msg=None, fail_msg=None):
+        if fail_msg:
+            fail_msg = fail_msg.format(got=got, expects=expects, msg=msg)
+        super().assertEqual(got, expects, fail_msg)
 
 class BaseClientTestCase(_IrcTestCase):
     """Basic class for client tests. Handles spawning a client and exchanging

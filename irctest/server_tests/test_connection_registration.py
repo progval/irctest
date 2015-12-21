@@ -18,14 +18,16 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'USER username * * :Realname')
 
         m = self.getRegistrationMessage(1)
-        self.assertMessageEqual(m, command='001')
+        self.assertMessageEqual(m, command='001',
+                fail_msg='Did not get 001 after correct PASS+NICK+USER: {msg}')
 
     def testNoPassword(self):
         self.addClient()
         self.sendLine(1, 'NICK foo')
         self.sendLine(1, 'USER username * * :Realname')
         m = self.getRegistrationMessage(1)
-        self.assertNotEqual(m.command, '001')
+        self.assertNotEqual(m.command, '001',
+                msg='Got 001 NICK+USER but missing PASS')
 
     def testPassAfterNickuser(self):
         """“The password can and must be set before any attempt to register
@@ -43,7 +45,8 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'USER username * * :Realname')
         self.sendLine(1, 'PASS {}'.format(self.password))
         m = self.getRegistrationMessage(1)
-        self.assertNotEqual(m.command, '001')
+        self.assertNotEqual(m.command, '001',
+                'Got 001 NICK+USER but incorrect PASS')
 
 class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
     def testQuitDisconnects(self):
@@ -54,7 +57,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.connectClient('foo')
         self.getMessages(1)
         self.sendLine(1, 'QUIT')
-        self.assertRaises(ConnectionClosed, self.getMessages, 1)
+        self.assertRaises(ConnectionClosed, self.getMessages, 1) # Connection was not closed after QUIT.
 
     def testNickCollision(self):
         """A user connects and requests the same nickname as an already
@@ -65,7 +68,9 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.sendLine(2, 'NICK foo')
         self.sendLine(2, 'USER username * * :Realname')
         m = self.getRegistrationMessage(2)
-        self.assertNotEqual(m.command, '001')
+        self.assertNotEqual(m.command, '001',
+                'Received 001 after registering with the nick of a '
+                'registered user.')
 
     def testEarlyNickCollision(self):
         """Two users register simultaneously with the same nick."""
@@ -77,4 +82,6 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.sendLine(2, 'USER username * * :Realname')
         m1 = self.getRegistrationMessage(1)
         m2 = self.getRegistrationMessage(2)
-        self.assertNotEqual((m1.command, m2.command), ('001', '001'))
+        self.assertNotEqual((m1.command, m2.command), ('001', '001'),
+                'Two concurrently registering requesting the same nickname '
+                'both got 001.')
