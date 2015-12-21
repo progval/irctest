@@ -51,7 +51,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                 self.assertIn(params[3], {'foo', '@foo', '+foo'}, m)
 
 
-    def testPartNotInChannel(self):
+    def testPartNotInEmptyChannel(self):
         """“442     ERR_NOTONCHANNEL
             "<channel> :You're not on that channel"
 
@@ -78,6 +78,15 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'PART #chan')
         m = self.getMessage(1)
         self.assertIn(m.command, {'442', '403'}) # ERR_NOTONCHANNEL, ERR_NOSUCHCHANNEL
+
+    def testPartNotInNonEmptyChannel(self):
+        self.connectClient('foo')
+        self.connectClient('bar')
+        self.sendLine(1, 'JOIN #chan')
+        self.sendLine(2, 'PART #chan')
+        self.getMessages(1)
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command='442') # ERR_NOTONCHANNEL
 
     def testJoinTwice(self):
         self.connectClient('foo')
