@@ -289,6 +289,11 @@ class BaseServerTestCase(_IrcTestCase):
                 break
 
 class OptionalityHelper:
+    def checkSaslSupport(self):
+        if self.controller.supported_sasl_mechanisms:
+            return
+        raise optional_extensions.NotImplementedByController('SASL')
+
     def checkMechanismSupport(self, mechanism):
         if mechanism in self.controller.supported_sasl_mechanisms:
             return
@@ -302,4 +307,11 @@ class OptionalityHelper:
                 return f(self)
             return newf
         return decorator
+
+    def skipUnlessHasSasl(f):
+        @functools.wraps(f)
+        def newf(self):
+            self.checkSaslSupport()
+            return f(self)
+        return newf
 
