@@ -8,7 +8,7 @@ class RegistrationTestCase(cases.BaseServerTestCase):
 class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlain(self):
-        """Test PLAIN authentication."""
+        """PLAIN authentication with correct username/password."""
         self.controller.registerUser(self, 'foo', 'sesame')
         self.controller.registerUser(self, 'jilles', 'sesame')
         self.controller.registerUser(self, 'bar', 'sesame')

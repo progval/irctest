@@ -4,6 +4,8 @@ import unittest
 import functools
 import collections
 
+import supybot.utils
+
 from . import authentication
 from . import optional_extensions
 from .irc_utils import message_parser
@@ -17,6 +19,15 @@ class NoMessageException(AssertionError):
 class _IrcTestCase(unittest.TestCase):
     """Base class for test cases."""
     controllerClass = None # Will be set by __main__.py
+
+    def shortDescription(self):
+        method_doc = self._testMethodDoc
+        if not method_doc:
+            return ''
+        return '\t'+supybot.utils.str.normalizeWhitespace(
+                method_doc,
+                removeNewline=False,
+                ).strip().replace('\n ', '\n\t')
 
     def setUp(self):
         super().setUp()

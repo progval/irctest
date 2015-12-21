@@ -29,7 +29,10 @@ def main(args):
     _IrcTestCase.controllerClass = controller_class
     _IrcTestCase.show_io = args.show_io
     ts = module.discover()
-    testRunner = OptionalityReportingTextTestRunner(verbosity=args.verbose)
+    testRunner = OptionalityReportingTextTestRunner(
+            verbosity=args.verbose,
+            descriptions=True,
+            )
     testLoader = unittest.loader.defaultTestLoader
     testRunner.run(ts)
 

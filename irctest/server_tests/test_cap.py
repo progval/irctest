@@ -4,7 +4,12 @@ from irctest.irc_utils.message_parser import Message
 class CapTestCase(cases.BaseServerTestCase):
     def testNoReq(self):
         """Test the server handles gracefully clients which do not send
-        REQs."""
+        REQs.
+
+        “Clients that support capabilities but do not wish to enter
+        negotiation SHOULD send CAP END upon connection to the server.”
+        -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-end-subcommand>
+        """
         self.addClient(1)
         self.sendLine(1, 'CAP LS 302')
         self.getCapLs(1)
@@ -16,7 +21,9 @@ class CapTestCase(cases.BaseServerTestCase):
 
     def testReqUnavailable(self):
         """Test the server handles gracefully clients which request
-        capabilities that are not available"""
+        capabilities that are not available.
+        <http://ircv3.net/specs/core/capability-negotiation-3.1.html>
+        """
         self.addClient(1)
         self.sendLine(1, 'CAP LS 302')
         self.getCapLs(1)
@@ -31,8 +38,11 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertEqual(m.command, '001')
 
     def testNakExactString(self):
-        """Make sure the server NAKs with *exactly* the string sent, as
-        required by the spec <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-nak-subcommand>"""
+        """“The argument of the NAK subcommand MUST consist of at least the
+        first 100 characters of the capability list in the REQ subcommand which
+        triggered the NAK.”
+        -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-nak-subcommand>
+        """
         self.addClient(1)
         self.sendLine(1, 'CAP LS 302')
         self.getCapLs(1)
@@ -44,7 +54,10 @@ class CapTestCase(cases.BaseServerTestCase):
                 subcommand='NAK', subparams=['foo bar baz qux quux'])
 
     def testNakWhole(self):
-        """Makes sure the server NAKS all capabilities in a single REQ."""
+        """“The capability identifier set must be accepted as a whole, or
+        rejected entirely.”
+        -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-req-subcommand>
+        """
         self.addClient(1)
         self.sendLine(1, 'CAP LS 302')
         self.assertIn('multi-prefix', self.getCapLs(1))
