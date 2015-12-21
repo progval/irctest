@@ -30,4 +30,4 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 fail_msg='Did not send 900 after correct SASL authentication.')
         self.assertEqual(m.params[2], 'jilles', m,
                 fail_msg='900 should contain the account name as 3rd argument '
-                '({expected}), not {got}: {msg}')
+                '({expects}), not {got}: {msg}')
