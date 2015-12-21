@@ -22,24 +22,16 @@ class JoinTestCase(cases.BaseServerTestCase):
         """
         self.connectClient('foo')
         self.sendLine(1, 'JOIN #chan')
-        m = self.getMessage(1)
-        try:
-            self.assertMessageEqual(m, command='JOIN', params=['#chan'])
-        except AssertionError:
-            pass
-        else:
-            m = self.getMessage(1)
-        if m.command in ('331', '332'): # RPL_NOTOPIC, RPL_TOPIC
-            m = self.getMessage(1)
-            self.assertMessageEqual(m, command='353') # RPL_NAMREPLY
-            m = self.getMessage(1)
-            self.assertMessageEqual(m, command='366') # RPL_ENDOFNAMES
-        else:
-            self.assertMessageEqual(m, command='353') # RPL_NAMREPLY
-            m = self.getMessage(1)
-            self.assertMessageEqual(m, command='366') # RPL_ENDOFNAMES
-            m = self.getMessage(1)
-            self.assertIn(m.command, ('331', '332'), m) # RPL_NOTOPIC, RPL_TOPIC
+        received_commands = {m.command for m in self.getMessages(1)}
+        expected_commands = {
+                '353', # RPL_NAMREPLY
+                '366', # RPL_ENDOFNAMES
+                }
+        self.assertTrue(expected_commands.issubset(received_commands),
+                'Server sent {} commands, but at least {} were expected.'
+                .format(received_commands, expected_commands))
+        self.assertTrue(received_commands & {'331', '332'} != set(), # RPL_NOTOPIC, RPL_TOPIC
+                'Server sent neither 331 (RPL_NOTOPIC) or 332 (RPL_TOPIC)')
 
     def testJoinNamreply(self):
         """“353    RPL_NAMREPLY
