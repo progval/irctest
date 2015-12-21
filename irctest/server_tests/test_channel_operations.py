@@ -111,5 +111,24 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'JOIN #chan')
         m = self.getMessage(1)
         self.assertMessageEqual(m, command='JOIN', params=['#chan'])
+        self.getMessages(1)
         self.sendLine(1, 'JOIN #chan')
-        # What should we do now?
+        # Note that there may be no message. Both RFCs require replies only
+        # if the join is successful, or has an error among the given set.
+        for m in self.getMessages(1):
+            if m.command == '353':
+                self.assertIn(len(m.params), (3, 4), m,
+                        fail_msg='RPL_NAM_REPLY with number of arguments '
+                        '<3 or >4: {msg}')
+                params = ambiguities.normalize_namreply_params(m.params)
+                self.assertIn(params[1], '=*@', m,
+                        fail_msg='Bad channel prefix: {got} not in {expects}: {msg}')
+                self.assertEqual(params[2], '#chan', m,
+                        fail_msg='Bad channel name: {got} instead of '
+                        '{expects}: {msg}')
+                self.assertIn(params[3], {'foo', '@foo', '+foo'}, m,
+                        fail_msg='Bad user list after user "foo" joined twice '
+                        'the same channel: should contain only user '
+                        '"foo" with an optional "+" or "@" prefix, but got: '
+                        '{msg}')
+
