@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import subprocess
 
+from irctest import client_mock
 from irctest import authentication
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
@@ -21,6 +22,7 @@ listen {{
 }};
 auth {{
     user = "*";
+    flags = exceed_limit;
     {password_field}
 }};
 channel {{
@@ -30,7 +32,7 @@ channel {{
 }};
 """
 class CharybdisController(BaseServerController, DirectoryBasedController):
-    supported_sasl_mechanisms = {}
+    supported_sasl_mechanisms = set()
     def create_config(self):
         super().create_config()
         with self.open_file('server.conf'):
@@ -46,10 +48,14 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
                 port=port,
                 password_field=password_field
                 ))
-        self.proc = subprocess.Popen(['ircd', '-foreground', '-configfile',
-            os.path.join(self.directory, 'server.conf')],
-            stderr=subprocess.DEVNULL)
+        self.proc = subprocess.Popen(['ircd', '-foreground',
+            '-configfile', os.path.join(self.directory, 'server.conf'),
+            '-pidfile', os.path.join(self.directory, 'server.pid'),
+            ],
+            stderr=subprocess.DEVNULL
+            )
         self.wait_for_port(self.proc, port)
+
 
 def get_irctest_controller_class():
     return CharybdisController
