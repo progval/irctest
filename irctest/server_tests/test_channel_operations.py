@@ -32,12 +32,10 @@ class JoinTestCase(cases.BaseServerTestCase):
         if m.command in ('331', '332'): # RPL_NOTOPIC, RPL_TOPIC
             m = self.getMessage(1)
             self.assertMessageEqual(m, command='353') # RPL_NAMREPLY
-            namreply = m
             m = self.getMessage(1)
             self.assertMessageEqual(m, command='366') # RPL_ENDOFNAMES
         else:
             self.assertMessageEqual(m, command='353') # RPL_NAMREPLY
-            namreply = m
             m = self.getMessage(1)
             self.assertMessageEqual(m, command='366') # RPL_ENDOFNAMES
             m = self.getMessage(1)
