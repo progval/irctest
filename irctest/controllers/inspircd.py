@@ -20,7 +20,7 @@ TEMPLATE_CONFIG = """
 """
 
 class InspircdController(BaseServerController, DirectoryBasedController):
-    supported_sasl_mechanisms = {}
+    supported_sasl_mechanisms = set()
     def create_config(self):
         super().create_config()
         with self.open_file('server.conf'):
@@ -38,7 +38,8 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                 ))
         self.proc = subprocess.Popen(['inspircd', '--nofork', '--config',
             os.path.join(self.directory, 'server.conf')],
-            stdout=subprocess.DEVNULL)
+            stdout=subprocess.DEVNULL
+            )
         self.wait_for_port(self.proc, port)
 
 def get_irctest_controller_class():
