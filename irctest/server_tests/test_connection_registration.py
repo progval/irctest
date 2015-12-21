@@ -46,7 +46,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'PASS {}'.format(self.password))
         m = self.getRegistrationMessage(1)
         self.assertNotEqual(m.command, '001',
-                'Got 001 NICK+USER but incorrect PASS')
+                'Got 001 after NICK+USER but incorrect PASS')
 
 class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
     def testQuitDisconnects(self):
