@@ -69,19 +69,23 @@ class JoinTestCase(cases.BaseServerTestCase):
           -- <https://tools.ietf.org/html/rfc1459#section-6.1>
           and <https://tools.ietf.org/html/rfc2812#section-5.2>
 
-          ERR_NOSUCHCHANNEL should only be used for invalid
-          channel names:
-          “403     ERR_NOSUCHCHANNEL
-            "<channel name> :No such channel"
+        According to RFCs, ERR_NOSUCHCHANNEL should only be used for invalid
+        channel names:
+        “403     ERR_NOSUCHCHANNEL
+          "<channel name> :No such channel"
 
-          - Used to indicate the given channel name is invalid.”
-          -- <https://tools.ietf.org/html/rfc1459#section-6.1>
-          and <https://tools.ietf.org/html/rfc2812#section-5.2>
+        - Used to indicate the given channel name is invalid.”
+        -- <https://tools.ietf.org/html/rfc1459#section-6.1>
+        and <https://tools.ietf.org/html/rfc2812#section-5.2>
+
+        However, many implementations use 479 instead, so let's allow it.
+        <http://danieloaks.net/irc-defs/defs/ircnumerics.html#403>
+        <http://danieloaks.net/irc-defs/defs/ircnumerics.html#479>
         """
         self.connectClient('foo')
         self.sendLine(1, 'PART #chan')
         m = self.getMessage(1)
-        self.assertMessageEqual(m, command='442') # ERR_NOTONCHANNEL
+        self.assertIn(m.command, {'442', '403'}) # ERR_NOTONCHANNEL, ERR_NOSUCHCHANNEL
 
     def testJoinTwice(self):
         self.connectClient('foo')
