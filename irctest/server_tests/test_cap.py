@@ -11,7 +11,7 @@ class CapTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'USER foo foo foo :foo')
         self.sendLine(1, 'NICK foo')
         self.sendLine(1, 'CAP END')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='001')
 
     def testReqUnavailable(self):
@@ -23,11 +23,11 @@ class CapTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'USER foo foo foo :foo')
         self.sendLine(1, 'NICK foo')
         self.sendLine(1, 'CAP REQ :foo')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='CAP',
                 subcommand='NAK', subparams=['foo'])
         self.sendLine(1, 'CAP END')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        m = self.getRegistrationMessage(1)
         self.assertEqual(m.command, '001')
 
     def testNakExactString(self):
@@ -39,7 +39,7 @@ class CapTestCase(cases.BaseServerTestCase):
         # Five should be enough to check there is no reordering, even
         # alphabetical
         self.sendLine(1, 'CAP REQ :foo bar baz qux quux')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='CAP',
                 subcommand='NAK', subparams=['foo bar baz qux quux'])
 
@@ -49,19 +49,19 @@ class CapTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'CAP LS 302')
         self.assertIn('multi-prefix', self.getCapLs(1))
         self.sendLine(1, 'CAP REQ :foo multi-prefix bar')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='CAP',
                 subcommand='NAK', subparams=['foo multi-prefix bar'])
         self.sendLine(1, 'CAP REQ :multi-prefix bar')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='CAP',
                 subcommand='NAK', subparams=['multi-prefix bar'])
         self.sendLine(1, 'CAP REQ :foo multi-prefix')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='CAP',
                 subcommand='NAK', subparams=['foo multi-prefix'])
         # TODO: make sure multi-prefix is not enabled at this point
         self.sendLine(1, 'CAP REQ :multi-prefix')
-        m = self.getMessage(1, filter_pred=lambda m:m.command != 'NOTICE')
+        m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='CAP',
                 subcommand='ACK', subparams=['multi-prefix'])

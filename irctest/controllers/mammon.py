@@ -76,6 +76,8 @@ class MammonController(BaseServerController, DirectoryBasedController):
                 hostname=hostname,
                 port=port,
                 ))
+        #with self.open_file('server.yml', 'r') as fd:
+        #    print(fd.read())
         self.proc = subprocess.Popen(['mammond', '--nofork', #'--debug',
             '--config', os.path.join(self.directory, 'server.yml')])
         self.wait_for_port(self.proc, port)
@@ -84,17 +86,19 @@ class MammonController(BaseServerController, DirectoryBasedController):
         # XXX: Move this somewhere else when
         # https://github.com/ircv3/ircv3-specifications/pull/152 becomes
         # part of the specification
-        client = case.addClient()
+        client = case.addClient(show_io=False)
         case.sendLine(client, 'CAP LS 302')
         case.sendLine(client, 'NICK registration_user')
         case.sendLine(client, 'USER r e g :user')
         case.sendLine(client, 'CAP END')
-        list(case.getLines(client))
+        while case.getRegistrationMessage(client).command != '001':
+            pass
+        list(case.getMessages(client))
         case.sendLine(client, 'REG CREATE {} passphrase {}'.format(
             username, password))
         msg = case.getMessage(client)
-        assert msg.command == '920'
-        list(case.getLines(client))
+        assert msg.command == '920', msg
+        list(case.getMessages(client))
         case.removeClient(client)
 
 def get_irctest_controller_class():
