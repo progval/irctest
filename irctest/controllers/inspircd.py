@@ -32,7 +32,8 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                 port=port,
                 ))
         self.proc = subprocess.Popen(['inspircd', '--nofork', '--config',
-            os.path.join(self.directory, 'server.conf')])
+            os.path.join(self.directory, 'server.conf')],
+            stdout=subprocess.DEVNULL)
         self.wait_for_port(self.proc, port)
 
 def get_irctest_controller_class():
