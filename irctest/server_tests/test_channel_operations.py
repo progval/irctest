@@ -153,7 +153,8 @@ class JoinTestCase(cases.BaseServerTestCase):
                 'or 323 (RPL_LISTEND), or but: {msg}')
 
     def testListOne(self):
-        """<https://tools.ietf.org/html/rfc1459#section-4.2.6>
+        """When a channel exists, LIST should get it in a reply.
+        <https://tools.ietf.org/html/rfc1459#section-4.2.6>
         <https://tools.ietf.org/html/rfc2812#section-3.2.6>
         """
         self.connectClient('foo')
