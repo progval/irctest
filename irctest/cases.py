@@ -260,10 +260,11 @@ class Client:
 class BaseServerTestCase(_IrcTestCase):
     """Basic class for server tests. Handles spawning a server and exchanging
     messages with it."""
+    password = None
     def setUp(self):
         super().setUp()
         self.find_hostname_and_port()
-        self.controller.run(self.hostname, self.port)
+        self.controller.run(self.hostname, self.port, password=self.password)
         self.clients = {}
     def tearDown(self):
         self.controller.kill()
@@ -339,20 +340,20 @@ class BaseServerTestCase(_IrcTestCase):
             raise AssertionError('Client not disconnected.')
     def connectClient(self, nick, name=None):
         name = self.addClient(name)
-        self.sendLine(1, 'NICK {}'.format(nick))
-        self.sendLine(1, 'USER username * * :Realname')
+        self.sendLine(name, 'NICK {}'.format(nick))
+        self.sendLine(name, 'USER username * * :Realname')
 
         # Skip to the point where we are registered
         # https://tools.ietf.org/html/rfc2812#section-3.1
         while True:
-            m = self.getMessage(1, synchronize=False)
+            m = self.getMessage(name, synchronize=False)
             if m.command == '001':
                 break
-        self.sendLine(1, 'PING foo')
+        self.sendLine(name, 'PING foo')
 
         # Skip all that happy welcoming stuff
         while True:
-            m = self.getMessage(1)
+            m = self.getMessage(name)
             if m.command == 'PONG':
                 break
 
