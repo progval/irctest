@@ -3,6 +3,7 @@ import time
 import subprocess
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
+from irctest.basecontrollers import NotImplementedByController
 
 TEMPLATE_CONFIG = """
 clients:
@@ -67,7 +68,9 @@ class MammonController(BaseServerController, DirectoryBasedController):
         # Mammon does not seem to handle SIGTERM very well
         self.proc.kill()
 
-    def run(self, hostname, port):
+    def run(self, hostname, port, password=None):
+        if password is not None:
+            raise NotImplementedByController('PASS command')
         assert self.proc is None
         self.create_config()
         with self.open_file('server.yml') as fd:

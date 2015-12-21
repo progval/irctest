@@ -13,7 +13,10 @@ TEMPLATE_CONFIG = """
 <module name="ircv3">
 <module name="ircv3_capnotify">
 <module name="namesx"> # For multi-prefix
-<connect allow="*" resolvehostnames="no"> # Faster
+<connect allow="*"
+    resolvehostnames="no" # Faster
+    {password_field}>
+<log method="file" type="*" level="debug" target="/tmp/ircd-{port}.log">
 """
 
 class InspircdController(BaseServerController, DirectoryBasedController):
@@ -23,13 +26,15 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         with self.open_file('server.conf'):
             pass
 
-    def run(self, hostname, port):
+    def run(self, hostname, port, password=None):
         assert self.proc is None
         self.create_config()
+        password_field = 'password="{}"'.format(password) if password else ''
         with self.open_file('server.conf') as fd:
             fd.write(TEMPLATE_CONFIG.format(
                 hostname=hostname,
                 port=port,
+                password_field=password_field
                 ))
         self.proc = subprocess.Popen(['inspircd', '--nofork', '--config',
             os.path.join(self.directory, 'server.conf')],
