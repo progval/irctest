@@ -281,22 +281,27 @@ class BaseServerTestCase(_IrcTestCase):
             return
         else:
             raise AssertionError('Client not disconnected.')
-    def connectClient(self, nick, name=None):
-        name = self.addClient(name)
-        self.sendLine(name, 'NICK {}'.format(nick))
-        self.sendLine(name, 'USER username * * :Realname')
 
-        # Skip to the point where we are registered
-        # https://tools.ietf.org/html/rfc2812#section-3.1
+
+    def skipToWelcome(self, client):
+        """Skip to the point where we are registered
+        <https://tools.ietf.org/html/rfc2812#section-3.1>
+        """
         while True:
-            m = self.getMessage(name, synchronize=False)
+            m = self.getMessage(client, synchronize=False)
             if m.command == '001':
-                break
-        self.sendLine(name, 'PING foo')
+                return m
+    def connectClient(self, nick, name=None):
+        client = self.addClient(name)
+        self.sendLine(client, 'NICK {}'.format(nick))
+        self.sendLine(client, 'USER username * * :Realname')
+
+        self.skipToWelcome(client)
+        self.sendLine(client, 'PING foo')
 
         # Skip all that happy welcoming stuff
         while True:
-            m = self.getMessage(name)
+            m = self.getMessage(client)
             if m.command == 'PONG':
                 break
 
