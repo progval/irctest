@@ -134,6 +134,89 @@ class JoinTestCase(cases.BaseServerTestCase):
                         '"foo" with an optional "+" or "@" prefix, but got: '
                         '{msg}')
 
+    def testTopic(self):
+        """“Once a user has joined a channel, he receives information about
+        all commands his server receives affecting the channel.  This
+        includes […] TOPIC”
+        -- <https://tools.ietf.org/html/rfc1459#section-4.2.1>
+        and <https://tools.ietf.org/html/rfc2812#section-3.2.1>
+        """
+        self.connectClient('foo')
+        self.connectClient('bar')
+        self.sendLine(1, 'JOIN #chan')
+        self.sendLine(2, 'JOIN #chan')
+        # TODO: check foo is opped OR +t is unset
+
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.sendLine(1, 'TOPIC #chan :T0P1C')
+        try:
+            m = self.getMessage(1)
+            if m.command == '482':
+                print(m)
+                raise optionality.ImplementationChoice(
+                        'Channel creators are not opped by default, and '
+                        'channel modes to no allow regular users to change '
+                        'topic.')
+            self.assertMessageEqual(m, command='TOPIC')
+        except client_mock.NoMessageException:
+            # The RFCs do not say TOPIC must be echoed
+            pass
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command='TOPIC', params=['#chan', 'T0P1C'])
+
+    def testTopicMode(self):
+        """“Once a user has joined a channel, he receives information about
+        all commands his server receives affecting the channel.  This
+        includes […] TOPIC”
+        -- <https://tools.ietf.org/html/rfc1459#section-4.2.1>
+        and <https://tools.ietf.org/html/rfc2812#section-3.2.1>
+        """
+        self.connectClient('foo')
+        self.connectClient('bar')
+        self.sendLine(1, 'JOIN #chan')
+        self.sendLine(2, 'JOIN #chan')
+        # TODO: check foo is opped
+
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.sendLine(1, 'MODE #chan +t')
+        try:
+            m = self.getMessage(1)
+            if m.command == '482':
+                print(m)
+                raise optionality.ImplementationChoice(
+                        'Channel creators are not opped by default.')
+            self.assertMessageEqual(m, command='TOPIC')
+        except client_mock.NoMessageException:
+            # The RFCs do not say TOPIC must be echoed
+            pass
+        self.sendLine(2, 'TOPIC #chan :T0P1C')
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command='482',
+                fail_msg='Non-op user was not refused use of TOPIC: {msg}')
+        self.assertEqual(self.getMessages(1), [])
+
+        self.sendLine(1, 'MODE #chan -t')
+        self.getMessages(1)
+        self.sendLine(2, 'TOPIC #chan :T0P1C')
+        try:
+            m = self.getMessage(2)
+            self.assertNotEqual(m.command, '482',
+                    msg='User was refused TOPIC whereas +t was not '
+                    'set: {}'.format(m))
+        except client_mock.NoMessageException:
+            # The RFCs do not say TOPIC must be echoed
+            pass
+        m = self.getMessage(1)
+        self.assertMessageEqual(m, command='TOPIC', params=['#chan', 'T0P1C'])
+
+
+
     def testListEmpty(self):
         """<https://tools.ietf.org/html/rfc1459#section-4.2.6>
         <https://tools.ietf.org/html/rfc2812#section-3.2.6>
@@ -211,7 +294,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                         'Channel creators are not opped by default.')
             self.assertMessageEqual(m, command='KICK')
         except client_mock.NoMessageException:
-            # The RFCs do not say KICK should be echoed
+            # The RFCs do not say KICK must be echoed
             pass
         m = self.getMessage(2)
         self.assertMessageEqual(m, command='KICK',
@@ -253,7 +336,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                 raise optionality.NotImplementedByController(
                         'Multi-target KICK')
         except client_mock.NoMessageException:
-            # The RFCs do not say KICK should be echoed
+            # The RFCs do not say KICK must be echoed
             pass
 
         # TODO: could be in the other order

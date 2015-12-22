@@ -40,6 +40,7 @@ class _IrcTestCase(unittest.TestCase):
 
         Deals with subcommands (eg. `CAP`) if any of `subcommand`,
         `subparams`, and `target` are given."""
+        fail_msg = fail_msg or '{msg}'
         for (key, value) in kwargs.items():
             self.assertEqual(getattr(msg, key), value, msg, fail_msg)
         if subcommand is not None or subparams is not None:
