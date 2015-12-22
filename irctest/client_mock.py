@@ -30,7 +30,7 @@ class ClientMock:
             self.sendLine('PING {}'.format(token))
         got_pong = False
         data = b''
-        messages = []
+        (self.inbuffer, messages) = ([], self.inbuffer)
         conn = self.conn
         while not got_pong:
             try:
