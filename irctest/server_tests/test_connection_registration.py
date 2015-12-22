@@ -27,7 +27,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'USER username * * :Realname')
         m = self.getRegistrationMessage(1)
         self.assertNotEqual(m.command, '001',
-                msg='Got 001 NICK+USER but missing PASS')
+                msg='Got 001 after NICK+USER but missing PASS')
 
     def testPassAfterNickuser(self):
         """“The password can and must be set before any attempt to register
@@ -46,7 +46,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'PASS {}'.format(self.password))
         m = self.getRegistrationMessage(1)
         self.assertNotEqual(m.command, '001',
-                'Got 001 after NICK+USER but incorrect PASS')
+                'Got 001 after PASS sent after NICK+USER')
 
 class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
     def testQuitDisconnects(self):
