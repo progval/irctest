@@ -32,6 +32,7 @@ channel {{
 }};
 """
 class CharybdisController(BaseServerController, DirectoryBasedController):
+    software_name = 'Charybdis'
     supported_sasl_mechanisms = set()
     def create_config(self):
         super().create_config()

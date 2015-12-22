@@ -18,6 +18,7 @@ supybot.networks.testnet.sasl.mechanisms: {mechanisms}
 """
 
 class LimnoriaController(BaseClientController, DirectoryBasedController):
+    software_name = 'Limnoria'
     supported_sasl_mechanisms = {
             'PLAIN', 'ECDSA-NIST256P-CHALLENGE', 'EXTERNAL',
             }

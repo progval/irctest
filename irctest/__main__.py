@@ -6,6 +6,7 @@ import functools
 import importlib
 from .cases import _IrcTestCase
 from .runner import TextTestRunner
+from .specifications import Specifications
 from .basecontrollers import BaseClientController, BaseServerController
 
 def main(args):
@@ -28,6 +29,21 @@ def main(args):
         exit(1)
     _IrcTestCase.controllerClass = controller_class
     _IrcTestCase.show_io = args.show_io
+    if args.specification:
+        try:
+            _IrcTestCase.testedSpecifications = frozenset(
+                Specifications.of_name(x) for x in args.specification
+                )
+        except ValueError:
+            print('Invalid set of specifications: {}'
+                    .format(', '.join(args.specification)))
+            exit(1)
+    else:
+        _IrcTestCase.testedSpecifications = frozenset(
+                Specifications)
+    print('Testing {} on specification(s): {}'.format(
+        controller_class.software_name,
+        ', '.join(map(lambda x:x.value, _IrcTestCase.testedSpecifications))))
     ts = module.discover()
     testRunner = TextTestRunner(
             verbosity=args.verbose,
@@ -45,6 +61,12 @@ parser.add_argument('--show-io', action='store_true',
         help='Show input/outputs with the tested program.')
 parser.add_argument('-v', '--verbose', action='count', default=1,
         help='Verbosity.')
+parser.add_argument('-s', '--specification', type=str, action='append',
+        help=('The set of specifications to test the program with. '
+        'Valid values: {}. '
+        'Use this option multiple times to test with multiple '
+        'specifications. If it is not given, defaults to all.')
+        .format(list(map(str, Specifications))))
 
 
 args = parser.parse_args()

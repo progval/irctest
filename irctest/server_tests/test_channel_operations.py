@@ -10,6 +10,7 @@ from irctest.irc_utils import ambiguities
 from irctest.irc_utils.message_parser import Message
 
 class JoinTestCase(cases.BaseServerTestCase):
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testJoinAllMessages(self):
         """“If a JOIN is successful, the user receives a JOIN message as
         confirmation and is then sent the channel's topic (using RPL_TOPIC) and
@@ -35,6 +36,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.assertTrue(received_commands & {'331', '332'} != set(), # RPL_NOTOPIC, RPL_TOPIC
                 'Server sent neither 331 (RPL_NOTOPIC) or 332 (RPL_TOPIC)')
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
     def testJoinNamreply(self):
         """“353    RPL_NAMREPLY
             "( "=" / "*" / "@" ) <channel>
@@ -63,6 +65,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                         '{msg}')
 
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testPartNotInEmptyChannel(self):
         """“442     ERR_NOTONCHANNEL
             "<channel> :You're not on that channel"
@@ -94,6 +97,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                 'ERR_NOSUCHCHANNEL (403) after PARTing an empty channel '
                 'one is not on, but got: {msg}')
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testPartNotInNonEmptyChannel(self):
         self.connectClient('foo')
         self.connectClient('bar')
@@ -134,6 +138,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                         '"foo" with an optional "+" or "@" prefix, but got: '
                         '{msg}')
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testTopic(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This
@@ -166,6 +171,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(2)
         self.assertMessageEqual(m, command='TOPIC', params=['#chan', 'T0P1C'])
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testTopicMode(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This
@@ -215,6 +221,7 @@ class JoinTestCase(cases.BaseServerTestCase):
 
 
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testListEmpty(self):
         """<https://tools.ietf.org/html/rfc1459#section-4.2.6>
         <https://tools.ietf.org/html/rfc2812#section-3.2.6>
@@ -235,6 +242,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                 fail_msg='Second reply to LIST is not 322 (RPL_LIST) '
                 'or 323 (RPL_LISTEND), or but: {msg}')
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testListOne(self):
         """When a channel exists, LIST should get it in a reply.
         <https://tools.ietf.org/html/rfc1459#section-4.2.6>
@@ -264,6 +272,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                 fail_msg='Third reply to LIST is not 322 (RPL_LIST) '
                 'or 323 (RPL_LISTEND), or but: {msg}')
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testKickSendsMessages(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This
@@ -301,6 +310,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(m, command='KICK',
                 params=['#chan', 'bar', 'bye'])
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
     def testDoubleKickMessages(self):
         """“The server MUST NOT send KICK messages with multiple channels or
         users to clients.  This is necessarily to maintain backward
@@ -347,6 +357,7 @@ class JoinTestCase(cases.BaseServerTestCase):
 
 class testChannelCaseSensitivity(cases.BaseServerTestCase):
     def _testChannelsEquivalent(name1, name2):
+        @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
         def f(self):
             self.connectClient('foo')
             self.connectClient('bar')
@@ -363,6 +374,7 @@ class testChannelCaseSensitivity(cases.BaseServerTestCase):
         f.__name__ = 'testEquivalence__{}__{}'.format(name1, name2)
         return f
     def _testChannelsNotEquivalent(name1, name2):
+        @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
         def f(self):
             self.connectClient('foo')
             self.connectClient('bar')

@@ -11,6 +11,7 @@ from irctest.client_mock import ConnectionClosed
 
 class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
     password = 'testpassword'
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testPassBeforeNickuser(self):
         self.addClient()
         self.sendLine(1, 'PASS {}'.format(self.password))
@@ -21,6 +22,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(m, command='001',
                 fail_msg='Did not get 001 after correct PASS+NICK+USER: {msg}')
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testNoPassword(self):
         self.addClient()
         self.sendLine(1, 'NICK foo')
@@ -29,6 +31,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.assertNotEqual(m.command, '001',
                 msg='Got 001 after NICK+USER but missing PASS')
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testPassAfterNickuser(self):
         """“The password can and must be set before any attempt to register
         the connection is made.”
@@ -49,6 +52,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
                 'Got 001 after PASS sent after NICK+USER')
 
 class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459')
     def testQuitDisconnects(self):
         """“The server must close the connection to a client which sends a
         QUIT message.”
@@ -58,6 +62,19 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.sendLine(1, 'QUIT')
         self.assertRaises(ConnectionClosed, self.getMessages, 1) # Connection was not closed after QUIT.
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testQuitErrors(self):
+        """“The server must close the connection to a client which sends a
+        QUIT message.”
+        -- <https://tools.ietf.org/html/rfc1459#section-4.1.3>
+        """
+        self.connectClient('foo')
+        self.getMessages(1)
+        self.sendLine(1, 'QUIT')
+        commands = {m.command for me in self.getMessages(1)}
+        self.assertIn('ERROR', commands,
+                fail_msg='Did not receive ERROR as a reply to QUIT.')
 
     def testNickCollision(self):
         """A user connects and requests the same nickname as an already

@@ -56,6 +56,7 @@ server:
 """
 
 class MammonController(BaseServerController, DirectoryBasedController):
+    software_name = 'Mammon'
     supported_sasl_mechanisms = {
             'PLAIN', 'ECDSA-NIST256P-CHALLENGE',
             }

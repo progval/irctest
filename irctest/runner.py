@@ -19,13 +19,17 @@ class OptionalSaslMechanismNotSupported(unittest.SkipTest):
     def __str__(self):
         return 'Unsupported SASL mechanism: {}'.format(self.args[0])
 
+class NotRequiredBySpecifications(unittest.SkipTest):
+    def __str__(self):
+        return 'Tests not required by the set of tested specification(s).'
+
 class TextTestResult(unittest.TextTestResult):
     def getDescription(self, test):
         if hasattr(test, 'description'):
             doc_first_lines = test.description()
         else:
             doc_first_lines = test.shortDescription()
-        return '\n'.join((str(test), doc_first_lines))
+        return '\n'.join((str(test), doc_first_lines or ''))
 
 class TextTestRunner(unittest.TextTestRunner):
     """Small wrapper around unittest.TextTestRunner that reports the

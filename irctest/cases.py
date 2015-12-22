@@ -6,11 +6,12 @@ import collections
 
 import supybot.utils
 
+from . import runner
 from . import client_mock
 from . import authentication
-from . import runner
-from .irc_utils import message_parser
 from .irc_utils import capabilities
+from .irc_utils import message_parser
+from .specifications import Specifications
 
 class _IrcTestCase(unittest.TestCase):
     """Base class for test cases."""
@@ -334,3 +335,20 @@ class OptionalityHelper:
             return f(self)
         return newf
 
+class SpecificationSelector:
+
+    def requiredBySpecification(*specifications):
+        specifications = frozenset(
+                Specifications.of_name(s) if isinstance(s, str) else s
+                for s in specifications)
+        if None in specifications:
+            raise ValueError('Invalid set of specifications: {}'
+                    .format(specifications))
+        def decorator(f):
+            @functools.wraps(f)
+            def newf(self):
+                if specifications.isdisjoint(self.testedSpecifications):
+                    raise runner.NotRequiredBySpecifications()
+                return f(self)
+            return newf
+        return decorator

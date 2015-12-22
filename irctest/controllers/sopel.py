@@ -19,6 +19,7 @@ auth_password = {password}
 """
 
 class SopelController(BaseClientController):
+    software_name = 'Sopel'
     supported_sasl_mechanisms = {
             'PLAIN',
             }

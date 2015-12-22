@@ -8,6 +8,7 @@ class RegistrationTestCase(cases.BaseServerTestCase):
         self.controller.registerUser(self, 'testuser', 'mypassword')
 
 class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.1')
     @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlain(self):
         """PLAIN authentication with correct username/password."""
@@ -36,7 +37,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 fail_msg='900 should contain the account name as 3rd argument '
                 '({expects}), not {got}: {msg}')
 
-    @cases.OptionalityHelper.skipUnlessHasSasl
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.1')
     def testMechanismNotAvailable(self):
         """“If authentication fails, a 904 or 905 numeric will be sent”
         -- <http://ircv3.net/specs/extensions/sasl-3.1.html#the-authenticate-command>
@@ -52,6 +53,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertMessageEqual(m, command='904',
                 fail_msg='Did not reply with 904 to “AUTHENTICATE FOO”: {msg}')
 
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.1')
     @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlainLarge(self):
         """Test the client splits large AUTHENTICATE messages whose payload
@@ -92,6 +94,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     # I don't know how to do it, because it would make the registration
     # message's length too big for it to be valid.
 
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.1')
     @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlainLargeEquals400(self):
         """Test the client splits large AUTHENTICATE messages whose payload
