@@ -219,3 +219,47 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(3)
         self.assertMessageEqual(m, command='KICK',
                 params=['#chan', 'bar', 'bye'])
+
+    def testDoubleKickMessages(self):
+        """“The server MUST NOT send KICK messages with multiple channels or
+        users to clients.  This is necessarily to maintain backward
+        compatibility with old client software.”
+        -- https://tools.ietf.org/html/rfc2812#section-3.2.8
+        """
+        self.connectClient('foo')
+        self.connectClient('bar')
+        self.connectClient('baz')
+        self.connectClient('qux')
+        self.sendLine(1, 'JOIN #chan')
+        # TODO: check foo is an operator
+        self.sendLine(2, 'JOIN #chan')
+        self.sendLine(3, 'JOIN #chan')
+        self.sendLine(4, 'JOIN #chan')
+
+        import time
+        time.sleep(0.1)
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(3)
+        self.getMessages(4)
+
+        self.sendLine(1, 'KICK #chan,#chan bar,baz :bye')
+        try:
+            m = self.getMessage(1)
+            if m.command == '482':
+                raise optionality.OptionalExtensionNotSupported(
+                        'Channel creators are not opped by default.')
+            if m.command in {'401', '403'}:
+                raise optionality.NotImplementedByController(
+                        'Multi-target KICK')
+        except client_mock.NoMessageException:
+            # The RFCs do not say KICK should be echoed
+            pass
+
+        # TODO: could be in the other order
+        m = self.getMessage(4)
+        self.assertMessageEqual(m, command='KICK',
+                params=['#chan', 'bar', 'bye'])
+        m = self.getMessage(4)
+        self.assertMessageEqual(m, command='KICK',
+                params=['#chan', 'baz', 'bye'])
