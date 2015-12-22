@@ -5,7 +5,7 @@ import unittest
 import functools
 import importlib
 from .cases import _IrcTestCase
-from .optional_extensions import OptionalityReportingTextTestRunner
+from .optionality import OptionalityReportingTextTestRunner
 from .basecontrollers import BaseClientController, BaseServerController
 
 def main(args):

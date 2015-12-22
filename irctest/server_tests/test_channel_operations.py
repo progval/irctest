@@ -4,6 +4,8 @@ Section 3.2 of RFC 2812
 """
 
 from irctest import cases
+from irctest import client_mock
+from irctest import optionality
 from irctest.irc_utils import ambiguities
 from irctest.irc_utils.message_parser import Message
 
@@ -180,3 +182,40 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(m, command='323', # RPL_LISTEND
                 fail_msg='Third reply to LIST is not 322 (RPL_LIST) '
                 'or 323 (RPL_LISTEND), or but: {msg}')
+
+    def testKickSendsMessages(self):
+        """“Once a user has joined a channel, he receives information about
+        all commands his server receives affecting the channel.  This
+        includes […] KICK”
+        -- <https://tools.ietf.org/html/rfc1459#section-4.2.1>
+        and <https://tools.ietf.org/html/rfc2812#section-3.2.1>
+        """
+        self.connectClient('foo')
+        self.connectClient('bar')
+        self.connectClient('baz')
+        self.sendLine(1, 'JOIN #chan')
+        # TODO: check foo is an operator
+        self.sendLine(2, 'JOIN #chan')
+        self.sendLine(3, 'JOIN #chan')
+
+        import time
+        time.sleep(0.1)
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(3)
+        self.sendLine(1, 'KICK #chan bar :bye')
+        try:
+            m = self.getMessage(1)
+            if m.command == '482':
+                raise optionality.ImplementationChoice(
+                        'Channel creators are not opped by default.')
+            self.assertMessageEqual(m, command='KICK')
+        except client_mock.NoMessageException:
+            # The RFCs do not say KICK should be echoed
+            pass
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command='KICK',
+                params=['#chan', 'bar', 'bye'])
+        m = self.getMessage(3)
+        self.assertMessageEqual(m, command='KICK',
+                params=['#chan', 'bar', 'bye'])

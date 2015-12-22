@@ -8,7 +8,7 @@ import supybot.utils
 
 from . import client_mock
 from . import authentication
-from . import optional_extensions
+from . import optionality
 from .irc_utils import message_parser
 from .irc_utils import capabilities
 
@@ -292,12 +292,12 @@ class OptionalityHelper:
     def checkSaslSupport(self):
         if self.controller.supported_sasl_mechanisms:
             return
-        raise optional_extensions.NotImplementedByController('SASL')
+        raise optionality.NotImplementedByController('SASL')
 
     def checkMechanismSupport(self, mechanism):
         if mechanism in self.controller.supported_sasl_mechanisms:
             return
-        raise optional_extensions.OptionalSaslMechanismNotSupported(mechanism)
+        raise optionality.OptionalSaslMechanismNotSupported(mechanism)
 
     def skipUnlessHasMechanism(mech):
         def decorator(f):

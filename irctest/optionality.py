@@ -6,6 +6,11 @@ class NotImplementedByController(unittest.SkipTest, NotImplementedError):
     def __str__(self):
         return 'Not implemented by controller: {}'.format(self.args[0])
 
+class ImplementationChoice(unittest.SkipTest):
+    def __str__(self):
+        return 'Choice in the implementation makes it impossible to ' \
+                'perform a test: {}'.format(self.args[0])
+
 class OptionalExtensionNotSupported(unittest.SkipTest):
     def __str__(self):
         return 'Unsupported extension: {}'.format(self.args[0])

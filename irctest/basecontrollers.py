@@ -6,7 +6,7 @@ import time
 import subprocess
 import psutil
 
-from .optional_extensions import NotImplementedByController
+from .optionality import NotImplementedByController
 
 class _BaseController:
     """Base class for software controllers.
