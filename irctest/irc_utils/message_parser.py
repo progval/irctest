@@ -48,7 +48,7 @@ def parse_message(s):
     else:
         tags = []
     if tokens[0].startswith(':'):
-        prefix = tokens.pop(0)
+        prefix = tokens.pop(0)[1:]
     else:
         prefix = None
     command = tokens.pop(0)

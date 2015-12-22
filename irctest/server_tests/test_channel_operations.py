@@ -53,7 +53,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                         '<3 or >4: {msg}')
                 params = ambiguities.normalize_namreply_params(m.params)
                 self.assertIn(params[1], '=*@', m,
-                        fail_msg='Bad channel prefix: {got} not in {expects}: {msg}')
+                        fail_msg='Bad channel prefix: {item} not in {list}: {msg}')
                 self.assertEqual(params[2], '#chan', m,
                         fail_msg='Bad channel name: {got} instead of '
                         '{expects}: {msg}')
@@ -124,7 +124,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                         '<3 or >4: {msg}')
                 params = ambiguities.normalize_namreply_params(m.params)
                 self.assertIn(params[1], '=*@', m,
-                        fail_msg='Bad channel prefix: {got} not in {expects}: {msg}')
+                        fail_msg='Bad channel prefix: {item} not in {list}: {msg}')
                 self.assertEqual(params[2], '#chan', m,
                         fail_msg='Bad channel name: {got} instead of '
                         '{expects}: {msg}')
@@ -155,7 +155,6 @@ class JoinTestCase(cases.BaseServerTestCase):
         try:
             m = self.getMessage(1)
             if m.command == '482':
-                print(m)
                 raise optionality.ImplementationChoice(
                         'Channel creators are not opped by default, and '
                         'channel modes to no allow regular users to change '
@@ -188,7 +187,6 @@ class JoinTestCase(cases.BaseServerTestCase):
         try:
             m = self.getMessage(1)
             if m.command == '482':
-                print(m)
                 raise optionality.ImplementationChoice(
                         'Channel creators are not opped by default.')
             self.assertMessageEqual(m, command='TOPIC')
@@ -346,3 +344,44 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(4)
         self.assertMessageEqual(m, command='KICK',
                 params=['#chan', 'baz', 'bye'])
+
+class testChannelCaseSensitivity(cases.BaseServerTestCase):
+    def _testChannelsEquivalent(name1, name2):
+        def f(self):
+            self.connectClient('foo')
+            self.connectClient('bar')
+            self.joinClient(1, name1)
+            self.joinClient(2, name2)
+            try:
+                m = self.getMessage(1)
+                self.assertMessageEqual(m, command='JOIN',
+                        nick='bar')
+            except client_mock.NoMessageException:
+                raise AssertionError(
+                        'Channel names {} and {} are not equivalent.'
+                        .format(name1, name2))
+        f.__name__ = 'testEquivalence__{}__{}'.format(name1, name2)
+        return f
+    def _testChannelsNotEquivalent(name1, name2):
+        def f(self):
+            self.connectClient('foo')
+            self.connectClient('bar')
+            self.joinClient(1, name1)
+            self.joinClient(2, name2)
+            try:
+                m = self.getMessage(1)
+            except client_mock.NoMessageException:
+                pass
+            else:
+                self.assertMessageEqual(m, command='JOIN',
+                        nick='bar') # This should always be true
+                raise AssertionError(
+                        'Channel names {} and {} are equivalent.'
+                        .format(name1, name2))
+        f.__name__ = 'testEquivalence__{}__{}'.format(name1, name2)
+        return f
+
+    testSimpleEquivalent = _testChannelsEquivalent('#Foo', '#foo')
+    testSimpleNotEquivalent = _testChannelsNotEquivalent('#Foo', '#fooa')
+    testFancyEquivalent = _testChannelsEquivalent('#F]|oo{', '#f}\\oo[')
+    testFancyNotEquivalent = _testChannelsEquivalent('#F}o\\o[', '#f]o|o{')

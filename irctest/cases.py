@@ -32,7 +32,7 @@ class _IrcTestCase(unittest.TestCase):
         if self.show_io:
             print('---- new test ----')
     def assertMessageEqual(self, msg, subcommand=None, subparams=None,
-            target=None, fail_msg=None, **kwargs):
+            target=None, nick=None, fail_msg=None, **kwargs):
         """Helper for partially comparing a message.
 
         Takes the message as first arguments, and comparisons to be made
@@ -43,6 +43,9 @@ class _IrcTestCase(unittest.TestCase):
         fail_msg = fail_msg or '{msg}'
         for (key, value) in kwargs.items():
             self.assertEqual(getattr(msg, key), value, msg, fail_msg)
+        if nick:
+            self.assertNotEqual(msg.prefix, None, msg, fail_msg)
+            self.assertEqual(msg.prefix.split('!')[0], nick, msg, fail_msg)
         if subcommand is not None or subparams is not None:
             self.assertGreater(len(msg.params), 2, fail_msg)
             msg_target = msg.params[0]
@@ -55,14 +58,21 @@ class _IrcTestCase(unittest.TestCase):
                 with self.subTest(key='subparams'):
                     self.assertEqual(msg_subparams, subparams, msg, fail_msg)
 
-    def assertIn(self, got, expects, msg=None, fail_msg=None):
+    def assertIn(self, item, list_, msg=None, fail_msg=None, extra_format=()):
         if fail_msg:
-            fail_msg = fail_msg.format(got=got, expects=expects, msg=msg)
-        super().assertIn(got, expects, fail_msg)
-    def assertEqual(self, got, expects, msg=None, fail_msg=None):
+            fail_msg = fail_msg.format(*extra_format,
+                    item=item, list=list_, msg=msg)
+        super().assertIn(item, list_, fail_msg)
+    def assertEqual(self, got, expects, msg=None, fail_msg=None, extra_format=()):
         if fail_msg:
-            fail_msg = fail_msg.format(got=got, expects=expects, msg=msg)
+            fail_msg = fail_msg.format(*extra_format,
+                    got=got, expects=expects, msg=msg)
         super().assertEqual(got, expects, fail_msg)
+    def assertNotEqual(self, got, expects, msg=None, fail_msg=None, extra_format=()):
+        if fail_msg:
+            fail_msg = fail_msg.format(*extra_format,
+                    got=got, expects=expects, msg=msg)
+        super().assertNotEqual(got, expects, fail_msg)
 
 class BaseClientTestCase(_IrcTestCase):
     """Basic class for client tests. Handles spawning a client and exchanging
@@ -288,6 +298,14 @@ class BaseServerTestCase(_IrcTestCase):
             m = self.getMessage(name)
             if m.command == 'PONG':
                 break
+
+    def joinClient(self, client, channel):
+        self.sendLine(client, 'JOIN {}'.format(channel))
+        received = {m.command for m in self.getMessages(client)}
+        self.assertIn('366', received,
+                fail_msg='Join to {} failed, {item} is not in the set of '
+                'received responses: {list}',
+                extra_format=(channel,))
 
 class OptionalityHelper:
     def checkSaslSupport(self):
