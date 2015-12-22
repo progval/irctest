@@ -6,6 +6,7 @@ import subprocess
 
 from irctest import client_mock
 from irctest import authentication
+from irctest.basecontrollers import NotImplementedByController
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
@@ -39,7 +40,11 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
         with self.open_file('server.conf'):
             pass
 
-    def run(self, hostname, port, password=None):
+    def run(self, hostname, port, password=None,
+            valid_metadata_keys=None, invalid_metadata_keys=None):
+        if valid_metadata_keys or invalid_metadata_keys:
+            raise NotImplementedByController(
+                    'Defining valid and invalid METADATA keys.')
         assert self.proc is None
         self.create_config()
         password_field = 'password = "{}";'.format(password) if password else ''

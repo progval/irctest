@@ -58,7 +58,8 @@ class BaseClientController(_BaseController):
 
 class BaseServerController(_BaseController):
     """Base controller for IRC server."""
-    def run(self, hostname, port, start_wait):
+    def run(self, hostname, port, password,
+            valid_metadata_keys, invalid_metadata_keys):
         raise NotImplementedError()
     def registerUser(self, case, username, password=None):
         raise NotImplementedByController('registration')

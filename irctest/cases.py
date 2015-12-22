@@ -33,7 +33,8 @@ class _IrcTestCase(unittest.TestCase):
         if self.show_io:
             print('---- new test ----')
     def assertMessageEqual(self, msg, subcommand=None, subparams=None,
-            target=None, nick=None, fail_msg=None, **kwargs):
+            target=None, nick=None, fail_msg=None, extra_format=(),
+            **kwargs):
         """Helper for partially comparing a message.
 
         Takes the message as first arguments, and comparisons to be made
@@ -43,7 +44,8 @@ class _IrcTestCase(unittest.TestCase):
         `subparams`, and `target` are given."""
         fail_msg = fail_msg or '{msg}'
         for (key, value) in kwargs.items():
-            self.assertEqual(getattr(msg, key), value, msg, fail_msg)
+            self.assertEqual(getattr(msg, key), value, msg, fail_msg,
+                    extra_format=extra_format)
         if nick:
             self.assertNotEqual(msg.prefix, None, msg, fail_msg)
             self.assertEqual(msg.prefix.split('!')[0], nick, msg, fail_msg)
@@ -54,16 +56,23 @@ class _IrcTestCase(unittest.TestCase):
             msg_subparams = msg.params[2:]
             if subcommand:
                 with self.subTest(key='subcommand'):
-                    self.assertEqual(msg_subcommand, subcommand, msg, fail_msg)
+                    self.assertEqual(msg_subcommand, subcommand, msg, fail_msg,
+                            extra_format=extra_format)
             if subparams is not None:
                 with self.subTest(key='subparams'):
-                    self.assertEqual(msg_subparams, subparams, msg, fail_msg)
+                    self.assertEqual(msg_subparams, subparams, msg, fail_msg,
+                            extra_format=extra_format)
 
     def assertIn(self, item, list_, msg=None, fail_msg=None, extra_format=()):
         if fail_msg:
             fail_msg = fail_msg.format(*extra_format,
                     item=item, list=list_, msg=msg)
         super().assertIn(item, list_, fail_msg)
+    def assertNotIn(self, item, list_, msg=None, fail_msg=None, extra_format=()):
+        if fail_msg:
+            fail_msg = fail_msg.format(*extra_format,
+                    item=item, list=list_, msg=msg)
+        super().assertNotIn(item, list_, fail_msg)
     def assertEqual(self, got, expects, msg=None, fail_msg=None, extra_format=()):
         if fail_msg:
             fail_msg = fail_msg.format(*extra_format,
@@ -203,10 +212,14 @@ class BaseServerTestCase(_IrcTestCase):
     """Basic class for server tests. Handles spawning a server and exchanging
     messages with it."""
     password = None
+    valid_metadata_keys = frozenset()
+    invalid_metadata_keys = frozenset()
     def setUp(self):
         super().setUp()
         self.find_hostname_and_port()
-        self.controller.run(self.hostname, self.port, password=self.password)
+        self.controller.run(self.hostname, self.port, password=self.password,
+                valid_metadata_keys=self.valid_metadata_keys,
+                invalid_metadata_keys=self.invalid_metadata_keys)
         self.clients = {}
     def tearDown(self):
         self.controller.kill()

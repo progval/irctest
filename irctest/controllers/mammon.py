@@ -2,8 +2,8 @@ import os
 import time
 import subprocess
 
-from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 from irctest.basecontrollers import NotImplementedByController
+from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
 clients:
@@ -29,7 +29,10 @@ extensions:
 - mammon.ext.ircv3.sasl
 - mammon.ext.misc.nopost
 metadata:
-  restricted_keys: 
+  restricted_keys:
+{restricted_keys}
+  whitelist:
+{authorized_keys}
 monitor:
   limit: 20
 motd:
@@ -55,6 +58,9 @@ server:
   recvq_len: 20
 """
 
+def make_list(l):
+    return '\n'.join(map('  - {}'.format, l))
+
 class MammonController(BaseServerController, DirectoryBasedController):
     software_name = 'Mammon'
     supported_sasl_mechanisms = {
@@ -69,7 +75,8 @@ class MammonController(BaseServerController, DirectoryBasedController):
         # Mammon does not seem to handle SIGTERM very well
         self.proc.kill()
 
-    def run(self, hostname, port, password=None):
+    def run(self, hostname, port, password=None, restricted_metadata_keys=(),
+            valid_metadata_keys=(), invalid_metadata_keys=()):
         if password is not None:
             raise NotImplementedByController('PASS command')
         assert self.proc is None
@@ -79,6 +86,8 @@ class MammonController(BaseServerController, DirectoryBasedController):
                 directory=self.directory,
                 hostname=hostname,
                 port=port,
+                authorized_keys=make_list(valid_metadata_keys),
+                restricted_keys=make_list(restricted_metadata_keys),
                 ))
         #with self.open_file('server.yml', 'r') as fd:
         #    print(fd.read())

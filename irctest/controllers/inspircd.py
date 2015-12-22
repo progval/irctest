@@ -27,7 +27,11 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         with self.open_file('server.conf'):
             pass
 
-    def run(self, hostname, port, password=None):
+    def run(self, hostname, port, password=None, restricted_metadata_keys=None,
+            valid_metadata_keys=None, invalid_metadata_keys=None):
+        if valid_metadata_keys or invalid_metadata_keys:
+            raise NotImplementedByController(
+                    'Defining valid and invalid METADATA keys.')
         assert self.proc is None
         self.create_config()
         password_field = 'password="{}"'.format(password) if password else ''
