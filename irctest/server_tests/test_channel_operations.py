@@ -5,7 +5,7 @@ Section 3.2 of RFC 2812
 
 from irctest import cases
 from irctest import client_mock
-from irctest import optionality
+from irctest import runner
 from irctest.irc_utils import ambiguities
 from irctest.irc_utils.message_parser import Message
 
@@ -155,7 +155,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         try:
             m = self.getMessage(1)
             if m.command == '482':
-                raise optionality.ImplementationChoice(
+                raise runner.ImplementationChoice(
                         'Channel creators are not opped by default, and '
                         'channel modes to no allow regular users to change '
                         'topic.')
@@ -187,7 +187,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         try:
             m = self.getMessage(1)
             if m.command == '482':
-                raise optionality.ImplementationChoice(
+                raise runner.ImplementationChoice(
                         'Channel creators are not opped by default.')
             self.assertMessageEqual(m, command='TOPIC')
         except client_mock.NoMessageException:
@@ -288,7 +288,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         try:
             m = self.getMessage(1)
             if m.command == '482':
-                raise optionality.ImplementationChoice(
+                raise runner.ImplementationChoice(
                         'Channel creators are not opped by default.')
             self.assertMessageEqual(m, command='KICK')
         except client_mock.NoMessageException:
@@ -328,10 +328,10 @@ class JoinTestCase(cases.BaseServerTestCase):
         try:
             m = self.getMessage(1)
             if m.command == '482':
-                raise optionality.OptionalExtensionNotSupported(
+                raise runner.OptionalExtensionNotSupported(
                         'Channel creators are not opped by default.')
             if m.command in {'401', '403'}:
-                raise optionality.NotImplementedByController(
+                raise runner.NotImplementedByController(
                         'Multi-target KICK')
         except client_mock.NoMessageException:
             # The RFCs do not say KICK must be echoed

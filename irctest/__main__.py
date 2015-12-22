@@ -5,7 +5,7 @@ import unittest
 import functools
 import importlib
 from .cases import _IrcTestCase
-from .optionality import OptionalityReportingTextTestRunner
+from .runner import TextTestRunner
 from .basecontrollers import BaseClientController, BaseServerController
 
 def main(args):
@@ -29,7 +29,7 @@ def main(args):
     _IrcTestCase.controllerClass = controller_class
     _IrcTestCase.show_io = args.show_io
     ts = module.discover()
-    testRunner = OptionalityReportingTextTestRunner(
+    testRunner = TextTestRunner(
             verbosity=args.verbose,
             descriptions=True,
             )

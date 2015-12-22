@@ -19,12 +19,23 @@ class OptionalSaslMechanismNotSupported(unittest.SkipTest):
     def __str__(self):
         return 'Unsupported SASL mechanism: {}'.format(self.args[0])
 
-class OptionalityReportingTextTestRunner(unittest.TextTestRunner):
+class TextTestResult(unittest.TextTestResult):
+    def getDescription(self, test):
+        if hasattr(test, 'description'):
+            doc_first_lines = test.description()
+        else:
+            doc_first_lines = test.shortDescription()
+        return '\n'.join((str(test), doc_first_lines))
+
+class TextTestRunner(unittest.TextTestRunner):
     """Small wrapper around unittest.TextTestRunner that reports the
     number of tests that were skipped because the software does not support
     an optional feature."""
+    resultclass = TextTestResult
+
     def run(self, test):
         result = super().run(test)
+        assert self.resultclass is TextTestResult
         if result.skipped:
             print()
             print('Some tests were skipped because the following optional '

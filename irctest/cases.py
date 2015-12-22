@@ -8,7 +8,7 @@ import supybot.utils
 
 from . import client_mock
 from . import authentication
-from . import optionality
+from . import runner
 from .irc_utils import message_parser
 from .irc_utils import capabilities
 
@@ -16,7 +16,7 @@ class _IrcTestCase(unittest.TestCase):
     """Base class for test cases."""
     controllerClass = None # Will be set by __main__.py
 
-    def shortDescription(self):
+    def description(self):
         method_doc = self._testMethodDoc
         if not method_doc:
             return ''
@@ -311,12 +311,12 @@ class OptionalityHelper:
     def checkSaslSupport(self):
         if self.controller.supported_sasl_mechanisms:
             return
-        raise optionality.NotImplementedByController('SASL')
+        raise runner.NotImplementedByController('SASL')
 
     def checkMechanismSupport(self, mechanism):
         if mechanism in self.controller.supported_sasl_mechanisms:
             return
-        raise optionality.OptionalSaslMechanismNotSupported(mechanism)
+        raise runner.OptionalSaslMechanismNotSupported(mechanism)
 
     def skipUnlessHasMechanism(mech):
         def decorator(f):
