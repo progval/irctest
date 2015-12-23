@@ -235,6 +235,7 @@ class BaseServerTestCase(_IrcTestCase):
     def addClient(self, name=None, show_io=None):
         """Connects a client to the server and adds it to the dict.
         If 'name' is not given, uses the lowest unused non-negative integer."""
+        self.controller.wait_for_port()
         if not name:
             name = max(map(int, list(self.clients)+[0]))+1
         show_io = show_io if show_io is not None else self.show_io

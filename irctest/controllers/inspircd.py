@@ -5,6 +5,7 @@ import tempfile
 import subprocess
 
 from irctest import authentication
+from irctest.basecontrollers import NotImplementedByController
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
@@ -33,6 +34,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
             raise NotImplementedByController(
                     'Defining valid and invalid METADATA keys.')
         assert self.proc is None
+        self.port = port
         self.create_config()
         password_field = 'password="{}"'.format(password) if password else ''
         with self.open_file('server.conf') as fd:
@@ -45,7 +47,6 @@ class InspircdController(BaseServerController, DirectoryBasedController):
             os.path.join(self.directory, 'server.conf')],
             stdout=subprocess.DEVNULL
             )
-        self.wait_for_port(self.proc, port)
 
 def get_irctest_controller_class():
     return InspircdController

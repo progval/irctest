@@ -58,16 +58,16 @@ class BaseClientController(_BaseController):
 
 class BaseServerController(_BaseController):
     """Base controller for IRC server."""
+    port_open = False
     def run(self, hostname, port, password,
             valid_metadata_keys, invalid_metadata_keys):
         raise NotImplementedError()
     def registerUser(self, case, username, password=None):
         raise NotImplementedByController('registration')
-    def wait_for_port(self, proc, port):
-        port_open = False
-        while not port_open:
+    def wait_for_port(self):
+        while not self.port_open:
             time.sleep(0.1)
-            for conn in psutil.Process(proc.pid).connections():
-                if conn.laddr[1] == port:
-                    port_open = True
+            for conn in psutil.Process(self.proc.pid).connections():
+                if conn.laddr[1] == self.port:
+                    self.port_open = True
 

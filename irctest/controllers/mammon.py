@@ -80,6 +80,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
         if password is not None:
             raise NotImplementedByController('PASS command')
         assert self.proc is None
+        self.port = port
         self.create_config()
         with self.open_file('server.yml') as fd:
             fd.write(TEMPLATE_CONFIG.format(
@@ -93,7 +94,6 @@ class MammonController(BaseServerController, DirectoryBasedController):
         #    print(fd.read())
         self.proc = subprocess.Popen(['mammond', '--nofork', #'--debug',
             '--config', os.path.join(self.directory, 'server.yml')])
-        self.wait_for_port(self.proc, port)
 
     def registerUser(self, case, username, password=None):
         # XXX: Move this somewhere else when

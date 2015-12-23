@@ -47,6 +47,7 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
                     'Defining valid and invalid METADATA keys.')
         assert self.proc is None
         self.create_config()
+        self.port = port
         password_field = 'password = "{}";'.format(password) if password else ''
         with self.open_file('server.conf') as fd:
             fd.write(TEMPLATE_CONFIG.format(
@@ -60,7 +61,6 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
             ],
             stderr=subprocess.DEVNULL
             )
-        self.wait_for_port(self.proc, port)
 
 
 def get_irctest_controller_class():
