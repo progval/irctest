@@ -259,15 +259,15 @@ class JoinTestCase(cases.BaseServerTestCase):
                 'but: {msg}')
         m = self.getMessage(2)
         self.assertNotEqual(m.command, '323', # RPL_LISTEND
-                'LIST response ended (ie. 323, aka RPL_LISTEND) without '
-                'listing any channel, whereas there is one.')
+                fail_msg='LIST response ended (ie. 323, aka RPL_LISTEND) '
+                'without listing any channel, whereas there is one.')
         self.assertMessageEqual(m, command='322', # RPL_LIST
                 fail_msg='Second reply to LIST is not 322 (RPL_LIST), '
                 'nor 323 (RPL_LISTEND) but: {msg}')
         m = self.getMessage(2)
         self.assertNotEqual(m.command, '322', # RPL_LIST
-                'LIST response gives (at least) two channels, whereas there '
-                'is only one.')
+                fail_msg='LIST response gives (at least) two channels, '
+                'whereas there is only one.')
         self.assertMessageEqual(m, command='323', # RPL_LISTEND
                 fail_msg='Third reply to LIST is not 322 (RPL_LIST) '
                 'or 323 (RPL_LISTEND), or but: {msg}')

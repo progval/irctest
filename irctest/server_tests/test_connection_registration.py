@@ -65,14 +65,17 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('RFC2812')
     def testQuitErrors(self):
-        """“The server must close the connection to a client which sends a
-        QUIT message.”
-        -- <https://tools.ietf.org/html/rfc1459#section-4.1.3>
+        """“A client session is terminated with a quit message.  The server
+        acknowledges this by sending an ERROR message to the client.”
+        -- <https://tools.ietf.org/html/rfc2812#section-3.1.7>
         """
         self.connectClient('foo')
         self.getMessages(1)
         self.sendLine(1, 'QUIT')
-        commands = {m.command for me in self.getMessages(1)}
+        try:
+            commands = {m.command for me in self.getMessages(1)}
+        except ConnectionClosed:
+            assert False, 'Connection closed without ERROR.'
         self.assertIn('ERROR', commands,
                 fail_msg='Did not receive ERROR as a reply to QUIT.')
 
