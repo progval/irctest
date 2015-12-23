@@ -81,18 +81,18 @@ class CapTestCase(cases.BaseServerTestCase):
         m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='CAP',
                 subcommand='NAK', subparams=['multi-prefix bar'],
-                fail_msg='Expected “CAP NAK :foo multi-prefix bar” after '
-                'sending “CAP REQ :foo multi-prefix bar”, but got {msg}.')
+                fail_msg='Expected “CAP NAK :multi-prefix bar” after '
+                'sending “CAP REQ :multi-prefix bar”, but got {msg}.')
         self.sendLine(1, 'CAP REQ :foo multi-prefix')
         m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='CAP',
                 subcommand='NAK', subparams=['foo multi-prefix'],
-                fail_msg='Expected “CAP NAK :foo multi-prefix bar” after '
-                'sending “CAP REQ :foo multi-prefix bar”, but got {msg}.')
+                fail_msg='Expected “CAP NAK :foo multi-prefix” after '
+                'sending “CAP REQ :foo multi-prefix”, but got {msg}.')
         # TODO: make sure multi-prefix is not enabled at this point
         self.sendLine(1, 'CAP REQ :multi-prefix')
         m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='CAP',
                 subcommand='ACK', subparams=['multi-prefix'],
-                fail_msg='Expected “CAP NAK :foo multi-prefix bar” after '
-                'sending “CAP REQ :foo multi-prefix bar”, but got {msg}.')
+                fail_msg='Expected “CAP ACK :multi-prefix” after '
+                'sending “CAP REQ :multi-prefix”, but got {msg}.')
