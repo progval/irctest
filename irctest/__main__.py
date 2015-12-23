@@ -29,6 +29,7 @@ def main(args):
         exit(1)
     _IrcTestCase.controllerClass = controller_class
     _IrcTestCase.show_io = args.show_io
+    _IrcTestCase.strictTests = not args.loose
     if args.specification:
         try:
             _IrcTestCase.testedSpecifications = frozenset(
@@ -43,7 +44,8 @@ def main(args):
                 Specifications)
     print('Testing {} on specification(s): {}'.format(
         controller_class.software_name,
-        ', '.join(map(lambda x:x.value, _IrcTestCase.testedSpecifications))))
+        ', '.join(sorted(map(lambda x:x.value,
+            _IrcTestCase.testedSpecifications)))))
     ts = module.discover()
     testRunner = TextTestRunner(
             verbosity=args.verbose,
@@ -67,6 +69,10 @@ parser.add_argument('-s', '--specification', type=str, action='append',
         'Use this option multiple times to test with multiple '
         'specifications. If it is not given, defaults to all.')
         .format(list(map(str, Specifications))))
+parser.add_argument('-l', '--loose', action='store_true',
+        help='Disables strict checks of conformity to the specification. '
+        'Strict means the specification is unclear, and the most restrictive '
+        'interpretation is choosen.')
 
 
 args = parser.parse_args()

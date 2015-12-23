@@ -10,7 +10,8 @@ from irctest.irc_utils import ambiguities
 from irctest.irc_utils.message_parser import Message
 
 class JoinTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
+            strict=True)
     def testJoinAllMessages(self):
         """“If a JOIN is successful, the user receives a JOIN message as
         confirmation and is then sent the channel's topic (using RPL_TOPIC) and

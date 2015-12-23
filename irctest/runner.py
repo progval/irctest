@@ -23,6 +23,10 @@ class NotRequiredBySpecifications(unittest.SkipTest):
     def __str__(self):
         return 'Tests not required by the set of tested specification(s).'
 
+class SkipStrictTest(unittest.SkipTest):
+    def __str__(self):
+        return 'Tests not required because strict tests are disabled.'
+
 class TextTestResult(unittest.TextTestResult):
     def getDescription(self, test):
         if hasattr(test, 'description'):

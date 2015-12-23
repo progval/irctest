@@ -356,7 +356,7 @@ class OptionalityHelper:
 
 class SpecificationSelector:
 
-    def requiredBySpecification(*specifications):
+    def requiredBySpecification(*specifications, strict=False):
         specifications = frozenset(
                 Specifications.of_name(s) if isinstance(s, str) else s
                 for s in specifications)
@@ -368,6 +368,8 @@ class SpecificationSelector:
             def newf(self):
                 if specifications.isdisjoint(self.testedSpecifications):
                     raise runner.NotRequiredBySpecifications()
+                if strict and not self.strictTests:
+                    raise runner.SkipStrictTest()
                 return f(self)
             return newf
         return decorator
