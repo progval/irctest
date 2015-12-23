@@ -32,39 +32,46 @@ class ClientMock:
         data = b''
         (self.inbuffer, messages) = ([], self.inbuffer)
         conn = self.conn
-        while not got_pong:
-            try:
-                new_data = conn.recv(4096)
-            except socket.timeout:
-                if not assert_get_one and not synchronize and data == b'':
-                    # Received nothing
-                    return []
-                if self.show_io:
-                    print('{:.3f} waiting…'.format(time.time()))
-                time.sleep(0.1)
-                continue
-            else:
-                if not new_data:
-                    # Connection closed
-                    raise ConnectionClosed()
-            data += new_data
-            if not new_data.endswith(b'\r\n'):
-                time.sleep(0.1)
-                continue
-            if not synchronize:
-                got_pong = True
-            for line in data.decode().split('\r\n'):
-                if line:
+        try:
+            while not got_pong:
+                try:
+                    new_data = conn.recv(4096)
+                except socket.timeout:
+                    if not assert_get_one and not synchronize and data == b'':
+                        # Received nothing
+                        return []
                     if self.show_io:
-                        print('{:.3f} S -> {}: {}'.format(time.time(), self.name, line.strip()))
-                    message = message_parser.parse_message(line + '\r\n')
-                    if message.command == 'PONG' and \
-                            token in message.params:
-                        got_pong = True
-                    else:
-                        messages.append(message)
-            data = b''
-        return messages
+                        print('{:.3f} waiting…'.format(time.time()))
+                    time.sleep(0.1)
+                    continue
+                else:
+                    if not new_data:
+                        # Connection closed
+                        raise ConnectionClosed()
+                data += new_data
+                if not new_data.endswith(b'\r\n'):
+                    time.sleep(0.1)
+                    continue
+                if not synchronize:
+                    got_pong = True
+                for line in data.decode().split('\r\n'):
+                    if line:
+                        if self.show_io:
+                            print('{:.3f} S -> {}: {}'.format(time.time(), self.name, line))
+                        message = message_parser.parse_message(line + '\r\n')
+                        if message.command == 'PONG' and \
+                                token in message.params:
+                            got_pong = True
+                        else:
+                            messages.append(message)
+                data = b''
+        except ConnectionClosed:
+            if messages:
+                return messages
+            else:
+                raise
+        else:
+            return messages
     def getMessage(self, filter_pred=None, synchronize=True):
         while True:
             if not self.inbuffer:
@@ -82,4 +89,4 @@ class ClientMock:
             ret = self.conn.sendall(b'\r\n')
             assert ret is None
         if self.show_io:
-            print('{:.3f} {} -> S: {}'.format(time.time(), self.name, line.strip()))
+            print('{:.3f} {} -> S: {}'.format(time.time(), self.name, line.strip('\r\n')))

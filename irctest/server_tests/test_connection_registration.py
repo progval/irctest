@@ -61,7 +61,9 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.connectClient('foo')
         self.getMessages(1)
         self.sendLine(1, 'QUIT')
-        self.assertRaises(ConnectionClosed, self.getMessages, 1) # Connection was not closed after QUIT.
+        with self.assertRaises(ConnectionClosed):
+            self.getMessages(1) # Fetch remaining messages
+            self.getMessages(1)
 
     @cases.SpecificationSelector.requiredBySpecification('RFC2812')
     def testQuitErrors(self):
@@ -73,11 +75,12 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.sendLine(1, 'QUIT')
         try:
-            commands = {m.command for me in self.getMessages(1)}
+            commands = {m.command for m in self.getMessages(1)}
         except ConnectionClosed:
             assert False, 'Connection closed without ERROR.'
         self.assertIn('ERROR', commands,
                 fail_msg='Did not receive ERROR as a reply to QUIT.')
+
 
     def testNickCollision(self):
         """A user connects and requests the same nickname as an already
