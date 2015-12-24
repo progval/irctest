@@ -55,13 +55,11 @@ class _IrcTestCase(unittest.TestCase):
             msg_subcommand = msg.params[1]
             msg_subparams = msg.params[2:]
             if subcommand:
-                with self.subTest(key='subcommand'):
-                    self.assertEqual(msg_subcommand, subcommand, msg, fail_msg,
-                            extra_format=extra_format)
+                self.assertEqual(msg_subcommand, subcommand, msg, fail_msg,
+                        extra_format=extra_format)
             if subparams is not None:
-                with self.subTest(key='subparams'):
-                    self.assertEqual(msg_subparams, subparams, msg, fail_msg,
-                            extra_format=extra_format)
+                self.assertEqual(msg_subparams, subparams, msg, fail_msg,
+                        extra_format=extra_format)
 
     def assertIn(self, item, list_, msg=None, fail_msg=None, extra_format=()):
         if fail_msg:
