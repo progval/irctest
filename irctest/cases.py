@@ -301,7 +301,6 @@ class BaseServerTestCase(_IrcTestCase):
         """
         while True:
             m = self.getMessage(client, synchronize=False)
-            print('foo: {}'.format(m))
             if m.command == '001':
                 return m
     def connectClient(self, nick, name=None, capabilities=None):
