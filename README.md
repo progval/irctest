@@ -82,6 +82,30 @@ make install
 python3 -m irctest irctest.controllers.charybdis
 ```
 
+## Full help
+
+```
+usage: python3 -m irctest [-h] [--show-io] [-v] [-s SPECIFICATION] [-l] module
+
+positional arguments:
+  module                The module used to run the tested program.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --show-io             Show input/outputs with the tested program.
+  -v, --verbose         Verbosity. Give this option multiple times to make it
+                        even more verbose.
+  -s SPECIFICATION, --specification SPECIFICATION
+                        The set of specifications to test the program with.
+                        Valid values: RFC1459, RFC2812, IRCv3.1, IRCv3.2. Use
+                        this option multiple times to test with multiple
+                        specifications. If it is not given, defaults to all.
+  -l, --loose           Disables strict checks of conformity to the
+                        specification. Strict means the specification is
+                        unclear, and the most restrictive interpretation is
+                        choosen.
+```
+
 ## What `irctest` is not
 
 A formal proof that a given software follows any of the IRC specification,

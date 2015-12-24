@@ -62,13 +62,14 @@ parser.add_argument('module', type=str,
 parser.add_argument('--show-io', action='store_true',
         help='Show input/outputs with the tested program.')
 parser.add_argument('-v', '--verbose', action='count', default=1,
-        help='Verbosity.')
+        help='Verbosity. Give this option multiple times to make '
+        'it even more verbose.')
 parser.add_argument('-s', '--specification', type=str, action='append',
         help=('The set of specifications to test the program with. '
         'Valid values: {}. '
         'Use this option multiple times to test with multiple '
         'specifications. If it is not given, defaults to all.')
-        .format(list(map(str, Specifications))))
+        .format(', '.join(x.value for x in Specifications)))
 parser.add_argument('-l', '--loose', action='store_true',
         help='Disables strict checks of conformity to the specification. '
         'Strict means the specification is unclear, and the most restrictive '
