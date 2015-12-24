@@ -108,3 +108,37 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.assertNotEqual((m1.command, m2.command), ('001', '001'),
                 'Two concurrently registering requesting the same nickname '
                 'both got 001.')
+
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.1', 'IRCv3.2')
+    def testIrc301CapLs(self):
+        """IRCv3.1: “The LS subcommand is used to list the capabilities
+        supported by the server. The client should send an LS subcommand with
+        no other arguments to solicit a list of all capabilities.”
+        -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-ls-subcommand>
+
+        IRCv3.2: “Servers MUST NOT send messages described by this document if
+        the client only supports version 3.1.”
+        -- <http://ircv3.net/specs/core/capability-negotiation-3.2.html#version-in-cap-ls>
+        """
+        self.addClient()
+        self.sendLine(1, 'CAP LS')
+        m = self.getRegistrationMessage(1)
+        self.assertNotEqual(m.params[2], '*', m,
+                fail_msg='Server replied with multi-line CAP LS to a '
+                '“CAP LS” (ie. IRCv3.1) request: {msg}')
+        self.assertFalse(any('=' in cap for cap in m.params[2].split()),
+                'Server replied with a name-value capability in '
+                'CAP LS reply as a response to “CAP LS” (ie. IRCv3.1) '
+                'request: {}'.format(m))
+
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.1')
+    def testEmptyCapList(self):
+        """“If no capabilities are active, an empty parameter must be sent.”
+        -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-list-subcommand>
+        """
+        self.addClient()
+        self.sendLine(1, 'CAP LIST')
+        m = self.getRegistrationMessage(1)
+        self.assertMessageEqual(m, command='CAP', params=['*', 'LIST', ''],
+                fail_msg='Sending “CAP LIST” as first message got a reply '
+                'that is not “CAP * LIST :”: {msg}')
