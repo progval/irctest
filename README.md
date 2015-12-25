@@ -12,7 +12,6 @@ This project contains:
 
 * IRC protocol test cases
 * small wrappers around existing software to run tests on them
-  (only Limnoria, Sopel, and InspIRCd for the moment)
 
 Wrappers run software in temporary directories, so running `irctest` should
 have no side effect, with [the exception of Sopel](https://github.com/sopel-irc/sopel/issues/946).
