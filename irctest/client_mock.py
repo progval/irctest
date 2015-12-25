@@ -1,3 +1,4 @@
+import ssl
 import time
 import socket
 from .irc_utils import message_parser
@@ -14,6 +15,7 @@ class ClientMock:
         self.name = name
         self.show_io = show_io
         self.inbuffer = []
+        self.ssl = False
     def connect(self, hostname, port):
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.settimeout(1) # TODO: configurable
@@ -24,6 +26,10 @@ class ClientMock:
         if self.show_io:
             print('{:.3f} {}: disconnects from server.'.format(time.time(), self.name))
         self.conn.close()
+    def starttls(self):
+        assert not self.ssl, 'SSL already active.'
+        self.conn = ssl.wrap_socket(self.conn)
+        self.ssl = True
     def getMessages(self, synchronize=True, assert_get_one=False):
         if synchronize:
             token = 'synchronize{}'.format(time.monotonic())
@@ -57,7 +63,11 @@ class ClientMock:
                 for line in data.decode().split('\r\n'):
                     if line:
                         if self.show_io:
-                            print('{:.3f} S -> {}: {}'.format(time.time(), self.name, line))
+                            print('{time:.3f}{ssl} S -> {client}: {line}'.format(
+                                time=time.time(),
+                                ssl=' (ssl)' if self.ssl else '',
+                                client=self.name,
+                                line=line))
                         message = message_parser.parse_message(line + '\r\n')
                         if message.command == 'PONG' and \
                                 token in message.params:
@@ -83,10 +93,17 @@ class ClientMock:
             if not filter_pred or filter_pred(message):
                 return message
     def sendLine(self, line):
-        ret = self.conn.sendall(line.encode())
-        assert ret is None
         if not line.endswith('\r\n'):
-            ret = self.conn.sendall(b'\r\n')
-            assert ret is None
+            line += '\r\n'
+        encoded_line = line.encode()
+        ret = self.conn.sendall(encoded_line)
+        if self.ssl:
+            assert ret == len(encoded_line), (ret, repr(encoded_line))
+        else:
+            assert ret is None, ret
         if self.show_io:
-            print('{:.3f} {} -> S: {}'.format(time.time(), self.name, line.strip('\r\n')))
+            print('{time:.3f}{ssl} {client} -> S: {line}'.format(
+                time=time.time(),
+                ssl=' (ssl)' if self.ssl else '',
+                client=self.name,
+                line=line.strip('\r\n')))

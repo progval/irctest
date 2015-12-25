@@ -210,6 +210,7 @@ class BaseServerTestCase(_IrcTestCase):
     """Basic class for server tests. Handles spawning a server and exchanging
     messages with it."""
     password = None
+    ssl = False
     valid_metadata_keys = frozenset()
     invalid_metadata_keys = frozenset()
     def setUp(self):
@@ -217,7 +218,8 @@ class BaseServerTestCase(_IrcTestCase):
         self.find_hostname_and_port()
         self.controller.run(self.hostname, self.port, password=self.password,
                 valid_metadata_keys=self.valid_metadata_keys,
-                invalid_metadata_keys=self.invalid_metadata_keys)
+                invalid_metadata_keys=self.invalid_metadata_keys,
+                ssl=self.ssl)
         self.clients = {}
     def tearDown(self):
         self.controller.kill()

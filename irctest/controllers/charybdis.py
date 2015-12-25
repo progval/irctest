@@ -14,6 +14,7 @@ serverinfo {{
     name = "My.Little.Server";
     sid = "42X";
     description = "test server";
+{ssl_config}
 }};
 listen {{
     defer_accept = yes;
@@ -32,6 +33,14 @@ channel {{
     no_join_on_split = no;
 }};
 """
+
+TEMPLATE_SSL_CONFIG = """
+    ssl_private_key = "{key_path}";
+    ssl_cert = "{pem_path}";
+    ssl_dh_params = "{dh_path}";
+"""
+
+
 class CharybdisController(BaseServerController, DirectoryBasedController):
     software_name = 'Charybdis'
     supported_sasl_mechanisms = set()
@@ -40,7 +49,7 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
         with self.open_file('server.conf'):
             pass
 
-    def run(self, hostname, port, password=None,
+    def run(self, hostname, port, password=None, ssl=False,
             valid_metadata_keys=None, invalid_metadata_keys=None):
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
@@ -49,11 +58,21 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
         self.create_config()
         self.port = port
         password_field = 'password = "{}";'.format(password) if password else ''
+        if ssl:
+            self.gen_ssl()
+            ssl_config = TEMPLATE_SSL_CONFIG.format(
+                    key_path=self.key_path,
+                    pem_path=self.pem_path,
+                    dh_path=self.dh_path,
+                    )
+        else:
+            ssl_config = ''
         with self.open_file('server.conf') as fd:
             fd.write(TEMPLATE_CONFIG.format(
                 hostname=hostname,
                 port=port,
-                password_field=password_field
+                password_field=password_field,
+                ssl_config=ssl_config,
                 ))
         self.proc = subprocess.Popen(['ircd', '-foreground',
             '-configfile', os.path.join(self.directory, 'server.conf'),

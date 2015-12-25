@@ -51,6 +51,23 @@ class DirectoryBasedController(_BaseController):
     def create_config(self):
         self.directory = tempfile.mkdtemp()
 
+    def gen_ssl(self):
+        self.csr_path = os.path.join(self.directory, 'ssl.csr')
+        self.key_path = os.path.join(self.directory, 'ssl.key')
+        self.pem_path = os.path.join(self.directory, 'ssl.pem')
+        self.dh_path = os.path.join(self.directory, 'dh.pem')
+        subprocess.check_output(['openssl', 'req', '-new', '-newkey', 'rsa',
+            '-nodes', '-out', self.csr_path, '-keyout', self.key_path,
+            '-batch'],
+            stderr=subprocess.DEVNULL)
+        subprocess.check_output(['openssl', 'x509', '-req',
+            '-in', self.csr_path, '-signkey', self.key_path,
+            '-out', self.pem_path],
+            stderr=subprocess.DEVNULL)
+        subprocess.check_output(['openssl', 'dhparam',
+            '-out', self.dh_path, '128'],
+            stderr=subprocess.DEVNULL)
+
 class BaseClientController(_BaseController):
     """Base controller for IRC clients."""
     def run(self, hostname, port, auth):

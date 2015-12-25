@@ -75,10 +75,13 @@ class MammonController(BaseServerController, DirectoryBasedController):
         # Mammon does not seem to handle SIGTERM very well
         self.proc.kill()
 
-    def run(self, hostname, port, password=None, restricted_metadata_keys=(),
+    def run(self, hostname, port, password=None, ssl=False,
+            restricted_metadata_keys=(),
             valid_metadata_keys=(), invalid_metadata_keys=()):
         if password is not None:
             raise NotImplementedByController('PASS command')
+        if ssl:
+            raise NotImplementedByController('SSL')
         assert self.proc is None
         self.port = port
         self.create_config()
