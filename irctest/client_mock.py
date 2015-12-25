@@ -50,6 +50,8 @@ class ClientMock:
                         print('{:.3f} waiting…'.format(time.time()))
                     time.sleep(0.1)
                     continue
+                except ConnectionResetError:
+                    raise ConnectionResetError()
                 else:
                     if not new_data:
                         # Connection closed

@@ -34,7 +34,7 @@ class _IrcTestCase(unittest.TestCase):
             print('---- new test ----')
     def assertMessageEqual(self, msg, subcommand=None, subparams=None,
             target=None, nick=None, fail_msg=None, extra_format=(),
-            **kwargs):
+            strip_first_param=False, **kwargs):
         """Helper for partially comparing a message.
 
         Takes the message as first arguments, and comparisons to be made
@@ -44,6 +44,8 @@ class _IrcTestCase(unittest.TestCase):
         `subparams`, and `target` are given."""
         fail_msg = fail_msg or '{msg}'
         for (key, value) in kwargs.items():
+            if strip_first_param and key == 'params':
+                value = value[1:]
             self.assertEqual(getattr(msg, key), value, msg, fail_msg,
                     extra_format=extra_format)
         if nick:
@@ -215,6 +217,7 @@ class BaseServerTestCase(_IrcTestCase):
     invalid_metadata_keys = frozenset()
     def setUp(self):
         super().setUp()
+        self.server_support = {}
         self.find_hostname_and_port()
         self.controller.run(self.hostname, self.port, password=self.password,
                 valid_metadata_keys=self.valid_metadata_keys,
@@ -326,6 +329,13 @@ class BaseServerTestCase(_IrcTestCase):
             m = self.getMessage(client)
             if m.command == 'PONG':
                 break
+            elif m.command == '005':
+                for param in m.params[1:-1]:
+                    if '=' in param:
+                        (key, value) = param.split('=')
+                    else:
+                        (key, value) = (param, None)
+                    self.server_support[key] = value
 
     def joinClient(self, client, channel):
         self.sendLine(client, 'JOIN {}'.format(channel))
