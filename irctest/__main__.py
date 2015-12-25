@@ -52,7 +52,11 @@ def main(args):
             descriptions=True,
             )
     testLoader = unittest.loader.defaultTestLoader
-    testRunner.run(ts)
+    result = testRunner.run(ts)
+    if result.failures or result.errors:
+        exit(1)
+    else:
+        exit(0)
 
 
 parser = argparse.ArgumentParser(
