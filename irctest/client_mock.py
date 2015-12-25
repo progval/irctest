@@ -97,7 +97,7 @@ class ClientMock:
             line += '\r\n'
         encoded_line = line.encode()
         ret = self.conn.sendall(encoded_line)
-        if self.ssl:
+        if self.ssl: # https://bugs.python.org/issue25951
             assert ret == len(encoded_line), (ret, repr(encoded_line))
         else:
             assert ret is None, ret
