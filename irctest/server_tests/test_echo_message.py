@@ -11,7 +11,6 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
         def f(self):
             """<http://ircv3.net/specs/extensions/echo-message-3.2.html>
             """
-            print('---'*1000)
             self.addClient()
             self.sendLine(1, 'CAP LS 302')
             capabilities = self.getCapLs(1)
@@ -33,9 +32,7 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
             self.sendLine(1, 'USER f * * :foo')
             self.sendLine(1, 'NICK baz')
             self.sendLine(1, 'CAP END')
-            print('skip')
             self.skipToWelcome(1)
-            print('skipped')
             self.getMessages(1)
 
             self.sendLine(1, 'JOIN #chan')
