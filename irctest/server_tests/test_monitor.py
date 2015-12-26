@@ -3,6 +3,7 @@
 """
 
 from irctest import cases
+from irctest.client_mock import NoMessageException
 from irctest.basecontrollers import NotImplementedByController
 
 class EchoMessageTestCase(cases.BaseServerTestCase):
@@ -137,3 +138,54 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
         self.assertEqual(m2.params[1].split('!')[0], 'baz', m2,
                 fail_msg='731 (RPL_MONOFFLINE) with bad target after '
                 '“MONITOR + bar,baz” and “baz” is disconnected: {msg}')
+
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    def testUnmonitor(self):
+        self.connectClient('foo')
+        self.check_server_support()
+        self.sendLine(1, 'MONITOR + bar')
+        self.getMessages(1)
+        self.connectClient('bar')
+        self.assertMononline(1, 'bar')
+        self.sendLine(1, 'MONITOR - bar')
+        self.assertEqual(self.getMessages(1), [],
+                fail_msg='Got messages after “MONITOR - bar”: {got}')
+        self.sendLine(2, 'QUIT :bye')
+        try:
+            self.getMessages(2)
+        except ConnectionResetError:
+            pass
+        self.assertEqual(self.getMessages(1), [],
+                fail_msg='Got messages after disconnection of unmonitored '
+                'nick: {got}')
+
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    def testMonitorForbidsMasks(self):
+        """“The MONITOR implementation also enhances user privacy by
+        disallowing subscription to hostmasks, allowing users to avoid
+        nick-change stalking.”
+        -- <http://ircv3.net/specs/core/monitor-3.2.html#watch-vs-monitor>
+
+        “For this specification, ‘target’ MUST be a valid nick as determined
+        by the IRC daemon.”
+        -- <http://ircv3.net/specs/core/monitor-3.2.html#monitor-command>
+        """
+        self.connectClient('foo')
+        self.check_server_support()
+        self.sendLine(1, 'MONITOR + *!username@localhost')
+        self.sendLine(1, 'MONITOR + *!username@127.0.0.1')
+        try:
+            m = self.getMessage(1)
+            self.assertNotEqual(m.command, '731', m,
+                    fail_msg='Got 731 (RPL_MONOFFLINE) after adding a monitor '
+                    'on a mask: {msg}')
+        except NoMessageException:
+            pass
+        self.connectClient('bar')
+        try:
+            m = self.getMessage(1)
+        except NoMessageException:
+            pass
+        else:
+            raise AssertionError('Got message after client whose MONITORing '
+                    'was requested via hostmask connected: {}'.format(m))
