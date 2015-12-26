@@ -14,7 +14,7 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
     def assertMononline(self, client, nick, m=None):
         if not m:
             m = self.getMessage(client)
-        self.assertMessageEqual(m, command='730', # RPL_MONOFFLINE
+        self.assertMessageEqual(m, command='730', # RPL_MONONLINE
                 fail_msg='Sent non-730 (RPL_MONONLINE) message after '
                 'monitored nick “{}” connected: {msg}',
                 extra_format=(nick,))
