@@ -51,7 +51,7 @@ class ClientMock:
                     time.sleep(0.1)
                     continue
                 except ConnectionResetError:
-                    raise ConnectionResetError()
+                    raise ConnectionClosed()
                 else:
                     if not new_data:
                         # Connection closed
@@ -98,7 +98,10 @@ class ClientMock:
         if not line.endswith('\r\n'):
             line += '\r\n'
         encoded_line = line.encode()
-        ret = self.conn.sendall(encoded_line)
+        try:
+            ret = self.conn.sendall(encoded_line)
+        except BrokenPipeError:
+            raise ConnectionClosed()
         if self.ssl: # https://bugs.python.org/issue25951
             assert ret == len(encoded_line), (ret, repr(encoded_line))
         else:
