@@ -31,6 +31,7 @@ channel {{
     disable_local_channels = no;
     no_create_on_split = no;
     no_join_on_split = no;
+    displayed_usercount = 0;
 }};
 """
 
