@@ -328,8 +328,11 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.sendLine(3, 'JOIN #chan')
         self.sendLine(4, 'JOIN #chan')
 
-        import time
-        time.sleep(0.1)
+        # Synchronize
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(3)
+        self.getMessages(4)
         self.getMessages(1)
         self.getMessages(2)
         self.getMessages(3)
