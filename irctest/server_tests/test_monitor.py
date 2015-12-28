@@ -189,3 +189,34 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
         else:
             raise AssertionError('Got message after client whose MONITORing '
                     'was requested via hostmask connected: {}'.format(m))
+
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    def testTwoMonitoringOneRemove(self):
+        """Tests the following scenario:
+        * foo MONITORs qux
+        * bar MONITORs qux
+        * bar unMONITORs qux
+        * qux connects.
+        """
+        self.connectClient('foo')
+        self.check_server_support()
+        self.connectClient('bar')
+        self.sendLine(1, 'MONITOR + qux')
+        self.sendLine(2, 'MONITOR + qux')
+        self.getMessages(1)
+        self.getMessages(2)
+        self.sendLine(2, 'MONITOR - qux')
+        l = self.getMessages(2)
+        self.assertEqual(l, [],
+                fail_msg='Got response to “MONITOR -”: {}',
+                extra_format=(l,))
+        self.connectClient('qux')
+        self.getMessages(3)
+        l = self.getMessages(1)
+        self.assertNotEqual(l, [],
+                fail_msg='Received no message after MONITORed client '
+                'connects.')
+        l = self.getMessages(2)
+        self.assertEqual(l, [],
+                fail_msg='Got response to unmonitored client: {}',
+                extra_format=(l,))
