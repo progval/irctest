@@ -21,7 +21,7 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         m = self.getMessage(2, filter_pred=lambda m:m.command != 'NOTICE')
         self.assertMessageEqual(m, command='900',
                 fail_msg='Did not send 900 after correct SASL authentication.')
-        self.sendLine(2, 'USER f * * :*')
+        self.sendLine(2, 'USER f * * :Realname')
         self.sendLine(2, 'NICK {}'.format(nick))
         self.sendLine(2, 'CAP END')
         self.skipToWelcome(2)
@@ -29,10 +29,8 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPrivmsg(self):
-        try:
-            self.connectClient('foo', capabilities=['account-tag'])
-        except AssertionError:
-            raise NotImplementedByController('account-tag')
+        self.connectClient('foo', capabilities=['account-tag'],
+                skip_if_cap_nak=True)
         self.getMessages(1)
         self.controller.registerUser(self, 'jilles', 'sesame')
         self.connectRegisteredClient('bar')
@@ -54,10 +52,8 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testMonitor(self):
-        try:
-            self.connectClient('foo', capabilities=['account-tag'])
-        except AssertionError:
-            raise NotImplementedByController('account-tag')
+        self.connectClient('foo', capabilities=['account-tag'],
+                skip_if_cap_nak=True)
         if 'MONITOR' not in self.server_support:
             raise NotImplementedByController('MONITOR')
         self.sendLine(1, 'MONITOR + bar')

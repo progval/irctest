@@ -308,15 +308,23 @@ class BaseServerTestCase(_IrcTestCase):
             m = self.getMessage(client, synchronize=False)
             if m.command == '001':
                 return m
-    def connectClient(self, nick, name=None, capabilities=None):
+    def connectClient(self, nick, name=None, capabilities=None,
+            skip_if_cap_nak=False):
         client = self.addClient(name)
         if capabilities is not None:
             self.sendLine(client, 'CAP REQ :{}'.format(' '.join(capabilities)))
             m = self.getRegistrationMessage(client)
-            self.assertMessageEqual(m, command='CAP',
-                    fail_msg='Expected CAP ACK, got: {msg}')
-            self.assertEqual(m.params[1], 'ACK', m,
-                    fail_msg='Expected CAP ACK, got: {msg}')
+            try:
+                self.assertMessageEqual(m, command='CAP',
+                        fail_msg='Expected CAP ACK, got: {msg}')
+                self.assertEqual(m.params[1], 'ACK', m,
+                        fail_msg='Expected CAP ACK, got: {msg}')
+            except AssertionError:
+                if skip_if_cap_nak:
+                    raise runner.NotImplementedByController(
+                            ', '.join(capabilities))
+                else:
+                    raise
             self.sendLine(client, 'CAP END')
         self.sendLine(client, 'NICK {}'.format(nick))
         self.sendLine(client, 'USER username * * :Realname')
