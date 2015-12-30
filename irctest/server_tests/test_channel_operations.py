@@ -361,7 +361,8 @@ class JoinTestCase(cases.BaseServerTestCase):
 
 class testChannelCaseSensitivity(cases.BaseServerTestCase):
     def _testChannelsEquivalent(name1, name2):
-        @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+        @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
+                strict=True)
         def f(self):
             self.connectClient('foo')
             self.connectClient('bar')
@@ -378,7 +379,8 @@ class testChannelCaseSensitivity(cases.BaseServerTestCase):
         f.__name__ = 'testEquivalence__{}__{}'.format(name1, name2)
         return f
     def _testChannelsNotEquivalent(name1, name2):
-        @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+        @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
+                strict=True)
         def f(self):
             self.connectClient('foo')
             self.connectClient('bar')
