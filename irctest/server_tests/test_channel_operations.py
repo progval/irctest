@@ -359,6 +359,59 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(m, command='KICK',
                 params=['#chan', 'baz', 'bye'])
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+    def testInviteNonExistingChannelTransmitted(self):
+        """“There is no requirement that the channel the target user is being
+        invited to must exist or be a valid channel.”
+        -- <https://tools.ietf.org/html/rfc1459#section-4.2.7>
+        and <https://tools.ietf.org/html/rfc2812#section-3.2.7>
+
+        “Only the user inviting and the user being invited will receive
+        notification of the invitation.”
+        -- <https://tools.ietf.org/html/rfc2812#section-3.2.7>
+        """
+        self.connectClient('foo')
+        self.connectClient('bar')
+        self.getMessages(1)
+        self.getMessages(2)
+        self.sendLine(1, 'INVITE #chan bar')
+        self.getMessages(1)
+        l = self.getMessages(2)
+        self.assertNotEqual(l, [],
+                fail_msg='After using “INVITE #chan bar” while #chan does '
+                'not exist, “bar” received nothing.')
+        self.assertMessageEqual(l[0], command='INVITE',
+                params=['#chan', 'bar'],
+                fail_msg='After “foo” invited “bar” do non-existing channel '
+                '#chan, “bar” should have received “INVITE #chan bar” but '
+                'got this instead: {msg}')
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+    def testInviteNonExistingChannelEchoed(self):
+        """“There is no requirement that the channel the target user is being
+        invited to must exist or be a valid channel.”
+        -- <https://tools.ietf.org/html/rfc1459#section-4.2.7>
+        and <https://tools.ietf.org/html/rfc2812#section-3.2.7>
+
+        “Only the user inviting and the user being invited will receive
+        notification of the invitation.”
+        -- <https://tools.ietf.org/html/rfc2812#section-3.2.7>
+        """
+        self.connectClient('foo')
+        self.connectClient('bar')
+        self.getMessages(1)
+        self.getMessages(2)
+        self.sendLine(1, 'INVITE #chan bar')
+        l = self.getMessages(1)
+        self.assertNotEqual(l, [],
+                fail_msg='After using “INVITE #chan bar” while #chan does '
+                'not exist, the author received nothing.')
+        self.assertMessageEqual(l[0], command='INVITE',
+                params=['#chan', 'bar'],
+                fail_msg='After “foo” invited “bar” do non-existing channel '
+                '#chan, “foo” should have received “INVITE #chan bar” but '
+                'got this instead: {msg}')
+
 class testChannelCaseSensitivity(cases.BaseServerTestCase):
     def _testChannelsEquivalent(name1, name2):
         @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
