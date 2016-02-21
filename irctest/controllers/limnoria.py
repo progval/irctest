@@ -11,6 +11,7 @@ supybot.directories.migrations: {directory}/migrations
 supybot.log.stdout.level: {loglevel}
 supybot.networks: testnet
 supybot.networks.testnet.servers: {hostname}:{port}
+supybot.networks.testnet.ssl: False
 supybot.networks.testnet.sasl.username: {username}
 supybot.networks.testnet.sasl.password: {password}
 supybot.networks.testnet.sasl.ecdsa_key: {directory}/ecdsa_key.pem
