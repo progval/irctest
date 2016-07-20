@@ -21,7 +21,7 @@ class StarttlsFailTestCase(cases.BaseServerTestCase):
         # TODO: check also without this
         self.sendLine(1, 'CAP REQ :tls')
         m = self.getRegistrationMessage(1)
-        # TODO: Remove this one the trailing space issue is fixed in Charybdis
+        # TODO: Remove this once the trailing space issue is fixed in Charybdis
         # and Mammon:
         #self.assertMessageEqual(m, command='CAP', params=['*', 'ACK', 'tls'],
         #        fail_msg='Did not ACK capability `tls`: {msg}')
