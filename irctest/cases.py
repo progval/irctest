@@ -1,5 +1,7 @@
+import ssl
 import time
 import socket
+import tempfile
 import unittest
 import functools
 import collections
@@ -11,6 +13,7 @@ from . import client_mock
 from . import authentication
 from .irc_utils import capabilities
 from .irc_utils import message_parser
+from .exceptions import ConnectionClosed
 from .specifications import Specifications
 
 class _IrcTestCase(unittest.TestCase):
@@ -107,9 +110,23 @@ class BaseClientTestCase(_IrcTestCase):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(('', 0)) # Bind any free port
         self.server.listen(1)
-    def acceptClient(self):
+    def acceptClient(self, tls_cert=None, tls_key=None):
         """Make the server accept a client connection. Blocking."""
         (self.conn, addr) = self.server.accept()
+        if tls_cert is None and tls_key is None:
+            pass
+        else:
+            assert tls_cert and tls_key, \
+                'tls_cert must be provided if and only if tls_key is.'
+            with tempfile.NamedTemporaryFile('at') as certfile, \
+                    tempfile.NamedTemporaryFile('at') as keyfile:
+                certfile.write(tls_cert)
+                certfile.seek(0)
+                keyfile.write(tls_key)
+                keyfile.seek(0)
+                context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+                context.load_cert_chain(certfile=certfile.name, keyfile=keyfile.name)
+                self.conn = context.wrap_socket(self.conn, server_side=True)
         self.conn_file = self.conn.makefile(newline='\r\n',
                 encoding='utf8')
 
@@ -127,6 +144,8 @@ class BaseClientTestCase(_IrcTestCase):
         and returns this message."""
         while True:
             line = self.getLine(*args)
+            if not line:
+                raise ConnectionClosed()
             msg = message_parser.parse_message(line)
             if not filter_pred or filter_pred(msg):
                 return msg
@@ -141,12 +160,13 @@ class BaseClientTestCase(_IrcTestCase):
 
 class ClientNegociationHelper:
     """Helper class for tests handling capabilities negociation."""
-    def readCapLs(self, auth=None):
+    def readCapLs(self, auth=None, tls_config=None):
         (hostname, port) = self.server.getsockname()
         self.controller.run(
                 hostname=hostname,
                 port=port,
                 auth=auth,
+                tls_config=tls_config,
                 )
         self.acceptClient()
         m = self.getMessage()

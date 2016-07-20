@@ -3,6 +3,7 @@ import tempfile
 import subprocess
 
 from irctest.basecontrollers import BaseClientController
+from irctest.basecontrollers import NotImplementedByController
 
 TEMPLATE_CONFIG = """
 [core]
@@ -45,8 +46,11 @@ class SopelController(BaseClientController):
         with self.open_file(self.filename) as fd:
             pass
 
-    def run(self, hostname, port, auth):
+    def run(self, hostname, port, auth, tls_config):
         # Runs a client with the config given as arguments
+        if tls_config is not None:
+            raise NotImplementedByController(
+                    'TLS configuration')
         assert self.proc is None
         self.create_config()
         with self.open_file(self.filename) as fd:

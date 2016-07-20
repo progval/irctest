@@ -2,13 +2,7 @@ import ssl
 import time
 import socket
 from .irc_utils import message_parser
-
-
-class NoMessageException(AssertionError):
-    pass
-
-class ConnectionClosed(Exception):
-    pass
+from .exceptions import NoMessageException, ConnectionClosed
 
 class ClientMock:
     def __init__(self, name, show_io):
