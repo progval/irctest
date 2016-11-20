@@ -113,3 +113,4 @@ or anything near that.
 At best, `irctest` can help you find issues in your software, but it may
 still have false positives (because it does not implement itself a
 full-featured client/server, so it supports only “usual” behavior).
+Bug reports for false positives are welcome.
