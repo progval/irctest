@@ -40,8 +40,12 @@ def main(args):
                     .format(', '.join(args.specification)))
             exit(1)
     else:
-        _IrcTestCase.testedSpecifications = frozenset(
-                Specifications)
+        specs = list(Specifications)
+        # remove deprecated specs
+        specs.remove(Specifications.RFCDeprecated)
+        specs.remove(Specifications.IRC302Deprecated)
+
+        _IrcTestCase.testedSpecifications = frozenset(specs)
     print('Testing {} on specification(s): {}'.format(
         controller_class.software_name,
         ', '.join(sorted(map(lambda x:x.value,

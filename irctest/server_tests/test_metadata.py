@@ -9,7 +9,7 @@ from irctest.irc_utils.message_parser import Message
 class MetadataTestCase(cases.BaseServerTestCase):
     valid_metadata_keys = {'valid_key1', 'valid_key2'}
     invalid_metadata_keys = {'invalid_key1', 'invalid_key2'}
-    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2-deprecated')
     def testInIsupport(self):
         """“If METADATA is supported, it MUST be specified in RPL_ISUPPORT
         using the METADATA key.”
@@ -29,7 +29,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
                 fail_msg='{item} missing from RPL_ISUPPORT')
         self.getMessages(1)
 
-    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2-deprecated')
     def testGetOneUnsetValid(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html#metadata-get>
         """
@@ -40,7 +40,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
                 fail_msg='Did not reply with 766 (ERR_NOMATCHINGKEY) to a '
                 'request to an unset valid METADATA key.')
 
-    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2-deprecated')
     def testGetTwoUnsetValid(self):
         """“Multiple keys may be given. The response will be either RPL_KEYVALUE,
         ERR_KEYINVALID or ERR_NOMATCHINGKEY for every key in order.”
@@ -63,7 +63,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
                 fail_msg='Response to “METADATA * GET valid_key1 valid_key2” '
                 'did not respond to valid_key2 as second response: {msg}')
 
-    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2-deprecated')
     def testListNoSet(self):
         """“This subcommand MUST list all currently-set metadata keys along
         with their values. The response will be zero or more RPL_KEYVALUE
@@ -77,7 +77,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
                 fail_msg='Response to “METADATA * LIST” was not '
                 '762 (RPL_METADATAEND) but: {msg}')
 
-    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2-deprecated')
     def testListInvalidTarget(self):
         """“In case of invalid target RPL_METADATAEND MUST NOT be sent.”
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-list>
@@ -131,14 +131,14 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertSetValue(target, key, value, displayable_value)
         self.assertGetValue(target, key, value, displayable_value)
 
-    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2-deprecated')
     def testSetGetValid(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>
         """
         self.connectClient('foo')
         self.assertSetGetValue('*', 'valid_key1', 'myvalue')
 
-    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2-deprecated')
     def testSetGetZeroCharInValue(self):
         """“Values are unrestricted, except that they MUST be UTF-8.”
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-restrictions>
@@ -147,7 +147,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertSetGetValue('*', 'valid_key1', 'zero->\0<-zero',
                 'zero->\\0<-zero')
 
-    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2-deprecated')
     def testSetGetHeartInValue(self):
         """“Values are unrestricted, except that they MUST be UTF-8.”
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-restrictions>
@@ -157,7 +157,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertSetGetValue('*', 'valid_key1', '->{}<-'.format(heart),
                 'zero->{}<-zero'.format(heart.encode()))
 
-    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2-deprecated')
     def testSetInvalidUtf8(self):
         """“Values are unrestricted, except that they MUST be UTF-8.”
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-restrictions>

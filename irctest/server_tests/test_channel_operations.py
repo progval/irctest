@@ -150,11 +150,12 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.connectClient('foo')
         self.connectClient('bar')
         self.sendLine(1, 'JOIN #chan')
+        self.getMessages(1)
         self.sendLine(2, 'JOIN #chan')
+        self.getMessages(2)
         # TODO: check foo is opped OR +t is unset
 
-        self.getMessages(1)
-        self.getMessages(2)
+        # clear waiting msgs about cli 2 joining the channel
         self.getMessages(1)
 
         self.sendLine(1, 'TOPIC #chan :T0P1C')
@@ -359,7 +360,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(m, command='KICK',
                 params=['#chan', 'baz', 'bye'])
 
-    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+    @cases.SpecificationSelector.requiredBySpecification('RFC-deprecated')
     def testInviteNonExistingChannelTransmitted(self):
         """“There is no requirement that the channel the target user is being
         invited to must exist or be a valid channel.”
@@ -386,7 +387,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                 '#chan, “bar” should have received “INVITE #chan bar” but '
                 'got this instead: {msg}')
 
-    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+    @cases.SpecificationSelector.requiredBySpecification('RFC-deprecated')
     def testInviteNonExistingChannelEchoed(self):
         """“There is no requirement that the channel the target user is being
         invited to must exist or be a valid channel.”
