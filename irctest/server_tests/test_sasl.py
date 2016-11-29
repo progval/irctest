@@ -129,6 +129,10 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(1, 'AUTHENTICATE {}'.format(authstring[0:400]))
         self.sendLine(1, 'AUTHENTICATE {}'.format(authstring[400:]))
 
+        self.confirmSuccessfulAuth()
+
+    def confirmSuccessfulAuth(self):
+        # TODO: check username/etc in this as well, so we can apply it to other tests
         # TODO: may be in the other order
         m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='900',
@@ -136,7 +140,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 'login, but got: {msg}')
         m = self.getRegistrationMessage(1)
         self.assertMessageEqual(m, command='903',
-                fail_msg='Expected 900 (RPL_LOGGEDIN) after successful '
+                fail_msg='Expected 903 (RPL_SASLSUCCESS) after successful '
                 'login, but got: {msg}')
 
     # TODO: add a test for when the length of the authstring is greater than 800.
@@ -171,15 +175,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(1, 'AUTHENTICATE {}'.format(authstring))
         self.sendLine(1, 'AUTHENTICATE +')
 
-        # TODO: may be in the other order
-        m = self.getRegistrationMessage(1)
-        self.assertMessageEqual(m, command='900',
-                fail_msg='Expected 900 (RPL_LOGGEDIN) after successful '
-                'login, but got: {msg}')
-        m = self.getRegistrationMessage(1)
-        self.assertMessageEqual(m, command='903',
-                fail_msg='Expected 900 (RPL_LOGGEDIN) after successful '
-                'login, but got: {msg}')
+        self.confirmSuccessfulAuth()
 
     # TODO: add a test for when the length of the authstring is 800.
     # I don't know how to do it, because it would make the registration
