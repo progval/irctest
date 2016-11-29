@@ -233,10 +233,9 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.sendLine(2, 'LIST')
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command='321', # RPL_LISTSTART
-                fail_msg='First reply to LIST is not 321 (RPL_LISTSTART), '
-                'but: {msg}')
-        m = self.getMessage(2)
+        if m.command == '321':
+            # skip RPL_LISTSTART
+            m = self.getMessage(2)
         self.assertNotEqual(m.command, '322', # RPL_LIST
                 'LIST response gives (at least) one channel, whereas there '
                 'is none.')
@@ -256,10 +255,9 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.sendLine(2, 'LIST')
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command='321', # RPL_LISTSTART
-                fail_msg='First reply to LIST is not 321 (RPL_LISTSTART), '
-                'but: {msg}')
-        m = self.getMessage(2)
+        if m.command == '321':
+            # skip RPL_LISTSTART
+            m = self.getMessage(2)
         self.assertNotEqual(m.command, '323', # RPL_LISTEND
                 fail_msg='LIST response ended (ie. 323, aka RPL_LISTEND) '
                 'without listing any channel, whereas there is one.')
