@@ -4,10 +4,10 @@ import argparse
 import unittest
 import functools
 import importlib
-from .cases import _IrcTestCase
-from .runner import TextTestRunner
-from .specifications import Specifications
-from .basecontrollers import BaseClientController, BaseServerController
+from irctest.cases import _IrcTestCase
+from irctest.runner import TextTestRunner
+from irctest.specifications import Specifications
+from irctest.basecontrollers import BaseClientController, BaseServerController
 
 def main(args):
     try:
@@ -18,9 +18,9 @@ def main(args):
 
     controller_class = module.get_irctest_controller_class()
     if issubclass(controller_class, BaseClientController):
-        import irctest.client_tests as module
+        from irctest import client_tests as module
     elif issubclass(controller_class, BaseServerController):
-        import irctest.server_tests as module
+        from irctest import server_tests as module
     else:
         print(r'{}.Controller should be a subclass of '
                 r'irctest.basecontroller.Base{{Client,Server}}Controller'

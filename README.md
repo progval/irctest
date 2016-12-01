@@ -1,56 +1,51 @@
 # irctest
 
-This project aims at testing interoperability of software using the
-IRC protocol, by running them against test suites and making different
-software communicate with each other.
+This software intends to test IRC clients and servers, to ensure that they behave how they're expected to today.
 
-It is very young and does not contain a lot of test cases yet.
+The tests in this repo are based on [RFC 1459](https://tools.ietf.org/html/rfc1459), [RFC 2812](https://tools.ietf.org/html/rfc2812), the [Modern docs](http://modern.ircdocs.horse/) and generally-accepted software behaviour.
 
-## The big picture
+This project is very young and doesn't contain a lot of test cases. However, it should still be useful and can highlight unexpected issues, particularly with newly-developed software.
 
-This project contains:
 
-* IRC protocol test cases
-* small wrappers around existing software to run tests on them
+## Installing
 
-Wrappers run software in temporary directories, so running `irctest` should
-have no side effect, with [the exception of Sopel](https://github.com/sopel-irc/sopel/issues/946).
-
-## Prerequisites
-
-Install irctest and dependencies:
+Clone the repo and install the relevant depdencies:
 
 ```
-git clone https://github.com/ProgVal/irctest.git
+git clone https://github.com/DanielOaks/irctest.git
 cd irctest
 pip3 install --user -r requirements.txt
-python3 setup.py install --user
 ```
 
-Add `~/.local/bin/` to your `PATH` if it is not.
 
-```
-export PATH=$HOME/.local/bin/:$PATH
-```
+## Running Tests
 
-## Run tests
+For almost every client / server, all we require is that the software is installed and the binary is in the PATH.
 
-To run (client) tests on Limnoria:
+Here are examples of how to install various software and run tests with them:
+
+
+### Clients
+
+To run tests on Limnoria:
 
 ```
 pip3 install --user limnoria
-python3 -m irctest irctest.controllers.limnoria
+python3 test.py irctest.controllers.limnoria
 ```
 
-To run (client) tests on Sopel:
+To run tests on Sopel:
 
 ```
 pip3 install --user sopel
 mkdir ~/.sopel/
-python3 -m irctest irctest.controllers.sopel
+python3 test.py irctest.controllers.sopel
 ```
 
-To run (server) tests on InspIRCd:
+
+### Servers
+
+To run tests on InspIRCd:
 
 ```
 cd /tmp/
@@ -59,17 +54,17 @@ cd inspircd
 ./configure --prefix=$HOME/.local/ --development
 make -j 4
 make install
-python3 -m irctest irctest.controllers.inspircd
+python3 test.py irctest.controllers.inspircd
 ```
 
-To run (server) tests on Mammon:
+To run tests on Mammon:
 
 ```
 pip3 install --user git+https://github.com/mammon-ircd/mammon.git
-python3 -m irctest irctest.controllers.mammon
+python3 test.py irctest.controllers.mammon
 ```
 
-To run (server) tests on Charybdis::
+To run tests on Charybdis::
 
 ```
 cd /tmp/
@@ -78,38 +73,17 @@ cd charybdis
 ./configure --prefix=$HOME/.local/
 make -j 4
 make install
-python3 -m irctest irctest.controllers.charybdis
+python3 test.py irctest.controllers.charybdis
 ```
 
-## Full help
 
-```
-usage: python3 -m irctest [-h] [--show-io] [-v] [-s SPECIFICATION] [-l] module
+## Program Help
 
-positional arguments:
-  module                The module used to run the tested program.
+For more complete help, run `./test --help`
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --show-io             Show input/outputs with the tested program.
-  -v, --verbose         Verbosity. Give this option multiple times to make it
-                        even more verbose.
-  -s SPECIFICATION, --specification SPECIFICATION
-                        The set of specifications to test the program with.
-                        Valid values: RFC1459, RFC2812, IRCv3.1, IRCv3.2. Use
-                        this option multiple times to test with multiple
-                        specifications. If it is not given, defaults to all.
-  -l, --loose           Disables strict checks of conformity to the
-                        specification. Strict means the specification is
-                        unclear, and the most restrictive interpretation is
-                        choosen.
-```
 
-## What `irctest` is not
+## What this is not
 
-A formal proof that a given software follows any of the IRC specification,
-or anything near that.
+This isn't a formal proof that a given piece of IRC software follows the IRC specs to the letter, or is definitely going to be interoperable with other software.
 
-At best, `irctest` can help you find issues in your software, but it may
-still have false positives (because it does not implement itself a
-full-featured client/server, so it supports only “usual” behavior).
+At best, this can help you find issues with your software, but it may still have false-positives.
