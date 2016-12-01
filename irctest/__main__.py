@@ -76,7 +76,8 @@ parser.add_argument('-s', '--specification', type=str, action='append',
         help=('The set of specifications to test the program with. '
         'Valid values: {}. '
         'Use this option multiple times to test with multiple '
-        'specifications. If it is not given, defaults to all.')
+        'specifications. If it is not given, defaults to all that '
+        'are not deprecated.')
         .format(', '.join(x.value for x in Specifications)))
 parser.add_argument('-l', '--loose', action='store_true',
         help='Disables strict checks of conformity to the specification. '
