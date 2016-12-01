@@ -101,4 +101,4 @@ For more complete help, run `./test --help`
 
 This isn't a formal proof that a given piece of IRC software follows the IRC specs to the letter, or is definitely going to be interoperable with other software.
 
-At best, this can help you find issues with your software, but it may still have false-positives.
+This is just intended to help you find issues with your software.
