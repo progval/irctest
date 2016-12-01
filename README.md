@@ -31,7 +31,7 @@ To run tests on Limnoria:
 
 ```
 pip3 install --user limnoria
-python3 test.py irctest.controllers.limnoria
+./test.py irctest.controllers.limnoria
 ```
 
 To run tests on Sopel:
@@ -39,7 +39,14 @@ To run tests on Sopel:
 ```
 pip3 install --user sopel
 mkdir ~/.sopel/
-python3 test.py irctest.controllers.sopel
+./test.py irctest.controllers.sopel
+```
+
+To run tests on gIRC:
+
+```
+pip3 install --user girc
+./test.py irctest.controllers.girc
 ```
 
 
@@ -54,17 +61,17 @@ cd inspircd
 ./configure --prefix=$HOME/.local/ --development
 make -j 4
 make install
-python3 test.py irctest.controllers.inspircd
+./test.py irctest.controllers.inspircd
 ```
 
 To run tests on Mammon:
 
 ```
 pip3 install --user git+https://github.com/mammon-ircd/mammon.git
-python3 test.py irctest.controllers.mammon
+./test.py irctest.controllers.mammon
 ```
 
-To run tests on Charybdis::
+To run tests on Charybdis:
 
 ```
 cd /tmp/
@@ -73,7 +80,15 @@ cd charybdis
 ./configure --prefix=$HOME/.local/
 make -j 4
 make install
-python3 test.py irctest.controllers.charybdis
+./test.py irctest.controllers.charybdis
+```
+
+To run tests on Oragono:
+
+Download [latest release](https://github.com/DanielOaks/oragono/releases/latest) and extract into your PATH, then:
+
+```
+./test.py irctest.controllers.oragono
 ```
 
 
