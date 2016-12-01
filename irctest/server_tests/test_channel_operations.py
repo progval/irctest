@@ -322,6 +322,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.connectClient('baz')
         self.connectClient('qux')
         self.sendLine(1, 'JOIN #chan')
+        self.getMessages(1)
         # TODO: check foo is an operator
         self.sendLine(2, 'JOIN #chan')
         self.sendLine(3, 'JOIN #chan')
@@ -350,13 +351,21 @@ class JoinTestCase(cases.BaseServerTestCase):
             # The RFCs do not say KICK must be echoed
             pass
 
-        # TODO: could be in the other order
-        m = self.getMessage(4)
-        self.assertMessageEqual(m, command='KICK',
-                params=['#chan', 'bar', 'bye'])
-        m = self.getMessage(4)
-        self.assertMessageEqual(m, command='KICK',
-                params=['#chan', 'baz', 'bye'])
+        mgroup = self.getMessages(4)
+        self.assertGreaterEqual(len(mgroup), 2)
+        m1, m2 = mgroup[:2]
+
+        for m in m1, m2:
+            self.assertEqual(m.command, 'KICK')
+
+            self.assertEqual(len(m.params), 3)
+            self.assertEqual(m.params[0], '#chan')
+            self.assertEqual(m.params[2], 'bye')
+        
+        if (m1.params[1] == 'bar' and m2.params[1] == 'baz') or (m1.params[1] == 'baz' and m2.params[1] == 'bar'):
+            ...  # success
+        else:
+            raise AssertionError('Middle params [{}, {}] are not correct.'.format(m1.params[1], m2.params[1]))
 
     @cases.SpecificationSelector.requiredBySpecification('RFC-deprecated')
     def testInviteNonExistingChannelTransmitted(self):
