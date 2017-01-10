@@ -15,7 +15,7 @@ with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as fd:
 
 setup(
     name='irctest',
-    version='0.1',
+    version='0.1.1',
     author='Valentin Lorentz',
     url='https://github.com/ProgVal/irctest/',
     author_email='progval+irctest@progval.net',
