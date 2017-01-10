@@ -1,5 +1,7 @@
 import ecdsa
 import base64
+import pyxmpp2_scram as scram
+
 from irctest import cases
 from irctest import authentication
 from irctest.irc_utils.message_parser import Message
@@ -152,6 +154,74 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         self.sendLine('903 * :SASL authentication successful')
         m = self.negotiateCapabilities(['sasl'], False)
         self.assertEqual(m, Message([], None, 'CAP', ['END']))
+
+    @cases.OptionalityHelper.skipUnlessHasMechanism('SCRAM-SHA-256')
+    def testScram(self):
+        """Test SCRAM-SHA-256 authentication.
+        """
+        auth = authentication.Authentication(
+                mechanisms=[authentication.Mechanisms.scram_sha_256],
+                username='jilles',
+                password='sesame',
+                )
+        class PasswdDb:
+            def get_password(self, *args):
+                return ('sesame', 'plain')
+        authenticator = scram.SCRAMServerAuthenticator('SHA-256',
+                channel_binding=False, password_database=PasswdDb())
+
+        m = self.negotiateCapabilities(['sasl'], auth=auth)
+        self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['SCRAM-SHA-256']))
+        self.sendLine('AUTHENTICATE +')
+
+        m = self.getMessage()
+        self.assertEqual(m.command, 'AUTHENTICATE', m)
+        client_first = base64.b64decode(m.params[0])
+        response = authenticator.start(properties={}, initial_response=client_first)
+        assert isinstance(response, bytes), response
+        self.sendLine('AUTHENTICATE :' + base64.b64encode(response).decode())
+
+        m = self.getMessage()
+        self.assertEqual(m.command, 'AUTHENTICATE', m)
+        msg = base64.b64decode(m.params[0])
+        r = authenticator.response(msg)
+        assert isinstance(r, tuple), r
+        assert len(r) == 2, r
+        (properties, response) = r
+        self.sendLine('AUTHENTICATE :' + base64.b64encode(response).decode())
+        self.assertEqual(properties, {'authzid': None, 'username': 'jilles'})
+
+    @cases.OptionalityHelper.skipUnlessHasMechanism('SCRAM-SHA-256')
+    def testScramBadPassword(self):
+        """Test SCRAM-SHA-256 authentication with a bad password.
+        """
+        auth = authentication.Authentication(
+                mechanisms=[authentication.Mechanisms.scram_sha_256],
+                username='jilles',
+                password='sesame',
+                )
+        class PasswdDb:
+            def get_password(self, *args):
+                return ('notsesame', 'plain')
+        authenticator = scram.SCRAMServerAuthenticator('SHA-256',
+                channel_binding=False, password_database=PasswdDb())
+
+        m = self.negotiateCapabilities(['sasl'], auth=auth)
+        self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['SCRAM-SHA-256']))
+        self.sendLine('AUTHENTICATE +')
+
+        m = self.getMessage()
+        self.assertEqual(m.command, 'AUTHENTICATE', m)
+        client_first = base64.b64decode(m.params[0])
+        response = authenticator.start(properties={}, initial_response=client_first)
+        assert isinstance(response, bytes), response
+        self.sendLine('AUTHENTICATE :' + base64.b64encode(response).decode())
+
+        m = self.getMessage()
+        self.assertEqual(m.command, 'AUTHENTICATE', m)
+        msg = base64.b64decode(m.params[0])
+        with self.assertRaises(scram.NotAuthorizedException):
+            authenticator.response(msg)
 
 class Irc302SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                          cases.OptionalityHelper):

@@ -9,6 +9,7 @@ TEMPLATE_CONFIG = """
 supybot.directories.conf: {directory}/conf
 supybot.directories.data: {directory}/data
 supybot.directories.migrations: {directory}/migrations
+supybot.log.level: DEBUG
 supybot.log.stdout.level: {loglevel}
 
 supybot.networks: testnet
@@ -27,7 +28,7 @@ supybot.networks.testnet.sasl.mechanisms: {mechanisms}
 class LimnoriaController(BaseClientController, DirectoryBasedController):
     software_name = 'Limnoria'
     supported_sasl_mechanisms = {
-            'PLAIN', 'ECDSA-NIST256P-CHALLENGE', 'EXTERNAL',
+            'PLAIN', 'ECDSA-NIST256P-CHALLENGE', 'SCRAM-SHA-256', 'EXTERNAL',
             }
     def create_config(self):
         super().create_config()
