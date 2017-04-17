@@ -16,6 +16,8 @@ server:
 
     check-ident: false
 
+    max-sendq: 16k
+
     connection-limits:
         cidr-len-ipv4: 24
         cidr-len-ipv6: 120
@@ -25,14 +27,31 @@ server:
             - "127.0.0.1/8"
             - "::1/128"
 
-registration:
-    accounts:
+    connection-throttling:
+        enabled: true
+        cidr-len-ipv4: 32
+        cidr-len-ipv6: 128
+        duration: 10m
+        max-connections: 12
+        ban-duration: 10m
+        ban-message: You have attempted to connect too many times within a short duration. Wait a while, and you will be able to connect.
+
+        exempted:
+            - "127.0.0.1/8"
+            - "::1/128"
+
+accounts:
+    registration:
         enabled: true
         verify-timeout: "120h"
         enabled-callbacks:
             - none # no verification needed, will instantly register successfully
 
-authentication-enabled: true
+    authentication-enabled: true
+
+channels:
+    registration:
+        enabled: true
 
 datastore:
     path: {directory}/ircd.db
@@ -46,6 +65,9 @@ limits:
     monitor-entries: 100
     whowas-entries: 100
     chan-list-modes: 60
+    linelen:
+        tags: 2048
+        rest: 2048
 """
 
 class OragonoController(BaseServerController, DirectoryBasedController):
