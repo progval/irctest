@@ -192,15 +192,8 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
 
         self.sendLine(1, 'MODE #chan +t')
-        try:
-            m = self.getMessage(1)
-            if m.command == '482':
-                raise runner.ImplementationChoice(
-                        'Channel creators are not opped by default.')
-            self.assertMessageEqual(m, command='TOPIC')
-        except client_mock.NoMessageException:
-            # The RFCs do not say TOPIC must be echoed
-            pass
+        self.getMessages(1)
+
         self.sendLine(2, 'TOPIC #chan :T0P1C')
         m = self.getMessage(2)
         self.assertMessageEqual(m, command='482',
