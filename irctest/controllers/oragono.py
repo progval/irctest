@@ -13,6 +13,7 @@ server:
     name: oragono.test
     listen:
         - "{hostname}:{port}"
+    {tls}
 
     check-ident: false
 
@@ -46,6 +47,7 @@ accounts:
         verify-timeout: "120h"
         enabled-callbacks:
             - none # no verification needed, will instantly register successfully
+        allow-multiple-per-connection: true
 
     authentication-enabled: true
 
@@ -92,17 +94,24 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         if password is not None:
             #TODO(dan): fix dis
             raise NotImplementedByController('PASS command')
+        self.create_config()
+        tls_config = ""
         if ssl:
-            #TODO(dan): fix dis
-            raise NotImplementedByController('SSL')
+            self.key_path = os.path.join(self.directory, 'ssl.key')
+            self.pem_path = os.path.join(self.directory, 'ssl.pem')
+            tls_config = 'tls-listeners:\n        ":{port}":\n            key: {key}\n            cert: {pem}'.format(
+                port=port,
+                key=self.key_path,
+                pem=self.pem_path,
+            )
         assert self.proc is None
         self.port = port
-        self.create_config()
         with self.open_file('server.yml') as fd:
             fd.write(TEMPLATE_CONFIG.format(
                 directory=self.directory,
                 hostname=hostname,
                 port=port,
+                tls=tls_config,
                 ))
         subprocess.call(['oragono', 'initdb',
             '--conf', os.path.join(self.directory, 'server.yml'), '--quiet'])
