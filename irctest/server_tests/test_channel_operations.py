@@ -414,12 +414,14 @@ class JoinTestCase(cases.BaseServerTestCase):
                 'got this instead: {msg}')
 
 class testChannelCaseSensitivity(cases.BaseServerTestCase):
-    def _testChannelsEquivalent(name1, name2):
+    def _testChannelsEquivalent(casemapping, name1, name2):
         @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
                 strict=True)
         def f(self):
             self.connectClient('foo')
             self.connectClient('bar')
+            if self.server_support['CASEMAPPING'] != casemapping:
+                raise runner.NotImplementedByController('Casemapping {} not implemented'.format(casemapping))
             self.joinClient(1, name1)
             self.joinClient(2, name2)
             try:
@@ -432,12 +434,14 @@ class testChannelCaseSensitivity(cases.BaseServerTestCase):
                         .format(name1, name2))
         f.__name__ = 'testEquivalence__{}__{}'.format(name1, name2)
         return f
-    def _testChannelsNotEquivalent(name1, name2):
+    def _testChannelsNotEquivalent(casemapping, name1, name2):
         @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
                 strict=True)
         def f(self):
             self.connectClient('foo')
             self.connectClient('bar')
+            if self.server_support['CASEMAPPING'] != casemapping:
+                raise runner.NotImplementedByController('Casemapping {} not implemented'.format(casemapping))
             self.joinClient(1, name1)
             self.joinClient(2, name2)
             try:
@@ -453,7 +457,10 @@ class testChannelCaseSensitivity(cases.BaseServerTestCase):
         f.__name__ = 'testEquivalence__{}__{}'.format(name1, name2)
         return f
 
-    testSimpleEquivalent = _testChannelsEquivalent('#Foo', '#foo')
-    testSimpleNotEquivalent = _testChannelsNotEquivalent('#Foo', '#fooa')
-    testFancyEquivalent = _testChannelsEquivalent('#F]|oo{', '#f}\\oo[')
-    testFancyNotEquivalent = _testChannelsEquivalent('#F}o\\o[', '#f]o|o{')
+    testAsciiSimpleEquivalent = _testChannelsEquivalent('ascii', '#Foo', '#foo')
+    testAsciiSimpleNotEquivalent = _testChannelsNotEquivalent('ascii', '#Foo', '#fooa')
+
+    testRfcSimpleEquivalent = _testChannelsEquivalent('rfc1459', '#Foo', '#foo')
+    testRfcSimpleNotEquivalent = _testChannelsNotEquivalent('rfc1459', '#Foo', '#fooa')
+    testRfcFancyEquivalent = _testChannelsEquivalent('rfc1459', '#F]|oo{', '#f}\\oo[')
+    testRfcFancyNotEquivalent = _testChannelsEquivalent('rfc1459', '#F}o\\o[', '#f]o|o{')
