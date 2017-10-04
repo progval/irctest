@@ -34,8 +34,6 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.assertTrue(expected_commands.issubset(received_commands),
                 'Server sent {} commands, but at least {} were expected.'
                 .format(received_commands, expected_commands))
-        self.assertTrue(received_commands & {'331', '332'} != set(), # RPL_NOTOPIC, RPL_TOPIC
-                'Server sent neither 331 (RPL_NOTOPIC) or 332 (RPL_TOPIC)')
 
     @cases.SpecificationSelector.requiredBySpecification('RFC2812')
     def testJoinNamreply(self):
