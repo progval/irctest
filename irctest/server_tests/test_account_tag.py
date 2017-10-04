@@ -47,32 +47,3 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 fail_msg='PRIVMSG by logged in nick '
                 'does not contain the correct account tag (should be '
                 '“jilles”): {msg}')
-
-
-    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
-    @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
-    def testMonitor(self):
-        self.connectClient('foo', capabilities=['account-tag'],
-                skip_if_cap_nak=True)
-        if 'MONITOR' not in self.server_support:
-            raise NotImplementedByController('MONITOR')
-        self.sendLine(1, 'MONITOR + bar')
-        self.getMessages(1)
-        self.controller.registerUser(self, 'jilles', 'sesame')
-        self.connectRegisteredClient('bar')
-        m = self.getMessage(1)
-        self.assertMessageEqual(m, command='730', # RPL_MONONLINE
-                fail_msg='Sent non-730 (RPL_MONONLINE) message after '
-                'monitored nick “bar” connected: {msg}')
-        self.assertEqual(len(m.params), 2, m,
-                fail_msg='Invalid number of params of RPL_MONONLINE: {msg}')
-        self.assertEqual(m.params[1].split('!')[0], 'bar',
-                fail_msg='730 (RPL_MONONLINE) with bad target after “bar” '
-                'connects: {msg}')
-        self.assertIn('account', m.tags, m,
-                fail_msg='730 (RPL_MONONLINE) sent because of logged in nick '
-                'does not contain an account tag: {msg}')
-        self.assertEqual(m.tags['account'], 'jilles', m,
-                fail_msg='730 (RPL_MONONLINE) sent because of logged in nick '
-                'does not contain the correct account tag (should be '
-                '“jilles”): {msg}')
