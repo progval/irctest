@@ -75,7 +75,7 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
                 password_field=password_field,
                 ssl_config=ssl_config,
                 ))
-        self.proc = subprocess.Popen(['ircd', '-foreground',
+        self.proc = subprocess.Popen(['charybdis', '-foreground',
             '-configfile', os.path.join(self.directory, 'server.conf'),
             '-pidfile', os.path.join(self.directory, 'server.pid'),
             ],
