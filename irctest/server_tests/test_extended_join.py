@@ -48,8 +48,8 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
         self.controller.registerUser(self, 'jilles', 'sesame')
         self.connectRegisteredClient('bar')
+        self.joinChannel(2, '#chan')
 
-        self.sendLine(2, 'JOIN #chan')
         m = self.getMessage(1)
         self.assertMessageEqual(m, command='JOIN',
                 params=['#chan', 'jilles', 'Realname'],

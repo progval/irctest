@@ -378,7 +378,7 @@ class BaseServerTestCase(_IrcTestCase):
         # wait until we see them join the channel
         joined = False
         while not joined:
-            for msg in self.getMessages(1):
+            for msg in self.getMessages(client):
                 # todo: also respond to cannot join channel numeric
                 if msg.command.upper() == 'JOIN' and 0 < len(msg.params) and msg.params[0].lower() == channel.lower():
                     joined = True
