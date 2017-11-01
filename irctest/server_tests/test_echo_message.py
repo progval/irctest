@@ -38,7 +38,7 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
             self.sendLine(1, 'JOIN #chan')
 
             if not solo:
-                capabilities = ['server-time'] if server_time else []
+                capabilities = ['server-time'] if server_time else None
                 self.connectClient('qux', capabilities=capabilities)
                 self.sendLine(2, 'JOIN #chan')
 

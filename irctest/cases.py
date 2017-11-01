@@ -331,7 +331,7 @@ class BaseServerTestCase(_IrcTestCase):
     def connectClient(self, nick, name=None, capabilities=None,
             skip_if_cap_nak=False):
         client = self.addClient(name)
-        if capabilities is not None:
+        if capabilities is not None and 0 < len(capabilities):
             self.sendLine(client, 'CAP REQ :{}'.format(' '.join(capabilities)))
             m = self.getRegistrationMessage(client)
             try:
