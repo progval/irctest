@@ -373,6 +373,17 @@ class BaseServerTestCase(_IrcTestCase):
                 'received responses: {list}',
                 extra_format=(channel,))
 
+    def joinChannel(self, client, channel):
+        self.sendLine(client, 'JOIN {}'.format(channel))
+        # wait until we see them join the channel
+        joined = False
+        while not joined:
+            for msg in self.getMessages(1):
+                # todo: also respond to cannot join channel numeric
+                if msg.command.upper() == 'JOIN' and 0 < len(msg.params) and msg.params[0].lower() == channel.lower():
+                    joined = True
+                    break
+
 class OptionalityHelper:
     def checkSaslSupport(self):
         if self.controller.supported_sasl_mechanisms:
