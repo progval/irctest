@@ -148,14 +148,17 @@ class JoinTestCase(cases.BaseServerTestCase):
         and <https://tools.ietf.org/html/rfc2812#section-3.2.1>
         """
         self.connectClient('foo')
+        self.joinChannel(1, '#chan')
+
         self.connectClient('bar')
-        self.sendLine(1, 'JOIN #chan')
-        self.sendLine(2, 'JOIN #chan')
-        # TODO: check foo is opped OR +t is unset
+        self.joinChannel(2, '#chan')
 
         self.getMessages(1)
         self.getMessages(2)
         self.getMessages(1)
+        self.getMessages(2)
+
+        # TODO: check foo is opped OR +t is unset
 
         self.sendLine(1, 'TOPIC #chan :T0P1C')
         try:
@@ -181,14 +184,15 @@ class JoinTestCase(cases.BaseServerTestCase):
         and <https://tools.ietf.org/html/rfc2812#section-3.2.1>
         """
         self.connectClient('foo')
+        self.joinChannel(1, '#chan')
+
         self.connectClient('bar')
-        self.sendLine(1, 'JOIN #chan')
-        self.sendLine(2, 'JOIN #chan')
-        # TODO: check foo is opped
+        self.joinChannel(2, '#chan')
 
         self.getMessages(1)
         self.getMessages(2)
-        self.getMessages(1)
+
+        # TODO: check foo is opped
 
         self.sendLine(1, 'MODE #chan +t')
         try:
@@ -282,12 +286,15 @@ class JoinTestCase(cases.BaseServerTestCase):
         and <https://tools.ietf.org/html/rfc2812#section-3.2.1>
         """
         self.connectClient('foo')
+        self.joinChannel(1, '#chan')
+
         self.connectClient('bar')
+        self.joinChannel(2, '#chan')
+
         self.connectClient('baz')
-        self.sendLine(1, 'JOIN #chan')
+        self.joinChannel(3, '#chan')
+
         # TODO: check foo is an operator
-        self.sendLine(2, 'JOIN #chan')
-        self.sendLine(3, 'JOIN #chan')
 
         import time
         time.sleep(0.1)
@@ -319,20 +326,24 @@ class JoinTestCase(cases.BaseServerTestCase):
         -- https://tools.ietf.org/html/rfc2812#section-3.2.8
         """
         self.connectClient('foo')
+        self.joinChannel(1, '#chan')
+
         self.connectClient('bar')
+        self.joinChannel(2, '#chan')
+
         self.connectClient('baz')
+        self.joinChannel(3, '#chan')
+
         self.connectClient('qux')
+<<<<<<< HEAD
         self.sendLine(1, 'JOIN #chan')
+=======
+        self.joinChannel(4, '#chan')
+
+>>>>>>> e4c3490... Make tests around joining channels more deterministic
         # TODO: check foo is an operator
-        self.sendLine(2, 'JOIN #chan')
-        self.sendLine(3, 'JOIN #chan')
-        self.sendLine(4, 'JOIN #chan')
 
         # Synchronize
-        self.getMessages(1)
-        self.getMessages(2)
-        self.getMessages(3)
-        self.getMessages(4)
         self.getMessages(1)
         self.getMessages(2)
         self.getMessages(3)
