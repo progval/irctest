@@ -56,15 +56,15 @@ class DirectoryBasedController(_BaseController):
         self.key_path = os.path.join(self.directory, 'ssl.key')
         self.pem_path = os.path.join(self.directory, 'ssl.pem')
         self.dh_path = os.path.join(self.directory, 'dh.pem')
-        subprocess.check_output(['openssl', 'req', '-new', '-newkey', 'rsa',
+        subprocess.check_output([self.openssl_bin, 'req', '-new', '-newkey', 'rsa',
             '-nodes', '-out', self.csr_path, '-keyout', self.key_path,
             '-batch'],
             stderr=subprocess.DEVNULL)
-        subprocess.check_output(['openssl', 'x509', '-req',
+        subprocess.check_output([self.openssl_bin, 'x509', '-req',
             '-in', self.csr_path, '-signkey', self.key_path,
             '-out', self.pem_path],
             stderr=subprocess.DEVNULL)
-        subprocess.check_output(['openssl', 'dhparam',
+        subprocess.check_output([self.openssl_bin, 'dhparam',
             '-out', self.dh_path, '128'],
             stderr=subprocess.DEVNULL)
 
@@ -80,7 +80,7 @@ class BaseServerController(_BaseController):
             valid_metadata_keys, invalid_metadata_keys):
         raise NotImplementedError()
     def registerUser(self, case, username, password=None):
-        raise NotImplementedByController('registration')
+        raise NotImplementedByController('account registration')
     def wait_for_port(self):
         while not self.port_open:
             time.sleep(0.1)

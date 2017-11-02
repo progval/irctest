@@ -29,6 +29,7 @@ def main(args):
                 file=sys.stderr)
         exit(1)
     _IrcTestCase.controllerClass = controller_class
+    _IrcTestCase.controllerClass.openssl_bin = args.openssl_bin
     _IrcTestCase.show_io = args.show_io
     _IrcTestCase.strictTests = not args.loose
     if args.specification:
@@ -68,6 +69,8 @@ parser = argparse.ArgumentParser(
         description='A script to test interoperability of IRC software.')
 parser.add_argument('module', type=str,
         help='The module used to run the tested program.')
+parser.add_argument('--openssl-bin', type=str, default='openssl',
+        help='The openssl binary to use')
 parser.add_argument('--show-io', action='store_true',
         help='Show input/outputs with the tested program.')
 parser.add_argument('-v', '--verbose', action='count', default=1,
