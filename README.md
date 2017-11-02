@@ -4,7 +4,7 @@ This software intends to test IRC clients and servers, to ensure that they behav
 
 The tests in this repo are based on [RFC 1459](https://tools.ietf.org/html/rfc1459), [RFC 2812](https://tools.ietf.org/html/rfc2812), the [Modern docs](http://modern.ircdocs.horse/) and generally-accepted software behaviour.
 
-This project is very young and doesn't contain a lot of test cases. However, it should still be useful and can highlight unexpected issues, particularly with newly-developed software.
+This project doesn't contain a lot of test cases. However, it's still useful and can highlight unexpected issues, particularly with newly-developed software.
 
 
 ## Installing
@@ -69,6 +69,18 @@ To run tests on Mammon:
 ```
 pip3 install --user git+https://github.com/mammon-ircd/mammon.git
 ./test.py irctest.controllers.mammon
+```
+
+To run tests on Hybrid:
+
+```
+cd /tmp/
+git clone https://github.com/ircd-hybrid/ircd-hybrid.git
+cd ircd-hybrid
+./configure --prefix=$HOME/.local/
+make -j 4
+make install
+./test.py irctest.controllers.hybrid
 ```
 
 To run tests on Charybdis:
