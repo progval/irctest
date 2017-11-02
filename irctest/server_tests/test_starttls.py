@@ -16,7 +16,7 @@ class StarttlsFailTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'CAP LS')
         capabilities = self.getCapLs(1)
         if 'tls' not in capabilities:
-            raise NotImplementedByController('tls')
+            raise NotImplementedByController('starttls')
 
         # TODO: check also without this
         self.sendLine(1, 'CAP REQ :tls')
@@ -42,7 +42,7 @@ class StarttlsTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'CAP LS')
         capabilities = self.getCapLs(1)
         if 'tls' not in capabilities:
-            raise NotImplementedByController('tls')
+            raise NotImplementedByController('starttls')
 
         # TODO: check also without this
         self.sendLine(1, 'CAP REQ :tls')
