@@ -214,7 +214,19 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(1)
         self.assertMessageEqual(m, command='TOPIC', params=['#chan', 'T0P1C'])
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testTopicNonexistentChannel(self):
+        """RFC2812 specifies ERR_NOTONCHANNEL as the correct response to TOPIC
+        on a nonexistent channel. The modern spec prefers ERR_NOSUCHCHANNEL.
 
+        <https://tools.ietf.org/html/rfc2812#section-3.2.4>
+        <http://modern.ircdocs.horse/#topic-message>
+        """
+        self.connectClient('foo')
+        self.sendLine(1, 'TOPIC #chan')
+        m = self.getMessage(1)
+        # either 403 ERR_NOSUCHCHANNEL or 443 ERR_NOTONCHANNEL
+        self.assertIn(m.command, ('403', '443'))
 
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testListEmpty(self):
@@ -305,6 +317,15 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(3)
         self.assertMessageEqual(m, command='KICK',
                 params=['#chan', 'bar', 'bye'])
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testKickNonexistentChannel(self):
+        """“Kick command [...] Numeric replies: [...] ERR_NOSUCHCHANNEL."""
+        self.connectClient('foo')
+        self.sendLine(1, 'KICK #chan nick')
+        m = self.getMessage(1)
+        # should return ERR_NOSUCHCHANNEL
+        self.assertMessageEqual(m, command='403')
 
     @cases.SpecificationSelector.requiredBySpecification('RFC2812')
     def testDoubleKickMessages(self):
