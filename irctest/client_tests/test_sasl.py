@@ -158,6 +158,10 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         self.sendLine('AUTHENTICATE :' + base64.b64encode(response).decode())
         self.assertEqual(properties, {'authzid': None, 'username': 'jilles'})
 
+        m = self.getMessage()
+        self.assertEqual(m.command, 'AUTHENTICATE', m)
+        self.assertEqual(m.params, ['+'], m)
+
     @cases.OptionalityHelper.skipUnlessHasMechanism('SCRAM-SHA-256')
     def testScramBadPassword(self):
         """Test SCRAM-SHA-256 authentication with a bad password.
