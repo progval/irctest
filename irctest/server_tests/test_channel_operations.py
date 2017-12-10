@@ -356,12 +356,8 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.joinChannel(3, '#chan')
 
         self.connectClient('qux')
-<<<<<<< HEAD
-        self.sendLine(1, 'JOIN #chan')
-=======
         self.joinChannel(4, '#chan')
 
->>>>>>> e4c3490... Make tests around joining channels more deterministic
         # TODO: check foo is an operator
 
         # Synchronize
