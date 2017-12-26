@@ -17,6 +17,7 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'JOIN #chan')
         self.connectClient('bar')
         self.sendLine(2, 'JOIN #chan')
+        self.getMessages(2) # synchronize
         self.sendLine(1, 'PRIVMSG #chan :hello there')
         self.getMessages(1) # synchronize
         pms = [msg for msg in self.getMessages(2) if msg.command == 'PRIVMSG']
@@ -44,6 +45,7 @@ class NoticeTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'JOIN #chan')
         self.connectClient('bar')
         self.sendLine(2, 'JOIN #chan')
+        self.getMessages(2) # synchronize
         self.sendLine(1, 'NOTICE #chan :hello there')
         self.getMessages(1) # synchronize
         notices = [msg for msg in self.getMessages(2) if msg.command == 'NOTICE']
