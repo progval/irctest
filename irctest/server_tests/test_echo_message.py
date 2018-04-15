@@ -67,10 +67,8 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
                         'messages differ: {} {}',
                         extra_format=(m1, m2))
                 if server_time:
-                    self.assertEqual(m1.tags, m2.tags,
-                            fail_msg='Tags of forwarded and echoed '
-                            'messages differ: {} {}',
-                            extra_format=(m1, m2))
+                    self.assertIn('time', m1.tags, fail_msg='Echoed message is missing server time: {}', extra_format=(m1,))
+                    self.assertIn('time', m2.tags, fail_msg='Forwarded message is missing server time: {}', extra_format=(m2,))
         return f
 
     testEchoMessagePrivmsgNoServerTime = _testEchoMessage('PRIVMSG', False, False)
