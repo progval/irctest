@@ -132,7 +132,7 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         while case.getRegistrationMessage(client).command != '001':
             pass
         list(case.getMessages(client))
-        case.sendLine(client, 'ACC REGISTER {} passphrase {}'.format(
+        case.sendLine(client, 'ACC REGISTER {} * {}'.format(
             username, password))
         msg = case.getMessage(client)
         assert msg.command == '920', msg
