@@ -58,3 +58,27 @@ class InvisibleTestCase(cases.BaseServerTestCase):
         commands = {m.command for m in self.getMessages(2)}
         self.assertIn(RPL_WHOISCHANNELS, commands,
              'RPL_WHOISCHANNELS should be sent for a non-invisible nick')
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testWhoisAccount(self):
+        """Test numeric 330, RPL_WHOISACCOUNT."""
+        self.controller.registerUser(self, 'shivaram', 'sesame')
+        self.connectClient('netcat')
+        self.sendLine(1, 'NS IDENTIFY shivaram sesame')
+        self.getMessages(1)
+
+        self.connectClient('curious')
+        self.sendLine(2, 'WHOIS netcat')
+        messages = self.getMessages(2)
+        # 330 RPL_WHOISACCOUNT
+        whoisaccount = [message for message in messages if message.command == '330']
+        self.assertEqual(len(whoisaccount), 1)
+        params = whoisaccount[0].params
+        # <client> <nick> <authname> :<info>
+        self.assertEqual(len(params), 4)
+        self.assertEqual(params[:3], ['curious', 'netcat', 'shivaram'])
+
+        self.sendLine(1, 'WHOIS curious')
+        messages = self.getMessages(2)
+        whoisaccount = [message for message in messages if message.command == '330']
+        self.assertEqual(len(whoisaccount), 0)
