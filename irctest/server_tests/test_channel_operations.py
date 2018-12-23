@@ -491,3 +491,35 @@ class testChannelCaseSensitivity(cases.BaseServerTestCase):
     testRfcSimpleNotEquivalent = _testChannelsNotEquivalent('rfc1459', '#Foo', '#fooa')
     testRfcFancyEquivalent = _testChannelsEquivalent('rfc1459', '#F]|oo{', '#f}\\oo[')
     testRfcFancyNotEquivalent = _testChannelsEquivalent('rfc1459', '#F}o\\o[', '#f]o|o{')
+
+
+class InviteTestCase(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    def testInvites(self):
+        """Test some basic functionality related to INVITE and the +i mode."""
+        self.connectClient('foo')
+        self.joinChannel(1, '#chan')
+        self.sendLine(1, 'MODE #chan +i')
+        self.getMessages(1)
+        self.sendLine(1, 'INVITE bar #chan')
+        m = self.getMessage(1)
+        self.assertEqual(m.command, '401') # ERR_NOSUCHNICK
+
+        self.connectClient('bar')
+        self.sendLine(2, 'JOIN #chan')
+        m = self.getMessage(2)
+        self.assertEqual(m.command, '473') # ERR_INVITEONLYCHAN
+
+        self.sendLine(1, 'INVITE bar #chan')
+        m = self.getMessage(1)
+        self.assertEqual(m.command, '341') # RPL_INVITING
+        # modern/ircv3 param order: inviter, invitee, channel
+        self.assertEqual(m.params, ['foo', 'bar', '#chan'])
+        m = self.getMessage(2)
+        self.assertEqual(m.command, 'INVITE')
+        self.assertTrue(m.prefix.startswith("foo")) # nickmask of inviter
+        self.assertEqual(m.params, ['bar', '#chan'])
+
+        # we were invited, so join should succeed now
+        self.joinChannel(2, '#chan')

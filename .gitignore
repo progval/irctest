@@ -154,3 +154,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# vim swapfiles
+*.swp
