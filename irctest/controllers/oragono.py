@@ -70,6 +70,11 @@ limits:
     linelen:
         tags: 2048
         rest: 2048
+
+history:
+    enabled: true
+    channel-length: 128
+    client-length: 128
 """
 
 class OragonoController(BaseServerController, DirectoryBasedController):
