@@ -2,3 +2,4 @@ limnoria > 2012.08.04 # Needs MultipleReplacer, from 1a64f105
 psutil >= 3.1.0 # Fixes #640
 ecdsa
 pyxmpp2_scram
+bcrypt
