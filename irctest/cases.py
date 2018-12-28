@@ -328,13 +328,16 @@ class BaseServerTestCase(_IrcTestCase):
         """Skip to the point where we are registered
         <https://tools.ietf.org/html/rfc2812#section-3.1>
         """
+        result = []
         while True:
             m = self.getMessage(client, synchronize=False)
+            result.append(m)
             if m.command == '001':
-                return m
+                return result
+
     def connectClient(self, nick, name=None, capabilities=None,
-            skip_if_cap_nak=False):
-        client = self.addClient(name)
+            skip_if_cap_nak=False, show_io=None):
+        client = self.addClient(name, show_io=show_io)
         if capabilities is not None and 0 < len(capabilities):
             self.sendLine(client, 'CAP REQ :{}'.format(' '.join(capabilities)))
             m = self.getRegistrationMessage(client)
@@ -353,7 +356,7 @@ class BaseServerTestCase(_IrcTestCase):
         self.sendLine(client, 'NICK {}'.format(nick))
         self.sendLine(client, 'USER username * * :Realname')
 
-        self.skipToWelcome(client)
+        welcome = self.skipToWelcome(client)
         self.sendLine(client, 'PING foo')
 
         # Skip all that happy welcoming stuff
@@ -368,6 +371,9 @@ class BaseServerTestCase(_IrcTestCase):
                     else:
                         (key, value) = (param, None)
                     self.server_support[key] = value
+            welcome.append(m)
+
+        return welcome
 
     def joinClient(self, client, channel):
         self.sendLine(client, 'JOIN {}'.format(channel))
