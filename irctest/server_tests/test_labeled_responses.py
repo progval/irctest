@@ -236,7 +236,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     def testBatchedJoinMessages(self):
-        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'draft/message-tags-0.2', 'server-time'])
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'draft/message-tags-0.2', 'server-time'], skip_if_cap_nak=True)
         self.getMessages(1)
 
         self.sendLine(1, '@draft/label=12345 JOIN #xyz')
