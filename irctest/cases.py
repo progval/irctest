@@ -305,15 +305,9 @@ class BaseServerTestCase(_IrcTestCase):
 
     def assertDisconnected(self, client):
         try:
-            self.getLines(client)
-            self.sendLine(client, 'PING foo')
-            while True:
-                l = self.getLine(client)
-                self.assertNotEqual(line, '')
-                m = message_parser.parse_message(l)
-                self.assertNotEqual(m.command, 'PONG',
-                        'Client not disconnected.')
-        except socket.error:
+            self.getMessages(client)
+            self.getMessages(client)
+        except (socket.error, ConnectionClosed):
             del self.clients[client]
             return
         else:
