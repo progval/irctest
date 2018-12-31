@@ -38,15 +38,31 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(privmsgs[1], command='PRIVMSG', params=['baz', 'hello friend singular'])
         channelMsgTime = privmsgs[0].tags.get('time')
 
+        # tokens MUST be cryptographically secure; therefore, this token should be invalid
+        # with probability at least 1 - 1/(2**128)
+        bad_token = 'a' * len(token)
         self.addClient()
         self.sendLine(3, 'CAP LS')
         self.sendLine(3, 'CAP REQ :batch draft/labeled-response server-time draft/resume-0.2')
         self.sendLine(3, 'NICK tempnick')
         self.sendLine(3, 'USER tempuser 0 * tempuser')
-        # resume with a timestamp in the distant past
-        self.sendLine(3, 'RESUME baz ' + token + ' 2006-01-02T15:04:05.999Z')
+        self.sendLine(3, 'RESUME baz ' + bad_token + ' 2006-01-02T15:04:05.999Z')
         self.sendLine(3, 'CAP END')
+
+        # resume with a bad token MUST fail
         ms = self.getMessages(3)
+        resume_err_messages = [m for m in ms if m.command == 'RESUME' and m.params[0] == 'ERR']
+        self.assertEqual(len(resume_err_messages), 1)
+
+        self.addClient()
+        self.sendLine(4, 'CAP LS')
+        self.sendLine(4, 'CAP REQ :batch draft/labeled-response server-time draft/resume-0.2')
+        self.sendLine(4, 'NICK tempnick_')
+        self.sendLine(4, 'USER tempuser 0 * tempuser')
+        # resume with a timestamp in the distant past
+        self.sendLine(4, 'RESUME baz ' + token + ' 2006-01-02T15:04:05.999Z')
+        self.sendLine(4, 'CAP END')
+        ms = self.getMessages(4)
 
         resume_messages = [m for m in ms if m.command == 'RESUME']
         self.assertEqual(len(resume_messages), 2)
@@ -65,3 +81,10 @@ class ResumeTestCase(cases.BaseServerTestCase):
         # TODO this probably isn't testing anything because the timestamp only has second resolution,
         # hence will typically match by accident
         self.assertEqual(privmsgs[0].tags.get('time'), channelMsgTime)
+
+        # original client should have been disconnected
+        self.assertDisconnected(2)
+        # new client should be receiving PRIVMSG sent to baz
+        self.sendLine(1, 'PRIVMSG baz :hello again')
+        self.getMessages(1)
+        self.assertMessageEqual(self.getMessage(4), command='PRIVMSG', params=['baz', 'hello again'])
