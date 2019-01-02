@@ -72,7 +72,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(resume_messages[1], command='RESUME', params=['SUCCESS', 'baz'])
 
         # test replay of messages
-        privmsgs = [m for m in ms if m.command == 'PRIVMSG']
+        privmsgs = [m for m in ms if m.command == 'PRIVMSG' and m.prefix.startswith('bar')]
         self.assertEqual(len(privmsgs), 2)
         privmsgs.sort(key=lambda m: m.params[0])
         self.assertMessageEqual(privmsgs[0], command='PRIVMSG', params=['#xyz', 'hello friends'])
