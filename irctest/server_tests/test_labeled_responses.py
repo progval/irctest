@@ -2,8 +2,9 @@
 <https://ircv3.net/specs/extensions/labeled-response.html>
 """
 
+import re
+
 from irctest import cases
-from irctest.basecontrollers import NotImplementedByController
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
@@ -232,3 +233,47 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
                 self.assertEqual(m.tags['draft/label'], '12345', m, fail_msg="Echo'd label doesn't match the label we sent (should be '12345'): {msg}")
 
         self.assertEqual(number_of_labels, 1, m1, fail_msg="When sending a TAGMSG to self with echo-message, we only expect one message to contain the label. Instead, {} messages had the label".format(number_of_labels))
+
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    def testBatchedJoinMessages(self):
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'draft/message-tags-0.2', 'server-time'], skip_if_cap_nak=True)
+        self.getMessages(1)
+
+        self.sendLine(1, '@draft/label=12345 JOIN #xyz')
+        m = self.getMessages(1)
+
+        # we expect at least join and names lines, which must be batched
+        self.assertGreaterEqual(len(m), 3)
+
+        # valid BATCH start line:
+        batch_start = m[0]
+        self.assertMessageEqual(batch_start, command='BATCH')
+        self.assertEqual(len(batch_start.params), 2)
+        self.assertTrue(batch_start.params[0].startswith('+'), 'batch start param must begin with +, got %s' % (batch_start.params[0],))
+        batch_id = batch_start.params[0][1:]
+        # batch id MUST be alphanumerics and hyphens
+        self.assertTrue(re.match(r'^[A-Za-z0-9\-]+$', batch_id) is not None, 'batch id must be alphanumerics and hyphens, got %r' % (batch_id,))
+        self.assertEqual(batch_start.params[1], 'draft/labeled-response')
+        self.assertEqual(batch_start.tags.get('draft/label'), '12345')
+
+        # valid BATCH end line
+        batch_end = m[-1]
+        self.assertMessageEqual(batch_end, command='BATCH', params=['-' + batch_id])
+
+        # messages must have the BATCH tag
+        for message in m[1:-1]:
+            self.assertEqual(message.tags.get('batch'), batch_id)
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testNoBatchForSingleMessage(self):
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'draft/message-tags-0.2', 'server-time'])
+        self.getMessages(1)
+
+        self.sendLine(1, '@draft/label=98765 PING adhoctestline')
+        # no BATCH should be initiated for a one-line response, it should just be labeled
+        ms = self.getMessages(1)
+        self.assertEqual(len(ms), 1)
+        m = ms[0]
+        self.assertMessageEqual(m, command='PONG', params=['adhoctestline'])
+        # check the label
+        self.assertEqual(m.tags.get('draft/label'), '98765')

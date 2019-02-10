@@ -17,7 +17,11 @@ server:
 
     check-ident: false
 
+    password: {hashed_password}
+
     max-sendq: 16k
+
+    allow-plaintext-resume: true
 
     connection-limits:
         cidr-len-ipv4: 24
@@ -77,6 +81,15 @@ history:
     client-length: 128
 """
 
+def hash_password(password):
+    if isinstance(password, str):
+        password = password.encode('utf-8')
+    # simulate entry of password and confirmation:
+    input_ = password + b'\n' + password + b'\n'
+    p = subprocess.Popen(['oragono', 'genpasswd'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    out, _ = p.communicate(input_)
+    return out.decode('utf-8')
+
 class OragonoController(BaseServerController, DirectoryBasedController):
     software_name = 'Oragono'
     supported_sasl_mechanisms = {
@@ -84,8 +97,6 @@ class OragonoController(BaseServerController, DirectoryBasedController):
     }
     def create_config(self):
         super().create_config()
-        with self.open_file('ircd.yaml'):
-            pass
 
     def kill_proc(self):
         self.proc.kill()
@@ -96,9 +107,6 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
                     'Defining valid and invalid METADATA keys.')
-        if password is not None:
-            #TODO(dan): fix dis
-            raise NotImplementedByController('PASS command')
         self.create_config()
         tls_config = ""
         if ssl:
@@ -111,12 +119,16 @@ class OragonoController(BaseServerController, DirectoryBasedController):
             )
         assert self.proc is None
         self.port = port
+        hashed_password = '' # oragono will understand this as 'no password required'
+        if password is not None:
+            hashed_password = hash_password(password)
         with self.open_file('server.yml') as fd:
             fd.write(TEMPLATE_CONFIG.format(
                 directory=self.directory,
                 hostname=hostname,
                 port=port,
                 tls=tls_config,
+                hashed_password=hashed_password,
                 ))
         subprocess.call(['oragono', 'initdb',
             '--conf', os.path.join(self.directory, 'server.yml'), '--quiet'])
