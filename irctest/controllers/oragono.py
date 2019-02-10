@@ -2,8 +2,6 @@ import os
 import time
 import subprocess
 
-import bcrypt
-
 from irctest.basecontrollers import NotImplementedByController
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
@@ -86,7 +84,11 @@ history:
 def hash_password(password):
     if isinstance(password, str):
         password = password.encode('utf-8')
-    return bcrypt.hashpw(password, bcrypt.gensalt(4)).decode('utf-8')
+    # simulate entry of password and confirmation:
+    input_ = password + b'\n' + password + b'\n'
+    p = subprocess.Popen(['oragono', 'genpasswd'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    out, _ = p.communicate(input_)
+    return out.decode('utf-8')
 
 class OragonoController(BaseServerController, DirectoryBasedController):
     software_name = 'Oragono'
