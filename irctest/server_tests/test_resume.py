@@ -47,12 +47,15 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.sendLine(3, 'NICK tempnick')
         self.sendLine(3, 'USER tempuser 0 * tempuser')
         self.sendLine(3, 'RESUME baz ' + bad_token + ' 2006-01-02T15:04:05.999Z')
-        self.sendLine(3, 'CAP END')
 
         # resume with a bad token MUST fail
         ms = self.getMessages(3)
         resume_err_messages = [m for m in ms if m.command == 'RESUME' and m.params[0] == 'ERR']
         self.assertEqual(len(resume_err_messages), 1)
+        # however, registration should proceed with the alternative nick
+        self.sendLine(3, 'CAP END')
+        welcome_msgs = [m for m in self.getMessages(3) if m.command == '001'] # RPL_WELCOME
+        self.assertEqual(welcome_msgs[0].params[0], 'tempnick')
 
         self.addClient()
         self.sendLine(4, 'CAP LS')
