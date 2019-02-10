@@ -61,7 +61,8 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.sendLine(4, 'USER tempuser 0 * tempuser')
         # resume with a timestamp in the distant past
         self.sendLine(4, 'RESUME baz ' + token + ' 2006-01-02T15:04:05.999Z')
-        self.sendLine(4, 'CAP END')
+        # successful resume does not require CAP END:
+        # https://github.com/ircv3/ircv3-specifications/pull/306/files#r255318883
         ms = self.getMessages(4)
 
         resume_messages = [m for m in ms if m.command == 'RESUME']
