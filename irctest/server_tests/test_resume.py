@@ -19,7 +19,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'server-time'])
         ms = self.getMessages(1)
 
-        welcome = self.connectClient('baz', capabilities=['batch', 'draft/labeled-response', 'server-time', 'draft/resume-0.2'])
+        welcome = self.connectClient('baz', capabilities=['batch', 'draft/labeled-response', 'server-time', 'draft/resume-0.3'])
         resume_messages = [m for m in welcome if m.command == 'RESUME']
         self.assertEqual(len(resume_messages), 1)
         self.assertEqual(resume_messages[0].params[0], 'TOKEN')
@@ -43,10 +43,10 @@ class ResumeTestCase(cases.BaseServerTestCase):
         bad_token = 'a' * len(token)
         self.addClient()
         self.sendLine(3, 'CAP LS')
-        self.sendLine(3, 'CAP REQ :batch draft/labeled-response server-time draft/resume-0.2')
+        self.sendLine(3, 'CAP REQ :batch draft/labeled-response server-time draft/resume-0.3')
         self.sendLine(3, 'NICK tempnick')
         self.sendLine(3, 'USER tempuser 0 * tempuser')
-        self.sendLine(3, 'RESUME baz ' + bad_token + ' 2006-01-02T15:04:05.999Z')
+        self.sendLine(3, 'RESUME ' + bad_token + ' 2006-01-02T15:04:05.999Z')
 
         # resume with a bad token MUST fail
         ms = self.getMessages(3)
@@ -59,11 +59,11 @@ class ResumeTestCase(cases.BaseServerTestCase):
 
         self.addClient()
         self.sendLine(4, 'CAP LS')
-        self.sendLine(4, 'CAP REQ :batch draft/labeled-response server-time draft/resume-0.2')
+        self.sendLine(4, 'CAP REQ :batch draft/labeled-response server-time draft/resume-0.3')
         self.sendLine(4, 'NICK tempnick_')
         self.sendLine(4, 'USER tempuser 0 * tempuser')
         # resume with a timestamp in the distant past
-        self.sendLine(4, 'RESUME baz ' + token + ' 2006-01-02T15:04:05.999Z')
+        self.sendLine(4, 'RESUME ' + token + ' 2006-01-02T15:04:05.999Z')
         # successful resume does not require CAP END:
         # https://github.com/ircv3/ircv3-specifications/pull/306/files#r255318883
         ms = self.getMessages(4)
