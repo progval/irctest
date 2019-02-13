@@ -32,6 +32,16 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
                 msg='Got 001 after NICK+USER but missing PASS')
 
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+    def testWrongPassword(self):
+        self.addClient()
+        self.sendLine(1, 'PASS {}'.format(self.password + "garbage"))
+        self.sendLine(1, 'NICK foo')
+        self.sendLine(1, 'USER username * * :Realname')
+        m = self.getRegistrationMessage(1)
+        self.assertNotEqual(m.command, '001',
+                msg='Got 001 after NICK+USER but incorrect PASS')
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testPassAfterNickuser(self):
         """“The password can and must be set before any attempt to register
         the connection is made.”
