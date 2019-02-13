@@ -7,7 +7,6 @@ from irctest import cases
 from irctest import client_mock
 from irctest import runner
 from irctest.irc_utils import ambiguities
-from irctest.irc_utils.message_parser import Message
 
 class JoinTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
@@ -519,3 +518,26 @@ class InviteTestCase(cases.BaseServerTestCase):
 
         # we were invited, so join should succeed now
         self.joinChannel(2, '#chan')
+
+
+class ChannelQuitTestCase(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testQuit(self):
+        """“Once a user has joined a channel, he receives information about
+        all commands his server receives affecting the channel.  This
+        includes [...] QUIT”
+        <https://tools.ietf.org/html/rfc2812#section-3.2.1>
+        """
+        self.connectClient('bar')
+        self.joinChannel(1, '#chan')
+        self.connectClient('qux')
+        self.sendLine(2, 'JOIN #chan')
+
+        self.getMessages(1)
+        self.sendLine(2, 'QUIT :qux out')
+        self.getMessages(2)
+        m = self.getMessage(1)
+        self.assertEqual(m.command, 'QUIT')
+        self.assertTrue(m.prefix.startswith('qux')) # nickmask of quitter
+        self.assertIn('qux out', m.params[0])
