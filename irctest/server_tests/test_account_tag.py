@@ -3,8 +3,6 @@
 """
 
 from irctest import cases
-from irctest.client_mock import NoMessageException
-from irctest.basecontrollers import NotImplementedByController
 
 class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     def connectRegisteredClient(self, nick):

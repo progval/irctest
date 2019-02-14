@@ -4,7 +4,6 @@ Tests METADATA features.
 """
 
 from irctest import cases
-from irctest.irc_utils.message_parser import Message
 
 class MetadataTestCase(cases.BaseServerTestCase):
     valid_metadata_keys = {'valid_key1', 'valid_key2'}

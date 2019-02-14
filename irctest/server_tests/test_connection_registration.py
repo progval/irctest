@@ -4,9 +4,6 @@ Tests section 4.1 of RFC 1459.
 """
 
 from irctest import cases
-from irctest import authentication
-from irctest.irc_utils.message_parser import Message
-from irctest.basecontrollers import NotImplementedByController
 from irctest.client_mock import ConnectionClosed
 
 class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
