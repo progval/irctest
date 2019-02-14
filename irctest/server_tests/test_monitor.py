@@ -88,7 +88,7 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
         self.assertMonoffline(1, 'bar')
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
-    def testMonitorOneConnection(self):
+    def testMonitorOneConnectionWithQuit(self):
         self.connectClient('foo')
         self.check_server_support()
         self.connectClient('bar')

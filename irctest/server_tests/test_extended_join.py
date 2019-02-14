@@ -3,7 +3,6 @@
 """
 
 from irctest import cases
-from irctest.irc_utils.message_parser import Message
 
 class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     def connectRegisteredClient(self, nick):
@@ -41,7 +40,7 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.1')
     @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
-    def testNotLoggedIn(self):
+    def testLoggedIn(self):
         self.connectClient('foo', capabilities=['extended-join'],
                 skip_if_cap_nak=True)
         self.joinChannel(1, '#chan')

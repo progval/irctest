@@ -4,10 +4,6 @@ Section 3.2 of RFC 2812
 """
 
 from irctest import cases
-from irctest import client_mock
-from irctest import runner
-from irctest.irc_utils import ambiguities
-from irctest.irc_utils.message_parser import Message
 
 class PrivmsgTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')

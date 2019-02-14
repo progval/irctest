@@ -1,5 +1,4 @@
 import os
-import time
 import subprocess
 
 from irctest.basecontrollers import NotImplementedByController
