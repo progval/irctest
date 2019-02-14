@@ -9,6 +9,11 @@ from irctest import runner
 from irctest.irc_utils import ambiguities
 
 RPL_NOTOPIC = '331'
+RPL_NAMREPLY = '353'
+
+ERR_NOSUCHCHANNEL = '403'
+ERR_NOTONCHANNEL = '442'
+ERR_CHANOPRIVSNEEDED = '482'
 
 class JoinTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
@@ -366,6 +371,52 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(3)
         self.assertMessageEqual(m, command='KICK',
                 params=['#chan', 'bar', 'bye'])
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testKickPrivileges(self):
+        """Test who has the ability to kick / what error codes are sent for invalid kicks."""
+        self.connectClient('foo')
+        self.sendLine(1, 'JOIN #chan')
+        self.getMessages(1)
+
+        self.connectClient('bar')
+        self.sendLine(2, 'JOIN #chan')
+
+        messages = self.getMessages(2)
+        names = set()
+        for message in messages:
+            if message.command == RPL_NAMREPLY:
+                names.update(set(message.params[-1].split()))
+        # assert foo is opped
+        self.assertIn('@foo', names, f'unexpected names: {names}')
+
+        self.connectClient('baz')
+
+        self.sendLine(3, 'KICK #chan bar')
+        replies = set(m.command for m in self.getMessages(3))
+        self.assertTrue(
+            ERR_NOTONCHANNEL in replies or ERR_CHANOPRIVSNEEDED in replies or ERR_NOSUCHCHANNEL in replies,
+            f'did not receive acceptable error code for kick from outside channel: {replies}')
+
+        self.joinChannel(3, '#chan')
+        self.getMessages(3)
+        self.sendLine(3, 'KICK #chan bar')
+        replies = set(m.command for m in self.getMessages(3))
+        # now we're a channel member so we should receive ERR_CHANOPRIVSNEEDED
+        self.assertIn(ERR_CHANOPRIVSNEEDED, replies)
+
+        self.sendLine(1, 'MODE #chan +o baz')
+        self.getMessages(1)
+        # should be able to kick an unprivileged user:
+        self.sendLine(3, 'KICK #chan bar')
+        # should be able to kick an operator:
+        self.sendLine(3, 'KICK #chan foo')
+        baz_replies = set(m.command for m in self.getMessages(3))
+        self.assertNotIn(ERR_CHANOPRIVSNEEDED, baz_replies)
+        kick_targets = [m.params[1] for m in self.getMessages(1) if m.command == 'KICK']
+        # foo should see bar and foo being kicked
+        self.assertTrue(any(target.startswith('foo') for target in kick_targets), f'unexpected kick targets: {kick_targets}')
+        self.assertTrue(any(target.startswith('bar') for target in kick_targets), f'unexpected kick targets: {kick_targets}')
 
     @cases.SpecificationSelector.requiredBySpecification('RFC2812')
     def testKickNonexistentChannel(self):
