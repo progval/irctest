@@ -333,8 +333,6 @@ class JoinTestCase(cases.BaseServerTestCase):
 
         # TODO: check foo is an operator
 
-        import time
-        time.sleep(0.1)
         self.getMessages(1)
         self.getMessages(2)
         self.getMessages(3)
