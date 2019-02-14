@@ -8,6 +8,8 @@ from irctest import client_mock
 from irctest import runner
 from irctest.irc_utils import ambiguities
 
+RPL_NOTOPIC = '331'
+
 class JoinTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
             strict=True)
@@ -226,6 +228,42 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(1)
         # either 403 ERR_NOSUCHCHANNEL or 443 ERR_NOTONCHANNEL
         self.assertIn(m.command, ('403', '443'))
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testUnsetTopicResponses(self):
+        """Test various cases related to RPL_NOTOPIC with set and unset topics."""
+        self.connectClient('bar')
+        self.sendLine(1, 'JOIN #test')
+        messages = self.getMessages(1)
+        # shouldn't send RPL_NOTOPIC for a new channel
+        self.assertNotIn(RPL_NOTOPIC, [m.command for m in messages])
+
+        self.connectClient('baz')
+        self.sendLine(2, 'JOIN #test')
+        messages = self.getMessages(2)
+        # topic is still unset, shouldn't send RPL_NOTOPIC on initial join
+        self.assertNotIn(RPL_NOTOPIC, [m.command for m in messages])
+
+        self.sendLine(2, 'TOPIC #test')
+        messages = self.getMessages(2)
+        # explicit TOPIC should receive RPL_NOTOPIC
+        self.assertIn(RPL_NOTOPIC, [m.command for m in messages])
+
+        self.sendLine(1, 'TOPIC #test :new topic')
+        self.getMessages(1)
+        # client 2 should get the new TOPIC line
+        messages = [message for message in self.getMessages(2) if message.command == 'TOPIC']
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0].params, ['#test', 'new topic'])
+
+        # unset the topic:
+        self.sendLine(1, 'TOPIC #test :')
+        self.getMessages(1)
+        self.connectClient('qux')
+        self.sendLine(3, 'join #test')
+        messages = self.getMessages(3)
+        # topic is once again unset, shouldn't send RPL_NOTOPIC on initial join
+        self.assertNotIn(RPL_NOTOPIC, [m.command for m in messages])
 
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testListEmpty(self):
