@@ -51,6 +51,7 @@ accounts:
         enabled-callbacks:
             - none # no verification needed, will instantly register successfully
         allow-multiple-per-connection: true
+        bcrypt-cost: 4
 
     authentication-enabled: true
 
