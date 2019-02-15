@@ -7,7 +7,13 @@ from irctest import cases
 from irctest import client_mock
 from irctest import runner
 from irctest.irc_utils import ambiguities
-from irctest.irc_utils.message_parser import Message
+
+RPL_NOTOPIC = '331'
+RPL_NAMREPLY = '353'
+
+ERR_NOSUCHCHANNEL = '403'
+ERR_NOTONCHANNEL = '442'
+ERR_CHANOPRIVSNEEDED = '482'
 
 class JoinTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
@@ -228,6 +234,42 @@ class JoinTestCase(cases.BaseServerTestCase):
         # either 403 ERR_NOSUCHCHANNEL or 443 ERR_NOTONCHANNEL
         self.assertIn(m.command, ('403', '443'))
 
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testUnsetTopicResponses(self):
+        """Test various cases related to RPL_NOTOPIC with set and unset topics."""
+        self.connectClient('bar')
+        self.sendLine(1, 'JOIN #test')
+        messages = self.getMessages(1)
+        # shouldn't send RPL_NOTOPIC for a new channel
+        self.assertNotIn(RPL_NOTOPIC, [m.command for m in messages])
+
+        self.connectClient('baz')
+        self.sendLine(2, 'JOIN #test')
+        messages = self.getMessages(2)
+        # topic is still unset, shouldn't send RPL_NOTOPIC on initial join
+        self.assertNotIn(RPL_NOTOPIC, [m.command for m in messages])
+
+        self.sendLine(2, 'TOPIC #test')
+        messages = self.getMessages(2)
+        # explicit TOPIC should receive RPL_NOTOPIC
+        self.assertIn(RPL_NOTOPIC, [m.command for m in messages])
+
+        self.sendLine(1, 'TOPIC #test :new topic')
+        self.getMessages(1)
+        # client 2 should get the new TOPIC line
+        messages = [message for message in self.getMessages(2) if message.command == 'TOPIC']
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0].params, ['#test', 'new topic'])
+
+        # unset the topic:
+        self.sendLine(1, 'TOPIC #test :')
+        self.getMessages(1)
+        self.connectClient('qux')
+        self.sendLine(3, 'join #test')
+        messages = self.getMessages(3)
+        # topic is once again unset, shouldn't send RPL_NOTOPIC on initial join
+        self.assertNotIn(RPL_NOTOPIC, [m.command for m in messages])
+
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testListEmpty(self):
         """<https://tools.ietf.org/html/rfc1459#section-4.2.6>
@@ -296,8 +338,6 @@ class JoinTestCase(cases.BaseServerTestCase):
 
         # TODO: check foo is an operator
 
-        import time
-        time.sleep(0.1)
         self.getMessages(1)
         self.getMessages(2)
         self.getMessages(3)
@@ -317,6 +357,52 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(3)
         self.assertMessageEqual(m, command='KICK',
                 params=['#chan', 'bar', 'bye'])
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testKickPrivileges(self):
+        """Test who has the ability to kick / what error codes are sent for invalid kicks."""
+        self.connectClient('foo')
+        self.sendLine(1, 'JOIN #chan')
+        self.getMessages(1)
+
+        self.connectClient('bar')
+        self.sendLine(2, 'JOIN #chan')
+
+        messages = self.getMessages(2)
+        names = set()
+        for message in messages:
+            if message.command == RPL_NAMREPLY:
+                names.update(set(message.params[-1].split()))
+        # assert foo is opped
+        self.assertIn('@foo', names, f'unexpected names: {names}')
+
+        self.connectClient('baz')
+
+        self.sendLine(3, 'KICK #chan bar')
+        replies = set(m.command for m in self.getMessages(3))
+        self.assertTrue(
+            ERR_NOTONCHANNEL in replies or ERR_CHANOPRIVSNEEDED in replies or ERR_NOSUCHCHANNEL in replies,
+            f'did not receive acceptable error code for kick from outside channel: {replies}')
+
+        self.joinChannel(3, '#chan')
+        self.getMessages(3)
+        self.sendLine(3, 'KICK #chan bar')
+        replies = set(m.command for m in self.getMessages(3))
+        # now we're a channel member so we should receive ERR_CHANOPRIVSNEEDED
+        self.assertIn(ERR_CHANOPRIVSNEEDED, replies)
+
+        self.sendLine(1, 'MODE #chan +o baz')
+        self.getMessages(1)
+        # should be able to kick an unprivileged user:
+        self.sendLine(3, 'KICK #chan bar')
+        # should be able to kick an operator:
+        self.sendLine(3, 'KICK #chan foo')
+        baz_replies = set(m.command for m in self.getMessages(3))
+        self.assertNotIn(ERR_CHANOPRIVSNEEDED, baz_replies)
+        kick_targets = [m.params[1] for m in self.getMessages(1) if m.command == 'KICK']
+        # foo should see bar and foo being kicked
+        self.assertTrue(any(target.startswith('foo') for target in kick_targets), f'unexpected kick targets: {kick_targets}')
+        self.assertTrue(any(target.startswith('bar') for target in kick_targets), f'unexpected kick targets: {kick_targets}')
 
     @cases.SpecificationSelector.requiredBySpecification('RFC2812')
     def testKickNonexistentChannel(self):
@@ -519,3 +605,26 @@ class InviteTestCase(cases.BaseServerTestCase):
 
         # we were invited, so join should succeed now
         self.joinChannel(2, '#chan')
+
+
+class ChannelQuitTestCase(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testQuit(self):
+        """“Once a user has joined a channel, he receives information about
+        all commands his server receives affecting the channel.  This
+        includes [...] QUIT”
+        <https://tools.ietf.org/html/rfc2812#section-3.2.1>
+        """
+        self.connectClient('bar')
+        self.joinChannel(1, '#chan')
+        self.connectClient('qux')
+        self.sendLine(2, 'JOIN #chan')
+
+        self.getMessages(1)
+        self.sendLine(2, 'QUIT :qux out')
+        self.getMessages(2)
+        m = self.getMessage(1)
+        self.assertEqual(m.command, 'QUIT')
+        self.assertTrue(m.prefix.startswith('qux')) # nickmask of quitter
+        self.assertIn('qux out', m.params[0])

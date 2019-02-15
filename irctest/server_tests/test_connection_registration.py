@@ -4,9 +4,6 @@ Tests section 4.1 of RFC 1459.
 """
 
 from irctest import cases
-from irctest import authentication
-from irctest.irc_utils.message_parser import Message
-from irctest.basecontrollers import NotImplementedByController
 from irctest.client_mock import ConnectionClosed
 
 class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
@@ -30,6 +27,16 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         m = self.getRegistrationMessage(1)
         self.assertNotEqual(m.command, '001',
                 msg='Got 001 after NICK+USER but missing PASS')
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+    def testWrongPassword(self):
+        self.addClient()
+        self.sendLine(1, 'PASS {}'.format(self.password + "garbage"))
+        self.sendLine(1, 'NICK foo')
+        self.sendLine(1, 'USER username * * :Realname')
+        m = self.getRegistrationMessage(1)
+        self.assertNotEqual(m.command, '001',
+                msg='Got 001 after NICK+USER but incorrect PASS')
 
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testPassAfterNickuser(self):

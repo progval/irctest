@@ -22,7 +22,7 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
             # TODO: check also without this
             self.sendLine(1, 'CAP REQ :echo-message{}'.format(
                 ' server-time' if server_time else ''))
-            m = self.getRegistrationMessage(1)
+            self.getRegistrationMessage(1)
             # TODO: Remove this one the trailing space issue is fixed in Charybdis
             # and Mammon:
             #self.assertMessageEqual(m, command='CAP',

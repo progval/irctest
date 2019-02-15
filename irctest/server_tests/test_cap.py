@@ -1,5 +1,4 @@
 from irctest import cases
-from irctest.irc_utils.message_parser import Message
 
 class CapTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.1')
@@ -96,3 +95,33 @@ class CapTestCase(cases.BaseServerTestCase):
                 subcommand='ACK', subparams=['multi-prefix'],
                 fail_msg='Expected “CAP ACK :multi-prefix” after '
                 'sending “CAP REQ :multi-prefix”, but got {msg}.')
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testCapRemovalByClient(self):
+        """Test CAP LIST and removal of caps via CAP REQ :-tagname."""
+        self.addClient(1)
+        self.sendLine(1, 'CAP LS 302')
+        self.assertIn('multi-prefix', self.getCapLs(1))
+        self.sendLine(1, 'CAP REQ :echo-message server-time')
+        self.sendLine(1, 'nick bar')
+        self.sendLine(1, 'user user 0 * realname')
+        self.sendLine(1, 'CAP END')
+        self.skipToWelcome(1)
+        self.getMessages(1)
+
+        self.sendLine(1, 'CAP LIST')
+        messages = self.getMessages(1)
+        cap_list = [m for m in messages if m.command == 'CAP'][0]
+        self.assertEqual(set(cap_list.params[2].split()), {'echo-message', 'server-time'})
+        self.assertIn('time', cap_list.tags)
+
+        # remove the server-time cap
+        self.sendLine(1, 'CAP REQ :-server-time')
+        self.getMessages(1)
+
+        # server-time should be disabled
+        self.sendLine(1, 'CAP LIST')
+        messages = self.getMessages(1)
+        cap_list = [m for m in messages if m.command == 'CAP'][0]
+        self.assertEqual(set(cap_list.params[2].split()), {'echo-message'})
+        self.assertNotIn('time', cap_list.tags)
