@@ -7,13 +7,7 @@ from irctest import cases
 from irctest import client_mock
 from irctest import runner
 from irctest.irc_utils import ambiguities
-
-RPL_NOTOPIC = '331'
-RPL_NAMREPLY = '353'
-
-ERR_NOSUCHCHANNEL = '403'
-ERR_NOTONCHANNEL = '442'
-ERR_CHANOPRIVSNEEDED = '482'
+from irctest.numerics import RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING, ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK, ERR_INVITEONLYCHAN
 
 class JoinTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
@@ -592,16 +586,16 @@ class InviteTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.sendLine(1, 'INVITE bar #chan')
         m = self.getMessage(1)
-        self.assertEqual(m.command, '401') # ERR_NOSUCHNICK
+        self.assertEqual(m.command, ERR_NOSUCHNICK)
 
         self.connectClient('bar')
         self.sendLine(2, 'JOIN #chan')
         m = self.getMessage(2)
-        self.assertEqual(m.command, '473') # ERR_INVITEONLYCHAN
+        self.assertEqual(m.command, ERR_INVITEONLYCHAN)
 
         self.sendLine(1, 'INVITE bar #chan')
         m = self.getMessage(1)
-        self.assertEqual(m.command, '341') # RPL_INVITING
+        self.assertEqual(m.command, RPL_INVITING)
         # modern/ircv3 param order: inviter, invitee, channel
         self.assertEqual(m.params, ['foo', 'bar', '#chan'])
         m = self.getMessage(2)
@@ -626,6 +620,7 @@ class ChannelQuitTestCase(cases.BaseServerTestCase):
         self.joinChannel(1, '#chan')
         self.connectClient('qux')
         self.sendLine(2, 'JOIN #chan')
+        self.getMessages(2)
 
         self.getMessages(1)
         self.sendLine(2, 'QUIT :qux out')
