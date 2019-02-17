@@ -5,6 +5,7 @@
 from irctest import cases
 from irctest.client_mock import NoMessageException
 from irctest.basecontrollers import NotImplementedByController
+from irctest.numerics import RPL_MONLIST, RPL_ENDOFMONLIST
 
 class EchoMessageTestCase(cases.BaseServerTestCase):
     def check_server_support(self):
@@ -220,3 +221,37 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
         self.assertEqual(l, [],
                 fail_msg='Got response to unmonitored client: {}',
                 extra_format=(l,))
+
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    def testMonitorList(self):
+        def checkMonitorSubjects(messages, client_nick, expected_targets):
+            # collect all the RPL_MONLIST nicks into a set:
+            result = set()
+            for message in messages:
+                if message.command == RPL_MONLIST:
+                    self.assertEqual(message.params[0], client_nick)
+                    result.update(message.params[1].split(','))
+            # finally, RPL_ENDOFMONLIST should be sent
+            self.assertEqual(messages[-1].command, RPL_ENDOFMONLIST)
+            self.assertEqual(messages[-1].params[0], client_nick)
+            self.assertEqual(result, expected_targets)
+
+        self.connectClient('bar')
+        self.check_server_support()
+        self.sendLine(1, 'MONITOR L')
+        checkMonitorSubjects(self.getMessages(1), 'bar', set())
+
+        self.sendLine(1, 'MONITOR + qux')
+        self.getMessages(1)
+        self.sendLine(1, 'MONITOR L')
+        checkMonitorSubjects(self.getMessages(1), 'bar', {'qux',})
+
+        self.sendLine(1, 'MONITOR + bazbat')
+        self.getMessages(1)
+        self.sendLine(1, 'MONITOR L')
+        checkMonitorSubjects(self.getMessages(1), 'bar', {'qux', 'bazbat',})
+
+        self.sendLine(1, 'MONITOR - qux')
+        self.getMessages(1)
+        self.sendLine(1, 'MONITOR L')
+        checkMonitorSubjects(self.getMessages(1), 'bar', {'bazbat',})
