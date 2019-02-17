@@ -4,9 +4,7 @@ User commands as specified in Section 3.6 of RFC 2812:
 """
 
 from irctest import cases
-
-RPL_WHOISUSER = '311'
-RPL_WHOISCHANNELS = '319'
+from irctest.numerics import RPL_WHOISUSER, RPL_WHOISCHANNELS, RPL_AWAY, RPL_NOWAWAY, RPL_UNAWAY
 
 class WhoisTestCase(cases.BaseServerTestCase):
 
@@ -33,3 +31,27 @@ class WhoisTestCase(cases.BaseServerTestCase):
         # dumb regression test for oragono/oragono#355:
         self.assertNotIn(whois_user.params[3], [nick, username, '~' + username, realname])
         self.assertEqual(whois_user.params[5], realname)
+
+class AwayTestCase(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testAway(self):
+        self.connectClient('bar')
+        self.sendLine(1, "AWAY :I'm not here right now")
+        replies = self.getMessages(1)
+        self.assertIn(RPL_NOWAWAY, [msg.command for msg in replies])
+
+        self.connectClient('qux')
+        self.sendLine(2, "PRIVMSG bar :what's up")
+        replies = self.getMessages(2)
+        self.assertEqual(len(replies), 1)
+        self.assertEqual(replies[0].command, RPL_AWAY)
+        self.assertEqual(replies[0].params, ['qux', 'bar', "I'm not here right now"])
+
+        self.sendLine(1, "AWAY")
+        replies = self.getMessages(1)
+        self.assertIn(RPL_UNAWAY, [msg.command for msg in replies])
+
+        self.sendLine(2, "PRIVMSG bar :what's up")
+        replies = self.getMessages(2)
+        self.assertEqual(len(replies), 0)
