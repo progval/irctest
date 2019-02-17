@@ -148,13 +148,13 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         case.sendLine(client, 'CAP END')
         while case.getRegistrationMessage(client).command != '001':
             pass
-        list(case.getMessages(client))
+        case.getMessages(client)
         case.sendLine(client, 'ACC REGISTER {} * {}'.format(
             username, password))
         msg = case.getMessage(client)
         assert msg.command == '920', msg
-        list(case.getMessages(client))
-        case.removeClient(client)
+        case.sendLine(client, 'QUIT')
+        case.assertDisconnected(client)
 
 def get_irctest_controller_class():
     return OragonoController
