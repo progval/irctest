@@ -164,9 +164,9 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     def testLabeledTagMsgResponsesToClient(self):
-        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'draft/message-tags-0.2'], skip_if_cap_nak=True)
+        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'message-tags'], skip_if_cap_nak=True)
         self.getMessages(1)
-        self.connectClient('bar', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'draft/message-tags-0.2'], skip_if_cap_nak=True)
+        self.connectClient('bar', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'message-tags'], skip_if_cap_nak=True)
         self.getMessages(2)
 
         self.sendLine(1, '@draft/label=12345;+draft/reply=123;+draft/react=l😃l TAGMSG bar')
@@ -191,9 +191,9 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     def testLabeledTagMsgResponsesToChannel(self):
-        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'draft/message-tags-0.2'], skip_if_cap_nak=True)
+        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'message-tags'], skip_if_cap_nak=True)
         self.getMessages(1)
-        self.connectClient('bar', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'draft/message-tags-0.2'], skip_if_cap_nak=True)
+        self.connectClient('bar', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'message-tags'], skip_if_cap_nak=True)
         self.getMessages(2)
 
         # join channels
@@ -218,7 +218,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     def testLabeledTagMsgResponsesToSelf(self):
-        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'draft/message-tags-0.2'], skip_if_cap_nak=True)
+        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'message-tags'], skip_if_cap_nak=True)
         self.getMessages(1)
 
         self.sendLine(1, '@draft/label=12345;+draft/reply=123;+draft/react=l😃l TAGMSG foo')
@@ -236,7 +236,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     def testBatchedJoinMessages(self):
-        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'draft/message-tags-0.2', 'server-time'], skip_if_cap_nak=True)
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'message-tags', 'server-time'], skip_if_cap_nak=True)
         self.getMessages(1)
 
         self.sendLine(1, '@draft/label=12345 JOIN #xyz')
@@ -266,7 +266,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testNoBatchForSingleMessage(self):
-        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'draft/message-tags-0.2', 'server-time'])
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'message-tags', 'server-time'])
         self.getMessages(1)
 
         self.sendLine(1, '@draft/label=98765 PING adhoctestline')
@@ -280,7 +280,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testEmptyBatchForNoResponse(self):
-        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'draft/message-tags-0.2', 'server-time'])
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'message-tags', 'server-time'])
         self.getMessages(1)
 
         # PONG never receives a response
