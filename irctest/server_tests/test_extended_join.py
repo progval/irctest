@@ -28,10 +28,9 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     def testNotLoggedIn(self):
         self.connectClient('foo', capabilities=['extended-join'],
                 skip_if_cap_nak=True)
-        self.sendLine(1, 'JOIN #chan')
-        self.getMessages(1)
+        self.joinChannel(1, '#chan')
         self.connectClient('bar')
-        self.sendLine(2, 'JOIN #chan')
+        self.joinChannel(2, '#chan')
         m = self.getMessage(1)
         self.assertMessageEqual(m, command='JOIN',
                 params=['#chan', '*', 'Realname'],

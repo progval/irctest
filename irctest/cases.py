@@ -4,13 +4,11 @@ import socket
 import tempfile
 import unittest
 import functools
-import collections
 
 import supybot.utils
 
 from . import runner
 from . import client_mock
-from . import authentication
 from .irc_utils import capabilities
 from .irc_utils import message_parser
 from .exceptions import ConnectionClosed
@@ -56,7 +54,7 @@ class _IrcTestCase(unittest.TestCase):
             self.assertEqual(msg.prefix.split('!')[0], nick, msg, fail_msg)
         if subcommand is not None or subparams is not None:
             self.assertGreater(len(msg.params), 2, fail_msg)
-            msg_target = msg.params[0]
+            #msg_target = msg.params[0]
             msg_subcommand = msg.params[1]
             msg_subparams = msg.params[2:]
             if subcommand:

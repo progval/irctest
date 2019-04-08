@@ -164,9 +164,9 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     def testLabeledTagMsgResponsesToClient(self):
-        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'draft/message-tags-0.2'], skip_if_cap_nak=True)
+        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'message-tags'], skip_if_cap_nak=True)
         self.getMessages(1)
-        self.connectClient('bar', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'draft/message-tags-0.2'], skip_if_cap_nak=True)
+        self.connectClient('bar', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'message-tags'], skip_if_cap_nak=True)
         self.getMessages(2)
 
         self.sendLine(1, '@draft/label=12345;+draft/reply=123;+draft/react=l😃l TAGMSG bar')
@@ -191,9 +191,9 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     def testLabeledTagMsgResponsesToChannel(self):
-        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'draft/message-tags-0.2'], skip_if_cap_nak=True)
+        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'message-tags'], skip_if_cap_nak=True)
         self.getMessages(1)
-        self.connectClient('bar', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'draft/message-tags-0.2'], skip_if_cap_nak=True)
+        self.connectClient('bar', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'message-tags'], skip_if_cap_nak=True)
         self.getMessages(2)
 
         # join channels
@@ -218,7 +218,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     def testLabeledTagMsgResponsesToSelf(self):
-        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'draft/message-tags-0.2'], skip_if_cap_nak=True)
+        self.connectClient('foo', capabilities=['batch', 'echo-message', 'draft/labeled-response', 'message-tags'], skip_if_cap_nak=True)
         self.getMessages(1)
 
         self.sendLine(1, '@draft/label=12345;+draft/reply=123;+draft/react=l😃l TAGMSG foo')
@@ -236,7 +236,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     def testBatchedJoinMessages(self):
-        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'draft/message-tags-0.2', 'server-time'], skip_if_cap_nak=True)
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'message-tags', 'server-time'], skip_if_cap_nak=True)
         self.getMessages(1)
 
         self.sendLine(1, '@draft/label=12345 JOIN #xyz')
@@ -266,7 +266,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testNoBatchForSingleMessage(self):
-        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'draft/message-tags-0.2', 'server-time'])
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'message-tags', 'server-time'])
         self.getMessages(1)
 
         self.sendLine(1, '@draft/label=98765 PING adhoctestline')
@@ -277,3 +277,25 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.assertMessageEqual(m, command='PONG', params=['adhoctestline'])
         # check the label
         self.assertEqual(m.tags.get('draft/label'), '98765')
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testEmptyBatchForNoResponse(self):
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'message-tags', 'server-time'])
+        self.getMessages(1)
+
+        # PONG never receives a response
+        self.sendLine(1, '@draft/label=98765 PONG adhoctestline')
+
+        # "If no response is required, an empty batch MUST be sent."
+        # https://ircv3.net/specs/extensions/labeled-response.html
+        ms = self.getMessages(1)
+        self.assertEqual(len(ms), 2)
+        batch_start, batch_end = ms
+
+        self.assertEqual(batch_start.command, 'BATCH')
+        self.assertEqual(batch_start.tags.get('draft/label'), '98765')
+        self.assertTrue(batch_start.params[0].startswith('+'))
+        batch_id = batch_start.params[0][1:]
+
+        self.assertEqual(batch_end.command, 'BATCH')
+        self.assertEqual(batch_end.params[0], '-' + batch_id)

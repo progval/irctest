@@ -4,6 +4,7 @@ Section 3.2 of RFC 2812
 """
 
 from irctest import cases
+from irctest.numerics import ERR_INPUTTOOLONG
 
 class PrivmsgTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
@@ -61,3 +62,14 @@ class NoticeTestCase(cases.BaseServerTestCase):
         self.connectClient('foo')
         self.sendLine(1, 'NOTICE #nonexistent :hello there')
         self.assertEqual(self.getMessages(1), [])
+
+
+class TagsTestCase(cases.BaseServerTestCase):
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testLineTooLong(self):
+        self.connectClient('bar')
+        self.joinChannel(1, '#xyz')
+        monsterMessage = '@+clientOnlyTagExample=' + 'a'*4096 + ' PRIVMSG #xyz hi!'
+        self.sendLine(1, monsterMessage)
+        replies = self.getMessages(1)
+        self.assertIn(ERR_INPUTTOOLONG, set(reply.command for reply in replies))
