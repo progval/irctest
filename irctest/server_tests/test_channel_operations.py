@@ -138,6 +138,30 @@ class JoinTestCase(cases.BaseServerTestCase):
                         '{msg}')
 
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+    def testNormalPart(self):
+        self.connectClient('bar')
+        self.sendLine(1, 'JOIN #chan')
+        m = self.getMessage(1)
+        self.assertMessageEqual(m, command='JOIN', params=['#chan'])
+
+        self.connectClient('baz')
+        self.sendLine(2, 'JOIN #chan')
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command='JOIN', params=['#chan'])
+
+        # skip the rest of the JOIN burst:
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(1, 'PART #chan :bye everyone')
+        # both the PART'ing client and the other channel member should receive a PART line:
+        m = self.getMessage(1)
+        self.assertMessageEqual(m, command='PART', params=['#chan', 'bye everyone'])
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command='PART', params=['#chan', 'bye everyone'])
+
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testTopic(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This
