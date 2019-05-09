@@ -55,6 +55,10 @@ accounts:
 
     authentication-enabled: true
 
+    bouncer:
+        enabled: true
+        allowed-by-default: false
+
 channels:
     registration:
         enabled: true

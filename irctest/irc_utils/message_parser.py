@@ -14,7 +14,7 @@ unescape_tag_value = supybot.utils.str.MultipleReplacer(
         dict(map(lambda x:(x[1],x[0]), TAG_ESCAPE)))
 
 # TODO: validate host
-tag_key_validator = re.compile('(\S+/)?[a-zA-Z0-9-]+')
+tag_key_validator = re.compile(r'\+?(\S+/)?[a-zA-Z0-9-]+')
 
 def parse_tags(s):
     tags = {}
