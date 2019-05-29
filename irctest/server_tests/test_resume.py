@@ -111,7 +111,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.sendLine(5, 'CAP REQ :batch draft/labeled-response server-time draft/resume-0.5')
         self.sendLine(5, 'NICK tempnick_')
         self.sendLine(5, 'USER tempuser 0 * tempuser')
-        self.sendLine(5, 'RESUME ' + new_token + ' ' + ANCIENT_TIMESTAMP)
+        self.sendLine(5, 'RESUME ' + new_token)
         ms = self.getMessages(5)
 
         resume_messages = [m for m in ms if m.command == 'RESUME']
