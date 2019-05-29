@@ -126,7 +126,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testBRB(self):
-        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'message-tags', 'server-time'])
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'message-tags', 'server-time', 'draft/resume-0.5'])
         ms = self.getMessages(1)
         self.joinChannel(1, '#xyz')
 
@@ -165,3 +165,8 @@ class ResumeTestCase(cases.BaseServerTestCase):
         privmsgs = [m for m in ms if m.command == 'PRIVMSG' and m.prefix.startswith('bar')]
         self.assertEqual(len(privmsgs), 1)
         self.assertMessageEqual(privmsgs[0], params=['baz', 'hey there'])
+
+        # friend with the resume cap should receive a RESUMED message
+        resumed_messages = [m for m in self.getMessages(1) if m.command == 'RESUMED']
+        self.assertEqual(len(resumed_messages), 1)
+        self.assertTrue(resumed_messages[0].prefix.startswith('baz'))
