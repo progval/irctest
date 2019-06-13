@@ -286,16 +286,12 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         # PONG never receives a response
         self.sendLine(1, '@draft/label=98765 PONG adhoctestline')
 
-        # "If no response is required, an empty batch MUST be sent."
-        # https://ircv3.net/specs/extensions/labeled-response-0.2.html
+        # draft/labeled-response-0.2: "Servers MUST respond with a labeled
+        # `ACK` message when a client sends a labeled command that normally
+        # produces no response."
         ms = self.getMessages(1)
-        self.assertEqual(len(ms), 2)
-        batch_start, batch_end = ms
+        self.assertEqual(len(ms), 1)
+        ack = ms[0]
 
-        self.assertEqual(batch_start.command, 'BATCH')
-        self.assertEqual(batch_start.tags.get('draft/label'), '98765')
-        self.assertTrue(batch_start.params[0].startswith('+'))
-        batch_id = batch_start.params[0][1:]
-
-        self.assertEqual(batch_end.command, 'BATCH')
-        self.assertEqual(batch_end.params[0], '-' + batch_id)
+        self.assertEqual(ack.command, 'ACK')
+        self.assertEqual(ack.tags.get('draft/label'), '98765')
