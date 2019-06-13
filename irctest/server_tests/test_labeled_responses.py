@@ -253,7 +253,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         batch_id = batch_start.params[0][1:]
         # batch id MUST be alphanumerics and hyphens
         self.assertTrue(re.match(r'^[A-Za-z0-9\-]+$', batch_id) is not None, 'batch id must be alphanumerics and hyphens, got %r' % (batch_id,))
-        self.assertEqual(batch_start.params[1], 'draft/labeled-response-0.2')
+        self.assertEqual(batch_start.params[1], 'draft/labeled-response')
         self.assertEqual(batch_start.tags.get('draft/label'), '12345')
 
         # valid BATCH end line
