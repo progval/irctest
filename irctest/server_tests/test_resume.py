@@ -12,17 +12,17 @@ class ResumeTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testNoResumeByDefault(self):
-        self.connectClient('bar', capabilities=['batch', 'echo-message', 'draft/labeled-response'])
+        self.connectClient('bar', capabilities=['batch', 'echo-message', 'draft/labeled-response-0.2'])
         ms = self.getMessages(1)
         resume_messages = [m for m in ms if m.command == 'RESUME']
         self.assertEqual(resume_messages, [], 'should not see RESUME messages unless explicitly negotiated')
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testResume(self):
-        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'server-time'])
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response-0.2', 'server-time'])
         ms = self.getMessages(1)
 
-        welcome = self.connectClient('baz', capabilities=['batch', 'draft/labeled-response', 'server-time', 'draft/resume-0.5'])
+        welcome = self.connectClient('baz', capabilities=['batch', 'draft/labeled-response-0.2', 'server-time', 'draft/resume-0.5'])
         resume_messages = [m for m in welcome if m.command == 'RESUME']
         self.assertEqual(len(resume_messages), 1)
         self.assertEqual(resume_messages[0].params[0], 'TOKEN')
@@ -46,7 +46,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         bad_token = 'a' * len(token)
         self.addClient()
         self.sendLine(3, 'CAP LS')
-        self.sendLine(3, 'CAP REQ :batch draft/labeled-response server-time draft/resume-0.5')
+        self.sendLine(3, 'CAP REQ :batch draft/labeled-response-0.2 server-time draft/resume-0.5')
         self.sendLine(3, 'NICK tempnick')
         self.sendLine(3, 'USER tempuser 0 * tempuser')
         self.sendLine(3, ' '.join(('RESUME', bad_token, ANCIENT_TIMESTAMP)))
@@ -62,7 +62,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
 
         self.addClient()
         self.sendLine(4, 'CAP LS')
-        self.sendLine(4, 'CAP REQ :batch draft/labeled-response server-time draft/resume-0.5')
+        self.sendLine(4, 'CAP REQ :batch draft/labeled-response-0.2 server-time draft/resume-0.5')
         self.sendLine(4, 'NICK tempnick_')
         self.sendLine(4, 'USER tempuser 0 * tempuser')
         # resume with a timestamp in the distant past
@@ -108,7 +108,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         # test chain-resuming (resuming the resumed connection, using the new token)
         self.addClient()
         self.sendLine(5, 'CAP LS')
-        self.sendLine(5, 'CAP REQ :batch draft/labeled-response server-time draft/resume-0.5')
+        self.sendLine(5, 'CAP REQ :batch draft/labeled-response-0.2 server-time draft/resume-0.5')
         self.sendLine(5, 'NICK tempnick_')
         self.sendLine(5, 'USER tempuser 0 * tempuser')
         self.sendLine(5, 'RESUME ' + new_token)
@@ -126,11 +126,11 @@ class ResumeTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testBRB(self):
-        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response', 'message-tags', 'server-time', 'draft/resume-0.5'])
+        self.connectClient('bar', capabilities=['batch', 'draft/labeled-response-0.2', 'message-tags', 'server-time', 'draft/resume-0.5'])
         ms = self.getMessages(1)
         self.joinChannel(1, '#xyz')
 
-        welcome = self.connectClient('baz', capabilities=['batch', 'draft/labeled-response', 'server-time', 'draft/resume-0.5'])
+        welcome = self.connectClient('baz', capabilities=['batch', 'draft/labeled-response-0.2', 'server-time', 'draft/resume-0.5'])
         resume_messages = [m for m in welcome if m.command == 'RESUME']
         self.assertEqual(len(resume_messages), 1)
         self.assertEqual(resume_messages[0].params[0], 'TOKEN')
