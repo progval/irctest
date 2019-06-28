@@ -1,89 +1,77 @@
+import copy
+import json
 import os
 import subprocess
 
 from irctest.basecontrollers import NotImplementedByController
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
-TEMPLATE_CONFIG = """
-network:
-    name: OragonoTest
+BASE_CONFIG = {
+    "network": {
+        "name": "OragonoTest",
+    },
 
-server:
-    name: oragono.test
-    listen:
-        - "{hostname}:{port}"
-    {tls}
+    "server": {
+        "name": "oragono.test",
+        "listeners": {},
+        "max-sendq": "16k",
+        "connection-limits": {
+            "enabled": True,
+            "cidr-len-ipv4": 32,
+            "cidr-len-ipv6": 64,
+            "ips-per-subnet": 1,
+            "exempted": ["localhost"],
+        },
+        "connection-throttling": {
+            "enabled": True,
+            "cidr-len-ipv4": 32,
+            "cidr-len-ipv6": 64,
+            "ips-per-subnet": 16,
+            "duration": "10m",
+            "max-connections": 1,
+            "ban-duration": "10m",
+            "ban-message": "Try again later",
+            "exempted": ["localhost"],
+        },
+    },
 
-    check-ident: false
+    'accounts': {
+	'authentication-enabled': True,
+	'bouncer': {'allowed-by-default': False, 'enabled': True},
+	'registration': {
+	    'bcrypt-cost': 4,
+	    'enabled': True,
+	    'enabled-callbacks': ['none'],
+	    'verify-timeout': '120h',
+	},
+    },
 
-    password: {hashed_password}
+   "channels": {
+       "registration": {"enabled": True,},
+   },
 
-    max-sendq: 16k
+   "datastore": {
+       "path": None,
+   },
 
-    allow-plaintext-resume: true
+   'limits': {
+       'awaylen': 200,
+       'chan-list-modes': 60,
+       'channellen': 64,
+       'kicklen': 390,
+       'linelen': {'rest': 2048,},
+       'monitor-entries': 100,
+       'nicklen': 32,
+       'topiclen': 390,
+       'whowas-entries': 100,
+   },
 
-    connection-limits:
-        cidr-len-ipv4: 24
-        cidr-len-ipv6: 120
-        ips-per-subnet: 16
-
-        exempted:
-            - "127.0.0.1/8"
-            - "::1/128"
-
-    connection-throttling:
-        enabled: true
-        cidr-len-ipv4: 32
-        cidr-len-ipv6: 128
-        duration: 10m
-        max-connections: 12
-        ban-duration: 10m
-        ban-message: You have attempted to connect too many times within a short duration. Wait a while, and you will be able to connect.
-
-        exempted:
-            - "127.0.0.1/8"
-            - "::1/128"
-
-accounts:
-    registration:
-        enabled: true
-        verify-timeout: "120h"
-        enabled-callbacks:
-            - none # no verification needed, will instantly register successfully
-        allow-multiple-per-connection: true
-        bcrypt-cost: 4
-
-    authentication-enabled: true
-
-    bouncer:
-        enabled: true
-        allowed-by-default: false
-
-channels:
-    registration:
-        enabled: true
-
-datastore:
-    path: {directory}/ircd.db
-
-limits:
-    nicklen: 32
-    channellen: 64
-    awaylen: 200
-    kicklen: 390
-    topiclen: 390
-    monitor-entries: 100
-    whowas-entries: 100
-    chan-list-modes: 60
-    linelen:
-        tags: 2048
-        rest: 2048
-
-history:
-    enabled: true
-    channel-length: 128
-    client-length: 128
-"""
+   "history": {
+       "enabled": True,
+       "channel-length": 128,
+       "client-length": 128,
+   },
+}
 
 def hash_password(password):
     if isinstance(password, str):
@@ -99,8 +87,6 @@ class OragonoController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {
             'PLAIN',
     }
-    def create_config(self):
-        super().create_config()
 
     def kill_proc(self):
         self.proc.kill()
@@ -111,29 +97,28 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
                     'Defining valid and invalid METADATA keys.')
+
         self.create_config()
-        tls_config = ""
+        config = copy.deepcopy(BASE_CONFIG)
+
+        self.port = port
+        bind_address = ":%s" % (port,)
+        listener_conf = None # plaintext
         if ssl:
             self.key_path = os.path.join(self.directory, 'ssl.key')
             self.pem_path = os.path.join(self.directory, 'ssl.pem')
-            tls_config = 'tls-listeners:\n        ":{port}":\n            key: {key}\n            cert: {pem}'.format(
-                port=port,
-                key=self.key_path,
-                pem=self.pem_path,
-            )
-        assert self.proc is None
-        self.port = port
-        hashed_password = '' # oragono will understand this as 'no password required'
+            listener_conf = {"tls": {"cert": self.pem_path, "key": self.key_path},}
+        config['server']['listeners'][bind_address] = listener_conf
+
+        config['datastore']['path'] = os.path.join(self.directory, 'ircd.db')
+
         if password is not None:
-            hashed_password = hash_password(password)
-        with self.open_file('server.yml') as fd:
-            fd.write(TEMPLATE_CONFIG.format(
-                directory=self.directory,
-                hostname=hostname,
-                port=port,
-                tls=tls_config,
-                hashed_password=hashed_password,
-                ))
+            config['server']['password'] = hash_password(password)
+
+        assert self.proc is None
+
+        with self.open_file('server.yml', 'w') as fd:
+            json.dump(config, fd)
         subprocess.call(['oragono', 'initdb',
             '--conf', os.path.join(self.directory, 'server.yml'), '--quiet'])
         subprocess.call(['oragono', 'mkcerts',
