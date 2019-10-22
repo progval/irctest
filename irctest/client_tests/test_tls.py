@@ -139,5 +139,5 @@ class TlsTestCase(cases.BaseClientTestCase):
                 tls_config=tls_config,
                 )
         self.acceptClient(tls_cert=BAD_CERT, tls_key=BAD_KEY)
-        with self.assertRaises(ConnectionClosed):
+        with self.assertRaises((ConnectionClosed, ConnectionResetError)):
             m = self.getMessage()

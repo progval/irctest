@@ -62,7 +62,8 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
                 trusted_fingerprints=' '.join(tls_config.trusted_fingerprints) if tls_config else '',
                 ))
         self.proc = subprocess.Popen(['supybot',
-            os.path.join(self.directory, 'bot.conf')])
+            os.path.join(self.directory, 'bot.conf')],
+            stderr=subprocess.STDOUT)
 
 def get_irctest_controller_class():
     return LimnoriaController
