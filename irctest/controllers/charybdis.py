@@ -45,6 +45,7 @@ TEMPLATE_SSL_CONFIG = """
 class CharybdisController(BaseServerController, DirectoryBasedController):
     software_name = 'Charybdis'
     supported_sasl_mechanisms = set()
+    supported_capabilities = set()  # Not exhaustive
     def create_config(self):
         super().create_config()
         with self.open_file('server.conf'):

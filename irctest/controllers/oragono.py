@@ -77,6 +77,8 @@ class OragonoController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {
             'PLAIN',
     }
+    supported_capabilities = set()  # Not exhaustive
+
     def create_config(self):
         super().create_config()
         with self.open_file('ircd.yaml'):

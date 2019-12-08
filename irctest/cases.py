@@ -102,6 +102,8 @@ class BaseClientTestCase(_IrcTestCase):
                 self.conn.sendall(b'QUIT :end of test.')
             except BrokenPipeError:
                 pass # client disconnected before we did
+            except OSError:
+                pass # the conn was already closed by the test, or something
         self.controller.kill()
         if self.conn:
             self.conn_file.close()
@@ -113,9 +115,10 @@ class BaseClientTestCase(_IrcTestCase):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(('', 0)) # Bind any free port
         self.server.listen(1)
-    def acceptClient(self, tls_cert=None, tls_key=None):
+    def acceptClient(self, tls_cert=None, tls_key=None, server=None):
         """Make the server accept a client connection. Blocking."""
-        (self.conn, addr) = self.server.accept()
+        server = server or self.server
+        (self.conn, addr) = server.accept()
         if tls_cert is None and tls_key is None:
             pass
         else:
@@ -413,6 +416,20 @@ class OptionalityHelper:
             self.checkSaslSupport()
             return f(self)
         return newf
+
+    def checkCapabilitySupport(self, cap):
+        if cap in self.controller.supported_capabilities:
+            return
+        raise runner.CapabilityNotSupported(cap)
+
+    def skipUnlessSupportsCapability(cap):
+        def decorator(f):
+            @functools.wraps(f)
+            def newf(self):
+                self.checkCapabilitySupport(cap)
+                return f(self)
+            return newf
+        return decorator
 
 class SpecificationSelector:
 

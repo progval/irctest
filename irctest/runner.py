@@ -19,6 +19,10 @@ class OptionalSaslMechanismNotSupported(unittest.SkipTest):
     def __str__(self):
         return 'Unsupported SASL mechanism: {}'.format(self.args[0])
 
+class CapabilityNotSupported(unittest.SkipTest):
+    def __str__(self):
+        return 'Unsupported capability: {}'.format(self.args[0])
+
 class NotRequiredBySpecifications(unittest.SkipTest):
     def __str__(self):
         return 'Tests not required by the set of tested specification(s).'

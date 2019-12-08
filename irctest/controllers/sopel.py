@@ -24,6 +24,8 @@ class SopelController(BaseClientController):
     supported_sasl_mechanisms = {
             'PLAIN',
             }
+    supported_caps = set()  # Not exhaustive
+
     def __init__(self):
         super().__init__()
         self.filename = next(tempfile._get_candidate_names()) + '.cfg'

@@ -39,6 +39,11 @@ class DirectoryBasedController(_BaseController):
             self.kill_proc()
         if self.directory:
             shutil.rmtree(self.directory)
+    def terminate(self):
+        """Stops the process gracefully, and does not clean its config."""
+        self.proc.terminate()
+        self.proc.wait()
+        self.proc = None
     def open_file(self, name, mode='a'):
         """Open a file in the configuration directory."""
         assert self.directory
@@ -49,7 +54,13 @@ class DirectoryBasedController(_BaseController):
             assert os.path.isdir(dir_)
         return open(os.path.join(self.directory, name), mode)
     def create_config(self):
-        self.directory = tempfile.mkdtemp()
+        """If there is no config dir, creates it and returns True.
+        Else returns False."""
+        if self.directory:
+            return False
+        else:
+            self.directory = tempfile.mkdtemp()
+            return True
 
     def gen_ssl(self):
         self.csr_path = os.path.join(self.directory, 'ssl.csr')
