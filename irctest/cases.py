@@ -156,11 +156,9 @@ class BaseClientTestCase(_IrcTestCase):
             if not filter_pred or filter_pred(msg):
                 return msg
     def sendLine(self, line):
-        ret = self.conn.sendall(line.encode())
-        assert ret is None
+        self.conn.sendall(line.encode())
         if not line.endswith('\r\n'):
-            ret = self.conn.sendall(b'\r\n')
-            assert ret is None
+            self.conn.sendall(b'\r\n')
         if self.show_io:
             print('{:.3f} S: {}'.format(time.time(), line.strip()))
 
