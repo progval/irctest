@@ -30,6 +30,8 @@ TEMPLATE_SSL_CONFIG = """
 class InspircdController(BaseServerController, DirectoryBasedController):
     software_name = 'InspIRCd'
     supported_sasl_mechanisms = set()
+    supported_capabilities = set()  # Not exhaustive
+
     def create_config(self):
         super().create_config()
         with self.open_file('server.conf'):

@@ -43,6 +43,8 @@ TEMPLATE_SSL_CONFIG = """
 class HybridController(BaseServerController, DirectoryBasedController):
     software_name = 'Hybrid'
     supported_sasl_mechanisms = set()
+    supported_capabilities = set()  # Not exhaustive
+
     def create_config(self):
         super().create_config()
         with self.open_file('server.conf'):
