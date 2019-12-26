@@ -1,4 +1,7 @@
+import hashlib
+
 import ecdsa
+from ecdsa.util import sigencode_der, sigdecode_der
 import base64
 import pyxmpp2_scram as scram
 
@@ -16,6 +19,16 @@ AwEHoUQDQgAEAZmaVhNSMmV5r8FXPvKuMnqDKyIA9pDHN5TNMfiF3mMeikGgK10W
 IRX9cyi2wdYg9mUUYyh9GKdBCYHGUJAiCA==
 -----END EC PRIVATE KEY-----
 """
+
+CHALLENGE = bytes(range(32))
+assert len(CHALLENGE) == 32
+
+class IdentityHash:
+    def __init__(self, data):
+        self._data = data
+
+    def digest(self):
+        return self._data
 
 class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                    cases.OptionalityHelper):
@@ -140,14 +153,14 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         m = self.getMessage()
         self.assertEqual(m, Message([], None, 'AUTHENTICATE',
             ['amlsbGVz'])) # jilles
-        self.sendLine('AUTHENTICATE Zm9vYmFy') # foobar
+        self.sendLine('AUTHENTICATE {}'.format(base64.b64encode(CHALLENGE).decode('ascii')))
         m = self.getMessage()
         self.assertMessageEqual(m, command='AUTHENTICATE')
         sk = ecdsa.SigningKey.from_pem(ECDSA_KEY)
         vk = sk.get_verifying_key()
         signature = base64.b64decode(m.params[0])
         try:
-            vk.verify(signature, b'foobar')
+            vk.verify(signature, CHALLENGE, hashfunc=IdentityHash, sigdecode=sigdecode_der)
         except ecdsa.BadSignatureError:
             raise AssertionError('Bad signature')
         self.sendLine('900 * * foo :You are now logged in.')
