@@ -133,16 +133,15 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         # part of the specification
         client = case.addClient(show_io=False)
         case.sendLine(client, 'CAP LS 302')
-        case.sendLine(client, 'NICK registration_user')
+        case.sendLine(client, 'NICK ' + username)
         case.sendLine(client, 'USER r e g :user')
         case.sendLine(client, 'CAP END')
         while case.getRegistrationMessage(client).command != '001':
             pass
         case.getMessages(client)
-        case.sendLine(client, 'ACC REGISTER {} * {}'.format(
-            username, password))
+        case.sendLine(client, 'NS REGISTER ' + password)
         msg = case.getMessage(client)
-        assert msg.command == '920', msg
+        assert msg.params == [username, 'Account created']
         case.sendLine(client, 'QUIT')
         case.assertDisconnected(client)
 
