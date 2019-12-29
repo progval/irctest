@@ -64,6 +64,7 @@ BASE_CONFIG = {
        'nicklen': 32,
        'topiclen': 390,
        'whowas-entries': 100,
+       'multiline': {'max-bytes': 4096, 'max-lines': 32,},
    },
 
    "history": {
