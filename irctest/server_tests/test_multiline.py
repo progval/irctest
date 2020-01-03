@@ -35,6 +35,9 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         echo = self.getMessages(1)
         batchStart, batchEnd = echo[0], echo[-1]
         self.assertEqual(batchStart.command, 'BATCH')
+        self.assertEqual(len(batchStart.params), 3)
+        self.assertEqual(batchStart.params[1], CAP_NAME)
+        self.assertEqual(batchStart.params[2], "#test")
         self.assertEqual(batchEnd.command, 'BATCH')
         self.assertEqual(batchStart.params[0][1:], batchEnd.params[0][1:])
         msgid = batchStart.tags.get('msgid')
