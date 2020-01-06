@@ -25,3 +25,26 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         ms = self.getMessages(2)
         self.assertEqual(len(ms), 1)
         self.assertMessageEqual(ms[0], command='PRIVMSG', params=['bob', 'hi'])
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459')
+    def testCaseChanges(self):
+        self.connectClient('alice')
+        self.joinChannel(1, '#test')
+        self.connectClient('bob')
+        self.joinChannel(2, '#test')
+        self.getMessages(1)
+        self.getMessages(2)
+
+        # case change: both alice and bob should get a successful nick line
+        self.sendLine(1, 'NICK Alice')
+        ms = self.getMessages(1)
+        self.assertEqual(len(ms), 1)
+        self.assertMessageEqual(ms[0], command='NICK', params=['Alice'])
+        ms = self.getMessages(2)
+        self.assertEqual(len(ms), 1)
+        self.assertMessageEqual(ms[0], command='NICK', params=['Alice'])
+
+        # bob should not get notified on no-op nick change
+        self.sendLine(1, 'NICK Alice')
+        ms = self.getMessages(2)
+        self.assertEqual(ms, [])
