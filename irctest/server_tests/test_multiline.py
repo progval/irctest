@@ -7,7 +7,6 @@ from irctest import cases
 CAP_NAME   = 'draft/multiline'
 BATCH_TYPE = 'draft/multiline'
 CONCAT_TAG = 'draft/multiline-concat'
-FMSGID_TAG = 'draft/fmsgid'
 
 base_caps = ['message-tags', 'batch', 'echo-message', 'server-time']
 
@@ -44,13 +43,11 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         time = batchStart.tags.get('time')
         assert msgid
         assert time
-        fmsgids = []
         privmsgs = echo[1:-1]
         for msg in privmsgs:
             self.assertMessageEqual(msg, command='PRIVMSG')
             self.assertNotIn('msgid', msg.tags)
             self.assertNotIn('time', msg.tags)
-            fmsgids.append(msg.tags.get(FMSGID_TAG))
         self.assertIn(CONCAT_TAG, echo[3].tags)
 
         relay = self.getMessages(2)
@@ -61,7 +58,6 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertEqual(batchStart.tags.get('msgid'), msgid)
         self.assertEqual(batchStart.tags.get('time'), time)
         privmsgs = relay[1:-1]
-        self.assertEqual([msg.tags.get(FMSGID_TAG) for msg in privmsgs], fmsgids)
         for msg in privmsgs:
             self.assertMessageEqual(msg, command='PRIVMSG')
             self.assertNotIn('msgid', msg.tags)
@@ -75,4 +71,4 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             relayed_fmsgids.append(msg.tags.get('msgid'))
             self.assertEqual(msg.tags.get('time'), time)
             self.assertNotIn(CONCAT_TAG, msg.tags)
-        self.assertEqual(fmsgids, relayed_fmsgids)
+        self.assertEqual(relayed_fmsgids, [msgid] + [None]*(len(fallback_relay)-1))
