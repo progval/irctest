@@ -42,7 +42,7 @@ def parse_message(s):
         (tags, s) = s.split(' ', 1)
         tags = parse_tags(tags[1:])
     else:
-        tags = []
+        tags = {}
     if ' :' in s:
         (other_tokens, trailing_param) = s.split(' :', 1)
         tokens = list(filter(bool, other_tokens.split(' '))) + [trailing_param]
