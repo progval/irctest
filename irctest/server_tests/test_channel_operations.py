@@ -7,7 +7,7 @@ from irctest import cases
 from irctest import client_mock
 from irctest import runner
 from irctest.irc_utils import ambiguities
-from irctest.numerics import RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING, ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK, ERR_INVITEONLYCHAN
+from irctest.numerics import RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING, ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK, ERR_INVITEONLYCHAN, ERR_CANNOTSENDTOCHAN
 
 class JoinTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
@@ -647,3 +647,30 @@ class ChannelQuitTestCase(cases.BaseServerTestCase):
         self.assertEqual(m.command, 'QUIT')
         self.assertTrue(m.prefix.startswith('qux')) # nickmask of quitter
         self.assertIn('qux out', m.params[0])
+
+
+class NoCTCPTestCase(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testQuit(self):
+        self.connectClient('bar')
+        self.joinChannel(1, '#chan')
+        self.sendLine(1, 'MODE #chan +C')
+        self.getMessages(1)
+
+        self.connectClient('qux')
+        self.joinChannel(2, '#chan')
+        self.getMessages(2)
+
+        self.sendLine(1, 'PRIVMSG #chan :\x01ACTION hi\x01')
+        self.getMessages(1)
+        ms = self.getMessages(2)
+        self.assertEqual(len(ms), 1)
+        self.assertMessageEqual(ms[0], command='PRIVMSG', params=['#chan', '\x01ACTION hi\x01'])
+
+        self.sendLine(1, 'PRIVMSG #chan :\x01PING 1473523796 918320\x01')
+        ms = self.getMessages(1)
+        self.assertEqual(len(ms), 1)
+        self.assertMessageEqual(ms[0], command=ERR_CANNOTSENDTOCHAN)
+        ms = self.getMessages(2)
+        self.assertEqual(ms, [])
