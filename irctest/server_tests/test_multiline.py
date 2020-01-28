@@ -1,5 +1,5 @@
 """
-<https://ircv3.net/specs/extensions/labeled-response.html>
+draft/multiline
 """
 
 from irctest import cases
@@ -8,7 +8,7 @@ CAP_NAME   = 'draft/multiline'
 BATCH_TYPE = 'draft/multiline'
 CONCAT_TAG = 'draft/multiline-concat'
 
-base_caps = ['message-tags', 'batch', 'echo-message', 'server-time']
+base_caps = ['message-tags', 'batch', 'echo-message', 'server-time', 'labeled-response']
 
 class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
@@ -25,7 +25,7 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.getMessages(2)
         self.getMessages(3)
 
-        self.sendLine(1, 'BATCH +123 %s #test' % (BATCH_TYPE,))
+        self.sendLine(1, '@label=xyz BATCH +123 %s #test' % (BATCH_TYPE,))
         self.sendLine(1, '@batch=123 PRIVMSG #test hello')
         self.sendLine(1, '@batch=123 PRIVMSG #test :#how is ')
         self.sendLine(1, '@batch=123;%s PRIVMSG #test :everyone?' % (CONCAT_TAG,))
@@ -34,6 +34,7 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         echo = self.getMessages(1)
         batchStart, batchEnd = echo[0], echo[-1]
         self.assertEqual(batchStart.command, 'BATCH')
+        self.assertEqual(batchStart.tags.get('label'), 'xyz')
         self.assertEqual(len(batchStart.params), 3)
         self.assertEqual(batchStart.params[1], CAP_NAME)
         self.assertEqual(batchStart.params[2], "#test")
