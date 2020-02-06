@@ -71,6 +71,7 @@ BASE_CONFIG = {
        "enabled": True,
        "channel-length": 128,
        "client-length": 128,
+       "chathistory-maxmessages": 100,
    },
 }
 
