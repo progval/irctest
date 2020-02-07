@@ -39,7 +39,7 @@ class InvisibleTestCase(cases.BaseServerTestCase):
     def testInvisibleWhois(self):
         """Test interaction between MODE +i and RPL_WHOISCHANNELS."""
         self.connectClient('userOne')
-        self.sendLine(1, 'JOIN #xyz')
+        self.joinChannel(1, '#xyz')
 
         self.connectClient('userTwo')
         self.getMessages(2)
