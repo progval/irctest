@@ -6,6 +6,8 @@ import subprocess
 from irctest.basecontrollers import NotImplementedByController
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
+OPER_PWD = 'frenchfries'
+
 BASE_CONFIG = {
     "network": {
         "name": "OragonoTest",
@@ -73,6 +75,47 @@ BASE_CONFIG = {
        "client-length": 128,
        "chathistory-maxmessages": 100,
    },
+
+    'oper-classes': {
+        'server-admin': {
+            'title': 'Server Admin',
+            'capabilities': [
+                 "oper:local_kill",
+                 "oper:local_ban",
+                 "oper:local_unban",
+                 "nofakelag",
+                 "oper:remote_kill",
+                 "oper:remote_ban",
+                 "oper:remote_unban",
+                 "oper:rehash",
+                 "oper:die",
+                 "accreg",
+                 "sajoin",
+                 "samode",
+                 "vhosts",
+                 "chanreg",
+            ],
+        },
+    },
+
+    'opers': {
+        'root': {
+            'class': 'server-admin',
+            'whois-line': 'is a server admin',
+            # OPER_PWD
+            'password': '$2a$04$3GzUZB5JapaAbwn7sogpOu9NSiLOgnozVllm2e96LiNPrm61ZsZSq',
+        },
+    },
+}
+
+LOGGING_CONFIG = {
+    "logging": [
+       {
+           "method": "stderr",
+           "level": "debug",
+           "type": "*",
+       },
+    ]
 }
 
 def hash_password(password):
@@ -95,16 +138,17 @@ class OragonoController(BaseServerController, DirectoryBasedController):
 
     def run(self, hostname, port, password=None, ssl=False,
             restricted_metadata_keys=None,
-            valid_metadata_keys=None, invalid_metadata_keys=None):
+            valid_metadata_keys=None, invalid_metadata_keys=None, config=None):
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
                     'Defining valid and invalid METADATA keys.')
 
         self.create_config()
-        config = copy.deepcopy(BASE_CONFIG)
+        if config is None:
+            config = copy.deepcopy(BASE_CONFIG)
 
         self.port = port
-        bind_address = ":%s" % (port,)
+        bind_address = "127.0.0.1:%s" % (port,)
         listener_conf = None # plaintext
         if ssl:
             self.key_path = os.path.join(self.directory, 'ssl.key')
@@ -119,14 +163,15 @@ class OragonoController(BaseServerController, DirectoryBasedController):
 
         assert self.proc is None
 
-        with self.open_file('server.yml', 'w') as fd:
-            json.dump(config, fd)
+        self._config_path = os.path.join(self.directory, 'server.yml')
+        self._config = config
+        self._write_config()
         subprocess.call(['oragono', 'initdb',
-            '--conf', os.path.join(self.directory, 'server.yml'), '--quiet'])
+            '--conf', self._config_path, '--quiet'])
         subprocess.call(['oragono', 'mkcerts',
-            '--conf', os.path.join(self.directory, 'server.yml'), '--quiet'])
+            '--conf', self._config_path, '--quiet'])
         self.proc = subprocess.Popen(['oragono', 'run',
-            '--conf', os.path.join(self.directory, 'server.yml'), '--quiet'])
+            '--conf', self._config_path, '--quiet'])
 
     def registerUser(self, case, username, password=None):
         # XXX: Move this somewhere else when
@@ -145,6 +190,36 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         assert msg.params == [username, 'Account created']
         case.sendLine(client, 'QUIT')
         case.assertDisconnected(client)
+
+    def _write_config(self):
+        with open(self._config_path, 'w') as fd:
+            json.dump(self._config, fd)
+
+    def baseConfig(self):
+        return copy.deepcopy(BASE_CONFIG)
+
+    def getConfig(self):
+        return copy.deepcopy(self._config)
+
+    def addLoggingToConfig(self, config):
+        config.update(LOGGING_CONFIG)
+        return config
+
+    def rehash(self, case, config):
+        self._config = config
+        self._write_config()
+        client = 'operator_for_rehash'
+        case.connectClient(nick=client, name=client)
+        case.sendLine(client, 'OPER root %s' % (OPER_PWD,))
+        case.sendLine(client, 'REHASH')
+        case.getMessages(client)
+        case.sendLine(client, 'QUIT')
+        case.assertDisconnected(client)
+
+    def enable_debug_logging(self, case):
+        config = self.getConfig()
+        config.update(LOGGING_CONFIG)
+        self.rehash(case, config)
 
 def get_irctest_controller_class():
     return OragonoController
