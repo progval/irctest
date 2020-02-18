@@ -71,11 +71,16 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
            "password": MYSQL_PASSWORD,
            "history-database": "oragono_history",
         }
+        config['accounts']['bouncer'] = {
+            'enabled': True,
+            'allowed-by-default': True,
+            'always-on': 'opt-out',
+        }
         config['history']['persistent'] = {
             "enabled": True,
             "unregistered-channels": True,
             "registered-channels": "opt-out",
-            "clients": "opt-out",
+            "direct-messages": "opt-out",
         }
         return config
 
