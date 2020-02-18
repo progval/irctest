@@ -2,6 +2,8 @@
 <https://github.com/DanielOaks/ircv3-specifications/blob/master+resume/extensions/resume.md>
 """
 
+import secrets
+
 from irctest import cases
 
 from irctest.numerics import RPL_AWAY
@@ -19,6 +21,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testResume(self):
+        chname = '#' + secrets.token_hex(12)
         self.connectClient('bar', capabilities=['batch', 'labeled-response', 'server-time'])
         ms = self.getMessages(1)
 
@@ -28,16 +31,16 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.assertEqual(resume_messages[0].params[0], 'TOKEN')
         token = resume_messages[0].params[1]
 
-        self.joinChannel(1, '#xyz')
-        self.joinChannel(2, '#xyz')
-        self.sendLine(1, 'PRIVMSG #xyz :hello friends')
+        self.joinChannel(1, chname)
+        self.joinChannel(2, chname)
+        self.sendLine(1, 'PRIVMSG %s :hello friends' % (chname,))
         self.sendLine(1, 'PRIVMSG baz :hello friend singular')
         self.getMessages(1)
         # should receive these messages
         privmsgs = [m for m in self.getMessages(2) if m.command == 'PRIVMSG']
         self.assertEqual(len(privmsgs), 2)
         privmsgs.sort(key=lambda m: m.params[0])
-        self.assertMessageEqual(privmsgs[0], command='PRIVMSG', params=['#xyz', 'hello friends'])
+        self.assertMessageEqual(privmsgs[0], command='PRIVMSG', params=[chname, 'hello friends'])
         self.assertMessageEqual(privmsgs[1], command='PRIVMSG', params=['baz', 'hello friend singular'])
         channelMsgTime = privmsgs[0].tags.get('time')
 
@@ -84,7 +87,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         privmsgs = [m for m in ms if m.command == 'PRIVMSG' and m.prefix.startswith('bar')]
         self.assertEqual(len(privmsgs), 2)
         privmsgs.sort(key=lambda m: m.params[0])
-        self.assertMessageEqual(privmsgs[0], command='PRIVMSG', params=['#xyz', 'hello friends'])
+        self.assertMessageEqual(privmsgs[0], command='PRIVMSG', params=[chname, 'hello friends'])
         self.assertMessageEqual(privmsgs[1], command='PRIVMSG', params=['baz', 'hello friend singular'])
         # should replay with the original server-time
         # TODO this probably isn't testing anything because the timestamp only has second resolution,
@@ -95,7 +98,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         quit, join = [m for m in self.getMessages(1) if m.command in ('QUIT', 'JOIN')]
         self.assertEqual(quit.command, 'QUIT')
         self.assertTrue(quit.prefix.startswith('baz'))
-        self.assertMessageEqual(join, command='JOIN', params=['#xyz'])
+        self.assertMessageEqual(join, command='JOIN', params=[chname])
         self.assertTrue(join.prefix.startswith('baz'))
 
         # original client should have been disconnected
@@ -126,16 +129,17 @@ class ResumeTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testBRB(self):
+        chname = '#' + secrets.token_hex(12)
         self.connectClient('bar', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'draft/resume-0.5'])
         ms = self.getMessages(1)
-        self.joinChannel(1, '#xyz')
+        self.joinChannel(1, chname)
 
         welcome = self.connectClient('baz', capabilities=['batch', 'labeled-response', 'server-time', 'draft/resume-0.5'])
         resume_messages = [m for m in welcome if m.command == 'RESUME']
         self.assertEqual(len(resume_messages), 1)
         self.assertEqual(resume_messages[0].params[0], 'TOKEN')
         token = resume_messages[0].params[1]
-        self.joinChannel(2, '#xyz')
+        self.joinChannel(2, chname)
 
         self.getMessages(1)
         self.sendLine(2, 'BRB :software upgrade')
