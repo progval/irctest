@@ -4,6 +4,30 @@
 
 from irctest import cases
 from irctest.basecontrollers import NotImplementedByController
+from irctest.irc_utils.random import random_name
+
+class DMEchoMessageTestCase(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testDirectMessageEcho(self):
+        bar = random_name('bar')
+        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'echo-message', 'message-tags', 'server-time'])
+        self.getMessages(bar)
+
+        qux = random_name('qux')
+        self.connectClient(qux, name=qux, capabilities=['batch', 'labeled-response', 'echo-message', 'message-tags', 'server-time'])
+        self.getMessages(qux)
+
+        self.sendLine(bar, '@label=xyz;+example-client-tag=example-value PRIVMSG %s :hi there' % (qux,))
+        echo = self.getMessages(bar)[0]
+        delivery = self.getMessages(qux)[0]
+
+        self.assertEqual(delivery.params, [qux, 'hi there'])
+        self.assertEqual(delivery.params, echo.params)
+        self.assertEqual(delivery.tags['msgid'], echo.tags['msgid'])
+        self.assertEqual(echo.tags['label'], 'xyz')
+        self.assertEqual(delivery.tags['+example-client-tag'], 'example-value')
+        self.assertEqual(delivery.tags['+example-client-tag'], echo.tags['+example-client-tag'])
 
 class EchoMessageTestCase(cases.BaseServerTestCase):
     def _testEchoMessage(command, solo, server_time):
