@@ -15,6 +15,7 @@ class Bouncer(cases.BaseServerTestCase):
         self.connectClient('observer')
         self.joinChannel(1, '#chan')
         self.sendLine(1, 'NICKSERV IDENTIFY observer observerpassword')
+        self.sendLine(1, 'CAP REQ :message-tags server-time')
         self.getMessages(1)
 
         self.addClient()
@@ -81,6 +82,14 @@ class Bouncer(cases.BaseServerTestCase):
         self.assertIn('account', messageforthree.tags)
         # should get same msgid
         self.assertEqual(messagefortwo.tags['msgid'], messageforthree.tags['msgid'])
+
+        # test that copies of sent messages go out to other sessions
+        self.sendLine(2, 'PRIVMSG observer :this is a direct message')
+        self.getMessages(2)
+        messageForRecipient = [msg for msg in self.getMessages(1) if msg.command == 'PRIVMSG'][0]
+        copyForOtherSession = [msg for msg in self.getMessages(3) if msg.command == 'PRIVMSG'][0]
+        self.assertEqual(messageForRecipient.params, copyForOtherSession.params)
+        self.assertEqual(messageForRecipient.tags['msgid'], copyForOtherSession.tags['msgid'])
 
         self.sendLine(2, 'QUIT :two out')
         quitLines = [msg for msg in self.getMessages(2) if msg.command == 'QUIT']
