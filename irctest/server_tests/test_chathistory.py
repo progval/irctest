@@ -3,6 +3,7 @@ import time
 from collections import namedtuple
 
 from irctest import cases
+from irctest.irc_utils.random import random_name
 
 #ANCIENT_TIMESTAMP = '2006-01-02T15:04:05.999Z'
 
@@ -33,6 +34,52 @@ def validate_chathistory_batch(msgs):
     return result
 
 class ChathistoryTestCase(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testMessagesToSelf(self):
+        bar = random_name('bar')
+        self.controller.registerUser(self, bar, bar)
+        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time'], password=bar)
+        self.getMessages(bar)
+
+        messages = []
+
+        self.sendLine(bar, 'PRIVMSG %s :this is a privmsg sent to myself' % (bar,))
+        replies = [msg for msg in self.getMessages(bar) if msg.command == 'PRIVMSG']
+        self.assertEqual(len(replies), 1)
+        msg = replies[0]
+        self.assertEqual(msg.params, [bar, 'this is a privmsg sent to myself'])
+        messages.append(to_history_message(msg))
+
+        self.sendLine(bar, 'CAP REQ echo-message')
+        self.getMessages(bar)
+        self.sendLine(bar, 'PRIVMSG %s :this is a second privmsg sent to myself' % (bar,))
+        replies = [msg for msg in self.getMessages(bar) if msg.command == 'PRIVMSG']
+        # two messages, the echo and the delivery
+        self.assertEqual(len(replies), 2)
+        self.assertEqual(replies[0].params, [bar, 'this is a second privmsg sent to myself'])
+        messages.append(to_history_message(replies[0]))
+        # messages should be otherwise identical
+        self.assertEqual(to_history_message(replies[0]), to_history_message(replies[1]))
+
+        self.sendLine(bar, '@label=xyz PRIVMSG %s :this is a third privmsg sent to myself' % (bar,))
+        replies = [msg for msg in self.getMessages(bar) if msg.command == 'PRIVMSG']
+        self.assertEqual(len(replies), 2)
+        # exactly one of the replies MUST be labeled
+        echo = [msg for msg in replies if msg.tags.get('label') == 'xyz'][0]
+        delivery = [msg for msg in replies if msg.tags.get('label') is None][0]
+        self.assertEqual(echo.params, [bar, 'this is a third privmsg sent to myself'])
+        messages.append(to_history_message(echo))
+        self.assertEqual(to_history_message(echo), to_history_message(delivery))
+
+        # should receive exactly 3 messages in the correct order, no duplicates
+        self.sendLine(bar, 'CHATHISTORY LATEST * * 10')
+        replies = [msg for msg in self.getMessages(bar) if msg.command == 'PRIVMSG']
+        self.assertEqual([to_history_message(msg) for msg in replies], messages)
+
+        self.sendLine(bar, 'CHATHISTORY LATEST %s * 10' % (bar,))
+        replies = [msg for msg in self.getMessages(bar) if msg.command == 'PRIVMSG']
+        self.assertEqual([to_history_message(msg) for msg in replies], messages)
 
     def validate_echo_messages(self, num_messages, echo_messages):
         # sanity checks: should have received the correct number of echo messages,
