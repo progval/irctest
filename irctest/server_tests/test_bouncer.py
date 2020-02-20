@@ -74,12 +74,13 @@ class Bouncer(cases.BaseServerTestCase):
         messageforthree = messagesforthree[0]
         self.assertEqual(messagefortwo.params, ['#chan', 'hey'])
         self.assertEqual(messageforthree.params, ['#chan', 'hey'])
-        # TODO assert equality of the msgids
         self.assertIn('time', messagefortwo.tags)
         self.assertNotIn('account', messagefortwo.tags)
         self.assertIn('time', messageforthree.tags)
         # 3 has account-tag, 2 doesn't
         self.assertIn('account', messageforthree.tags)
+        # should get same msgid
+        self.assertEqual(messagefortwo.tags['msgid'], messageforthree.tags['msgid'])
 
         self.sendLine(2, 'QUIT :two out')
         quitLines = [msg for msg in self.getMessages(2) if msg.command == 'QUIT']
