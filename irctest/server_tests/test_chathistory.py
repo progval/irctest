@@ -36,6 +36,18 @@ def validate_chathistory_batch(msgs):
 class ChathistoryTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testEmptyBatch(self):
+        bar = random_name('bar')
+        self.controller.registerUser(self, bar, bar)
+        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time'], password=bar)
+        self.getMessages(bar)
+
+        # no chathistory results SHOULD result in an empty batch:
+        self.sendLine(bar, 'CHATHISTORY LATEST * * 10')
+        msgs = self.getMessages(bar)
+        self.assertEqual([msg.command for msg in msgs], ['BATCH', 'BATCH'])
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testMessagesToSelf(self):
         bar = random_name('bar')
         self.controller.registerUser(self, bar, bar)
