@@ -24,7 +24,7 @@ class Bouncer(cases.BaseServerTestCase):
         self.sendLine(2, sasl_plain_blob('testuser', 'mypassword'))
         self.sendLine(2, 'NICK testnick')
         self.sendLine(2, 'USER a 0 * a')
-        self.sendLine(2, 'CAP REQ :server-time message-tags oragono.io/bnc')
+        self.sendLine(2, 'CAP REQ :server-time message-tags')
         self.sendLine(2, 'CAP END')
         messages = self.getMessages(2)
         welcomes = [message for message in messages if message.command == RPL_WELCOME]
@@ -39,7 +39,7 @@ class Bouncer(cases.BaseServerTestCase):
         self.sendLine(3, sasl_plain_blob('testuser', 'mypassword'))
         self.sendLine(3, 'NICK testnick')
         self.sendLine(3, 'USER a 0 * a')
-        self.sendLine(3, 'CAP REQ :server-time message-tags account-tag oragono.io/bnc')
+        self.sendLine(3, 'CAP REQ :server-time message-tags account-tag')
         self.sendLine(3, 'CAP END')
         messages = self.getMessages(3)
         welcomes = [message for message in messages if message.command == RPL_WELCOME]
@@ -50,6 +50,10 @@ class Bouncer(cases.BaseServerTestCase):
         # we should be automatically joined to #chan
         self.assertEqual(joins[0].params[0], '#chan')
 
+        # disable multiclient in nickserv
+        self.sendLine(3, 'NS SET MULTICLIENT OFF')
+        self.getMessages(3)
+
         self.addClient()
         self.sendLine(4, 'CAP LS 302')
         self.sendLine(4, 'AUTHENTICATE PLAIN')
@@ -58,7 +62,7 @@ class Bouncer(cases.BaseServerTestCase):
         self.sendLine(4, 'USER a 0 * a')
         self.sendLine(4, 'CAP REQ :server-time message-tags')
         self.sendLine(4, 'CAP END')
-        # without the bnc cap, we should not be able to attach to the nick
+        # with multiclient disabled, we should not be able to attach to the nick
         messages = self.getMessages(4)
         welcomes = [message for message in messages if message.command == RPL_WELCOME]
         self.assertEqual(len(welcomes), 0)
