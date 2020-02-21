@@ -131,7 +131,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
            "history-database": "oragono_history",
            "timeout": "3s",
         }
-        config['accounts']['bouncer'] = {
+        config['accounts']['multiclient'] = {
             'enabled': True,
             'allowed-by-default': True,
             'always-on': 'opt-out',

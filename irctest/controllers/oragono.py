@@ -39,7 +39,11 @@ BASE_CONFIG = {
 
     'accounts': {
 	'authentication-enabled': True,
-	'multiclient': {'allowed-by-default': True, 'enabled': True},
+	'multiclient': {
+            'allowed-by-default': True,
+            'enabled': True,
+            'always-on': 'disabled',
+        },
 	'registration': {
 	    'bcrypt-cost': 4,
 	    'enabled': True,
