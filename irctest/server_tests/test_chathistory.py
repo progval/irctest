@@ -117,6 +117,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
            "user": "oragono",
            "password": MYSQL_PASSWORD,
            "history-database": "oragono_history",
+           "timeout": "3s",
         }
         config['accounts']['bouncer'] = {
             'enabled': True,
