@@ -134,7 +134,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         config['accounts']['multiclient'] = {
             'enabled': True,
             'allowed-by-default': True,
-            'always-on': 'opt-out',
+            'always-on': 'disabled',
         }
         config['history']['persistent'] = {
             "enabled": True,
