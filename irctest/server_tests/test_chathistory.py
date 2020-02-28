@@ -1,21 +1,15 @@
 import secrets
 import time
-from collections import namedtuple
 
 from irctest import cases
+from irctest.irc_utils.junkdrawer import to_history_message
 from irctest.irc_utils.random import random_name
-
-#ANCIENT_TIMESTAMP = '2006-01-02T15:04:05.999Z'
 
 CHATHISTORY_CAP = 'draft/chathistory'
 EVENT_PLAYBACK_CAP = 'draft/event-playback'
 
-HistoryMessage = namedtuple('HistoryMessage', ['time', 'msgid', 'target', 'text'])
 
 MYSQL_PASSWORD = ""
-
-def to_history_message(msg):
-    return HistoryMessage(time=msg.tags.get('time'), msgid=msg.tags.get('msgid'), target=msg.params[0], text=msg.params[1])
 
 def validate_chathistory_batch(msgs):
     batch_tag = None
