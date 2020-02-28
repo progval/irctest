@@ -7,6 +7,9 @@ from irctest.irc_utils.random import random_name
 
 class ZncPlaybackTestCase(cases.BaseServerTestCase):
 
+    def customizedConfig(self):
+        return self.controller.addMysqlToConfig()
+
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testZncPlayback(self):
         chname = random_name('#znc_channel')

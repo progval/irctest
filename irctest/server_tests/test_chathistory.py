@@ -112,31 +112,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.validate_chathistory(echo_messages, 1, chname)
 
     def customizedConfig(self):
-        if MYSQL_PASSWORD == "":
-            return None
-
-        # enable mysql-backed history for all channels and logged-in clients
-        config = self.controller.baseConfig()
-        config['datastore']['mysql'] = {
-           "enabled": True,
-           "host": "localhost",
-           "user": "oragono",
-           "password": MYSQL_PASSWORD,
-           "history-database": "oragono_history",
-           "timeout": "3s",
-        }
-        config['accounts']['multiclient'] = {
-            'enabled': True,
-            'allowed-by-default': True,
-            'always-on': 'disabled',
-        }
-        config['history']['persistent'] = {
-            "enabled": True,
-            "unregistered-channels": True,
-            "registered-channels": "opt-out",
-            "direct-messages": "opt-out",
-        }
-        return config
+        return self.controller.addMysqlToConfig()
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testChathistoryDMs(self):

@@ -209,6 +209,32 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         config.update(LOGGING_CONFIG)
         return config
 
+    def addMysqlToConfig(self):
+        mysql_password = os.getenv('MYSQL_PASSWORD')
+        if not mysql_password:
+            return None
+        config = self.baseConfig()
+        config['datastore']['mysql'] = {
+           "enabled": True,
+           "host": "localhost",
+           "user": "oragono",
+           "password": mysql_password,
+           "history-database": "oragono_history",
+           "timeout": "3s",
+        }
+        config['accounts']['multiclient'] = {
+            'enabled': True,
+            'allowed-by-default': True,
+            'always-on': 'disabled',
+        }
+        config['history']['persistent'] = {
+            "enabled": True,
+            "unregistered-channels": True,
+            "registered-channels": "opt-out",
+            "direct-messages": "opt-out",
+        }
+        return config
+
     def rehash(self, case, config):
         self._config = config
         self._write_config()
