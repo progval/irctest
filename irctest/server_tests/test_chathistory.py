@@ -155,6 +155,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         # additional messages with c3 should not show up in the c1-c2 history:
         self.validate_chathistory(echo_messages, 1, c2)
         self.validate_chathistory(echo_messages, 2, c1)
+        self.validate_chathistory(echo_messages, 2, c1.upper())
 
     def validate_chathistory(self, echo_messages, user, chname):
         INCLUSIVE_LIMIT = len(echo_messages) * 2

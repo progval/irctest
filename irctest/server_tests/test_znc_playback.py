@@ -69,6 +69,9 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         self.sendLine('viewer', 'PRIVMSG *playback :play %s %d' % (qux, early_time,))
         messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
         self.assertEqual(messages, [dm])
+        self.sendLine('viewer', 'PRIVMSG *playback :play %s %d' % (qux.upper(), early_time,))
+        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        self.assertEqual(messages, [dm])
         self.sendLine('viewer', 'QUIT')
         self.assertDisconnected('viewer')
 
