@@ -12,6 +12,8 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testZncPlayback(self):
+        early_time = int(time.time() - 60)
+
         chname = random_name('#znc_channel')
         bar = random_name('bar')
         self.controller.registerUser(self, bar, bar)
@@ -38,7 +40,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
 
         # reattach to 'bar'
         self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=bar)
-        self.sendLine('viewer', 'PRIVMSG *playback :play * %d' % (int(time.time() - 60)))
+        self.sendLine('viewer', 'PRIVMSG *playback :play * %d' % (early_time,))
         messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
         self.assertEqual(set(messages), set([dm] + echo_messages))
         self.sendLine('viewer', 'QUIT')
@@ -63,6 +65,10 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         self.sendLine('viewer', 'PRIVMSG *playback :play %s %s %s' % (chname, start_timestamp, end_timestamp,))
         messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
         self.assertEqual(messages, echo_messages[3:7])
+        # test nicknames as targets
+        self.sendLine('viewer', 'PRIVMSG *playback :play %s %d' % (qux, early_time,))
+        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        self.assertEqual(messages, [dm])
         self.sendLine('viewer', 'QUIT')
         self.assertDisconnected('viewer')
 
