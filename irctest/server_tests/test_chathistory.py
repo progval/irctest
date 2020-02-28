@@ -145,17 +145,35 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.validate_chathistory(echo_messages, 2, '*')
 
         c3 = secrets.token_hex(12)
-        self.controller.registerUser(self, c3, c3)
-        self.connectClient(c3, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password=c3)
+        self.connectClient(c3, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP])
         self.sendLine(1, 'PRIVMSG %s :this is a message in a separate conversation' % (c3,))
-        self.getMessages(1)
         self.sendLine(3, 'PRIVMSG %s :i agree that this is a separate conversation' % (c1,))
-        self.getMessages(3)
+        # 3 received the first message as a delivery and the second as an echo
+        new_convo = [to_history_message(msg) for msg in self.getMessages(3) if msg.command == 'PRIVMSG']
+        self.assertEqual([msg.text for msg in new_convo], ['this is a message in a separate conversation', 'i agree that this is a separate conversation'])
+
+        # messages should be stored and retrievable by c1, even though c3 is not registered
+        self.getMessages(1)
+        self.sendLine(1, 'CHATHISTORY LATEST %s * 10' % (c3,))
+        results = [to_history_message(msg) for msg in self.getMessages(1) if msg.command == 'PRIVMSG']
+        self.assertEqual(results, new_convo)
 
         # additional messages with c3 should not show up in the c1-c2 history:
         self.validate_chathistory(echo_messages, 1, c2)
         self.validate_chathistory(echo_messages, 2, c1)
         self.validate_chathistory(echo_messages, 2, c1.upper())
+
+        # regression test for #833
+        self.sendLine(3, 'QUIT')
+        self.assertDisconnected(3)
+        # register c3 as an account, then attempt to retrieve the conversation history with c1
+        self.controller.registerUser(self, c3, c3)
+        self.connectClient(c3, name=c3, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password=c3)
+        self.getMessages(c3)
+        self.sendLine(c3, 'CHATHISTORY LATEST %s * 10' % (c1,))
+        results = [to_history_message(msg) for msg in self.getMessages(c3) if msg.command == 'PRIVMSG']
+        # should get nothing
+        self.assertEqual(results, [])
 
     def validate_chathistory(self, echo_messages, user, chname):
         INCLUSIVE_LIMIT = len(echo_messages) * 2
