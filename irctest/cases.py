@@ -344,10 +344,10 @@ class BaseServerTestCase(_IrcTestCase):
                             ', '.join(capabilities))
                 else:
                     raise
-            if password is not None:
-                self.sendLine(client, 'AUTHENTICATE PLAIN')
-                self.sendLine(client, sasl_plain_blob(nick, password))
             self.sendLine(client, 'CAP END')
+        if password is not None:
+            self.sendLine(client, 'AUTHENTICATE PLAIN')
+            self.sendLine(client, sasl_plain_blob(nick, password))
         self.sendLine(client, 'NICK {}'.format(nick))
         self.sendLine(client, 'USER username * * :Realname')
 
