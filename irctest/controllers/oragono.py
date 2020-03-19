@@ -209,11 +209,12 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         config.update(LOGGING_CONFIG)
         return config
 
-    def addMysqlToConfig(self):
+    def addMysqlToConfig(self, config=None):
         mysql_password = os.getenv('MYSQL_PASSWORD')
         if not mysql_password:
             return None
-        config = self.baseConfig()
+        if config is None:
+            config = self.baseConfig()
         config['datastore']['mysql'] = {
            "enabled": True,
            "host": "localhost",
