@@ -205,7 +205,9 @@ class OragonoController(BaseServerController, DirectoryBasedController):
     def getConfig(self):
         return copy.deepcopy(self._config)
 
-    def addLoggingToConfig(self, config):
+    def addLoggingToConfig(self, config=None):
+        if config is None:
+            config = self.baseConfig()
         config.update(LOGGING_CONFIG)
         return config
 
