@@ -11,6 +11,7 @@ from . import runner
 from . import client_mock
 from .irc_utils import capabilities
 from .irc_utils import message_parser
+from .irc_utils.sasl import sasl_plain_blob
 from .exceptions import ConnectionClosed
 from .specifications import Specifications
 
@@ -235,12 +236,15 @@ class BaseServerTestCase(_IrcTestCase):
     invalid_metadata_keys = frozenset()
     def setUp(self):
         super().setUp()
+        config = None
+        if hasattr(self, 'customizedConfig'):
+            config = self.customizedConfig()
         self.server_support = {}
         self.find_hostname_and_port()
         self.controller.run(self.hostname, self.port, password=self.password,
                 valid_metadata_keys=self.valid_metadata_keys,
                 invalid_metadata_keys=self.invalid_metadata_keys,
-                ssl=self.ssl)
+                ssl=self.ssl, config=config)
         self.clients = {}
     def tearDown(self):
         self.controller.kill()
@@ -324,7 +328,7 @@ class BaseServerTestCase(_IrcTestCase):
                 return result
 
     def connectClient(self, nick, name=None, capabilities=None,
-            skip_if_cap_nak=False, show_io=None):
+            skip_if_cap_nak=False, show_io=None, password=None):
         client = self.addClient(name, show_io=show_io)
         if capabilities is not None and 0 < len(capabilities):
             self.sendLine(client, 'CAP REQ :{}'.format(' '.join(capabilities)))
@@ -341,6 +345,9 @@ class BaseServerTestCase(_IrcTestCase):
                 else:
                     raise
             self.sendLine(client, 'CAP END')
+        if password is not None:
+            self.sendLine(client, 'AUTHENTICATE PLAIN')
+            self.sendLine(client, sasl_plain_blob(nick, password))
         self.sendLine(client, 'NICK {}'.format(nick))
         self.sendLine(client, 'USER username * * :Realname')
 

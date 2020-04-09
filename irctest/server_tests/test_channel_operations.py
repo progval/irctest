@@ -7,7 +7,7 @@ from irctest import cases
 from irctest import client_mock
 from irctest import runner
 from irctest.irc_utils import ambiguities
-from irctest.numerics import RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING, ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK, ERR_INVITEONLYCHAN
+from irctest.numerics import RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING, ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK, ERR_INVITEONLYCHAN, ERR_CANNOTSENDTOCHAN
 
 class JoinTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
@@ -136,6 +136,30 @@ class JoinTestCase(cases.BaseServerTestCase):
                         'the same channel: should contain only user '
                         '"foo" with an optional "+" or "@" prefix, but got: '
                         '{msg}')
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
+    def testNormalPart(self):
+        self.connectClient('bar')
+        self.sendLine(1, 'JOIN #chan')
+        m = self.getMessage(1)
+        self.assertMessageEqual(m, command='JOIN', params=['#chan'])
+
+        self.connectClient('baz')
+        self.sendLine(2, 'JOIN #chan')
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command='JOIN', params=['#chan'])
+
+        # skip the rest of the JOIN burst:
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(1, 'PART #chan :bye everyone')
+        # both the PART'ing client and the other channel member should receive a PART line:
+        m = self.getMessage(1)
+        self.assertMessageEqual(m, command='PART', params=['#chan', 'bye everyone'])
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command='PART', params=['#chan', 'bye everyone'])
+
 
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812')
     def testTopic(self):
@@ -623,3 +647,30 @@ class ChannelQuitTestCase(cases.BaseServerTestCase):
         self.assertEqual(m.command, 'QUIT')
         self.assertTrue(m.prefix.startswith('qux')) # nickmask of quitter
         self.assertIn('qux out', m.params[0])
+
+
+class NoCTCPTestCase(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testQuit(self):
+        self.connectClient('bar')
+        self.joinChannel(1, '#chan')
+        self.sendLine(1, 'MODE #chan +C')
+        self.getMessages(1)
+
+        self.connectClient('qux')
+        self.joinChannel(2, '#chan')
+        self.getMessages(2)
+
+        self.sendLine(1, 'PRIVMSG #chan :\x01ACTION hi\x01')
+        self.getMessages(1)
+        ms = self.getMessages(2)
+        self.assertEqual(len(ms), 1)
+        self.assertMessageEqual(ms[0], command='PRIVMSG', params=['#chan', '\x01ACTION hi\x01'])
+
+        self.sendLine(1, 'PRIVMSG #chan :\x01PING 1473523796 918320\x01')
+        ms = self.getMessages(1)
+        self.assertEqual(len(ms), 1)
+        self.assertMessageEqual(ms[0], command=ERR_CANNOTSENDTOCHAN)
+        ms = self.getMessages(2)
+        self.assertEqual(ms, [])
