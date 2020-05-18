@@ -7,7 +7,7 @@ from irctest import cases
 from irctest import client_mock
 from irctest import runner
 from irctest.irc_utils import ambiguities
-from irctest.numerics import RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING, ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK, ERR_INVITEONLYCHAN, ERR_CANNOTSENDTOCHAN
+from irctest.numerics import RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING, ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK, ERR_INVITEONLYCHAN, ERR_CANNOTSENDTOCHAN, ERR_BADCHANNELKEY, ERR_INVALIDMODEPARAM, ERR_UNKNOWNERROR
 
 class JoinTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('RFC1459', 'RFC2812',
@@ -674,3 +674,33 @@ class NoCTCPTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(ms[0], command=ERR_CANNOTSENDTOCHAN)
         ms = self.getMessages(2)
         self.assertEqual(ms, [])
+
+class KeyTestCase(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testKeyNormal(self):
+        self.connectClient('bar')
+        self.joinChannel(1, '#chan')
+        self.sendLine(1, 'MODE #chan +k beer')
+        self.getMessages(1)
+
+        self.connectClient('qux')
+        self.getMessages(2)
+        self.sendLine(2, 'JOIN #chan')
+        reply = self.getMessages(2)
+        self.assertNotIn('JOIN', {msg.command for msg in reply})
+        self.assertIn(ERR_BADCHANNELKEY, {msg.command for msg in reply})
+
+        self.sendLine(2, 'JOIN #chan beer')
+        reply = self.getMessages(2)
+        self.assertMessageEqual(reply[0], command='JOIN', params=['#chan'])
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testKeyValidation(self):
+        # oragono issue #1021
+        self.connectClient('bar')
+        self.joinChannel(1, '#chan')
+        self.sendLine(1, 'MODE #chan +k :invalid channel passphrase')
+        reply = self.getMessages(1)
+        self.assertNotIn(ERR_UNKNOWNERROR, {msg.command for msg in reply})
+        self.assertIn(ERR_INVALIDMODEPARAM, {msg.command for msg in reply})
