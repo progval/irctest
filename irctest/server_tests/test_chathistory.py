@@ -266,3 +266,63 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.sendLine(user, "CHATHISTORY AROUND %s timestamp=%s %d" % (chname, echo_messages[7].time, 3))
         result = validate_chathistory_batch(self.getMessages(user))
         self.assertIn(echo_messages[7], result)
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testChathistoryTagmsg(self):
+        c1 = secrets.token_hex(12)
+        c2 = secrets.token_hex(12)
+        chname = '#' + secrets.token_hex(12)
+        self.controller.registerUser(self, c1, c1)
+        self.controller.registerUser(self, c2, c2)
+        self.connectClient(c1, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password=c1)
+        self.connectClient(c2, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP,], password=c2)
+        self.joinChannel(1, chname)
+        self.joinChannel(2, chname)
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(1, '@+client-only-tag-test=success TAGMSG %s' % (chname,))
+        echo = self.getMessages(1)[0]
+        msgid = echo.tags['msgid']
+
+        def validate_tagmsg(msg, target, msgid):
+            self.assertEqual(msg.command, 'TAGMSG')
+            self.assertEqual(msg.tags['+client-only-tag-test'], 'success')
+            self.assertEqual(msg.tags['msgid'], msgid)
+            self.assertEqual(msg.params, [target])
+
+        validate_tagmsg(echo, chname, msgid)
+
+        relay = self.getMessages(2)
+        self.assertEqual(len(relay), 1)
+        validate_tagmsg(relay[0], chname, msgid)
+
+        self.sendLine(1, 'CHATHISTORY LATEST %s * 10' % (chname,))
+        history_tagmsgs = [msg for msg in self.getMessages(1) if msg.command == 'TAGMSG']
+        self.assertEqual(len(history_tagmsgs), 1)
+        validate_tagmsg(history_tagmsgs[0], chname, msgid)
+
+        # c2 doesn't have event-playback and MUST NOT receive replayed tagmsg
+        self.sendLine(2, 'CHATHISTORY LATEST %s * 10' % (chname,))
+        history_tagmsgs = [msg for msg in self.getMessages(2) if msg.command == 'TAGMSG']
+        self.assertEqual(len(history_tagmsgs), 0)
+
+        # now try a DM
+        self.sendLine(1, '@+client-only-tag-test=success TAGMSG %s' % (c2,))
+        echo = self.getMessages(1)[0]
+        msgid = echo.tags['msgid']
+        validate_tagmsg(echo, c2, msgid)
+
+        relay = self.getMessages(2)
+        self.assertEqual(len(relay), 1)
+        validate_tagmsg(relay[0], c2, msgid)
+
+        self.sendLine(1, 'CHATHISTORY LATEST %s * 10' % (c2,))
+        history_tagmsgs = [msg for msg in self.getMessages(1) if msg.command == 'TAGMSG']
+        self.assertEqual(len(history_tagmsgs), 1)
+        validate_tagmsg(history_tagmsgs[0], c2, msgid)
+
+        # c2 doesn't have event-playback and MUST NOT receive replayed tagmsg
+        self.sendLine(2, 'CHATHISTORY LATEST %s * 10' % (c1,))
+        history_tagmsgs = [msg for msg in self.getMessages(2) if msg.command == 'TAGMSG']
+        self.assertEqual(len(history_tagmsgs), 0)
