@@ -7,7 +7,7 @@ from irctest.client_mock import NoMessageException
 from irctest.basecontrollers import NotImplementedByController
 from irctest.numerics import RPL_MONLIST, RPL_ENDOFMONLIST, RPL_MONONLINE, RPL_MONOFFLINE
 
-class EchoMessageTestCase(cases.BaseServerTestCase):
+class MonitorTestCase(cases.BaseServerTestCase):
     def check_server_support(self):
         if 'MONITOR' not in self.server_support:
             raise NotImplementedByController('MONITOR')
