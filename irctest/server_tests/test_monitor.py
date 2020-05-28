@@ -5,7 +5,7 @@
 from irctest import cases
 from irctest.client_mock import NoMessageException
 from irctest.basecontrollers import NotImplementedByController
-from irctest.numerics import RPL_MONLIST, RPL_ENDOFMONLIST
+from irctest.numerics import RPL_MONLIST, RPL_ENDOFMONLIST, RPL_MONONLINE, RPL_MONOFFLINE
 
 class EchoMessageTestCase(cases.BaseServerTestCase):
     def check_server_support(self):
@@ -255,3 +255,32 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.sendLine(1, 'MONITOR L')
         checkMonitorSubjects(self.getMessages(1), 'bar', {'bazbat',})
+
+
+    @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
+    def testNickChange(self):
+        # see oragono issue #1076: nickname changes must trigger RPL_MONOFFLINE
+        self.connectClient('bar')
+        self.check_server_support()
+        self.sendLine(1, 'MONITOR + qux')
+        self.getMessages(1)
+
+        self.connectClient('baz')
+        self.getMessages(2)
+        self.assertEqual(self.getMessages(1), [])
+
+        self.sendLine(2, 'NICK qux')
+        self.getMessages(2)
+        mononline = self.getMessages(1)[0]
+        self.assertMessageEqual(mononline, command=RPL_MONONLINE, params=['bar', 'qux'])
+
+        # no numerics for a case change
+        self.sendLine(2, 'NICK QUX')
+        self.getMessages(2)
+        self.assertEqual(self.getMessages(1), [])
+
+        self.sendLine(2, 'NICK bazbat')
+        self.getMessages(2)
+        monoffline = self.getMessages(1)[0]
+        # should get RPL_MONOFFLINE with the current unfolded nick
+        self.assertMessageEqual(monoffline, command=RPL_MONOFFLINE, params=['bar', 'QUX'])
