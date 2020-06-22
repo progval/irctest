@@ -1,5 +1,4 @@
 from irctest import cases
-from irctest.numerics import ERR_UNKNOWNERROR
 
 class Utf8TestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
@@ -13,10 +12,12 @@ class Utf8TestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(1, b'PRIVMSG #qux hi\xaa')
         ms = self.getMessages(1)
         self.assertEqual(len(ms), 1)
-        self.assertEqual(ms[0].command, ERR_UNKNOWNERROR)
+        self.assertEqual(ms[0].command, 'FAIL')
+        self.assertEqual(ms[0].params[:2], ['PRIVMSG', 'INVALID_UTF8'])
 
         self.sendLine(1, b'@label=xyz PRIVMSG #qux hi\xaa')
         ms = self.getMessages(1)
         self.assertEqual(len(ms), 1)
-        self.assertEqual(ms[0].command, ERR_UNKNOWNERROR)
+        self.assertEqual(ms[0].command, 'FAIL')
+        self.assertEqual(ms[0].params[:2], ['PRIVMSG', 'INVALID_UTF8'])
         self.assertEqual(ms[0].tags.get('label'), 'xyz')
