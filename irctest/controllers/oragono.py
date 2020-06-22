@@ -35,6 +35,7 @@ BASE_CONFIG = {
             "ban-message": "Try again later",
             "exempted": ["localhost"],
         },
+        'enforce-utf8': True,
     },
 
     'accounts': {

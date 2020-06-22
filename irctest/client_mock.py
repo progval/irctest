@@ -89,9 +89,14 @@ class ClientMock:
             if not filter_pred or filter_pred(message):
                 return message
     def sendLine(self, line):
-        if not line.endswith('\r\n'):
-            line += '\r\n'
-        encoded_line = line.encode()
+        if isinstance(line, str):
+            encoded_line = line.encode()
+        elif isinstance(line, bytes):
+            encoded_line = line
+        else:
+            raise ValueError(line)
+        if not encoded_line.endswith(b'\r\n'):
+            encoded_line += b'\r\n'
         try:
             ret = self.conn.sendall(encoded_line)
         except BrokenPipeError:
