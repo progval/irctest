@@ -281,7 +281,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.getMessages(2)
 
-        self.sendLine(1, '@+client-only-tag-test=success TAGMSG %s' % (chname,))
+        self.sendLine(1, '@+client-only-tag-test=success;+draft/persist TAGMSG %s' % (chname,))
         echo = self.getMessages(1)[0]
         msgid = echo.tags['msgid']
 
@@ -308,7 +308,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(history_tagmsgs), 0)
 
         # now try a DM
-        self.sendLine(1, '@+client-only-tag-test=success TAGMSG %s' % (c2,))
+        self.sendLine(1, '@+client-only-tag-test=success;+draft/persist TAGMSG %s' % (c2,))
         echo = self.getMessages(1)[0]
         msgid = echo.tags['msgid']
         validate_tagmsg(echo, c2, msgid)
