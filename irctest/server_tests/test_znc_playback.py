@@ -15,9 +15,9 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         early_time = int(time.time() - 60)
 
         chname = random_name('#znc_channel')
-        bar = random_name('bar')
-        self.controller.registerUser(self, bar, bar)
-        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=bar)
+        bar, pw = random_name('bar'), random_name('pass')
+        self.controller.registerUser(self, bar, pw)
+        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=pw)
         self.joinChannel(bar, chname)
 
         qux = random_name('qux')
@@ -39,7 +39,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         self.getMessages(bar)
 
         # reattach to 'bar'
-        self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=bar)
+        self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=pw)
         self.sendLine('viewer', 'PRIVMSG *playback :play * %d' % (early_time,))
         messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
         self.assertEqual(set(messages), set([dm] + echo_messages))
@@ -47,7 +47,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         self.assertDisconnected('viewer')
 
         # reattach to 'bar', play back selectively
-        self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=bar)
+        self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=pw)
         mid_timestamp = ircv3_timestamp_to_unixtime(echo_messages[5].time)
         # exclude message 5 itself (oragono's CHATHISTORY implementation corrects for this, but znc.in/playback does not because whatever)
         mid_timestamp += .001
@@ -58,7 +58,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         self.assertDisconnected('viewer')
 
         # reattach to 'bar', play back selectively (pass a parameter and 2 timestamps)
-        self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=bar)
+        self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=pw)
         start_timestamp = ircv3_timestamp_to_unixtime(echo_messages[2].time)
         start_timestamp += .001
         end_timestamp = ircv3_timestamp_to_unixtime(echo_messages[7].time)
@@ -79,7 +79,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         config = self.controller.getConfig()
         config['history']['znc-maxmessages'] = 5
         self.controller.rehash(self, config)
-        self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=bar)
+        self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=pw)
         self.sendLine('viewer', 'PRIVMSG *playback :play %s %d' % (chname, int(time.time() - 60)))
         messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
         # should receive the latest 5 messages

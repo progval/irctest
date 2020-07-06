@@ -31,9 +31,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testEmptyBatch(self):
-        bar = random_name('bar')
-        self.controller.registerUser(self, bar, bar)
-        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time'], password=bar)
+        bar, pw = random_name('bar'), random_name('pw')
+        self.controller.registerUser(self, bar, pw)
+        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time'], password=pw)
         self.getMessages(bar)
 
         # no chathistory results SHOULD result in an empty batch:
@@ -43,9 +43,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testMessagesToSelf(self):
-        bar = random_name('bar')
-        self.controller.registerUser(self, bar, bar)
-        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time'], password=bar)
+        bar, pw = random_name('bar'), random_name('pw')
+        self.controller.registerUser(self, bar, pw)
+        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time'], password=pw)
         self.getMessages(bar)
 
         messages = []
@@ -118,10 +118,10 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     def testChathistoryDMs(self):
         c1 = secrets.token_hex(12)
         c2 = secrets.token_hex(12)
-        self.controller.registerUser(self, c1, c1)
-        self.controller.registerUser(self, c2, c2)
-        self.connectClient(c1, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password=c1)
-        self.connectClient(c2, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password=c2)
+        self.controller.registerUser(self, c1, 'sesame1')
+        self.controller.registerUser(self, c2, 'sesame2')
+        self.connectClient(c1, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password='sesame1')
+        self.connectClient(c2, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password='sesame2')
         self.getMessages(1)
         self.getMessages(2)
 
@@ -167,8 +167,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.sendLine(3, 'QUIT')
         self.assertDisconnected(3)
         # register c3 as an account, then attempt to retrieve the conversation history with c1
-        self.controller.registerUser(self, c3, c3)
-        self.connectClient(c3, name=c3, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password=c3)
+        self.controller.registerUser(self, c3, 'sesame3')
+        self.connectClient(c3, name=c3, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password='sesame3')
         self.getMessages(c3)
         self.sendLine(c3, 'CHATHISTORY LATEST %s * 10' % (c1,))
         results = [to_history_message(msg) for msg in self.getMessages(c3) if msg.command == 'PRIVMSG']
@@ -272,10 +272,10 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         c1 = secrets.token_hex(12)
         c2 = secrets.token_hex(12)
         chname = '#' + secrets.token_hex(12)
-        self.controller.registerUser(self, c1, c1)
-        self.controller.registerUser(self, c2, c2)
-        self.connectClient(c1, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password=c1)
-        self.connectClient(c2, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP,], password=c2)
+        self.controller.registerUser(self, c1, 'sesame1')
+        self.controller.registerUser(self, c2, 'sesame2')
+        self.connectClient(c1, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password='sesame1')
+        self.connectClient(c2, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP,], password='sesame2')
         self.joinChannel(1, chname)
         self.joinChannel(2, chname)
         self.getMessages(1)
