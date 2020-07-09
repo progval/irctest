@@ -79,6 +79,10 @@ BASE_CONFIG = {
        "channel-length": 128,
        "client-length": 128,
        "chathistory-maxmessages": 100,
+       "tagmsg-storage": {
+           "default": False,
+           "whitelist": ["+draft/persist", "+persist"],
+       },
    },
 
     'oper-classes': {
