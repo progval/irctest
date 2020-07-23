@@ -75,6 +75,20 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         self.sendLine('viewer', 'QUIT')
         self.assertDisconnected('viewer')
 
+        # test 2-argument form
+        self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=pw)
+        self.sendLine('viewer', 'PRIVMSG *playback :play %s' % (chname,))
+        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        self.assertEqual(messages, echo_messages)
+        self.sendLine('viewer', 'PRIVMSG *playback :play *self')
+        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        self.assertEqual(messages, [dm])
+        self.sendLine('viewer', 'PRIVMSG *playback :play *')
+        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        self.assertEqual(set(messages), set([dm] + echo_messages))
+        self.sendLine('viewer', 'QUIT')
+        self.assertDisconnected('viewer')
+
         # test limiting behavior
         config = self.controller.getConfig()
         config['history']['znc-maxmessages'] = 5
