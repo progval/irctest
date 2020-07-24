@@ -5,6 +5,16 @@ from irctest.irc_utils.junkdrawer import ircv3_timestamp_to_unixtime
 from irctest.irc_utils.junkdrawer import to_history_message
 from irctest.irc_utils.random import random_name
 
+
+def extract_playback_privmsgs(messages):
+    # convert the output of a playback command, drop the echo message
+    result = []
+    for msg in messages:
+        if msg.command == 'PRIVMSG' and msg.params[0].lower() != '*playback':
+            result.append(to_history_message(msg))
+    return result
+
+
 class ZncPlaybackTestCase(cases.BaseServerTestCase):
 
     def customizedConfig(self):
@@ -41,7 +51,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         # reattach to 'bar'
         self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=pw)
         self.sendLine('viewer', 'PRIVMSG *playback :play * %d' % (early_time,))
-        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        messages = extract_playback_privmsgs(self.getMessages('viewer'))
         self.assertEqual(set(messages), set([dm] + echo_messages))
         self.sendLine('viewer', 'QUIT')
         self.assertDisconnected('viewer')
@@ -52,7 +62,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         # exclude message 5 itself (oragono's CHATHISTORY implementation corrects for this, but znc.in/playback does not because whatever)
         mid_timestamp += .001
         self.sendLine('viewer', 'PRIVMSG *playback :play * %s' % (mid_timestamp,))
-        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        messages = extract_playback_privmsgs(self.getMessages('viewer'))
         self.assertEqual(messages, echo_messages[6:])
         self.sendLine('viewer', 'QUIT')
         self.assertDisconnected('viewer')
@@ -63,14 +73,14 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         start_timestamp += .001
         end_timestamp = ircv3_timestamp_to_unixtime(echo_messages[7].time)
         self.sendLine('viewer', 'PRIVMSG *playback :play %s %s %s' % (chname, start_timestamp, end_timestamp,))
-        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        messages = extract_playback_privmsgs(self.getMessages('viewer'))
         self.assertEqual(messages, echo_messages[3:7])
         # test nicknames as targets
         self.sendLine('viewer', 'PRIVMSG *playback :play %s %d' % (qux, early_time,))
-        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        messages = extract_playback_privmsgs(self.getMessages('viewer'))
         self.assertEqual(messages, [dm])
         self.sendLine('viewer', 'PRIVMSG *playback :play %s %d' % (qux.upper(), early_time,))
-        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        messages = extract_playback_privmsgs(self.getMessages('viewer'))
         self.assertEqual(messages, [dm])
         self.sendLine('viewer', 'QUIT')
         self.assertDisconnected('viewer')
@@ -78,13 +88,13 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         # test 2-argument form
         self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=pw)
         self.sendLine('viewer', 'PRIVMSG *playback :play %s' % (chname,))
-        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        messages = extract_playback_privmsgs(self.getMessages('viewer'))
         self.assertEqual(messages, echo_messages)
         self.sendLine('viewer', 'PRIVMSG *playback :play *self')
-        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        messages = extract_playback_privmsgs(self.getMessages('viewer'))
         self.assertEqual(messages, [dm])
         self.sendLine('viewer', 'PRIVMSG *playback :play *')
-        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        messages = extract_playback_privmsgs(self.getMessages('viewer'))
         self.assertEqual(set(messages), set([dm] + echo_messages))
         self.sendLine('viewer', 'QUIT')
         self.assertDisconnected('viewer')
@@ -95,6 +105,6 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         self.controller.rehash(self, config)
         self.connectClient(bar, name='viewer', capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', 'echo-message'], password=pw)
         self.sendLine('viewer', 'PRIVMSG *playback :play %s %d' % (chname, int(time.time() - 60)))
-        messages = [to_history_message(msg) for msg in self.getMessages('viewer') if msg.command == 'PRIVMSG']
+        messages = extract_playback_privmsgs(self.getMessages('viewer'))
         # should receive the latest 5 messages
         self.assertEqual(messages, echo_messages[5:])
