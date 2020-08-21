@@ -4,6 +4,8 @@ Regression tests for bugs in oragono.
 
 from irctest import cases
 
+from irctest.numerics import ERR_ERRONEUSNICKNAME, RPL_WELCOME
+
 class RegressionsTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('RFC1459')
@@ -44,8 +46,10 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(ms), 1)
         self.assertMessageEqual(ms[0], command='NICK', params=['Alice'])
 
-        # bob should not get notified on no-op nick change
+        # no responses, either to the user or to friends, from a no-op nick change
         self.sendLine(1, 'NICK Alice')
+        ms = self.getMessages(1)
+        self.assertEqual(ms, [])
         ms = self.getMessages(2)
         self.assertEqual(ms, [])
 
@@ -77,3 +81,18 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(ms), 1)
         self.assertMessageEqual(ms[0], command='PRIVMSG', params=['bob', 'hey again'])
         self.assertEqual(ms[0].tags.get('+draft/reply'), 'tbxqauh9nykrtpa3n6icd9whan')
+
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459')
+    def testStarNick(self):
+        self.addClient(1)
+        self.sendLine(1, 'NICK *')
+        self.sendLine(1, 'USER u s e r')
+        replies = set(msg.command for msg in self.getMessages(1))
+        self.assertIn(ERR_ERRONEUSNICKNAME, replies)
+        self.assertNotIn(RPL_WELCOME, replies)
+
+        self.sendLine(1, 'NICK valid')
+        replies = set(msg.command for msg in self.getMessages(1))
+        self.assertNotIn(ERR_ERRONEUSNICKNAME, replies)
+        self.assertIn(RPL_WELCOME, replies)
