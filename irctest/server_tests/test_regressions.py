@@ -97,6 +97,14 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertIn(RPL_WELCOME, replies)
 
     @cases.SpecificationSelector.requiredBySpecification('RFC1459')
+    def testEmptyNick(self):
+        self.addClient(1)
+        self.sendLine(1, 'NICK :')
+        self.sendLine(1, 'USER u s e r')
+        replies = set(msg.command for msg in self.getMessages(1))
+        self.assertNotIn(RPL_WELCOME, replies)
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459')
     def testNickRelease(self):
         # regression test for oragono #1252
         self.connectClient('alice')
@@ -105,6 +113,43 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         nick_msgs = [msg for msg in self.getMessages(1) if msg.command == 'NICK']
         self.assertEqual(len(nick_msgs), 1)
         self.assertMessageEqual(nick_msgs[0], command='NICK', params=['malice'])
+
+        self.addClient(2)
+        self.sendLine(2, 'NICK alice')
+        self.sendLine(2, 'USER u s e r')
+        replies = set(msg.command for msg in self.getMessages(2))
+        self.assertNotIn(ERR_NICKNAMEINUSE, replies)
+        self.assertIn(RPL_WELCOME, replies)
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459')
+    def testNickReleaseQuit(self):
+        self.connectClient('alice')
+        self.getMessages(1)
+        self.sendLine(1, 'QUIT')
+        self.assertDisconnected(1)
+
+        self.addClient(2)
+        self.sendLine(2, 'NICK alice')
+        self.sendLine(2, 'USER u s e r')
+        replies = set(msg.command for msg in self.getMessages(2))
+        self.assertNotIn(ERR_NICKNAMEINUSE, replies)
+        self.assertIn(RPL_WELCOME, replies)
+        self.sendLine(2, 'QUIT')
+        self.assertDisconnected(2)
+
+        self.addClient(3)
+        self.sendLine(3, 'NICK ALICE')
+        self.sendLine(3, 'USER u s e r')
+        replies = set(msg.command for msg in self.getMessages(3))
+        self.assertNotIn(ERR_NICKNAMEINUSE, replies)
+        self.assertIn(RPL_WELCOME, replies)
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459')
+    def testNickReleaseUnregistered(self):
+        self.addClient(1)
+        self.sendLine(1, 'NICK alice')
+        self.sendLine(1, 'QUIT')
+        self.assertDisconnected(1)
 
         self.addClient(2)
         self.sendLine(2, 'NICK alice')
