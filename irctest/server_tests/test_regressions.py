@@ -4,7 +4,7 @@ Regression tests for bugs in oragono.
 
 from irctest import cases
 
-from irctest.numerics import ERR_ERRONEUSNICKNAME, RPL_WELCOME
+from irctest.numerics import ERR_ERRONEUSNICKNAME, ERR_NICKNAMEINUSE, RPL_WELCOME
 
 class RegressionsTestCase(cases.BaseServerTestCase):
 
@@ -18,7 +18,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.sendLine(2, 'NICK alice')
         ms = self.getMessages(2)
         self.assertEqual(len(ms), 1)
-        self.assertMessageEqual(ms[0], command='433') # ERR_NICKNAMEINUSE
+        self.assertMessageEqual(ms[0], command=ERR_NICKNAMEINUSE)
 
         # bob MUST still own the bob nick, and be able to receive PRIVMSG as bob
         self.sendLine(1, 'PRIVMSG bob hi')
@@ -82,7 +82,6 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(ms[0], command='PRIVMSG', params=['bob', 'hey again'])
         self.assertEqual(ms[0].tags.get('+draft/reply'), 'tbxqauh9nykrtpa3n6icd9whan')
 
-
     @cases.SpecificationSelector.requiredBySpecification('RFC1459')
     def testStarNick(self):
         self.addClient(1)
@@ -95,4 +94,21 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.sendLine(1, 'NICK valid')
         replies = set(msg.command for msg in self.getMessages(1))
         self.assertNotIn(ERR_ERRONEUSNICKNAME, replies)
+        self.assertIn(RPL_WELCOME, replies)
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC1459')
+    def testNickRelease(self):
+        # regression test for oragono #1252
+        self.connectClient('alice')
+        self.getMessages(1)
+        self.sendLine(1, 'NICK malice')
+        nick_msgs = [msg for msg in self.getMessages(1) if msg.command == 'NICK']
+        self.assertEqual(len(nick_msgs), 1)
+        self.assertMessageEqual(nick_msgs[0], command='NICK', params=['malice'])
+
+        self.addClient(2)
+        self.sendLine(2, 'NICK alice')
+        self.sendLine(2, 'USER u s e r')
+        replies = set(msg.command for msg in self.getMessages(2))
+        self.assertNotIn(ERR_NICKNAMEINUSE, replies)
         self.assertIn(RPL_WELCOME, replies)
