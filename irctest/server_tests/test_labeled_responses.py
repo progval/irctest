@@ -274,7 +274,8 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         ms = self.getMessages(1)
         self.assertEqual(len(ms), 1)
         m = ms[0]
-        self.assertMessageEqual(m, command='PONG', params=['adhoctestline'])
+        self.assertEqual(m.command, 'PONG')
+        self.assertEqual(m.params[-1], 'adhoctestline')
         # check the label
         self.assertEqual(m.tags.get('label'), '98765')
 
