@@ -36,6 +36,11 @@ BASE_CONFIG = {
             "exempted": ["localhost"],
         },
         'enforce-utf8': True,
+        'relaymsg': {
+            'enabled': True,
+            'separators': '/',
+            'available-to-chanops': True,
+        },
     },
 
     'accounts': {
@@ -103,6 +108,7 @@ BASE_CONFIG = {
                  "samode",
                  "vhosts",
                  "chanreg",
+                 "relaymsg-anywhere",
             ],
         },
     },
