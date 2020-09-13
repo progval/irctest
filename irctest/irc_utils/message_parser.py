@@ -1,6 +1,7 @@
 import re
 import collections
-import supybot.utils
+
+from .junkdrawer import MultipleReplacer
 
 # http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
 TAG_ESCAPE = [
@@ -10,7 +11,7 @@ TAG_ESCAPE = [
     ('\r', r'\r'),
     ('\n', r'\n'),
     ]
-unescape_tag_value = supybot.utils.str.MultipleReplacer(
+unescape_tag_value = MultipleReplacer(
         dict(map(lambda x:(x[1],x[0]), TAG_ESCAPE)))
 
 # TODO: validate host

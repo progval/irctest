@@ -5,12 +5,11 @@ import tempfile
 import unittest
 import functools
 
-import supybot.utils
-
 from . import runner
 from . import client_mock
 from .irc_utils import capabilities
 from .irc_utils import message_parser
+from .irc_utils.junkdrawer import normalizeWhitespace
 from .irc_utils.sasl import sasl_plain_blob
 from .exceptions import ConnectionClosed
 from .specifications import Specifications
@@ -23,7 +22,7 @@ class _IrcTestCase(unittest.TestCase):
         method_doc = self._testMethodDoc
         if not method_doc:
             return ''
-        return '\t'+supybot.utils.str.normalizeWhitespace(
+        return '\t'+normalizeWhitespace(
                 method_doc,
                 removeNewline=False,
                 ).strip().replace('\n ', '\n\t')
