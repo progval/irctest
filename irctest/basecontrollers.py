@@ -4,7 +4,6 @@ import socket
 import tempfile
 import time
 import subprocess
-import psutil
 
 from .runner import NotImplementedByController
 
@@ -95,7 +94,9 @@ class BaseServerController(_BaseController):
     def wait_for_port(self):
         while not self.port_open:
             time.sleep(0.1)
-            for conn in psutil.Process(self.proc.pid).connections():
-                if conn.laddr[1] == self.port:
-                    self.port_open = True
-
+            try:
+                c = socket.create_connection(('localhost', self.port), timeout=1.0)
+                c.close()
+                self.port_open = True
+            except Exception as e:
+                continue
