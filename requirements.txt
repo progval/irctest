@@ -1,3 +1,2 @@
 psutil >= 3.1.0 # Fixes #640
-ecdsa
 pyxmpp2_scram
