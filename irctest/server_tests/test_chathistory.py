@@ -147,6 +147,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         c3 = secrets.token_hex(12)
         self.connectClient(c3, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP])
         self.sendLine(1, 'PRIVMSG %s :this is a message in a separate conversation' % (c3,))
+        self.getMessages(1)
         self.sendLine(3, 'PRIVMSG %s :i agree that this is a separate conversation' % (c1,))
         # 3 received the first message as a delivery and the second as an echo
         new_convo = [to_history_message(msg) for msg in self.getMessages(3) if msg.command == 'PRIVMSG']
