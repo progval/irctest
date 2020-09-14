@@ -147,6 +147,7 @@ class OragonoController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {
             'PLAIN',
     }
+    _port_wait_interval = .01
 
     def kill_proc(self):
         self.proc.kill()

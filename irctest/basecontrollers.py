@@ -74,6 +74,7 @@ class BaseClientController(_BaseController):
 
 class BaseServerController(_BaseController):
     """Base controller for IRC server."""
+    _port_wait_interval = .1
     port_open = False
     def run(self, hostname, port, password,
             valid_metadata_keys, invalid_metadata_keys):
@@ -82,7 +83,7 @@ class BaseServerController(_BaseController):
         raise NotImplementedByController('account registration')
     def wait_for_port(self):
         while not self.port_open:
-            time.sleep(0.1)
+            time.sleep(self._port_wait_interval)
             try:
                 c = socket.create_connection(('localhost', self.port), timeout=1.0)
                 c.close()
