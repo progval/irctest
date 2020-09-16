@@ -226,7 +226,7 @@ class OragonoController(BaseServerController, DirectoryBasedController):
     def addMysqlToConfig(self, config=None):
         mysql_password = os.getenv('MYSQL_PASSWORD')
         if not mysql_password:
-            return None
+            return config
         if config is None:
             config = self.baseConfig()
         config['datastore']['mysql'] = {
