@@ -46,6 +46,19 @@ class RoleplayTestCase(cases.BaseServerTestCase):
         self.assertTrue(reply.prefix.startswith('*bilbo*!'))
         self.assertIn('too much bread', reply.params[1])
 
+        self.sendLine(bar, 'SCENE %s dark and stormy night' % (chan,))
+        reply = self.getMessages(bar)[0]
+        self.assertEqual(reply.command, 'PRIVMSG')
+        self.assertEqual(reply.params[0], chan)
+        self.assertTrue(reply.prefix.startswith('=Scene=!'))
+        self.assertIn('dark and stormy night', reply.params[1])
+
+        reply = self.getMessages(qux)[0]
+        self.assertEqual(reply.command, 'PRIVMSG')
+        self.assertEqual(reply.params[0], chan)
+        self.assertTrue(reply.prefix.startswith('=Scene=!'))
+        self.assertIn('dark and stormy night', reply.params[1])
+
         # test history storage
         self.sendLine(qux, 'CHATHISTORY LATEST %s * 10' % (chan,))
         reply = [msg for msg in self.getMessages(qux) if msg.command == 'PRIVMSG' and 'bilbo' in msg.prefix][0]
