@@ -108,7 +108,7 @@ BASE_CONFIG = {
                  "samode",
                  "vhosts",
                  "chanreg",
-                 "relaymsg-anywhere",
+                 "relaymsg",
             ],
         },
     },
