@@ -749,11 +749,12 @@ class AuditoriumTestCase(cases.BaseServerTestCase):
         self.assertEqual(echo_message, self.getMessages('guest2')[0])
         self.assertEqual(echo_message, self.getMessages('guest3')[0])
 
+        # unvoiced users can speak
         self.sendLine('guest1', 'PRIVMSG #auditorium :hi you')
-        self.assertMessageEqual(self.getMessages('guest1')[0], command=ERR_CANNOTSENDTOCHAN)
-        self.assertEqual(len(self.getMessages('bar')), 0)
-        self.assertEqual(len(self.getMessages('guest2')), 0)
-        self.assertEqual(len(self.getMessages('guest3')), 0)
+        echo_message = [msg for msg in self.getMessages('guest1') if msg.command == 'PRIVMSG'][0]
+        self.assertEqual(self.getMessages('bar'), [echo_message])
+        self.assertEqual(self.getMessages('guest2'), [echo_message])
+        self.assertEqual(self.getMessages('guest3'), [echo_message])
 
         def names(client):
             self.sendLine(client, 'NAMES #auditorium')
@@ -773,15 +774,9 @@ class AuditoriumTestCase(cases.BaseServerTestCase):
         self.assertEqual(self.getMessages('guest1'), [modeLine])
         self.assertEqual(self.getMessages('guest2'), [modeLine])
         self.assertEqual(self.getMessages('guest3'), [modeLine])
-        # guest1 is voiced now and can speak
-        self.sendLine('guest1', 'PRIVMSG #auditorium :hi you')
-        echo_message = [msg for msg in self.getMessages('guest1') if msg.command == 'PRIVMSG'][0]
-        self.assertEqual(echo_message, self.getMessages('bar')[0])
-        self.assertEqual(echo_message, self.getMessages('guest2')[0])
-        self.assertEqual(echo_message, self.getMessages('guest3')[0])
-
+        self.assertEqual(names('bar'), {'@bar', '+guest1', 'guest2', 'guest3'})
         self.assertEqual(names('guest2'), {'@bar', '+guest1'})
-        self.assertEqual(names('guest2'), {'@bar', '+guest1'})
+        self.assertEqual(names('guest3'), {'@bar', '+guest1'})
 
         self.sendLine('guest1', 'PART #auditorium')
         part = [msg for msg in self.getMessages('guest1') if msg.command == 'PART'][0]
