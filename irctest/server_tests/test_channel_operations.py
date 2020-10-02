@@ -7,7 +7,8 @@ from irctest import cases
 from irctest import client_mock
 from irctest import runner
 from irctest.irc_utils import ambiguities
-from irctest.numerics import RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING, ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK, ERR_INVITEONLYCHAN, ERR_CANNOTSENDTOCHAN, ERR_BADCHANNELKEY, ERR_INVALIDMODEPARAM, ERR_UNKNOWNERROR
+from irctest.numerics import RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING
+from irctest.numerics import ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK, ERR_INVITEONLYCHAN, ERR_CANNOTSENDTOCHAN, ERR_BADCHANNELKEY, ERR_INVALIDMODEPARAM, ERR_UNKNOWNERROR
 
 MODERN_CAPS = ['server-time', 'message-tags', 'batch', 'labeled-response', 'echo-message', 'account-tag']
 
@@ -801,3 +802,41 @@ class AuditoriumTestCase(cases.BaseServerTestCase):
         # quit should be hidden from unvoiced participants
         self.assertEqual(len([msg for msg in self.getMessages('bar') if msg.command =='QUIT']), 1)
         self.assertEqual(len([msg for msg in self.getMessages('guest1') if msg.command =='QUIT']), 0)
+
+
+class TopicPrivileges(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testTopicPrivileges(self):
+        # test the +t channel mode, which prevents unprivileged users from changing the topic
+        self.connectClient('bar', name='bar')
+        self.joinChannel('bar', '#chan')
+        self.getMessages('bar')
+        self.sendLine('bar', 'MODE #chan +t')
+        replies = {msg.command for msg in self.getMessages('bar')}
+        # success response is undefined, may be MODE or may be 324 RPL_CHANNELMODEIS,
+        # depending on whether this was a no-op
+        self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
+        self.sendLine('bar', 'TOPIC #chan :new topic')
+        replies = {msg.command for msg in self.getMessages('bar')}
+        self.assertIn('TOPIC', replies)
+        self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
+
+        self.connectClient('qux', name='qux')
+        self.joinChannel('qux', '#chan')
+        self.getMessages('qux')
+        self.sendLine('qux', 'TOPIC #chan :new topic')
+        replies = {msg.command for msg in self.getMessages('qux')}
+        self.assertIn(ERR_CHANOPRIVSNEEDED, replies)
+        self.assertNotIn('TOPIC', replies)
+
+        self.sendLine('bar', 'MODE #chan +v qux')
+        replies = {msg.command for msg in self.getMessages('bar')}
+        self.assertIn('MODE', replies)
+        self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
+
+        # regression test: +v cannot change the topic of a +t channel
+        self.sendLine('qux', 'TOPIC #chan :new topic')
+        replies = {msg.command for msg in self.getMessages('qux')}
+        self.assertIn(ERR_CHANOPRIVSNEEDED, replies)
+        self.assertNotIn('TOPIC', replies)
