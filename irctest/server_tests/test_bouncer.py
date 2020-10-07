@@ -12,9 +12,8 @@ class Bouncer(cases.BaseServerTestCase):
         self.controller.registerUser(self, 'observer', 'observerpassword')
         self.controller.registerUser(self, 'testuser', 'mypassword')
 
-        self.connectClient('observer')
+        self.connectClient('observer', password='observerpassword')
         self.joinChannel(1, '#chan')
-        self.sendLine(1, 'NICKSERV IDENTIFY observer observerpassword')
         self.sendLine(1, 'CAP REQ :message-tags server-time')
         self.getMessages(1)
 

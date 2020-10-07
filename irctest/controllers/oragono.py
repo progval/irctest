@@ -56,6 +56,11 @@ BASE_CONFIG = {
 	    'enabled-callbacks': ['none'],
 	    'verify-timeout': '120h',
 	},
+        'nick-reservation': {
+            'enabled': True,
+            'additional-nick-limit': 2,
+            'method': 'strict',
+        },
     },
 
    "channels": {
