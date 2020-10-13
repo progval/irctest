@@ -33,11 +33,23 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     def testEmptyBatch(self):
         bar, pw = random_name('bar'), random_name('pw')
         self.controller.registerUser(self, bar, pw)
-        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time'], password=pw)
+        self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password=pw)
         self.getMessages(bar)
 
+        qux = random_name('qux')
+        real_chname = random_name('#real_channel')
+        self.connectClient(qux, name=qux)
+        self.joinChannel(qux, real_chname)
+        self.getMessages(qux)
+
         # no chathistory results SHOULD result in an empty batch:
-        self.sendLine(bar, 'CHATHISTORY LATEST * * 10')
+        self.sendLine(bar, 'CHATHISTORY LATEST #nonexistent_channel * 10')
+        msgs = self.getMessages(bar)
+        self.assertEqual([msg.command for msg in msgs], ['BATCH', 'BATCH'])
+
+        # as should a real channel to which one is not joined:
+        # (regression test for oragono #1322, we used to send a FAIL instead)
+        self.sendLine(bar, 'CHATHISTORY LATEST %s * 10' % (real_chname,))
         msgs = self.getMessages(bar)
         self.assertEqual([msg.command for msg in msgs], ['BATCH', 'BATCH'])
 
