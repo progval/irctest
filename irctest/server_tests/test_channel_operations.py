@@ -840,3 +840,41 @@ class TopicPrivileges(cases.BaseServerTestCase):
         replies = {msg.command for msg in self.getMessages('qux')}
         self.assertIn(ERR_CHANOPRIVSNEEDED, replies)
         self.assertNotIn('TOPIC', replies)
+
+
+class OpModerated(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testOpModerated(self):
+        # test the +U channel mode
+        self.connectClient('chanop', name='chanop', capabilities=MODERN_CAPS)
+        self.joinChannel('chanop', '#chan')
+        self.getMessages('chanop')
+        self.sendLine('chanop', 'MODE #chan +U')
+        replies = {msg.command for msg in self.getMessages('chanop')}
+        self.assertIn('MODE', replies)
+        self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
+
+        self.connectClient('baz', name='baz', capabilities=MODERN_CAPS)
+        self.joinChannel('baz', '#chan')
+        self.sendLine('baz', 'PRIVMSG #chan :hi from baz')
+        echo = self.getMessages('baz')[0]
+        self.assertMessageEqual(echo, command='PRIVMSG', params=['#chan', 'hi from baz'])
+        self.assertEqual([msg for msg in self.getMessages('chanop') if msg.command == 'PRIVMSG'], [echo])
+
+        self.connectClient('qux', name='qux', capabilities=MODERN_CAPS)
+        self.joinChannel('qux', '#chan')
+        self.sendLine('qux', 'PRIVMSG #chan :hi from qux')
+        echo = self.getMessages('qux')[0]
+        self.assertMessageEqual(echo, command='PRIVMSG', params=['#chan', 'hi from qux'])
+        # message is relayed to chanop but not to unprivileged
+        self.assertEqual([msg for msg in self.getMessages('chanop') if msg.command == 'PRIVMSG'], [echo])
+        self.assertEqual([msg for msg in self.getMessages('baz') if msg.command == 'PRIVMSG'], [])
+
+        self.sendLine('chanop', 'MODE #chan +v qux')
+        self.getMessages('chanop')
+        self.sendLine('qux', 'PRIVMSG #chan :hi again from qux')
+        echo = [msg for msg in self.getMessages('qux') if msg.command == 'PRIVMSG'][0]
+        self.assertMessageEqual(echo, command='PRIVMSG', params=['#chan', 'hi again from qux'])
+        self.assertEqual([msg for msg in self.getMessages('chanop') if msg.command == 'PRIVMSG'], [echo])
+        self.assertEqual([msg for msg in self.getMessages('baz') if msg.command == 'PRIVMSG'], [echo])
