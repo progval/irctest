@@ -116,6 +116,9 @@ class LusersUnregisteredTestCase(LusersTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('RFC2812')
     def testLusers(self):
+        self.doLusersTest()
+
+    def doLusersTest(self):
         self.connectClient('bar', name='bar')
         lusers = self.getLusers('bar')
         self.assertEqual(lusers.Unregistered, 0)
@@ -176,6 +179,27 @@ class LusersUnregisteredTestCase(LusersTestCase):
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
         self.assertGreaterEqual(lusers.GlobalVisible, 0)
         self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 2)
+        self.assertEqual(lusers.LocalTotal, 2)
+        self.assertEqual(lusers.LocalMax, 2)
+
+
+class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
+    """Same as above but with +i as the default."""
+
+    def customizedConfig(self):
+        conf = self.controller.baseConfig()
+        conf['accounts']['default-user-modes'] = '+i'
+        return conf
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testLusers(self):
+        self.doLusersTest()
+        lusers = self.getLusers('bar')
+        self.assertEqual(lusers.Unregistered, 0)
+        self.assertEqual(lusers.GlobalTotal, 2)
+        self.assertEqual(lusers.GlobalMax, 2)
+        self.assertEqual(lusers.GlobalInvisible, 2)
+        self.assertEqual(lusers.GlobalVisible, 0)
         self.assertEqual(lusers.LocalTotal, 2)
         self.assertEqual(lusers.LocalMax, 2)
 
