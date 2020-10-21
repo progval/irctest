@@ -111,6 +111,75 @@ class BasicLusersTest(LusersTestCase):
         self.assertEqual(lusers.LocalTotal, 1)
         self.assertEqual(lusers.LocalMax, 2)
 
+
+class LusersUnregisteredTestCase(LusersTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    def testLusers(self):
+        self.connectClient('bar', name='bar')
+        lusers = self.getLusers('bar')
+        self.assertEqual(lusers.Unregistered, 0)
+        self.assertEqual(lusers.GlobalTotal, 1)
+        self.assertEqual(lusers.GlobalMax, 1)
+        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
+        self.assertGreaterEqual(lusers.GlobalVisible, 0)
+        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
+        self.assertEqual(lusers.LocalTotal, 1)
+        self.assertEqual(lusers.LocalMax, 1)
+
+        self.addClient('qux')
+        self.sendLine('qux', 'NICK qux')
+        self.getMessages('qux')
+        lusers = self.getLusers('bar')
+        self.assertEqual(lusers.Unregistered, 1)
+        self.assertEqual(lusers.GlobalTotal, 1)
+        self.assertEqual(lusers.GlobalMax, 1)
+        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
+        self.assertGreaterEqual(lusers.GlobalVisible, 0)
+        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
+        self.assertEqual(lusers.LocalTotal, 1)
+        self.assertEqual(lusers.LocalMax, 1)
+
+        self.addClient('bat')
+        self.sendLine('bat', 'NICK bat')
+        self.getMessages('bat')
+        lusers = self.getLusers('bar')
+        self.assertEqual(lusers.Unregistered, 2)
+        self.assertEqual(lusers.GlobalTotal, 1)
+        self.assertEqual(lusers.GlobalMax, 1)
+        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
+        self.assertGreaterEqual(lusers.GlobalVisible, 0)
+        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
+        self.assertEqual(lusers.LocalTotal, 1)
+        self.assertEqual(lusers.LocalMax, 1)
+
+        # complete registration on one client
+        self.sendLine('qux', 'USER u s e r')
+        self.getMessages('qux')
+        lusers = self.getLusers('bar')
+        self.assertEqual(lusers.Unregistered, 1)
+        self.assertEqual(lusers.GlobalTotal, 2)
+        self.assertEqual(lusers.GlobalMax, 2)
+        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
+        self.assertGreaterEqual(lusers.GlobalVisible, 0)
+        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 2)
+        self.assertEqual(lusers.LocalTotal, 2)
+        self.assertEqual(lusers.LocalMax, 2)
+
+        # QUIT the other without registering
+        self.sendLine('bat', 'QUIT')
+        self.assertDisconnected('bat')
+        lusers = self.getLusers('bar')
+        self.assertEqual(lusers.Unregistered, 0)
+        self.assertEqual(lusers.GlobalTotal, 2)
+        self.assertEqual(lusers.GlobalMax, 2)
+        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
+        self.assertGreaterEqual(lusers.GlobalVisible, 0)
+        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 2)
+        self.assertEqual(lusers.LocalTotal, 2)
+        self.assertEqual(lusers.LocalMax, 2)
+
+
 class LuserOpersTest(LusersTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
