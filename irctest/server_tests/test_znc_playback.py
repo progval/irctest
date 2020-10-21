@@ -3,7 +3,7 @@ import time
 from irctest import cases
 from irctest.irc_utils.junkdrawer import ircv3_timestamp_to_unixtime
 from irctest.irc_utils.junkdrawer import to_history_message
-from irctest.irc_utils.random import random_name
+from irctest.irc_utils.junkdrawer import random_name
 
 
 def extract_playback_privmsgs(messages):

@@ -4,7 +4,7 @@
 
 from irctest import cases
 from irctest.basecontrollers import NotImplementedByController
-from irctest.irc_utils.random import random_name
+from irctest.irc_utils.junkdrawer import random_name
 
 class DMEchoMessageTestCase(cases.BaseServerTestCase):
 

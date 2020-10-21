@@ -9,7 +9,7 @@ from . import runner
 from . import client_mock
 from .irc_utils import capabilities
 from .irc_utils import message_parser
-from .irc_utils.junkdrawer import normalizeWhitespace
+from .irc_utils.junkdrawer import normalizeWhitespace, random_name
 from .irc_utils.sasl import sasl_plain_blob
 from .exceptions import ConnectionClosed
 from .specifications import Specifications
@@ -327,7 +327,7 @@ class BaseServerTestCase(_IrcTestCase):
                 return result
 
     def connectClient(self, nick, name=None, capabilities=None,
-            skip_if_cap_nak=False, show_io=None, password=None):
+            skip_if_cap_nak=False, show_io=None, password=None, ident='username'):
         client = self.addClient(name, show_io=show_io)
         if capabilities is not None and 0 < len(capabilities):
             self.sendLine(client, 'CAP REQ :{}'.format(' '.join(capabilities)))
@@ -348,7 +348,7 @@ class BaseServerTestCase(_IrcTestCase):
             self.sendLine(client, 'AUTHENTICATE PLAIN')
             self.sendLine(client, sasl_plain_blob(nick, password))
         self.sendLine(client, 'NICK {}'.format(nick))
-        self.sendLine(client, 'USER username * * :Realname')
+        self.sendLine(client, 'USER %s * * :Realname' % (ident,))
 
         welcome = self.skipToWelcome(client)
         self.sendLine(client, 'PING foo')
@@ -387,6 +387,25 @@ class BaseServerTestCase(_IrcTestCase):
                 if msg.command.upper() == 'JOIN' and 0 < len(msg.params) and msg.params[0].lower() == channel.lower():
                     joined = True
                     break
+
+    def getISupport(self):
+        cn = random_name('bar')
+        self.addClient(name=cn)
+        self.sendLine(cn, 'NICK %s' % (cn,))
+        self.sendLine(cn, 'USER u s e r')
+        messages = self.getMessages(cn)
+        isupport = {}
+        for message in messages:
+            if message.command != '005':
+                continue
+            # 005 nick <tokens...> :are supported by this server
+            tokens = message.params[1:-1]
+            for token in tokens:
+                name, _, value = token.partition('=')
+                isupport[name] = value
+        self.sendLine(cn, 'QUIT')
+        self.assertDisconnected(cn)
+        return isupport
 
 class OptionalityHelper:
     def checkSaslSupport(self):

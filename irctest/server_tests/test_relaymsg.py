@@ -1,5 +1,5 @@
 from irctest import cases
-from irctest.irc_utils.random import random_name
+from irctest.irc_utils.junkdrawer import random_name
 from irctest.server_tests.test_chathistory import CHATHISTORY_CAP, EVENT_PLAYBACK_CAP
 
 

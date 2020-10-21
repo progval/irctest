@@ -878,3 +878,87 @@ class OpModerated(cases.BaseServerTestCase):
         self.assertMessageEqual(echo, command='PRIVMSG', params=['#chan', 'hi again from qux'])
         self.assertEqual([msg for msg in self.getMessages('chanop') if msg.command == 'PRIVMSG'], [echo])
         self.assertEqual([msg for msg in self.getMessages('baz') if msg.command == 'PRIVMSG'], [echo])
+
+
+class MuteExtban(cases.BaseServerTestCase):
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testISupport(self):
+        isupport = self.getISupport()
+        token = isupport['EXTBAN']
+        prefix, comma, types = token.partition(',')
+        self.assertEqual(prefix, '')
+        self.assertEqual(comma, ',')
+        self.assertIn('m', types)
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testMuteExtban(self):
+        clients = ('chanop', 'bar', 'qux')
+
+        self.connectClient('chanop', name='chanop', capabilities=MODERN_CAPS)
+        self.joinChannel('chanop', '#chan')
+        self.getMessages('chanop')
+        self.sendLine('chanop', 'MODE #chan +b m:bar!*@*')
+        self.sendLine('chanop', 'MODE #chan +b m:qux!*@*')
+        replies = {msg.command for msg in self.getMessages('chanop')}
+        self.assertIn('MODE', replies)
+        self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
+
+        self.connectClient('bar', name='bar', capabilities=MODERN_CAPS)
+        self.joinChannel('bar', '#chan')
+        self.connectClient('qux', name='qux', capabilities=MODERN_CAPS, ident='evan')
+        self.joinChannel('qux', '#chan')
+
+        for client in clients:
+            self.getMessages(client)
+
+        self.sendLine('bar', 'PRIVMSG #chan :hi from bar')
+        replies = self.getMessages('bar')
+        replies_cmds = {msg.command for msg in replies}
+        self.assertNotIn('PRIVMSG', replies_cmds)
+        self.assertIn(ERR_CANNOTSENDTOCHAN, replies_cmds)
+        self.assertEqual(self.getMessages('chanop'), [])
+
+        self.sendLine('qux', 'PRIVMSG #chan :hi from qux')
+        replies = self.getMessages('qux')
+        replies_cmds = {msg.command for msg in replies}
+        self.assertNotIn('PRIVMSG', replies_cmds)
+        self.assertIn(ERR_CANNOTSENDTOCHAN, replies_cmds)
+        self.assertEqual(self.getMessages('chanop'), [])
+
+        # remove mute with -b
+        self.sendLine('chanop', 'MODE #chan -b m:bar!*@*')
+        self.getMessages('chanop')
+        self.sendLine('bar', 'PRIVMSG #chan :hi again from bar')
+        replies = self.getMessages('bar')
+        replies_cmds = {msg.command for msg in replies}
+        self.assertIn('PRIVMSG', replies_cmds)
+        self.assertNotIn(ERR_CANNOTSENDTOCHAN, replies_cmds)
+        self.assertEqual(self.getMessages('chanop'), [msg for msg in replies if msg.command == 'PRIVMSG'])
+
+        for client in clients:
+            self.getMessages(client)
+
+        # +v grants an exemption to +b
+        self.sendLine('chanop', 'MODE #chan +v qux')
+        self.getMessages('chanop')
+        self.sendLine('qux', 'PRIVMSG #chan :hi again from qux')
+        replies = self.getMessages('qux')
+        replies_cmds = {msg.command for msg in replies}
+        self.assertIn('PRIVMSG', replies_cmds)
+        self.assertNotIn(ERR_CANNOTSENDTOCHAN, replies_cmds)
+        self.assertEqual(self.getMessages('chanop'), [msg for msg in replies if msg.command == 'PRIVMSG'])
+
+        self.sendLine('qux', 'PART #chan')
+        self.sendLine('qux', 'JOIN #chan')
+        self.getMessages('qux')
+        self.sendLine('chanop', 'MODE #chan +e m:*!~evan@*')
+        self.getMessages('chanop')
+
+        # +e grants an exemption to +b
+        self.sendLine('qux', 'PRIVMSG #chan :thanks for mute-excepting me')
+        replies = self.getMessages('qux')
+        replies_cmds = {msg.command for msg in replies}
+        self.assertIn('PRIVMSG', replies_cmds)
+        self.assertNotIn(ERR_CANNOTSENDTOCHAN, replies_cmds)
+        self.assertEqual(self.getMessages('chanop'), [msg for msg in replies if msg.command == 'PRIVMSG'])

@@ -1,5 +1,6 @@
 import datetime
 import re
+import secrets
 from collections import namedtuple
 
 HistoryMessage = namedtuple('HistoryMessage', ['time', 'msgid', 'target', 'text'])
@@ -12,6 +13,9 @@ IRCV3_FORMAT_STRFTIME = "%Y-%m-%dT%H:%M:%S.%f%z"
 
 def ircv3_timestamp_to_unixtime(timestamp):
     return datetime.datetime.strptime(timestamp, IRCV3_FORMAT_STRFTIME).timestamp()
+
+def random_name(base):
+    return base + '-' + secrets.token_hex(8)
 
 """
 Stolen from supybot:
@@ -46,4 +50,4 @@ def normalizeWhitespace(s, removeNewline=True):
         s = ' ' + s
     if ends_with_space:
         s += ' '
-    retur
+    return s
