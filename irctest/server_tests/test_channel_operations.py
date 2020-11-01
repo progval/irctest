@@ -996,3 +996,40 @@ class MuteExtban(cases.BaseServerTestCase):
         self.assertIn('PRIVMSG', replies_cmds)
         self.assertNotIn(ERR_CANNOTSENDTOCHAN, replies_cmds)
         self.assertEqual(self.getMessages('chanop'), [msg for msg in replies if msg.command == 'PRIVMSG'])
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testIssue1370(self):
+        # regression test for oragono #1370: mutes not correctly enforced against
+        # users with capital letters in their NUH
+        clients = ('chanop', 'bar')
+
+        self.connectClient('chanop', name='chanop', capabilities=MODERN_CAPS)
+        self.joinChannel('chanop', '#chan')
+        self.getMessages('chanop')
+        self.sendLine('chanop', 'MODE #chan +b m:BAR!*@*')
+        replies = {msg.command for msg in self.getMessages('chanop')}
+        self.assertIn('MODE', replies)
+        self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
+
+        self.connectClient('Bar', name='bar', capabilities=MODERN_CAPS)
+        self.joinChannel('bar', '#chan')
+
+        for client in clients:
+            self.getMessages(client)
+
+        self.sendLine('bar', 'PRIVMSG #chan :hi from bar')
+        replies = self.getMessages('bar')
+        replies_cmds = {msg.command for msg in replies}
+        self.assertNotIn('PRIVMSG', replies_cmds)
+        self.assertIn(ERR_CANNOTSENDTOCHAN, replies_cmds)
+        self.assertEqual(self.getMessages('chanop'), [])
+
+        # remove mute with -b
+        self.sendLine('chanop', 'MODE #chan -b m:bar!*@*')
+        self.getMessages('chanop')
+        self.sendLine('bar', 'PRIVMSG #chan :hi again from bar')
+        replies = self.getMessages('bar')
+        replies_cmds = {msg.command for msg in replies}
+        self.assertIn('PRIVMSG', replies_cmds)
+        self.assertNotIn(ERR_CANNOTSENDTOCHAN, replies_cmds)
+        self.assertEqual(self.getMessages('chanop'), [msg for msg in replies if msg.command == 'PRIVMSG'])
