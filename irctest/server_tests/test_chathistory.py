@@ -29,7 +29,7 @@ def validate_chathistory_batch(msgs):
 class ChathistoryTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
-    def testEmptyBatch(self):
+    def testInvalidTargets(self):
         bar, pw = random_name('bar'), random_name('pw')
         self.controller.registerUser(self, bar, pw)
         self.connectClient(bar, name=bar, capabilities=['batch', 'labeled-response', 'message-tags', 'server-time', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password=pw)
@@ -41,16 +41,17 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.joinChannel(qux, real_chname)
         self.getMessages(qux)
 
-        # no chathistory results SHOULD result in an empty batch:
+        # test a nonexistent channel
         self.sendLine(bar, 'CHATHISTORY LATEST #nonexistent_channel * 10')
         msgs = self.getMessages(bar)
-        self.assertEqual([msg.command for msg in msgs], ['BATCH', 'BATCH'])
+        self.assertEqual(msgs[0].command, 'FAIL')
+        self.assertEqual(msgs[0].params[:2], ['CHATHISTORY', 'INVALID_TARGET'])
 
         # as should a real channel to which one is not joined:
-        # (regression test for oragono #1322, we used to send a FAIL instead)
         self.sendLine(bar, 'CHATHISTORY LATEST %s * 10' % (real_chname,))
         msgs = self.getMessages(bar)
-        self.assertEqual([msg.command for msg in msgs], ['BATCH', 'BATCH'])
+        self.assertEqual(msgs[0].command, 'FAIL')
+        self.assertEqual(msgs[0].params[:2], ['CHATHISTORY', 'INVALID_TARGET'])
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testMessagesToSelf(self):
