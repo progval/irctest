@@ -68,6 +68,20 @@ class Bouncer(cases.BaseServerTestCase):
         errors = [message for message in messages if message.command == ERR_NICKNAMEINUSE]
         self.assertEqual(len(errors), 1)
 
+        self.sendLine(3, 'NS SET MULTICLIENT ON')
+        self.getMessages(3)
+        self.addClient()
+        self.sendLine(5, 'CAP LS 302')
+        self.sendLine(5, 'AUTHENTICATE PLAIN')
+        self.sendLine(5, sasl_plain_blob('testuser', 'mypassword'))
+        self.sendLine(5, 'NICK testnick')
+        self.sendLine(5, 'USER a 0 * a')
+        self.sendLine(5, 'CAP REQ server-time')
+        self.sendLine(5, 'CAP END')
+        messages = self.getMessages(5)
+        welcomes = [message for message in messages if message.command == RPL_WELCOME]
+        self.assertEqual(len(welcomes), 1)
+
         self.sendLine(1, '@+clientOnlyTag=Value PRIVMSG #chan :hey')
         self.getMessages(1)
         messagesfortwo = [msg for msg in self.getMessages(2) if msg.command == 'PRIVMSG']
@@ -76,15 +90,20 @@ class Bouncer(cases.BaseServerTestCase):
         self.assertEqual(len(messagesforthree), 1)
         messagefortwo = messagesfortwo[0]
         messageforthree = messagesforthree[0]
+        messageforfive = self.getMessage(5)
         self.assertEqual(messagefortwo.params, ['#chan', 'hey'])
         self.assertEqual(messageforthree.params, ['#chan', 'hey'])
+        self.assertEqual(messageforfive.params, ['#chan', 'hey'])
         self.assertIn('time', messagefortwo.tags)
-        self.assertNotIn('account', messagefortwo.tags)
         self.assertIn('time', messageforthree.tags)
-        # 3 has account-tag, 2 doesn't
+        self.assertIn('time', messageforfive.tags)
+        # 3 has account-tag
         self.assertIn('account', messageforthree.tags)
         # should get same msgid
         self.assertEqual(messagefortwo.tags['msgid'], messageforthree.tags['msgid'])
+        # 5 only has server-time, shouldn't get account or msgid tags
+        self.assertNotIn('account', messageforfive.tags)
+        self.assertNotIn('msgid', messageforfive.tags)
 
         # test that copies of sent messages go out to other sessions
         self.sendLine(2, 'PRIVMSG observer :this is a direct message')
@@ -111,6 +130,8 @@ class Bouncer(cases.BaseServerTestCase):
         self.assertEqual(len(messagesforthree), 1)
         self.assertMessageEqual(messagesforthree[0], command='PRIVMSG', params=['#chan', 'hey again'])
 
+        self.sendLine(5, 'QUIT :five out')
+        self.getMessages(5)
         self.sendLine(3, 'QUIT :three out')
         quitLines = [msg for msg in self.getMessages(3) if msg.command == 'QUIT']
         self.assertEqual(len(quitLines), 1)
