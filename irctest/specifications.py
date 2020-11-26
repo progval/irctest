@@ -9,6 +9,8 @@ class Specifications(enum.Enum):
     IRC302 = 'IRCv3.2'
     IRC302Deprecated = 'IRCv3.2-deprecated'
     Oragono = 'Oragono'
+    Multiline = 'multiline'
+    MessageTags = 'message-tags'
 
     @classmethod
     def of_name(cls, name):

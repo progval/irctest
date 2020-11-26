@@ -37,8 +37,7 @@ def parse_message(s):
     http://tools.ietf.org/html/rfc1459#section-2.3.1
     and
     http://ircv3.net/specs/core/message-tags-3.2.html"""
-    assert s.endswith('\r\n'), 'Message does not end with CR LF: {!r}'.format(s)
-    s = s[0:-2]
+    s = s.rstrip('\r\n')
     if s.startswith('@'):
         (tags, s) = s.split(' ', 1)
         tags = parse_tags(tags[1:])

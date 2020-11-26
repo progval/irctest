@@ -24,7 +24,7 @@ class ClientMock:
         assert not self.ssl, 'SSL already active.'
         self.conn = ssl.wrap_socket(self.conn)
         self.ssl = True
-    def getMessages(self, synchronize=True, assert_get_one=False):
+    def getMessages(self, synchronize=True, assert_get_one=False, raw=False):
         if synchronize:
             token = 'synchronize{}'.format(time.monotonic())
             self.sendLine('PING {}'.format(token))
@@ -64,12 +64,15 @@ class ClientMock:
                                 ssl=' (ssl)' if self.ssl else '',
                                 client=self.name,
                                 line=line))
-                        message = message_parser.parse_message(line + '\r\n')
+                        message = message_parser.parse_message(line)
                         if message.command == 'PONG' and \
                                 token in message.params:
                             got_pong = True
                         else:
-                            messages.append(message)
+                            if raw:
+                                messages.append(line)
+                            else:
+                                messages.append(message)
                 data = b''
         except ConnectionClosed:
             if messages:
@@ -78,11 +81,11 @@ class ClientMock:
                 raise
         else:
             return messages
-    def getMessage(self, filter_pred=None, synchronize=True):
+    def getMessage(self, filter_pred=None, synchronize=True, raw=False):
         while True:
             if not self.inbuffer:
                 self.inbuffer = self.getMessages(
-                        synchronize=synchronize, assert_get_one=True)
+                        synchronize=synchronize, assert_get_one=True, raw=raw)
             if not self.inbuffer:
                 raise NoMessageException()
             message = self.inbuffer.pop(0) # TODO: use dequeue
