@@ -4,6 +4,7 @@ https://ircv3.net/specs/extensions/message-tags.html
 
 from irctest import cases
 from irctest.irc_utils.message_parser import parse_message
+from irctest.numerics import ERR_INPUTTOOLONG
 
 class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
@@ -69,3 +70,58 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             self.assertNotIn('cat', msg.tags)
         self.assertTrue(alice_msg.tags['msgid'])
         self.assertEqual(alice_msg.tags['msgid'], bob_msg.tags['msgid'])
+
+    @cases.SpecificationSelector.requiredBySpecification('message-tags')
+    def testLengthLimits(self):
+        self.connectClient('alice', name='alice', capabilities=['message-tags', 'echo-message'])
+        self.joinChannel('alice', '#test')
+        self.connectClient('bob', name='bob', capabilities=['message-tags'])
+        self.joinChannel('bob', '#test')
+        self.getMessages('alice')
+        self.getMessages('bob')
+
+        # this is right at the limit of 4094 bytes of tag data,
+        # 4096 bytes of tag section (including the starting '@' and the final ' ')
+        max_tagmsg = '@foo=bar;+baz=%s TAGMSG #test' % ('a' * 4081,)
+        self.assertEqual(max_tagmsg.index('TAGMSG'), 4096)
+        self.sendLine('alice', max_tagmsg)
+        echo = self.getMessage('alice')
+        relay = self.getMessage('bob')
+        self.assertMessageEqual(echo, command='TAGMSG', params=['#test'])
+        self.assertMessageEqual(relay, command='TAGMSG', params=['#test'])
+        self.assertNotEqual(echo.tags['msgid'], '')
+        self.assertEqual(echo.tags['msgid'], relay.tags['msgid'])
+        self.assertEqual(echo.tags['+baz'], 'a' * 4081)
+        self.assertEqual(relay.tags['+baz'], echo.tags['+baz'])
+
+        excess_tagmsg = '@foo=bar;+baz=%s TAGMSG #test' % ('a' * 4082,)
+        self.assertEqual(excess_tagmsg.index('TAGMSG'), 4097)
+        self.sendLine('alice', excess_tagmsg)
+        reply = self.getMessage('alice')
+        self.assertEqual(reply.command, ERR_INPUTTOOLONG)
+        self.assertEqual(self.getMessages('bob'), [])
+
+        max_privmsg = '@foo=bar;+baz=%s PRIVMSG #test %s' % ('a' * 4081, 'b' * 496)
+        # irctest adds the '\r\n' for us, this is right at the limit
+        self.assertEqual(len(max_privmsg), 4096 + (512 - 2))
+        self.sendLine('alice', max_privmsg)
+        echo = self.getMessage('alice')
+        relay = self.getMessage('bob')
+        self.assertNotEqual(echo.tags['msgid'], '')
+        self.assertEqual(echo.tags['msgid'], relay.tags['msgid'])
+        self.assertEqual(echo.tags['+baz'], 'a' * 4081)
+        self.assertEqual(relay.tags['+baz'], echo.tags['+baz'])
+        # message may have been truncated
+        self.assertIn('b' * 400, echo.params[1])
+        self.assertEqual(echo.params[1].rstrip('b'), '')
+        self.assertIn('b' * 400, relay.params[1])
+        self.assertEqual(relay.params[1].rstrip('b'), '')
+
+        excess_privmsg = '@foo=bar;+baz=%s PRIVMSG #test %s' % ('a' * 4082, 'b' * 495)
+        # TAGMSG data is over the limit, but we're within the overall limit for a line
+        self.assertEqual(excess_privmsg.index('PRIVMSG'), 4097)
+        self.assertEqual(len(excess_privmsg), 4096 + (512 - 2))
+        self.sendLine('alice', excess_privmsg)
+        reply = self.getMessage('alice')
+        self.assertEqual(reply.command, ERR_INPUTTOOLONG)
+        self.assertEqual(self.getMessages('bob'), [])
