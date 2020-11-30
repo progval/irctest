@@ -339,3 +339,40 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.sendLine(2, 'CHATHISTORY LATEST %s * 10' % (c1,))
         history_tagmsgs = [msg for msg in self.getMessages(2) if msg.command == 'TAGMSG']
         self.assertEqual(len(history_tagmsgs), 0)
+
+
+    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    def testChathistoryDMClientOnlyTags(self):
+        # regression test for Oragono #1411
+        c1 = secrets.token_hex(12)
+        c2 = secrets.token_hex(12)
+        self.controller.registerUser(self, c1, 'sesame1')
+        self.controller.registerUser(self, c2, 'sesame2')
+        self.connectClient(c1, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP, EVENT_PLAYBACK_CAP], password='sesame1')
+        self.connectClient(c2, capabilities=['message-tags', 'server-time', 'echo-message', 'batch', 'labeled-response', CHATHISTORY_CAP,], password='sesame2')
+        self.getMessages(1)
+        self.getMessages(2)
+
+        echo_msgid = None
+        def validate_msg(msg):
+            self.assertEqual(msg.command, 'PRIVMSG')
+            self.assertEqual(msg.tags['+client-only-tag-test'], 'success')
+            self.assertEqual(msg.tags['msgid'], echo_msgid)
+            self.assertEqual(msg.params, [c2, 'hi'])
+
+        self.sendLine(1, '@+client-only-tag-test=success;+draft/persist PRIVMSG %s hi' % (c2,))
+        echo = self.getMessage(1)
+        echo_msgid = echo.tags['msgid']
+        validate_msg(echo)
+        relay = self.getMessage(2)
+        validate_msg(relay)
+
+        self.sendLine(1, 'CHATHISTORY LATEST * * 10')
+        hist = [msg for msg in self.getMessages(1) if msg.command == 'PRIVMSG']
+        self.assertEqual(len(hist), 1)
+        validate_msg(hist[0])
+
+        self.sendLine(2, 'CHATHISTORY LATEST * * 10')
+        hist = [msg for msg in self.getMessages(2) if msg.command == 'PRIVMSG']
+        self.assertEqual(len(hist), 1)
+        validate_msg(hist[0])
