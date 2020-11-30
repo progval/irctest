@@ -11,7 +11,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.SpecificationSelector.requiredBySpecification('message-tags')
     def testBasic(self):
         def getAllMessages():
-            for name in ['alice', 'bob', 'carol']:
+            for name in ['alice', 'bob', 'carol', 'dave']:
                 self.getMessages(name)
 
         def assertNoTags(line):
@@ -28,6 +28,8 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.joinChannel('bob', '#test')
         self.connectClient('carol', name='carol')
         self.joinChannel('carol', '#test')
+        self.connectClient('dave', name='dave', capabilities=['server-time'])
+        self.joinChannel('dave', '#test')
         getAllMessages()
 
         self.sendLine('alice', '@+baz=bat;fizz=buzz PRIVMSG #test hi')
@@ -42,6 +44,11 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         # carol MUST NOT receive tags
         carol_msg = assertNoTags(carol_line)
         self.assertMessageEqual(carol_msg, command='PRIVMSG', params=['#test', 'hi'])
+        # dave SHOULD receive server-time tag
+        dave_msg = self.getMessage('dave')
+        self.assertIn('time', dave_msg.tags)
+        # dave MUST NOT receive client-only tags
+        self.assertNotIn('+baz', dave_msg.tags)
         getAllMessages()
 
         self.sendLine('bob', '@+bat=baz;+fizz=buzz PRIVMSG #test :hi yourself')
@@ -56,6 +63,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             self.assertEqual(msg.tags['+fizz'], 'buzz')
         self.assertTrue(alice_msg.tags['msgid'])
         self.assertEqual(alice_msg.tags['msgid'], bob_msg.tags['msgid'])
+        getAllMessages()
 
         # test TAGMSG and basic escaping
         self.sendLine('bob', '@+buzz=fizz\:buzz;cat=dog;+steel=wootz TAGMSG #test')
@@ -63,6 +71,8 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         alice_msg = self.getMessage('alice')
         # carol MUST NOT receive TAGMSG at all
         self.assertEqual(self.getMessages('carol'), [])
+        # dave MUST NOT receive TAGMSG either, despite having server-time
+        self.assertEqual(self.getMessages('dave'), [])
         for msg in [alice_msg, bob_msg]:
             self.assertMessageEqual(alice_msg, command='TAGMSG', params=['#test'])
             self.assertEqual(msg.tags['+buzz'], 'fizz;buzz')
