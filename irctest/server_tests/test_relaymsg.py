@@ -47,7 +47,7 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
         self.sendLine('qux', 'RELAYMSG %s smt/discord :hi a third time' % (chname,))
         response = self.getMessages('qux')[0]
         self.assertEqual(response.command, 'FAIL')
-        self.assertEqual(response.params[:2], ['RELAYMSG', 'NOT_PRIVED'])
+        self.assertEqual(response.params[:2], ['RELAYMSG', 'PRIVS_NEEDED'])
 
         # grant qux chanop, allowing relaymsg
         self.sendLine('baz', 'MODE %s +o qux' % (chname,))
