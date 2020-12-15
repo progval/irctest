@@ -55,7 +55,9 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         batchStart, batchEnd = relay[0], relay[-1]
         self.assertEqual(batchStart.command, 'BATCH')
         self.assertEqual(batchEnd.command, 'BATCH')
-        self.assertEqual(batchStart.params[0][1:], batchEnd.params[0][1:])
+        batchTag = batchStart.params[0][1:]
+        self.assertEqual(batchStart.params[0], '+'+batchTag)
+        self.assertEqual(batchEnd.params[0], '-'+batchTag)
         self.assertEqual(batchStart.tags.get('msgid'), msgid)
         self.assertEqual(batchStart.tags.get('time'), time)
         privmsgs = relay[1:-1]
@@ -63,6 +65,7 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             self.assertMessageEqual(msg, command='PRIVMSG')
             self.assertNotIn('msgid', msg.tags)
             self.assertNotIn('time', msg.tags)
+            self.assertEqual(msg.tags.get('batch'), batchTag)
         self.assertIn(CONCAT_TAG, relay[3].tags)
 
         fallback_relay = self.getMessages(3)
