@@ -4,6 +4,7 @@ from irctest.server_tests.test_chathistory import CHATHISTORY_CAP, EVENT_PLAYBAC
 
 
 RELAYMSG_CAP = 'draft/relaymsg'
+RELAYMSG_TAG_NAME = 'draft/relaymsg'
 
 class RelaymsgTestCase(cases.BaseServerTestCase):
 
@@ -62,7 +63,7 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(response, nick='smt/discord', command='PRIVMSG', params=[chname, 'hi a third time'])
         relayed_msg = self.getMessages('baz')[0]
         self.assertMessageEqual(relayed_msg, nick='smt/discord', command='PRIVMSG', params=[chname, 'hi a third time'])
-        self.assertEqual(relayed_msg.tags.get('relaymsg'), 'qux')
+        self.assertEqual(relayed_msg.tags.get(RELAYMSG_TAG_NAME), 'qux')
 
         self.sendLine('baz', 'CHATHISTORY LATEST %s * 10' % (chname,))
         messages = self.getMessages('baz')
