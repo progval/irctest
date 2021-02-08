@@ -7,7 +7,7 @@ from irctest import cases
 from irctest import client_mock
 from irctest import runner
 from irctest.irc_utils import ambiguities
-from irctest.numerics import RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING
+from irctest.numerics import RPL_TOPIC, RPL_TOPICTIME, RPL_NOTOPIC, RPL_NAMREPLY, RPL_INVITING
 from irctest.numerics import ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK, ERR_INVITEONLYCHAN, ERR_CANNOTSENDTOCHAN, ERR_BADCHANNELKEY, ERR_INVALIDMODEPARAM, ERR_UNKNOWNERROR
 
 MODERN_CAPS = ['server-time', 'message-tags', 'batch', 'labeled-response', 'echo-message', 'account-tag']
@@ -840,6 +840,14 @@ class TopicPrivileges(cases.BaseServerTestCase):
         replies = {msg.command for msg in self.getMessages('qux')}
         self.assertIn(ERR_CHANOPRIVSNEEDED, replies)
         self.assertNotIn('TOPIC', replies)
+
+        # test that RPL_TOPIC and RPL_TOPICTIME are sent on join
+        self.connectClient('buzz', name='buzz')
+        self.sendLine('buzz', 'JOIN #chan')
+        replies = self.getMessages('buzz')
+        rpl_topic = [msg for msg in replies if msg.command == RPL_TOPIC][0]
+        self.assertMessageEqual(rpl_topic, command=RPL_TOPIC, params=['buzz', '#chan', 'new topic'])
+        self.assertEqual(len([msg for msg in replies if msg.command == RPL_TOPICTIME]), 1)
 
 
 class ModeratedMode(cases.BaseServerTestCase):
