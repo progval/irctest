@@ -31,7 +31,7 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
     supported_sasl_mechanisms = {
             'PLAIN', 'ECDSA-NIST256P-CHALLENGE', 'SCRAM-SHA-256', 'EXTERNAL',
             }
-    supported_capabilities = set()  # Not exhaustive
+    supported_capabilities = set(['sts'])  # Not exhaustive
 
     def create_config(self):
         create_config = super().create_config()
