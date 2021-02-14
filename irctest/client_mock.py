@@ -1,4 +1,5 @@
 import ssl
+import sys
 import time
 import socket
 from .irc_utils import message_parser
@@ -96,7 +97,7 @@ class ClientMock:
             ret = self.conn.sendall(encoded_line)
         except BrokenPipeError:
             raise ConnectionClosed()
-        if self.ssl: # https://bugs.python.org/issue25951
+        if sys.version_info <= (3, 6) and self.ssl: # https://bugs.python.org/issue25951
             assert ret == len(encoded_line), (ret, repr(encoded_line))
         else:
             assert ret is None, ret
