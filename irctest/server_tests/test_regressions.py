@@ -87,12 +87,16 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.addClient(1)
         self.sendLine(1, 'NICK *')
         self.sendLine(1, 'USER u s e r')
-        replies = set(msg.command for msg in self.getMessages(1))
+        replies = {'NOTICE'}
+        while replies == {'NOTICE'}:
+            replies = set(msg.command for msg in self.getMessages(1, synchronize=False))
         self.assertIn(ERR_ERRONEUSNICKNAME, replies)
         self.assertNotIn(RPL_WELCOME, replies)
 
         self.sendLine(1, 'NICK valid')
-        replies = set(msg.command for msg in self.getMessages(1))
+        replies = {'NOTICE'}
+        while replies == {'NOTICE'}:
+            replies = set(msg.command for msg in self.getMessages(1, synchronize=False))
         self.assertNotIn(ERR_ERRONEUSNICKNAME, replies)
         self.assertIn(RPL_WELCOME, replies)
 
@@ -101,7 +105,9 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.addClient(1)
         self.sendLine(1, 'NICK :')
         self.sendLine(1, 'USER u s e r')
-        replies = set(msg.command for msg in self.getMessages(1))
+        replies = {'NOTICE'}
+        while replies == {'NOTICE'}:
+            replies = set(msg.command for msg in self.getMessages(1, synchronize=False))
         self.assertNotIn(RPL_WELCOME, replies)
 
     @cases.SpecificationSelector.requiredBySpecification('RFC1459')
