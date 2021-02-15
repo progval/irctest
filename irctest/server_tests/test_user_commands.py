@@ -29,7 +29,7 @@ class WhoisTestCase(cases.BaseServerTestCase):
         self.assertEqual(whois_user.command, RPL_WHOISUSER)
         #  "<client> <nick> <username> <host> * :<realname>"
         self.assertEqual(whois_user.params[1], nick)
-        self.assertEqual(whois_user.params[2], '~' + username)
+        self.assertIn(whois_user.params[2], ('~' + username, '~' + username[0:9]))
         # dumb regression test for oragono/oragono#355:
         self.assertNotIn(whois_user.params[3], [nick, username, '~' + username, realname])
         self.assertEqual(whois_user.params[5], realname)
