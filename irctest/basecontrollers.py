@@ -13,13 +13,14 @@ class _BaseController:
     A software controller is an object that handles configuring and running
     a process (eg. a server or a client), as well as sending it instructions
     that are not part of the IRC specification."""
-    pass
+    def __init__(self, test_config):
+        self.test_config = test_config
 
 class DirectoryBasedController(_BaseController):
     """Helper for controllers whose software configuration is based on an
     arbitrary directory."""
-    def __init__(self):
-        super().__init__()
+    def __init__(self, test_config):
+        super().__init__(test_config)
         self.directory = None
         self.proc = None
 

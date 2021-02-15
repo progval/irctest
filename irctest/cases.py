@@ -18,6 +18,14 @@ class _IrcTestCase(unittest.TestCase):
     """Base class for test cases."""
     controllerClass = None # Will be set by __main__.py
 
+    @staticmethod
+    def config():
+        """Some configuration to pass to the controllers.
+        For example, Oragono only enables its MySQL support if
+        config()["chathistory"]=True.
+        """
+        return {}
+
     def description(self):
         method_doc = self._testMethodDoc
         if not method_doc:
@@ -29,7 +37,7 @@ class _IrcTestCase(unittest.TestCase):
 
     def setUp(self):
         super().setUp()
-        self.controller = self.controllerClass()
+        self.controller = self.controllerClass(self.config())
         self.inbuffer = []
         if self.show_io:
             print('---- new test ----')
@@ -235,15 +243,12 @@ class BaseServerTestCase(_IrcTestCase):
     invalid_metadata_keys = frozenset()
     def setUp(self):
         super().setUp()
-        config = None
-        if hasattr(self, 'customizedConfig'):
-            config = self.customizedConfig()
         self.server_support = {}
         self.find_hostname_and_port()
         self.controller.run(self.hostname, self.port, password=self.password,
                 valid_metadata_keys=self.valid_metadata_keys,
                 invalid_metadata_keys=self.invalid_metadata_keys,
-                ssl=self.ssl, config=config)
+                ssl=self.ssl)
         self.clients = {}
     def tearDown(self):
         self.controller.kill()

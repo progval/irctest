@@ -3,13 +3,11 @@ from irctest.numerics import ERR_CANNOTSENDRP
 from irctest.irc_utils.junkdrawer import random_name
 
 class RoleplayTestCase(cases.BaseServerTestCase):
-
-    def customizedConfig(self):
-        config = self.controller.baseConfig()
-        config['roleplay'] = {
-            'enabled': True,
+    @staticmethod
+    def config():
+        return {
+            "oragono_roleplay": True,
         }
-        return self.controller.addMysqlToConfig(config)
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testRoleplay(self):

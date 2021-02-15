@@ -16,9 +16,11 @@ def extract_playback_privmsgs(messages):
 
 
 class ZncPlaybackTestCase(cases.BaseServerTestCase):
-
-    def customizedConfig(self):
-        return self.controller.addMysqlToConfig()
+    @staticmethod
+    def config():
+        return {
+            "chathistory": True,
+        }
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testZncPlayback(self):

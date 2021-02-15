@@ -168,6 +168,16 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         if config is None:
             config = copy.deepcopy(BASE_CONFIG)
 
+        enable_chathistory = self.test_config.get("chathistory")
+        enable_roleplay = self.test_config.get("oragono_roleplay")
+        if enable_chathistory or enable_roleplay:
+            config = self.addMysqlToConfig(config)
+
+        if enable_roleplay:
+            config['roleplay'] = {
+                'enabled': True,
+            }
+
         self.port = port
         bind_address = "127.0.0.1:%s" % (port,)
         listener_conf = None # plaintext

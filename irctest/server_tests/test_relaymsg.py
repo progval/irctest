@@ -7,9 +7,11 @@ RELAYMSG_CAP = 'draft/relaymsg'
 RELAYMSG_TAG_NAME = 'draft/relaymsg'
 
 class RelaymsgTestCase(cases.BaseServerTestCase):
-
-    def customizedConfig(self):
-        return self.controller.addMysqlToConfig()
+    @staticmethod
+    def config():
+        return {
+            "chathistory": True,
+        }
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testRelaymsg(self):

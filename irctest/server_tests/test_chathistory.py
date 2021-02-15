@@ -27,6 +27,11 @@ def validate_chathistory_batch(msgs):
     return result
 
 class ChathistoryTestCase(cases.BaseServerTestCase):
+    @staticmethod
+    def config():
+        return {
+        "chathistory": True,
+    }
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testInvalidTargets(self):
@@ -122,9 +127,6 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
         self.validate_chathistory(echo_messages, 1, chname)
-
-    def customizedConfig(self):
-        return self.controller.addMysqlToConfig()
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testChathistoryDMs(self):
