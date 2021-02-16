@@ -5,6 +5,8 @@ import tempfile
 import unittest
 import functools
 
+import pytest
+
 from . import runner
 from . import client_mock
 from .irc_utils import capabilities
@@ -463,12 +465,9 @@ class SpecificationSelector:
             raise ValueError('Invalid set of specifications: {}'
                     .format(specifications))
         def decorator(f):
-            @functools.wraps(f)
-            def newf(self):
-                if specifications.isdisjoint(self.testedSpecifications):
-                    raise runner.NotRequiredBySpecifications()
-                if strict and not self.strictTests:
-                    raise runner.SkipStrictTest()
-                return f(self)
-            return newf
+            for specification in specifications:
+                f = getattr(pytest.mark, specification.value)(f)
+            if strict:
+                f = pytest.mark.strict(f)
+            return f
         return decorator
