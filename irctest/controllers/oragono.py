@@ -178,6 +178,9 @@ class OragonoController(BaseServerController, DirectoryBasedController):
                 'enabled': True,
             }
 
+        if 'oragono_config' in self.test_config:
+            self.test_config['oragono_config'](config)
+
         self.port = port
         bind_address = "127.0.0.1:%s" % (port,)
         listener_conf = None # plaintext

@@ -3,11 +3,13 @@ from irctest import cases
 REGISTER_CAP_NAME = 'draft/register'
 
 class TestRegisterBeforeConnect(cases.BaseServerTestCase):
-
-    def customizedConfig(self):
-        config = self.controller.baseConfig()
-        config['accounts']['registration']['allow-before-connect'] = True
-        return config
+    @staticmethod
+    def config():
+        return {
+            "oragono_config": lambda config: config['accounts']['registration'].update(
+                {'allow-before-connect': True}
+            )
+        }
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testBeforeConnect(self):
@@ -23,11 +25,13 @@ class TestRegisterBeforeConnect(cases.BaseServerTestCase):
         self.assertEqual(register_response.params[0], 'SUCCESS')
 
 class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
-
-    def customizedConfig(self):
-        config = self.controller.baseConfig()
-        config['accounts']['registration']['allow-before-connect'] = False
-        return config
+    @staticmethod
+    def config():
+        return {
+            "oragono_config": lambda config: config['accounts']['registration'].update(
+                {'allow-before-connect': False}
+            )
+        }
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testBeforeConnect(self):
@@ -43,15 +47,21 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
         self.assertEqual(fail_response.params[:2], ['REGISTER', 'DISALLOWED'])
 
 class TestRegisterEmailVerified(cases.BaseServerTestCase):
-    def customizedConfig(self):
-        config = self.controller.baseConfig()
-        config['accounts']['registration']['email-verification'] = {
-            'enabled': True,
-            'sender': 'test@example.com',
-            'require-tls': True,
-            'helo-domain': 'example.com',
+    @staticmethod
+    def config():
+        return {
+            "oragono_config": lambda config: config['accounts']['registration'].update(
+                {
+                    'email-verification': {
+                        'enabled': True,
+                        'sender': 'test@example.com',
+                        'require-tls': True,
+                        'helo-domain': 'example.com',
+                    },
+                    'allow-before-connect': True,
+                }
+            )
         }
-        config['accounts']['registration']['allow-before-connect'] = True
         return config
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
@@ -76,11 +86,13 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
         self.assertEqual(fail_response.params[:2], ['REGISTER', 'INVALID_EMAIL'])
 
 class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
-
-    def customizedConfig(self):
-        config = self.controller.baseConfig()
-        config['accounts']['registration']['allow-before-connect'] = True
-        return config
+    @staticmethod
+    def config():
+        return {
+            "oragono_config": lambda config: config['accounts']['registration'].update(
+                {'allow-before-connect': True}
+            )
+        }
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testBeforeConnect(self):

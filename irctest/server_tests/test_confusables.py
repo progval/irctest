@@ -2,14 +2,13 @@ from irctest import cases
 from irctest.numerics import RPL_WELCOME, ERR_NICKNAMEINUSE
 
 class ConfusablesTestCase(cases.BaseServerTestCase):
-
-    def customizedConfig(self):
-        config = self.controller.baseConfig()
-        config['accounts']['nick-reservation'] = {
-            'enabled': True,
-            'method': 'strict',
+    @staticmethod
+    def config():
+        return {
+            "oragono_config": lambda config: config['accounts'].update(
+                {'nick-reservation': {'enabled': True, 'method': 'strict'}}
+            )
         }
-        return config
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testConfusableNicks(self):
