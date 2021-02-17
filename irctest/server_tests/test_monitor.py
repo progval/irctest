@@ -272,7 +272,10 @@ class MonitorTestCase(cases.BaseServerTestCase):
         self.sendLine(2, 'NICK qux')
         self.getMessages(2)
         mononline = self.getMessages(1)[0]
-        self.assertMessageEqual(mononline, command=RPL_MONONLINE, params=['bar', 'qux'])
+        self.assertEqual(mononline.command, RPL_MONONLINE)
+        self.assertEqual(len(mononline.params), 2, mononline.params)
+        self.assertIn(mononline.params[0], ('bar', '*'))
+        self.assertEqual(mononline.params[1].split('!')[0], 'qux')
 
         # no numerics for a case change
         self.sendLine(2, 'NICK QUX')
@@ -283,4 +286,7 @@ class MonitorTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
         monoffline = self.getMessages(1)[0]
         # should get RPL_MONOFFLINE with the current unfolded nick
-        self.assertMessageEqual(monoffline, command=RPL_MONOFFLINE, params=['bar', 'QUX'])
+        self.assertEqual(monoffline.command, RPL_MONOFFLINE)
+        self.assertEqual(len(monoffline.params), 2, monoffline.params)
+        self.assertIn(monoffline.params[0], ('bar', '*'))
+        self.assertEqual(monoffline.params[1].split('!')[0], 'QUX')

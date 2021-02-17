@@ -22,7 +22,12 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             self.assertEqual(msg.tags, {})
             return msg
 
-        self.connectClient('alice', name='alice', capabilities=['message-tags'])
+        self.connectClient(
+            'alice',
+            name='alice',
+            capabilities=['message-tags'],
+            skip_if_cap_nak=True
+        )
         self.joinChannel('alice', '#test')
         self.connectClient('bob', name='bob', capabilities=['message-tags', 'echo-message'])
         self.joinChannel('bob', '#test')
@@ -83,7 +88,12 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
     @cases.SpecificationSelector.requiredBySpecification('message-tags')
     def testLengthLimits(self):
-        self.connectClient('alice', name='alice', capabilities=['message-tags', 'echo-message'])
+        self.connectClient(
+            'alice',
+            name='alice',
+            capabilities=['message-tags', 'echo-message'],
+            skip_if_cap_nak=True
+        )
         self.joinChannel('alice', '#test')
         self.connectClient('bob', name='bob', capabilities=['message-tags'])
         self.joinChannel('bob', '#test')

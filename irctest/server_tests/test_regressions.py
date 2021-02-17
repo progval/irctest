@@ -56,7 +56,11 @@ class RegressionsTestCase(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification('IRCv3.2')
     def testTagCap(self):
         # regression test for oragono #754
-        self.connectClient('alice', capabilities=['message-tags', 'batch', 'echo-message', 'server-time'])
+        self.connectClient(
+            'alice',
+            capabilities=['message-tags', 'batch', 'echo-message', 'server-time'],
+            skip_if_cap_nak=True
+        )
         self.connectClient('bob')
         self.getMessages(1)
         self.getMessages(2)

@@ -14,7 +14,9 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
     @cases.SpecificationSelector.requiredBySpecification('multiline')
     def testBasic(self):
-        self.connectClient('alice', capabilities=(base_caps + [CAP_NAME]))
+        self.connectClient(
+            'alice', capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
+        )
         self.joinChannel(1, '#test')
         self.connectClient('bob', capabilities=(base_caps + [CAP_NAME]))
         self.joinChannel(2, '#test')
@@ -80,7 +82,9 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
     @cases.SpecificationSelector.requiredBySpecification('multiline')
     def testBlankLines(self):
-        self.connectClient('alice', capabilities=(base_caps + [CAP_NAME]))
+        self.connectClient(
+            'alice', capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
+        )
         self.joinChannel(1, '#test')
         self.connectClient('bob', capabilities=(base_caps + [CAP_NAME]))
         self.joinChannel(2, '#test')
