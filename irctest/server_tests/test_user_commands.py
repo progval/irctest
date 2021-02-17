@@ -12,7 +12,7 @@ class WhoisTestCase(cases.BaseServerTestCase):
     def testWhoisUser(self):
         """Test basic WHOIS behavior"""
         nick = 'myCoolNickname'
-        username = 'myCoolUsername'
+        username = 'myUsernam'  # may be truncated if longer than this
         realname = 'My Real Name'
         self.addClient()
         self.sendLine(1, f'NICK {nick}')
