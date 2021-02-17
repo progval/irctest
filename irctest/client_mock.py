@@ -109,8 +109,15 @@ class ClientMock:
         else:
             assert ret is None, ret
         if self.show_io:
-            print('{time:.3f}{ssl} {client} -> S: {line}'.format(
+            if isinstance(line, str):
+                escaped_line = line
+                escaped = ''
+            else:
+                escaped_line = repr(line)
+                escaped = ' (escaped)'
+            print('{time:.3f}{escaped}{ssl} {client} -> S: {line}'.format(
                 time=time.time(),
+                escaped=escaped,
                 ssl=' (ssl)' if self.ssl else '',
                 client=self.name,
-                line=line.strip('\r\n')))
+                line=escaped_line.strip('\r\n')))
