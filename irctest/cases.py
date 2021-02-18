@@ -13,6 +13,15 @@ from .irc_utils.junkdrawer import normalizeWhitespace, random_name
 from .irc_utils.sasl import sasl_plain_blob
 from .exceptions import ConnectionClosed
 from .specifications import Specifications
+from .numerics import ERR_NOSUCHCHANNEL, ERR_TOOMANYCHANNELS, ERR_BADCHANNELKEY, ERR_INVITEONLYCHAN, ERR_BANNEDFROMCHAN, ERR_NEEDREGGEDNICK
+
+CHANNEL_JOIN_FAIL_NUMERICS = frozenset([ERR_NOSUCHCHANNEL, ERR_TOOMANYCHANNELS, ERR_BADCHANNELKEY, ERR_INVITEONLYCHAN, ERR_BANNEDFROMCHAN, ERR_NEEDREGGEDNICK])
+
+class ChannelJoinException(Exception):
+    def __init__(self, code, params):
+        super().__init__(f'Failed to join channel ({code}): {params}')
+        self.code = code
+        self.params = params
 
 class _IrcTestCase(unittest.TestCase):
     """Base class for test cases."""
@@ -388,10 +397,11 @@ class BaseServerTestCase(_IrcTestCase):
         joined = False
         while not joined:
             for msg in self.getMessages(client):
-                # todo: also respond to cannot join channel numeric
-                if msg.command.upper() == 'JOIN' and 0 < len(msg.params) and msg.params[0].lower() == channel.lower():
+                if msg.command == 'JOIN' and 0 < len(msg.params) and msg.params[0].lower() == channel.lower():
                     joined = True
                     break
+                elif msg.command in CHANNEL_JOIN_FAIL_NUMERICS:
+                    raise ChannelJoinException(msg.command, msg.params)
 
     def getISupport(self):
         cn = random_name('bar')
