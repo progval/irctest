@@ -23,7 +23,7 @@ Install irctest and dependencies:
 ```
 git clone https://github.com/ProgVal/irctest.git
 cd irctest
-pip3 install --user -r requirements.txt
+pip3 install --user -r requirements.txt pyxmpp2-scram
 python3 setup.py install --user
 ```
 
@@ -33,40 +33,39 @@ Add `~/.local/bin/` to your `PATH` if it is not.
 export PATH=$HOME/.local/bin/:$PATH
 ```
 
+## Test selection
+
+irctest is invoked using the pytest test runner / CLI.
+
+A major feature of pytest that irctest heavily relies on is test selection.
+Using the `-k` option, you can select and deselect tests based on their names
+and/or markers (listed in `pytest.ini`).
+For example, you can run `LUSERS`-related tests with `-k lusers`.
+Or only tests based on RFC1459 with `-k rfc1459`.
+
+By default, all tests run; even niche ones. So you probably always want to
+use these options: `-k 'not Oragono and not deprecated and not strict`.
+This excludes:
+
+* `Oragono`-specific tests (included as Oragono uses irctest as its official
+  integration test suite)
+* tests for deprecated specifications, such as the IRCv3 METADATA
+  specification
+* tests that check for a strict interpretation of a specification, when
+  the specification is ambiguous.
+
 ## Run tests
 
-To run (client) tests on Limnoria:
-
-```
-pip3 install --user limnoria
-python3 -m irctest irctest.controllers.limnoria
-```
-
-To run (client) tests on Sopel:
-
-```
-pip3 install --user sopel
-mkdir ~/.sopel/
-python3 -m irctest irctest.controllers.sopel
-```
-
-To run (server) tests on InspIRCd:
+To run (server) tests on Oragono:
 
 ```
 cd /tmp/
-git clone https://github.com/inspircd/inspircd.git
-cd inspircd
-./configure --prefix=$HOME/.local/ --development
-make -j 4
-make install
-python3 -m irctest irctest.controllers.inspircd
-```
-
-To run (server) tests on Mammon:
-
-```
-pip3 install --user git+https://github.com/mammon-ircd/mammon.git
-python3 -m irctest irctest.controllers.mammon
+git clone https://github.com/oragono/oragono.git
+cd oragono/
+make build
+export PATH=/tmp/oragono:$PATH
+cd ~/irctest
+pytest --controller irctest.controllers.oragono -k 'not deprecated'
 ```
 
 To run (server) tests on Charybdis::
@@ -78,31 +77,46 @@ cd charybdis
 ./configure --prefix=$HOME/.local/
 make -j 4
 make install
-python3 -m irctest irctest.controllers.charybdis
+cd ~/irctest
+pytest --controller irctest.controllers.charybdis -k 'not Oragono and not deprecated and not strict'
 ```
 
-## Full help
+To run (server) tests on InspIRCd:
 
 ```
-usage: python3 -m irctest [-h] [--show-io] [-v] [-s SPECIFICATION] [-l] module
+cd /tmp/
+git clone https://github.com/inspircd/inspircd.git
+cd inspircd
+./configure --prefix=$HOME/.local/ --development
+make -j 4
+make install
+cd ~/irctest
+pytest --controller irctest.controllers.inspircd -k 'not Oragono and not deprecated and not strict'
+```
 
-positional arguments:
-  module                The module used to run the tested program.
+To run (server) tests on Mammon:
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --show-io             Show input/outputs with the tested program.
-  -v, --verbose         Verbosity. Give this option multiple times to make it
-                        even more verbose.
-  -s SPECIFICATION, --specification SPECIFICATION
-                        The set of specifications to test the program with.
-                        Valid values: RFC1459, RFC2812, IRCv3.1, IRCv3.2. Use
-                        this option multiple times to test with multiple
-                        specifications. If it is not given, defaults to all.
-  -l, --loose           Disables strict checks of conformity to the
-                        specification. Strict means the specification is
-                        unclear, and the most restrictive interpretation is
-                        choosen.
+```
+pip3 install --user git+https://github.com/mammon-ircd/mammon.git
+cd ~/irctest
+pytest --controller irctest.controllers.mammon -k 'not Oragono and not deprecated and not strict'
+```
+
+To run (client) tests on Limnoria:
+
+```
+pip3 install --user limnoria pyxmpp2-scram
+cd ~/irctest
+pytest --controller  irctest.controllers.limnoria
+```
+
+To run (client) tests on Sopel:
+
+```
+pip3 install --user sopel
+mkdir ~/.sopel/
+cd ~/irctest
+pytest --controller irctest.controllers.sopel
 ```
 
 ## What `irctest` is not
