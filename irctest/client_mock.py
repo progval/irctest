@@ -41,7 +41,7 @@ class ClientMock:
                         # Received nothing
                         return []
                     if self.show_io:
-                        print('{:.3f} waiting…'.format(time.time()))
+                        print('{:.3f} {}: waiting…'.format(time.time(), self.name))
                     time.sleep(0.1)
                     continue
                 except ConnectionResetError:
