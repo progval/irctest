@@ -19,15 +19,15 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                 password='sesame',
                 )
         m = self.negotiateCapabilities(['sasl'], auth=auth)
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE',
             ['amlsbGVzAGppbGxlcwBzZXNhbWU=']))
         self.sendLine('900 * * jilles :You are now logged in.')
         self.sendLine('903 * :SASL authentication successful')
         m = self.negotiateCapabilities(['sasl'], False)
-        self.assertEqual(m, Message([], None, 'CAP', ['END']))
+        self.assertEqual(m, Message({}, None, 'CAP', ['END']))
 
     @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlainNotAvailable(self):
@@ -45,10 +45,10 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                 )
         m = self.negotiateCapabilities(['sasl=EXTERNAL'], auth=auth)
         self.assertEqual(self.acked_capabilities, {'sasl'})
-        if m == Message([], None, 'CAP', ['END']):
+        if m == Message({}, None, 'CAP', ['END']):
             # IRCv3.2-style
             return
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('904 {} :SASL auth failed'.format(self.nick))
         m = self.getMessage()
         self.assertMessageEqual(m, command='CAP')
@@ -69,21 +69,21 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         authstring = base64.b64encode(b'\x00'.join(
             [b'foo', b'foo', b'bar'*200])).decode()
         m = self.negotiateCapabilities(['sasl'], auth=auth)
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE',
             [authstring[0:400]]), m)
         m = self.getMessage()
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE',
             [authstring[400:800]]))
         m = self.getMessage()
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE',
             [authstring[800:]]))
         self.sendLine('900 * * {} :You are now logged in.'.format('foo'))
         self.sendLine('903 * :SASL authentication successful')
         m = self.negotiateCapabilities(['sasl'], False)
-        self.assertEqual(m, Message([], None, 'CAP', ['END']))
+        self.assertEqual(m, Message({}, None, 'CAP', ['END']))
 
     @cases.OptionalityHelper.skipUnlessHasMechanism('PLAIN')
     def testPlainLargeMultiple(self):
@@ -100,21 +100,21 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         authstring = base64.b64encode(b'\x00'.join(
             [b'foo', b'foo', b'quux'*148])).decode()
         m = self.negotiateCapabilities(['sasl'], auth=auth)
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['PLAIN']))
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('AUTHENTICATE +')
         m = self.getMessage()
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE',
             [authstring[0:400]]), m)
         m = self.getMessage()
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE',
             [authstring[400:800]]))
         m = self.getMessage()
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE',
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE',
             ['+']))
         self.sendLine('900 * * {} :You are now logged in.'.format('foo'))
         self.sendLine('903 * :SASL authentication successful')
         m = self.negotiateCapabilities(['sasl'], False)
-        self.assertEqual(m, Message([], None, 'CAP', ['END']))
+        self.assertEqual(m, Message({}, None, 'CAP', ['END']))
 
     @cases.OptionalityHelper.skipUnlessHasMechanism('SCRAM-SHA-256')
     def testScram(self):
@@ -132,7 +132,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                 channel_binding=False, password_database=PasswdDb())
 
         m = self.negotiateCapabilities(['sasl'], auth=auth)
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['SCRAM-SHA-256']))
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE', ['SCRAM-SHA-256']))
         self.sendLine('AUTHENTICATE +')
 
         m = self.getMessage()
@@ -168,7 +168,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
                 channel_binding=False, password_database=PasswdDb())
 
         m = self.negotiateCapabilities(['sasl'], auth=auth)
-        self.assertEqual(m, Message([], None, 'AUTHENTICATE', ['SCRAM-SHA-256']))
+        self.assertEqual(m, Message({}, None, 'AUTHENTICATE', ['SCRAM-SHA-256']))
         self.sendLine('AUTHENTICATE +')
 
         m = self.getMessage()
@@ -198,4 +198,4 @@ class Irc302SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper
                 )
         m = self.negotiateCapabilities(['sasl=EXTERNAL'], auth=auth)
         self.assertEqual(self.acked_capabilities, {'sasl'})
-        self.assertEqual(m, Message([], None, 'CAP', ['END']))
+        self.assertEqual(m, Message({}, None, 'CAP', ['END']))

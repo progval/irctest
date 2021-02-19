@@ -11,4 +11,4 @@ class CapTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
     def testEmptyCapLs(self):
         """Empty result to CAP LS. Client should send CAP END."""
         m = self.negotiateCapabilities([])
-        self.assertEqual(m, Message([], None, 'CAP', ['END']))
+        self.assertEqual(m, Message({}, None, 'CAP', ['END']))
