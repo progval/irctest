@@ -1,8 +1,9 @@
 import base64
 
-# TODO: figure this out if we ever implement SCRAM
-#import pyxmpp2_scram as scram
-scram = None
+try:
+    import pyxmpp2_scram as scram
+except ImportError:
+    scram = None
 
 from irctest import cases
 from irctest import authentication
