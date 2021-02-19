@@ -87,6 +87,16 @@ class BaseServerController(_BaseController):
             time.sleep(self._port_wait_interval)
             try:
                 c = socket.create_connection(('localhost', self.port), timeout=1.0)
+                c.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
+
+                # Make sure the server properly processes the disconnect.
+                # Otherwise, it may still count it in LUSER and fail tests in
+                # test_lusers.py (eg. this happens with Charybdis 3.5.0)
+                c.send(b"QUIT :chkport\r\n")
+                data = b""
+                while b"chkport" not in data:
+                    data += c.recv(1024)
+
                 c.close()
                 self.port_open = True
             except Exception as e:

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from irctest import cases
 
-from irctest.numerics import RPL_LUSERCLIENT, RPL_LUSEROP, RPL_LUSERUNKNOWN, RPL_LUSERCHANNELS, RPL_LUSERME, RPL_LOCALUSERS, RPL_GLOBALUSERS
+from irctest.numerics import RPL_LUSERCLIENT, RPL_LUSEROP, RPL_LUSERUNKNOWN, RPL_LUSERCHANNELS, RPL_LUSERME, RPL_LOCALUSERS, RPL_GLOBALUSERS, ERR_NOTREGISTERED
 from irctest.numerics import RPL_YOUREOPER
 
 # 3 numbers, delimited by spaces, possibly negative (eek)
@@ -48,9 +48,12 @@ class LusersTestCase(cases.BaseServerTestCase):
         except:
             raise ValueError("corrupt reply for 251 RPL_LUSERCLIENT", luserclient_param)
 
-        result.Opers = int(by_numeric[RPL_LUSEROP].params[1])
-        result.Unregistered = int(by_numeric[RPL_LUSERUNKNOWN].params[1])
-        result.Channels = int(by_numeric[RPL_LUSERCHANNELS].params[1])
+        if RPL_LUSEROP in by_numeric:
+            result.Opers = int(by_numeric[RPL_LUSEROP].params[1])
+        if RPL_LUSERUNKNOWN in by_numeric:
+            result.Unregistered = int(by_numeric[RPL_LUSERUNKNOWN].params[1])
+        if RPL_LUSERCHANNELS in by_numeric:
+            result.Channels = int(by_numeric[RPL_LUSERCHANNELS].params[1])
         localusers = by_numeric[RPL_LOCALUSERS]
         result.LocalTotal = int(localusers.params[1])
         result.LocalMax = int(localusers.params[2])
@@ -79,7 +82,7 @@ class BasicLusersTest(LusersTestCase):
     def testLusers(self):
         self.connectClient('bar', name='bar')
         lusers = self.getLusers('bar')
-        self.assertEqual(lusers.Unregistered, 0)
+        self.assertIn(lusers.Unregistered, (0, None))
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 1)
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
@@ -90,7 +93,7 @@ class BasicLusersTest(LusersTestCase):
 
         self.connectClient('qux', name='qux')
         lusers = self.getLusers('qux')
-        self.assertEqual(lusers.Unregistered, 0)
+        self.assertIn(lusers.Unregistered, (0, None))
         self.assertEqual(lusers.GlobalTotal, 2)
         self.assertEqual(lusers.GlobalMax, 2)
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
@@ -102,7 +105,7 @@ class BasicLusersTest(LusersTestCase):
         self.sendLine('qux', 'QUIT')
         self.assertDisconnected('qux')
         lusers = self.getLusers('bar')
-        self.assertEqual(lusers.Unregistered, 0)
+        self.assertIn(lusers.Unregistered, (0, None))
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 2)
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
@@ -118,10 +121,24 @@ class LusersUnregisteredTestCase(LusersTestCase):
     def testLusers(self):
         self.doLusersTest()
 
+    def _synchronize(self, client_name):
+        """Synchronizes using a PING, but accept ERR_NOTREGISTERED as a response."""
+        self.sendLine(client_name, 'PING')
+        for _ in range(1000):
+            msg = self.getRegistrationMessage(client_name)
+            if msg.command in (ERR_NOTREGISTERED, 'PONG'):
+                break
+            time.sleep(0.01)
+        else:
+            assert False, (
+                'Sent a PING before registration, '
+                'got neither PONG or ERR_NOTREGISTERED'
+            )
+
     def doLusersTest(self):
         self.connectClient('bar', name='bar')
         lusers = self.getLusers('bar')
-        self.assertEqual(lusers.Unregistered, 0)
+        self.assertIn(lusers.Unregistered, (0, None))
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 1)
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
@@ -132,7 +149,7 @@ class LusersUnregisteredTestCase(LusersTestCase):
 
         self.addClient('qux')
         self.sendLine('qux', 'NICK qux')
-        self.getMessages('qux')
+        self._synchronize('qux')
         lusers = self.getLusers('bar')
         self.assertEqual(lusers.Unregistered, 1)
         self.assertEqual(lusers.GlobalTotal, 1)
@@ -145,7 +162,7 @@ class LusersUnregisteredTestCase(LusersTestCase):
 
         self.addClient('bat')
         self.sendLine('bat', 'NICK bat')
-        self.getMessages('bat')
+        self._synchronize('bat')
         lusers = self.getLusers('bar')
         self.assertEqual(lusers.Unregistered, 2)
         self.assertEqual(lusers.GlobalTotal, 1)
@@ -173,7 +190,7 @@ class LusersUnregisteredTestCase(LusersTestCase):
         self.sendLine('bat', 'QUIT')
         self.assertDisconnected('bat')
         lusers = self.getLusers('bar')
-        self.assertEqual(lusers.Unregistered, 0)
+        self.assertIn(lusers.Unregistered, (0, None))
         self.assertEqual(lusers.GlobalTotal, 2)
         self.assertEqual(lusers.GlobalMax, 2)
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
@@ -219,7 +236,7 @@ class LuserOpersTest(LusersTestCase):
         self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
         self.assertEqual(lusers.LocalTotal, 1)
         self.assertEqual(lusers.LocalMax, 1)
-        self.assertEqual(lusers.Opers, 0)
+        self.assertIn(lusers.Opers, (0, None))
 
         # add 1 oper
         self.sendLine('bar', 'OPER root frenchfries')
