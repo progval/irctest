@@ -47,7 +47,12 @@ class SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper,
         m = self.negotiateCapabilities(['sasl=EXTERNAL'], auth=auth)
         self.assertEqual(self.acked_capabilities, {'sasl'})
         if m == Message({}, None, 'CAP', ['END']):
-            # IRCv3.2-style
+            # IRCv3.2-style, for clients that skip authentication
+            # when unavailable (eg. Limnoria)
+            return
+        elif m.command == 'QUIT':
+            # IRCv3.2-style, for clients that quit when unavailable
+            # (eg. Sopel)
             return
         self.assertEqual(m, Message({}, None, 'AUTHENTICATE', ['PLAIN']))
         self.sendLine('904 {} :SASL auth failed'.format(self.nick))
@@ -199,4 +204,10 @@ class Irc302SaslTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper
                 )
         m = self.negotiateCapabilities(['sasl=EXTERNAL'], auth=auth)
         self.assertEqual(self.acked_capabilities, {'sasl'})
-        self.assertEqual(m, Message({}, None, 'CAP', ['END']))
+
+        if m.command == 'QUIT':
+            # Some clients quit when it can't authenticate (eg. Sopel)
+            pass
+        else:
+            # Others will just skip authentication (eg. Limnoria)
+            self.assertEqual(m, Message({}, None, 'CAP', ['END']))
