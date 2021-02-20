@@ -113,7 +113,11 @@ class BaseClientTestCase(_IrcTestCase):
         self._setUpServer()
     def tearDown(self):
         if self.conn:
-            self.conn.sendall(b'QUIT :end of test.')
+            try:
+                self.conn.sendall(b'QUIT :end of test.')
+            except BrokenPipeError:
+                # client already disconnected
+                pass
         self.controller.kill()
         if self.conn:
             self.conn_file.close()
