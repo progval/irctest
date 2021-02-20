@@ -24,8 +24,8 @@ class SopelController(BaseClientController):
     supported_sasl_mechanisms = {
             'PLAIN',
             }
-    def __init__(self):
-        super().__init__()
+    def __init__(self, test_config):
+        super().__init__(test_config)
         self.filename = next(tempfile._get_candidate_names()) + '.cfg'
         self.proc = None
     def kill(self):
