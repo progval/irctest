@@ -99,7 +99,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
 
         self.sendLine(1, 'NICK valid')
         replies = {'NOTICE'}
-        while replies == {'NOTICE'}:
+        while replies <= {'NOTICE'}:
             replies = set(msg.command for msg in self.getMessages(1, synchronize=False))
         self.assertNotIn(ERR_ERRONEUSNICKNAME, replies)
         self.assertIn(RPL_WELCOME, replies)
