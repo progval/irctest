@@ -34,9 +34,17 @@ to your `PATH` if it is not.
 export PATH=$HOME/.local/bin/:$HOME/go/bin/:$PATH
 ```
 
-## Test selection
+## Using pytest
 
 irctest is invoked using the pytest test runner / CLI.
+
+You can usually invoke it with `python3 -m pytest` command; which can often
+be called by the `pytest` or `pytest-3` commands (if not, alias them if you
+are planning to use them often).
+
+The rest of this README assumes `pytest` works.
+
+## Test selection
 
 A major feature of pytest that irctest heavily relies on is test selection.
 Using the `-k` option, you can select and deselect tests based on their names
