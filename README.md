@@ -27,10 +27,11 @@ pip3 install --user -r requirements.txt pyxmpp2-scram
 python3 setup.py install --user
 ```
 
-Add `~/.local/bin/` to your `PATH` if it is not.
+Add `~/.local/bin/` (and/or `~/.local/bin/` for Oragono)
+to your `PATH` if it is not.
 
 ```
-export PATH=$HOME/.local/bin/:$PATH
+export PATH=$HOME/.local/bin/:$HOME/go/bin/:$PATH
 ```
 
 ## Test selection
@@ -63,7 +64,7 @@ cd /tmp/
 git clone https://github.com/oragono/oragono.git
 cd oragono/
 make build
-export PATH=/tmp/oragono:$PATH
+make install
 cd ~/irctest
 pytest --controller irctest.controllers.oragono -k 'not deprecated'
 ```
