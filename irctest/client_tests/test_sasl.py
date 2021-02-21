@@ -184,6 +184,7 @@ class SaslTestCase(
         m = self.negotiateCapabilities(["sasl"], False)
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
+    @pytest.mark.skipif(scram is None, reason="pyxmpp2-scram is not available")
     @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
     def testScram(self):
         """Test SCRAM-SHA-256 authentication."""
@@ -226,6 +227,7 @@ class SaslTestCase(
         self.assertEqual(m.command, "AUTHENTICATE", m)
         self.assertEqual(m.params, ["+"], m)
 
+    @pytest.mark.skipif(scram is None, reason="pyxmpp2-scram is not available")
     @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
     def testScramBadPassword(self):
         """Test SCRAM-SHA-256 authentication with a bad password."""
