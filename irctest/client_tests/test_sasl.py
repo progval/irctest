@@ -1,7 +1,12 @@
 import base64
 
-import ecdsa
-from ecdsa.util import sigdecode_der
+import pytest
+
+try:
+    import ecdsa
+    from ecdsa.util import sigdecode_der
+except ImportError:
+    ecdsa = None
 
 try:
     import pyxmpp2_scram as scram
@@ -144,6 +149,7 @@ class SaslTestCase(
         m = self.negotiateCapabilities(["sasl"], False)
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
+    @pytest.mark.skipif(ecdsa is None, reason="python3-ecdsa is not available")
     @cases.OptionalityHelper.skipUnlessHasMechanism("ECDSA-NIST256P-CHALLENGE")
     def testEcdsa(self):
         """Test ECDSA authentication."""
