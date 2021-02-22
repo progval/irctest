@@ -1,6 +1,6 @@
-def cap_list_to_dict(l):
+def cap_list_to_dict(caps):
     d = {}
-    for cap in l:
+    for cap in caps:
         if "=" in cap:
             (key, value) = cap.split("=", 1)
         else:

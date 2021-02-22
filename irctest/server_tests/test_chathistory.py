@@ -35,9 +35,7 @@ def validate_chathistory_batch(msgs):
 class ChathistoryTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config():
-        return {
-            "chathistory": True,
-        }
+        return {"chathistory": True}
 
     @cases.SpecificationSelector.requiredBySpecification("Oragono")
     def testInvalidTargets(self):
@@ -259,7 +257,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             ],
         )
 
-        # messages should be stored and retrievable by c1, even though c3 is not registered
+        # messages should be stored and retrievable by c1,
+        # even though c3 is not registered
         self.getMessages(1)
         self.sendLine(1, "CHATHISTORY LATEST %s * 10" % (c3,))
         results = [
@@ -277,7 +276,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         # regression test for #833
         self.sendLine(3, "QUIT")
         self.assertDisconnected(3)
-        # register c3 as an account, then attempt to retrieve the conversation history with c1
+        # register c3 as an account, then attempt to retrieve
+        # the conversation history with c1
         self.controller.registerUser(self, c3, "sesame3")
         self.connectClient(
             c3,
@@ -408,7 +408,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         result = validate_chathistory_batch(self.getMessages(user))
         self.assertEqual(echo_messages[1:-1], result)
 
-        # BETWEEN forwards and backwards with a limit, should get different results this time
+        # BETWEEN forwards and backwards with a limit, should get
+        # different results this time
         self.sendLine(
             user,
             "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"

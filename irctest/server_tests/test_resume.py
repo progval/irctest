@@ -63,8 +63,8 @@ class ResumeTestCase(cases.BaseServerTestCase):
         )
         channelMsgTime = privmsgs[0].tags.get("time")
 
-        # tokens MUST be cryptographically secure; therefore, this token should be invalid
-        # with probability at least 1 - 1/(2**128)
+        # tokens MUST be cryptographically secure; therefore, this token should be
+        # invalid with probability at least 1 - 1/(2**128)
         bad_token = "a" * len(token)
         self.addClient()
         self.sendLine(3, "CAP LS")
@@ -127,8 +127,8 @@ class ResumeTestCase(cases.BaseServerTestCase):
             privmsgs[1], command="PRIVMSG", params=["baz", "hello friend singular"]
         )
         # should replay with the original server-time
-        # TODO this probably isn't testing anything because the timestamp only has second resolution,
-        # hence will typically match by accident
+        # TODO this probably isn't testing anything because the timestamp only
+        # has second resolution, hence will typically match by accident
         self.assertEqual(privmsgs[0].tags.get("time"), channelMsgTime)
 
         # legacy client should receive a QUIT and a JOIN

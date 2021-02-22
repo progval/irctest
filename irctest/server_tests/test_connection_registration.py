@@ -140,7 +140,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         IRCv3.2: “Servers MUST NOT send messages described by this document if
         the client only supports version 3.1.”
         -- <http://ircv3.net/specs/core/capability-negotiation-3.2.html#version-in-cap-ls>
-        """
+        """  # noqa
         self.addClient()
         self.sendLine(1, "CAP LS")
         m = self.getRegistrationMessage(1)
@@ -162,7 +162,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
     def testEmptyCapList(self):
         """“If no capabilities are active, an empty parameter must be sent.”
         -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-list-subcommand>
-        """
+        """  # noqa
         self.addClient()
         self.sendLine(1, "CAP LIST")
         m = self.getRegistrationMessage(1)

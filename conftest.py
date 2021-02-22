@@ -1,5 +1,4 @@
 import importlib
-import sys
 import unittest
 
 import _pytest.unittest
@@ -81,8 +80,8 @@ def pytest_collection_modifyitems(session, config, items):
         # and that node references the UnitTest class
         assert issubclass(item.parent.cls, unittest.TestCase)
 
-        # and in this project, TestCase classes all inherit either from BaseClientController
-        # or BaseServerController.
+        # and in this project, TestCase classes all inherit either from
+        # BaseClientController or BaseServerController.
         if issubclass(item.parent.cls, BaseServerTestCase):
             if server_tests:
                 filtered_items.append(item)

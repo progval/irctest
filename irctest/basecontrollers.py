@@ -147,5 +147,5 @@ class BaseServerController(_BaseController):
 
                 c.close()
                 self.port_open = True
-            except Exception as e:
+            except Exception:
                 continue

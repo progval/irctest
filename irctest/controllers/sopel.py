@@ -11,7 +11,7 @@ host = {hostname}
 use_ssl = false
 port = {port}
 owner = me
-channels = 
+channels =
 timeout = 5
 auth_username = {username}
 auth_password = {password}
@@ -21,9 +21,7 @@ auth_password = {password}
 
 class SopelController(BaseClientController):
     software_name = "Sopel"
-    supported_sasl_mechanisms = {
-        "PLAIN",
-    }
+    supported_sasl_mechanisms = {"PLAIN"}
     supported_capabilities = set()  # Not exhaustive
 
     def __init__(self, test_config):
@@ -44,7 +42,7 @@ class SopelController(BaseClientController):
         return open(os.path.join(os.path.expanduser("~/.sopel/"), filename), mode)
 
     def create_config(self):
-        with self.open_file(self.filename) as fd:
+        with self.open_file(self.filename):
             pass
 
     def run(self, hostname, port, auth, tls_config):

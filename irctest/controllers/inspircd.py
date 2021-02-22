@@ -1,10 +1,6 @@
 import os
-import shutil
 import subprocess
-import tempfile
-import time
 
-from irctest import authentication
 from irctest.basecontrollers import (
     BaseServerController,
     DirectoryBasedController,
@@ -62,9 +58,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         if ssl:
             self.gen_ssl()
             ssl_config = TEMPLATE_SSL_CONFIG.format(
-                key_path=self.key_path,
-                pem_path=self.pem_path,
-                dh_path=self.dh_path,
+                key_path=self.key_path, pem_path=self.pem_path, dh_path=self.dh_path
             )
         else:
             ssl_config = ""

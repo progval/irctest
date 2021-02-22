@@ -3,7 +3,6 @@ import ssl
 
 from irctest import cases, tls
 from irctest.exceptions import ConnectionClosed
-from irctest.irc_utils.message_parser import Message
 
 BAD_CERT = """
 -----BEGIN CERTIFICATE-----
@@ -120,26 +119,20 @@ class TlsTestCase(cases.BaseClientTestCase):
         tls_config = tls.TlsConfig(enable=True, trusted_fingerprints=[GOOD_FINGERPRINT])
         (hostname, port) = self.server.getsockname()
         self.controller.run(
-            hostname=hostname,
-            port=port,
-            auth=None,
-            tls_config=tls_config,
+            hostname=hostname, port=port, auth=None, tls_config=tls_config
         )
         self.acceptClient(tls_cert=GOOD_CERT, tls_key=GOOD_KEY)
-        m = self.getMessage()
+        self.getMessage()
 
     def testUntrustedCertificate(self):
         tls_config = tls.TlsConfig(enable=True, trusted_fingerprints=[GOOD_FINGERPRINT])
         (hostname, port) = self.server.getsockname()
         self.controller.run(
-            hostname=hostname,
-            port=port,
-            auth=None,
-            tls_config=tls_config,
+            hostname=hostname, port=port, auth=None, tls_config=tls_config
         )
         self.acceptClient(tls_cert=BAD_CERT, tls_key=BAD_KEY)
         with self.assertRaises((ConnectionClosed, ConnectionResetError)):
-            m = self.getMessage()
+            self.getMessage()
 
 
 class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
@@ -162,10 +155,7 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         # Connect client to insecure server
         (hostname, port) = self.insecure_server.getsockname()
         self.controller.run(
-            hostname=hostname,
-            port=port,
-            auth=None,
-            tls_config=tls_config,
+            hostname=hostname, port=port, auth=None, tls_config=tls_config
         )
         self.acceptClient(server=self.insecure_server)
 
@@ -194,10 +184,7 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
 
         # Run the client, still configured to connect to the insecure server
         self.controller.run(
-            hostname=hostname,
-            port=port,
-            auth=None,
-            tls_config=tls_config,
+            hostname=hostname, port=port, auth=None, tls_config=tls_config
         )
 
         # The client should remember the STS policy and connect to the secure
@@ -208,11 +195,7 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
     def testStsInvalidCertificate(self):
         # Connect client to insecure server
         (hostname, port) = self.insecure_server.getsockname()
-        self.controller.run(
-            hostname=hostname,
-            port=port,
-            auth=None,
-        )
+        self.controller.run(hostname=hostname, port=port, auth=None)
         self.acceptClient(server=self.insecure_server)
 
         # Send STS policy to client

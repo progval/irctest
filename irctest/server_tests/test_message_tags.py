@@ -72,7 +72,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         getAllMessages()
 
         # test TAGMSG and basic escaping
-        self.sendLine("bob", "@+buzz=fizz\:buzz;cat=dog;+steel=wootz TAGMSG #test")
+        self.sendLine("bob", r"@+buzz=fizz\:buzz;cat=dog;+steel=wootz TAGMSG #test")
         bob_msg = self.getMessage("bob")  # bob has echo-message
         alice_msg = self.getMessage("alice")
         # carol MUST NOT receive TAGMSG at all

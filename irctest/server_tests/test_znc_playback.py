@@ -20,9 +20,7 @@ def extract_playback_privmsgs(messages):
 class ZncPlaybackTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config():
-        return {
-            "chathistory": True,
-        }
+        return {"chathistory": True}
 
     @cases.SpecificationSelector.requiredBySpecification("Oragono")
     def testZncPlayback(self):
@@ -112,7 +110,8 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
             password=pw,
         )
         mid_timestamp = ircv3_timestamp_to_unixtime(echo_messages[5].time)
-        # exclude message 5 itself (oragono's CHATHISTORY implementation corrects for this, but znc.in/playback does not because whatever)
+        # exclude message 5 itself (oragono's CHATHISTORY implementation
+        # corrects for this, but znc.in/playback does not because whatever)
         mid_timestamp += 0.001
         self.sendLine("viewer", "PRIVMSG *playback :play * %s" % (mid_timestamp,))
         messages = extract_playback_privmsgs(self.getMessages("viewer"))
@@ -139,32 +138,16 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         self.sendLine(
             "viewer",
             "PRIVMSG *playback :play %s %s %s"
-            % (
-                chname,
-                start_timestamp,
-                end_timestamp,
-            ),
+            % (chname, start_timestamp, end_timestamp),
         )
         messages = extract_playback_privmsgs(self.getMessages("viewer"))
         self.assertEqual(messages, echo_messages[3:7])
         # test nicknames as targets
-        self.sendLine(
-            "viewer",
-            "PRIVMSG *playback :play %s %d"
-            % (
-                qux,
-                early_time,
-            ),
-        )
+        self.sendLine("viewer", "PRIVMSG *playback :play %s %d" % (qux, early_time))
         messages = extract_playback_privmsgs(self.getMessages("viewer"))
         self.assertEqual(messages, [dm])
         self.sendLine(
-            "viewer",
-            "PRIVMSG *playback :play %s %d"
-            % (
-                qux.upper(),
-                early_time,
-            ),
+            "viewer", "PRIVMSG *playback :play %s %d" % (qux.upper(), early_time)
         )
         messages = extract_playback_privmsgs(self.getMessages("viewer"))
         self.assertEqual(messages, [dm])

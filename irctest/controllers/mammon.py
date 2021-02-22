@@ -1,6 +1,5 @@
 import os
 import subprocess
-import time
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -62,16 +61,13 @@ server:
 """
 
 
-def make_list(l):
-    return "\n".join(map("  - {}".format, l))
+def make_list(list_):
+    return "\n".join(map("  - {}".format, list_))
 
 
 class MammonController(BaseServerController, DirectoryBasedController):
     software_name = "Mammon"
-    supported_sasl_mechanisms = {
-        "PLAIN",
-        "ECDSA-NIST256P-CHALLENGE",
-    }
+    supported_sasl_mechanisms = {"PLAIN", "ECDSA-NIST256P-CHALLENGE"}
     supported_capabilities = set()  # Not exhaustive
 
     def create_config(self):
@@ -115,7 +111,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
         self.proc = subprocess.Popen(
             [
                 "mammond",
-                "--nofork",  #'--debug',
+                "--nofork",  # '--debug',
                 "--config",
                 os.path.join(self.directory, "server.yml"),
             ]

@@ -6,9 +6,7 @@ from irctest.numerics import ERR_CANNOTSENDRP
 class RoleplayTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config():
-        return {
-            "oragono_roleplay": True,
-        }
+        return {"oragono_roleplay": True}
 
     @cases.SpecificationSelector.requiredBySpecification("Oragono")
     def testRoleplay(self):

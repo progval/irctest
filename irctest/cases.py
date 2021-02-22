@@ -58,15 +58,9 @@ class _IrcTestCase(unittest.TestCase):
         method_doc = self._testMethodDoc
         if not method_doc:
             return ""
-        return (
-            "\t"
-            + normalizeWhitespace(
-                method_doc,
-                removeNewline=False,
-            )
-            .strip()
-            .replace("\n ", "\n\t")
-        )
+        return "\t" + normalizeWhitespace(
+            method_doc, removeNewline=False
+        ).strip().replace("\n ", "\n\t")
 
     def setUp(self):
         super().setUp()
@@ -229,10 +223,7 @@ class ClientNegociationHelper:
     def readCapLs(self, auth=None, tls_config=None):
         (hostname, port) = self.server.getsockname()
         self.controller.run(
-            hostname=hostname,
-            port=port,
-            auth=auth,
-            tls_config=tls_config,
+            hostname=hostname, port=port, auth=auth, tls_config=tls_config
         )
         self.acceptClient()
         m = self.getMessage()

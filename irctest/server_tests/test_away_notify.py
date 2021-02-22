@@ -34,7 +34,8 @@ class AwayNotifyTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
     def testAwayNotifyOnJoin(self):
         """The away-notify specification states:
-        "Clients will be sent an AWAY message [...] when a user joins and has an away message set."
+        "Clients will be sent an AWAY message [...] when a user joins
+        and has an away message set."
         """
         self.connectClient("foo", capabilities=["away-notify"], skip_if_cap_nak=True)
         self.getMessages(1)

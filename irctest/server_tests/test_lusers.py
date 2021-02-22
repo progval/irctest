@@ -55,7 +55,7 @@ class LusersTestCase(cases.BaseServerTestCase):
             result.GlobalVisible = int(match.group(1))
             result.GlobalInvisible = int(match.group(2))
             result.Servers = int(match.group(3))
-        except:
+        except Exception:
             raise ValueError("corrupt reply for 251 RPL_LUSERCLIENT", luserclient_param)
 
         if RPL_LUSEROP in by_numeric:
@@ -78,7 +78,7 @@ class LusersTestCase(cases.BaseServerTestCase):
             match = LUSERME_REGEX.match(luserme_param)
             localTotalFromUserme = int(match.group(1))
             serversFromUserme = int(match.group(2))
-        except:
+        except Exception:
             raise ValueError("corrupt reply for 255 RPL_LUSERME", luserme_param)
         self.assertEqual(result.LocalTotal, localTotalFromUserme)
         # serversFromUserme is "servers i'm currently connected to", generally undefined
