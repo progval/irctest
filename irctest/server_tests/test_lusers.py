@@ -132,7 +132,7 @@ class LusersUnregisteredTestCase(LusersTestCase):
 
     def _synchronize(self, client_name):
         """Synchronizes using a PING, but accept ERR_NOTREGISTERED as a response."""
-        self.sendLine(client_name, "PING")
+        self.sendLine(client_name, "PING PARAM")
         for _ in range(1000):
             msg = self.getRegistrationMessage(client_name)
             if msg.command in (ERR_NOTREGISTERED, "PONG"):
