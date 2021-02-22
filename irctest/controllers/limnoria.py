@@ -2,6 +2,7 @@ import os
 import subprocess
 
 from irctest import authentication
+from irctest import tls
 from irctest.basecontrollers import NotImplementedByController
 from irctest.basecontrollers import BaseClientController, DirectoryBasedController
 
@@ -30,14 +31,19 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
     supported_sasl_mechanisms = {
             'PLAIN', 'ECDSA-NIST256P-CHALLENGE', 'SCRAM-SHA-256', 'EXTERNAL',
             }
-    def create_config(self):
-        super().create_config()
-        with self.open_file('bot.conf'):
-            pass
-        with self.open_file('conf/users.conf'):
-            pass
+    supported_capabilities = set(['sts'])  # Not exhaustive
 
-    def run(self, hostname, port, auth, tls_config):
+    def create_config(self):
+        create_config = super().create_config()
+        if create_config:
+            with self.open_file('bot.conf'):
+                pass
+            with self.open_file('conf/users.conf'):
+                pass
+
+    def run(self, hostname, port, auth, tls_config=None):
+        if tls_config is None:
+            tls_config = tls.TlsConfig(enable=False, trusted_fingerprints=[])
         # Runs a client with the config given as arguments
         assert self.proc is None
         self.create_config()

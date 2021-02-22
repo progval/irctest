@@ -153,6 +153,12 @@ class OragonoController(BaseServerController, DirectoryBasedController):
             'PLAIN',
     }
     _port_wait_interval = .01
+    supported_capabilities = set()  # Not exhaustive
+
+    def create_config(self):
+        super().create_config()
+        with self.open_file('ircd.yaml'):
+            pass
 
     def kill_proc(self):
         self.proc.kill()
