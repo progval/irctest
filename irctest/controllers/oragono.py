@@ -3,8 +3,11 @@ import json
 import os
 import subprocess
 
-from irctest.basecontrollers import NotImplementedByController
-from irctest.basecontrollers import BaseServerController, DirectoryBasedController
+from irctest.basecontrollers import (
+    BaseServerController,
+    DirectoryBasedController,
+    NotImplementedByController,
+)
 
 OPER_PWD = "frenchfries"
 

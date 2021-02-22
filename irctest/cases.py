@@ -1,28 +1,26 @@
-import ssl
-import time
-import socket
-import tempfile
-import unittest
 import functools
+import socket
+import ssl
+import tempfile
+import time
+import unittest
 
 import pytest
 
-from . import runner
-from . import client_mock
-from .irc_utils import capabilities
-from .irc_utils import message_parser
+from . import client_mock, runner
+from .exceptions import ConnectionClosed
+from .irc_utils import capabilities, message_parser
 from .irc_utils.junkdrawer import normalizeWhitespace, random_name
 from .irc_utils.sasl import sasl_plain_blob
-from .exceptions import ConnectionClosed
-from .specifications import Specifications
 from .numerics import (
+    ERR_BADCHANNELKEY,
+    ERR_BANNEDFROMCHAN,
+    ERR_INVITEONLYCHAN,
+    ERR_NEEDREGGEDNICK,
     ERR_NOSUCHCHANNEL,
     ERR_TOOMANYCHANNELS,
-    ERR_BADCHANNELKEY,
-    ERR_INVITEONLYCHAN,
-    ERR_BANNEDFROMCHAN,
-    ERR_NEEDREGGEDNICK,
 )
+from .specifications import Specifications
 
 CHANNEL_JOIN_FAIL_NUMERICS = frozenset(
     [

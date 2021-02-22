@@ -5,11 +5,11 @@ User commands as specified in Section 3.6 of RFC 2812:
 
 from irctest import cases
 from irctest.numerics import (
-    RPL_WHOISUSER,
-    RPL_WHOISCHANNELS,
     RPL_AWAY,
     RPL_NOWAWAY,
     RPL_UNAWAY,
+    RPL_WHOISCHANNELS,
+    RPL_WHOISUSER,
 )
 
 

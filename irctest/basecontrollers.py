@@ -1,9 +1,9 @@
 import os
 import shutil
 import socket
+import subprocess
 import tempfile
 import time
-import subprocess
 
 from .runner import NotImplementedByController
 

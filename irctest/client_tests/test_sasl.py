@@ -2,15 +2,14 @@ import base64
 import hashlib
 
 import ecdsa
-from ecdsa.util import sigencode_der, sigdecode_der
+from ecdsa.util import sigdecode_der, sigencode_der
 
 try:
     import pyxmpp2_scram as scram
 except ImportError:
     scram = None
 
-from irctest import cases
-from irctest import authentication
+from irctest import authentication, cases
 from irctest.irc_utils.message_parser import Message
 
 ECDSA_KEY = """
