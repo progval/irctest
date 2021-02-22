@@ -35,6 +35,8 @@ class ClientMock:
         if synchronize:
             token = "synchronize{}".format(time.monotonic())
             self.sendLine("PING {}".format(token))
+        else:
+            token = None
         got_pong = False
         data = b""
         (self.inbuffer, messages) = ([], self.inbuffer)
