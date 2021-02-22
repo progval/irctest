@@ -2,11 +2,7 @@ import os
 import subprocess
 
 from irctest import authentication, tls
-from irctest.basecontrollers import (
-    BaseClientController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
+from irctest.basecontrollers import BaseClientController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
 supybot.directories.conf: {directory}/conf

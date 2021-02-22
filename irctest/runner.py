@@ -1,5 +1,4 @@
 import collections
-import operator
 import unittest
 
 

@@ -11,7 +11,8 @@ class StatusmsgTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification("Oragono")
     def testStatusmsg(self):
-        """Test that STATUSMSG are sent to the intended recipients, with the intended prefixes."""
+        """Test that STATUSMSG are sent to the intended recipients,
+        with the intended prefixes."""
         self.connectClient("chanop")
         self.joinChannel(1, "#chan")
         self.getMessages(1)

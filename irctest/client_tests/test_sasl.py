@@ -1,8 +1,7 @@
 import base64
-import hashlib
 
 import ecdsa
-from ecdsa.util import sigdecode_der, sigencode_der
+from ecdsa.util import sigdecode_der
 
 try:
     import pyxmpp2_scram as scram

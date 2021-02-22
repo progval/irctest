@@ -51,7 +51,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             m2.tags,
             m2,
-            fail_msg="When sending a PRIVMSG with a label, the target users shouldn't receive the label (only the sending user should): {msg}",
+            fail_msg=(
+                "When sending a PRIVMSG with a label, "
+                "the target users shouldn't receive the label "
+                "(only the sending user should): {msg}"
+            ),
         )
         self.assertMessageEqual(
             m3,
@@ -62,7 +66,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             m3.tags,
             m3,
-            fail_msg="When sending a PRIVMSG with a label, the target users shouldn't receive the label (only the sending user should): {msg}",
+            fail_msg=(
+                "When sending a PRIVMSG with a label, "
+                "the target users shouldn't receive the label "
+                "(only the sending user should): {msg}"
+            ),
         )
         self.assertMessageEqual(
             m4,
@@ -73,7 +81,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             m4.tags,
             m4,
-            fail_msg="When sending a PRIVMSG with a label, the target users shouldn't receive the label (only the sending user should): {msg}",
+            fail_msg=(
+                "When sending a PRIVMSG with a label, "
+                "the target users shouldn't receive the label "
+                "(only the sending user should): {msg}"
+            ),
         )
 
         self.assertMessageEqual(
@@ -109,7 +121,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             m2.tags,
             m2,
-            fail_msg="When sending a PRIVMSG with a label, the target user shouldn't receive the label (only the sending user should): {msg}",
+            fail_msg=(
+                "When sending a PRIVMSG with a label, "
+                "the target user shouldn't receive the label "
+                "(only the sending user should): {msg}"
+            ),
         )
 
         self.assertMessageEqual(
@@ -121,13 +137,19 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             m.tags,
             m,
-            fail_msg="When sending a PRIVMSG with a label, the echo'd message didn't contain the label at all: {msg}",
+            fail_msg=(
+                "When sending a PRIVMSG with a label, "
+                "the echo'd message didn't contain the label at all: {msg}"
+            ),
         )
         self.assertEqual(
             m.tags["label"],
             "12345",
             m,
-            fail_msg="Echo'd PRIVMSG to a client did not contain the same label we sent it with(should be '12345'): {msg}",
+            fail_msg=(
+                "Echo'd PRIVMSG to a client did not contain the same label "
+                "we sent it with(should be '12345'): {msg}"
+            ),
         )
 
     @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
@@ -168,7 +190,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             mt.tags,
             mt,
-            fail_msg="When sending a PRIVMSG with a label, the target user shouldn't receive the label (only the sending user should): {msg}",
+            fail_msg=(
+                "When sending a PRIVMSG with a label, "
+                "the target user shouldn't receive the label "
+                "(only the sending user should): {msg}"
+            ),
         )
 
         # ensure sender correctly receives msg
@@ -179,13 +205,19 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             ms.tags,
             ms,
-            fail_msg="When sending a PRIVMSG with a label, the source user should receive the label but didn't: {msg}",
+            fail_msg=(
+                "When sending a PRIVMSG with a label, "
+                "the source user should receive the label but didn't: {msg}"
+            ),
         )
         self.assertEqual(
             ms.tags["label"],
             "12345",
             ms,
-            fail_msg="Echo'd label doesn't match the label we sent (should be '12345'): {msg}",
+            fail_msg=(
+                "Echo'd label doesn't match the label we sent "
+                "(should be '12345'): {msg}"
+            ),
         )
 
     @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
@@ -214,16 +246,21 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
                     m.tags["label"],
                     "12345",
                     m,
-                    fail_msg="Echo'd label doesn't match the label we sent (should be '12345'): {msg}",
+                    fail_msg=(
+                        "Echo'd label doesn't match the label we sent "
+                        "(should be '12345'): {msg}"
+                    ),
                 )
 
         self.assertEqual(
             number_of_labels,
             1,
             m1,
-            fail_msg="When sending a PRIVMSG to self with echo-message, we only expect one message to contain the label. Instead, {} messages had the label".format(
-                number_of_labels
-            ),
+            fail_msg=(
+                "When sending a PRIVMSG to self with echo-message, "
+                "we only expect one message to contain the label. "
+                "Instead, {} messages had the label"
+            ).format(number_of_labels),
         )
 
     @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
@@ -255,7 +292,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             m2.tags,
             m2,
-            fail_msg="When sending a NOTICE with a label, the target user shouldn't receive the label (only the sending user should): {msg}",
+            fail_msg=(
+                "When sending a NOTICE with a label, "
+                "the target user shouldn't receive the label "
+                "(only the sending user should): {msg}"
+            ),
         )
 
         self.assertMessageEqual(
@@ -267,13 +308,19 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             m.tags,
             m,
-            fail_msg="When sending a NOTICE with a label, the echo'd message didn't contain the label at all: {msg}",
+            fail_msg=(
+                "When sending a NOTICE with a label, "
+                "the echo'd message didn't contain the label at all: {msg}"
+            ),
         )
         self.assertEqual(
             m.tags["label"],
             "12345",
             m,
-            fail_msg="Echo'd NOTICE to a client did not contain the same label we sent it with(should be '12345'): {msg}",
+            fail_msg=(
+                "Echo'd NOTICE to a client did not contain the same label "
+                "we sent it with (should be '12345'): {msg}"
+            ),
         )
 
     @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
@@ -314,7 +361,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             mt.tags,
             mt,
-            fail_msg="When sending a NOTICE with a label, the target user shouldn't receive the label (only the sending user should): {msg}",
+            fail_msg=(
+                "When sending a NOTICE with a label, "
+                "the target user shouldn't receive the label "
+                "(only the sending user should): {msg}"
+            ),
         )
 
         # ensure sender correctly receives msg
@@ -325,13 +376,19 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             ms.tags,
             ms,
-            fail_msg="When sending a NOTICE with a label, the source user should receive the label but didn't: {msg}",
+            fail_msg=(
+                "When sending a NOTICE with a label, "
+                "the source user should receive the label but didn't: {msg}"
+            ),
         )
         self.assertEqual(
             ms.tags["label"],
             "12345",
             ms,
-            fail_msg="Echo'd label doesn't match the label we sent (should be '12345'): {msg}",
+            fail_msg=(
+                "Echo'd label doesn't match the label we sent "
+                "(should be '12345'): {msg}"
+            ),
         )
 
     @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
@@ -358,16 +415,21 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
                     m.tags["label"],
                     "12345",
                     m,
-                    fail_msg="Echo'd label doesn't match the label we sent (should be '12345'): {msg}",
+                    fail_msg=(
+                        "Echo'd label doesn't match the label we sent "
+                        "(should be '12345'): {msg}"
+                    ),
                 )
 
         self.assertEqual(
             number_of_labels,
             1,
             m1,
-            fail_msg="When sending a NOTICE to self with echo-message, we only expect one message to contain the label. Instead, {} messages had the label".format(
-                number_of_labels
-            ),
+            fail_msg=(
+                "When sending a NOTICE to self with echo-message, "
+                "we only expect one message to contain the label. "
+                "Instead, {} messages had the label"
+            ).format(number_of_labels),
         )
 
     @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
@@ -399,7 +461,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             m2.tags,
             m2,
-            fail_msg="When sending a TAGMSG with a label, the target user shouldn't receive the label (only the sending user should): {msg}",
+            fail_msg=(
+                "When sending a TAGMSG with a label, "
+                "the target user shouldn't receive the label "
+                "(only the sending user should): {msg}"
+            ),
         )
         self.assertIn(
             "+draft/reply",
@@ -435,13 +501,19 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             m.tags,
             m,
-            fail_msg="When sending a TAGMSG with a label, the echo'd message didn't contain the label at all: {msg}",
+            fail_msg=(
+                "When sending a TAGMSG with a label, "
+                "the echo'd message didn't contain the label at all: {msg}"
+            ),
         )
         self.assertEqual(
             m.tags["label"],
             "12345",
             m,
-            fail_msg="Echo'd TAGMSG to a client did not contain the same label we sent it with(should be '12345'): {msg}",
+            fail_msg=(
+                "Echo'd TAGMSG to a client did not contain the same label "
+                "we sent it with (should be '12345'): {msg}"
+            ),
         )
         self.assertIn(
             "+draft/reply",
@@ -504,7 +576,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             mt.tags,
             mt,
-            fail_msg="When sending a TAGMSG with a label, the target user shouldn't receive the label (only the sending user should): {msg}",
+            fail_msg=(
+                "When sending a TAGMSG with a label, "
+                "the target user shouldn't receive the label "
+                "(only the sending user should): {msg}"
+            ),
         )
 
         # ensure sender correctly receives msg
@@ -515,13 +591,19 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             "label",
             ms.tags,
             ms,
-            fail_msg="When sending a TAGMSG with a label, the source user should receive the label but didn't: {msg}",
+            fail_msg=(
+                "When sending a TAGMSG with a label, "
+                "the source user should receive the label but didn't: {msg}"
+            ),
         )
         self.assertEqual(
             ms.tags["label"],
             "12345",
             ms,
-            fail_msg="Echo'd label doesn't match the label we sent (should be '12345'): {msg}",
+            fail_msg=(
+                "Echo'd label doesn't match the label we sent "
+                "(should be '12345'): {msg}"
+            ),
         )
 
     @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
@@ -548,16 +630,21 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
                     m.tags["label"],
                     "12345",
                     m,
-                    fail_msg="Echo'd label doesn't match the label we sent (should be '12345'): {msg}",
+                    fail_msg=(
+                        "Echo'd label doesn't match the label we sent "
+                        "(should be '12345'): {msg}"
+                    ),
                 )
 
         self.assertEqual(
             number_of_labels,
             1,
             m1,
-            fail_msg="When sending a TAGMSG to self with echo-message, we only expect one message to contain the label. Instead, {} messages had the label".format(
-                number_of_labels
-            ),
+            fail_msg=(
+                "When sending a TAGMSG to self with echo-message, "
+                "we only expect one message to contain the label. "
+                "Instead, {} messages had the label"
+            ).format(number_of_labels),
         )
 
     @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
@@ -609,7 +696,8 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.getMessages(1)
 
         self.sendLine(1, "@label=98765 PING adhoctestline")
-        # no BATCH should be initiated for a one-line response, it should just be labeled
+        # no BATCH should be initiated for a one-line response,
+        # it should just be labeled
         ms = self.getMessages(1)
         self.assertEqual(len(ms), 1)
         m = ms[0]

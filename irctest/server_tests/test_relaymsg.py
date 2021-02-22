@@ -9,9 +9,7 @@ RELAYMSG_TAG_NAME = "draft/relaymsg"
 class RelaymsgTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config():
-        return {
-            "chathistory": True,
-        }
+        return {"chathistory": True}
 
     @cases.SpecificationSelector.requiredBySpecification("Oragono")
     def testRelaymsg(self):

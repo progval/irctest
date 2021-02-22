@@ -54,9 +54,4 @@ def parse_message(s):
         prefix = None
     command = tokens.pop(0)
     params = tokens
-    return Message(
-        tags=tags,
-        prefix=prefix,
-        command=command,
-        params=params,
-    )
+    return Message(tags=tags, prefix=prefix, command=command, params=params)

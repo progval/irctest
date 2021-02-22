@@ -12,9 +12,7 @@ from irctest.basecontrollers import (
 OPER_PWD = "frenchfries"
 
 BASE_CONFIG = {
-    "network": {
-        "name": "OragonoTest",
-    },
+    "network": {"name": "OragonoTest"},
     "server": {
         "name": "oragono.test",
         "listeners": {},
@@ -38,11 +36,7 @@ BASE_CONFIG = {
             "exempted": ["localhost"],
         },
         "enforce-utf8": True,
-        "relaymsg": {
-            "enabled": True,
-            "separators": "/",
-            "available-to-chanops": True,
-        },
+        "relaymsg": {"enabled": True, "separators": "/", "available-to-chanops": True},
     },
     "accounts": {
         "authentication-enabled": True,
@@ -63,30 +57,19 @@ BASE_CONFIG = {
             "method": "strict",
         },
     },
-    "channels": {
-        "registration": {
-            "enabled": True,
-        },
-    },
-    "datastore": {
-        "path": None,
-    },
+    "channels": {"registration": {"enabled": True}},
+    "datastore": {"path": None},
     "limits": {
         "awaylen": 200,
         "chan-list-modes": 60,
         "channellen": 64,
         "kicklen": 390,
-        "linelen": {
-            "rest": 2048,
-        },
+        "linelen": {"rest": 2048},
         "monitor-entries": 100,
         "nicklen": 32,
         "topiclen": 390,
         "whowas-entries": 100,
-        "multiline": {
-            "max-bytes": 4096,
-            "max-lines": 32,
-        },
+        "multiline": {"max-bytes": 4096, "max-lines": 32},
     },
     "history": {
         "enabled": True,
@@ -118,7 +101,7 @@ BASE_CONFIG = {
                 "chanreg",
                 "relaymsg",
             ],
-        },
+        }
     },
     "opers": {
         "root": {
@@ -126,19 +109,11 @@ BASE_CONFIG = {
             "whois-line": "is a server admin",
             # OPER_PWD
             "password": "$2a$04$3GzUZB5JapaAbwn7sogpOu9NSiLOgnozVllm2e96LiNPrm61ZsZSq",
-        },
+        }
     },
 }
 
-LOGGING_CONFIG = {
-    "logging": [
-        {
-            "method": "stderr",
-            "level": "debug",
-            "type": "*",
-        },
-    ]
-}
+LOGGING_CONFIG = {"logging": [{"method": "stderr", "level": "debug", "type": "*"}]}
 
 
 def hash_password(password):
@@ -155,9 +130,7 @@ def hash_password(password):
 
 class OragonoController(BaseServerController, DirectoryBasedController):
     software_name = "Oragono"
-    supported_sasl_mechanisms = {
-        "PLAIN",
-    }
+    supported_sasl_mechanisms = {"PLAIN"}
     _port_wait_interval = 0.01
     supported_capabilities = set()  # Not exhaustive
 
@@ -195,9 +168,7 @@ class OragonoController(BaseServerController, DirectoryBasedController):
             config = self.addMysqlToConfig(config)
 
         if enable_roleplay:
-            config["roleplay"] = {
-                "enabled": True,
-            }
+            config["roleplay"] = {"enabled": True}
 
         if "oragono_config" in self.test_config:
             self.test_config["oragono_config"](config)
@@ -208,9 +179,7 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         if ssl:
             self.key_path = os.path.join(self.directory, "ssl.key")
             self.pem_path = os.path.join(self.directory, "ssl.pem")
-            listener_conf = {
-                "tls": {"cert": self.pem_path, "key": self.key_path},
-            }
+            listener_conf = {"tls": {"cert": self.pem_path, "key": self.key_path}}
         config["server"]["listeners"][bind_address] = listener_conf
 
         config["datastore"]["path"] = os.path.join(self.directory, "ircd.db")

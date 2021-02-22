@@ -132,10 +132,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             command="761",  # RPL_KEYVALUE
             fail_msg="Did not reply with 761 (RPL_KEYVALUE) to a valid "
             "“METADATA * SET {} :{}”: {msg}",
-            extra_format=(
-                key,
-                displayable_value,
-            ),
+            extra_format=(key, displayable_value),
         )
         self.assertEqual(
             m.params[1],

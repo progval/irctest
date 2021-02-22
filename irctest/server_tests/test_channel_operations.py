@@ -51,10 +51,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.sendLine(1, "JOIN #chan")
         received_commands = {m.command for m in self.getMessages(1)}
-        expected_commands = {
-            "353",  # RPL_NAMREPLY
-            "366",  # RPL_ENDOFNAMES
-        }
+        expected_commands = {"353", "366"}  # RPL_NAMREPLY  # RPL_ENDOFNAMES
         self.assertTrue(
             expected_commands.issubset(received_commands),
             "Server sent {} commands, but at least {} were expected.".format(
@@ -218,7 +215,8 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
 
         self.sendLine(1, "PART #chan :bye everyone")
-        # both the PART'ing client and the other channel member should receive a PART line:
+        # both the PART'ing client and the other channel member should receive
+        # a PART line:
         m = self.getMessage(1)
         self.assertMessageEqual(m, command="PART", params=["#chan", "bye everyone"])
         m = self.getMessage(2)
@@ -463,7 +461,8 @@ class JoinTestCase(cases.BaseServerTestCase):
 
     @cases.SpecificationSelector.requiredBySpecification("RFC2812")
     def testKickPrivileges(self):
-        """Test who has the ability to kick / what error codes are sent for invalid kicks."""
+        """Test who has the ability to kick / what error codes are sent
+        for invalid kicks."""
         self.connectClient("foo")
         self.sendLine(1, "JOIN #chan")
         self.getMessages(1)
@@ -487,7 +486,8 @@ class JoinTestCase(cases.BaseServerTestCase):
             ERR_NOTONCHANNEL in replies
             or ERR_CHANOPRIVSNEEDED in replies
             or ERR_NOSUCHCHANNEL in replies,
-            f"did not receive acceptable error code for kick from outside channel: {replies}",
+            f"did not receive acceptable error code for kick from outside channel: "
+            f"{replies}",
         )
 
         self.joinChannel(3, "#chan")
@@ -604,15 +604,15 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
         self.sendLine(1, "INVITE #chan bar")
         self.getMessages(1)
-        l = self.getMessages(2)
+        messages = self.getMessages(2)
         self.assertNotEqual(
-            l,
+            messages,
             [],
             fail_msg="After using “INVITE #chan bar” while #chan does "
             "not exist, “bar” received nothing.",
         )
         self.assertMessageEqual(
-            l[0],
+            messages[0],
             command="INVITE",
             params=["#chan", "bar"],
             fail_msg="After “foo” invited “bar” do non-existing channel "
@@ -636,15 +636,15 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.getMessages(2)
         self.sendLine(1, "INVITE #chan bar")
-        l = self.getMessages(1)
+        messages = self.getMessages(1)
         self.assertNotEqual(
-            l,
+            messages,
             [],
             fail_msg="After using “INVITE #chan bar” while #chan does "
             "not exist, the author received nothing.",
         )
         self.assertMessageEqual(
-            l[0],
+            messages[0],
             command="INVITE",
             params=["#chan", "bar"],
             fail_msg="After “foo” invited “bar” do non-existing channel "
@@ -891,24 +891,9 @@ class AuditoriumTestCase(cases.BaseServerTestCase):
             return result
 
         self.assertEqual(names("bar"), {"@bar", "guest1", "guest2", "guest3"})
-        self.assertEqual(
-            names("guest1"),
-            {
-                "@bar",
-            },
-        )
-        self.assertEqual(
-            names("guest2"),
-            {
-                "@bar",
-            },
-        )
-        self.assertEqual(
-            names("guest3"),
-            {
-                "@bar",
-            },
-        )
+        self.assertEqual(names("guest1"), {"@bar"})
+        self.assertEqual(names("guest2"), {"@bar"})
+        self.assertEqual(names("guest3"), {"@bar"})
 
         self.sendLine("bar", "MODE #auditorium +v guest1")
         modeLine = [msg for msg in self.getMessages("bar") if msg.command == "MODE"][0]
@@ -951,7 +936,8 @@ class AuditoriumTestCase(cases.BaseServerTestCase):
 class TopicPrivileges(cases.BaseServerTestCase):
     @cases.SpecificationSelector.requiredBySpecification("RFC2812")
     def testTopicPrivileges(self):
-        # test the +t channel mode, which prevents unprivileged users from changing the topic
+        # test the +t channel mode, which prevents unprivileged users
+        # from changing the topic
         self.connectClient("bar", name="bar")
         self.joinChannel("bar", "#chan")
         self.getMessages("bar")
