@@ -2,9 +2,10 @@ import subprocess
 
 from irctest.basecontrollers import BaseClientController, NotImplementedByController
 
+
 class GircController(BaseClientController):
-    software_name = 'gIRC'
-    supported_sasl_mechanisms = ['PLAIN']
+    software_name = "gIRC"
+    supported_sasl_mechanisms = ["PLAIN"]
     supported_capabilities = set()  # Not exhaustive
 
     def __init__(self):
@@ -30,16 +31,17 @@ class GircController(BaseClientController):
     def run(self, hostname, port, auth, tls_config):
         if tls_config:
             print(tls_config)
-            raise NotImplementedByController('TLS options')
-        args = ['--host', hostname, '--port', str(port), '--quiet']
+            raise NotImplementedByController("TLS options")
+        args = ["--host", hostname, "--port", str(port), "--quiet"]
 
         if auth and auth.username and auth.password:
-            args += ['--sasl-name', auth.username]
-            args += ['--sasl-pass', auth.password]
-            args += ['--sasl-fail-is-ok']
+            args += ["--sasl-name", auth.username]
+            args += ["--sasl-pass", auth.password]
+            args += ["--sasl-fail-is-ok"]
 
         # Runs a client with the config given as arguments
-        self.proc = subprocess.Popen(['girc_test', 'connect'] + args)
+        self.proc = subprocess.Popen(["girc_test", "connect"] + args)
+
 
 def get_irctest_controller_class():
     return GircController

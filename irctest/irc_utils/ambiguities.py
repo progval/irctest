@@ -2,6 +2,7 @@
 Handles ambiguities of RFCs.
 """
 
+
 def normalize_namreply_params(params):
     # So… RFC 2812 says:
     #       "( "=" / "*" / "@" ) <channel>
@@ -12,7 +13,7 @@ def normalize_namreply_params(params):
     # So let's normalize this to “with space”, and strip spaces at the
     # end of the nick list.
     if len(params) == 3:
-        assert params[1][0] in '=*@', params
+        assert params[1][0] in "=*@", params
         params.insert(1), params[1][0]
         params[2] = params[2][1:]
     params[3] = params[3].rstrip()

@@ -8,11 +8,15 @@ import _pytest.unittest
 from irctest.cases import _IrcTestCase, BaseClientTestCase, BaseServerTestCase
 from irctest.basecontrollers import BaseClientController, BaseServerController
 
+
 def pytest_addoption(parser):
     """Called by pytest, registers CLI options passed to the pytest command."""
-    parser.addoption("--controller", help="Which module to use to run the tested software.")
-    parser.addoption('--openssl-bin', type=str, default='openssl',
-            help='The openssl binary to use')
+    parser.addoption(
+        "--controller", help="Which module to use to run the tested software."
+    )
+    parser.addoption(
+        "--openssl-bin", type=str, default="openssl", help="The openssl binary to use"
+    )
 
 
 def pytest_configure(config):
@@ -25,7 +29,7 @@ def pytest_configure(config):
     try:
         module = importlib.import_module(module_name)
     except ImportError:
-        pytest.exit('Cannot import module {}'.format(module_name), 1)
+        pytest.exit("Cannot import module {}".format(module_name), 1)
 
     controller_class = module.get_irctest_controller_class()
     if issubclass(controller_class, BaseClientController):
@@ -34,10 +38,11 @@ def pytest_configure(config):
         from irctest import server_tests as module
     else:
         pytest.exit(
-            r'{}.Controller should be a subclass of '
-            r'irctest.basecontroller.Base{{Client,Server}}Controller'
-            .format(module_name),
-            1
+            r"{}.Controller should be a subclass of "
+            r"irctest.basecontroller.Base{{Client,Server}}Controller".format(
+                module_name
+            ),
+            1,
         )
     _IrcTestCase.controllerClass = controller_class
     _IrcTestCase.controllerClass.openssl_bin = config.getoption("openssl_bin")

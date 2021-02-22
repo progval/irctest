@@ -60,7 +60,7 @@ h4WuPDAI4yh24GjaCZYGR5xcqPCy5CNjMLxdA7HsP+Gcr3eY5XS7noBrbC6IaA0j
 -----END PRIVATE KEY-----
 """
 
-GOOD_FINGERPRINT = 'E1EE6DE2DBC0D43E3B60407B5EE389AEC9D2C53178E0FB14CD51C3DFD544AA2B'
+GOOD_FINGERPRINT = "E1EE6DE2DBC0D43E3B60407B5EE389AEC9D2C53178E0FB14CD51C3DFD544AA2B"
 GOOD_CERT = """
 -----BEGIN CERTIFICATE-----
 MIIDXTCCAkWgAwIBAgIJAKtD9XMC1R0vMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV
@@ -115,32 +115,29 @@ El9iqRlAhgqaXc4Iz/Zxxhs=
 -----END PRIVATE KEY-----
 """
 
+
 class TlsTestCase(cases.BaseClientTestCase):
-    def testTrustedCertificate(self): 
-        tls_config = tls.TlsConfig(
-                enable=True,
-                trusted_fingerprints=[GOOD_FINGERPRINT])
+    def testTrustedCertificate(self):
+        tls_config = tls.TlsConfig(enable=True, trusted_fingerprints=[GOOD_FINGERPRINT])
         (hostname, port) = self.server.getsockname()
         self.controller.run(
-                hostname=hostname,
-                port=port,
-                auth=None,
-                tls_config=tls_config,
-                )
+            hostname=hostname,
+            port=port,
+            auth=None,
+            tls_config=tls_config,
+        )
         self.acceptClient(tls_cert=GOOD_CERT, tls_key=GOOD_KEY)
         m = self.getMessage()
 
-    def testUntrustedCertificate(self): 
-        tls_config = tls.TlsConfig(
-                enable=True,
-                trusted_fingerprints=[GOOD_FINGERPRINT])
+    def testUntrustedCertificate(self):
+        tls_config = tls.TlsConfig(enable=True, trusted_fingerprints=[GOOD_FINGERPRINT])
         (hostname, port) = self.server.getsockname()
         self.controller.run(
-                hostname=hostname,
-                port=port,
-                auth=None,
-                tls_config=tls_config,
-                )
+            hostname=hostname,
+            port=port,
+            auth=None,
+            tls_config=tls_config,
+        )
         self.acceptClient(tls_cert=BAD_CERT, tls_key=BAD_KEY)
         with self.assertRaises((ConnectionClosed, ConnectionResetError)):
             m = self.getMessage()
@@ -150,36 +147,34 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
     def setUp(self):
         super().setUp()
         self.insecure_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.insecure_server.bind(('', 0)) # Bind any free port
+        self.insecure_server.bind(("", 0))  # Bind any free port
         self.insecure_server.listen(1)
 
     def tearDown(self):
         self.insecure_server.close()
         super().tearDown()
 
-    @cases.OptionalityHelper.skipUnlessSupportsCapability('sts')
+    @cases.OptionalityHelper.skipUnlessSupportsCapability("sts")
     def testSts(self):
         tls_config = tls.TlsConfig(
-                enable=False,
-                trusted_fingerprints=[GOOD_FINGERPRINT])
+            enable=False, trusted_fingerprints=[GOOD_FINGERPRINT]
+        )
 
         # Connect client to insecure server
         (hostname, port) = self.insecure_server.getsockname()
         self.controller.run(
-                hostname=hostname,
-                port=port,
-                auth=None,
-                tls_config=tls_config,
-                )
+            hostname=hostname,
+            port=port,
+            auth=None,
+            tls_config=tls_config,
+        )
         self.acceptClient(server=self.insecure_server)
 
         # Send STS policy to client
         m = self.getMessage()
-        self.assertEqual(m.command, 'CAP',
-                'First message is not CAP LS.')
-        self.assertEqual(m.params[0], 'LS',
-                'First message is not CAP LS.')
-        self.sendLine('CAP * LS :sts=port={}'.format(self.server.getsockname()[1]))
+        self.assertEqual(m.command, "CAP", "First message is not CAP LS.")
+        self.assertEqual(m.params[0], "LS", "First message is not CAP LS.")
+        self.sendLine("CAP * LS :sts=port={}".format(self.server.getsockname()[1]))
 
         # "If the client is not already connected securely to the server
         # at the requested hostname, it MUST close the insecure connection
@@ -187,11 +182,12 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.acceptClient(tls_cert=GOOD_CERT, tls_key=GOOD_KEY)
 
         # Send the STS policy, over secure connection this time
-        self.sendLine('CAP * LS :sts=duration=10,port={}'.format(
-            self.server.getsockname()[1]))
+        self.sendLine(
+            "CAP * LS :sts=duration=10,port={}".format(self.server.getsockname()[1])
+        )
 
         # Make the client reconnect. It should reconnect to the secure server.
-        self.sendLine('ERROR :closing link')
+        self.sendLine("ERROR :closing link")
         self.acceptClient()
 
         # Kill the client
@@ -199,34 +195,32 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
 
         # Run the client, still configured to connect to the insecure server
         self.controller.run(
-                hostname=hostname,
-                port=port,
-                auth=None,
-                tls_config=tls_config,
-                )
+            hostname=hostname,
+            port=port,
+            auth=None,
+            tls_config=tls_config,
+        )
 
         # The client should remember the STS policy and connect to the secure
         # server
         self.acceptClient()
 
-    @cases.OptionalityHelper.skipUnlessSupportsCapability('sts')
+    @cases.OptionalityHelper.skipUnlessSupportsCapability("sts")
     def testStsInvalidCertificate(self):
         # Connect client to insecure server
         (hostname, port) = self.insecure_server.getsockname()
         self.controller.run(
-                hostname=hostname,
-                port=port,
-                auth=None,
-                )
+            hostname=hostname,
+            port=port,
+            auth=None,
+        )
         self.acceptClient(server=self.insecure_server)
 
         # Send STS policy to client
         m = self.getMessage()
-        self.assertEqual(m.command, 'CAP',
-                'First message is not CAP LS.')
-        self.assertEqual(m.params[0], 'LS',
-                'First message is not CAP LS.')
-        self.sendLine('CAP * LS :sts=port={}'.format(self.server.getsockname()[1]))
+        self.assertEqual(m.command, "CAP", "First message is not CAP LS.")
+        self.assertEqual(m.params[0], "LS", "First message is not CAP LS.")
+        self.sendLine("CAP * LS :sts=port={}".format(self.server.getsockname()[1]))
 
         # The client will reconnect to the TLS port. Unfortunately, it does
         # not trust its fingerprint.
