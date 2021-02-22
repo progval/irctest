@@ -62,7 +62,6 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
                 }
             )
         }
-        return config
 
     @cases.SpecificationSelector.requiredBySpecification('Oragono')
     def testBeforeConnect(self):
