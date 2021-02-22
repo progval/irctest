@@ -1,7 +1,7 @@
+from collections import namedtuple
 import datetime
 import re
 import secrets
-from collections import namedtuple
 
 HistoryMessage = namedtuple("HistoryMessage", ["time", "msgid", "target", "text"])
 

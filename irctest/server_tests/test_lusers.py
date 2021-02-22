@@ -1,16 +1,25 @@
+from dataclasses import dataclass
 import re
 import time
-from dataclasses import dataclass
 
 from irctest import cases
-
-from irctest.numerics import RPL_LUSERCLIENT, RPL_LUSEROP, RPL_LUSERUNKNOWN, RPL_LUSERCHANNELS, RPL_LUSERME, RPL_LOCALUSERS, RPL_GLOBALUSERS, ERR_NOTREGISTERED
-from irctest.numerics import RPL_YOUREOPER
+from irctest.numerics import (
+    ERR_NOTREGISTERED,
+    RPL_GLOBALUSERS,
+    RPL_LOCALUSERS,
+    RPL_LUSERCHANNELS,
+    RPL_LUSERCLIENT,
+    RPL_LUSERME,
+    RPL_LUSEROP,
+    RPL_LUSERUNKNOWN,
+    RPL_YOUREOPER,
+)
 
 # 3 numbers, delimited by spaces, possibly negative (eek)
-LUSERCLIENT_REGEX = re.compile(r'^.*( [-0-9]* ).*( [-0-9]* ).*( [-0-9]* ).*$')
+LUSERCLIENT_REGEX = re.compile(r"^.*( [-0-9]* ).*( [-0-9]* ).*( [-0-9]* ).*$")
 # 2 numbers
-LUSERME_REGEX = re.compile(r'^.*( [-0-9]* ).*( [-0-9]* ).*$')
+LUSERME_REGEX = re.compile(r"^.*( [-0-9]* ).*( [-0-9]* ).*$")
+
 
 @dataclass
 class LusersResult:
@@ -25,10 +34,10 @@ class LusersResult:
     GlobalTotal: int = None
     GlobalMax: int = None
 
-class LusersTestCase(cases.BaseServerTestCase):
 
+class LusersTestCase(cases.BaseServerTestCase):
     def getLusers(self, client):
-        self.sendLine(client, 'LUSERS')
+        self.sendLine(client, "LUSERS")
         messages = self.getMessages(client)
         by_numeric = dict((msg.command, msg) for msg in messages)
 
@@ -38,7 +47,7 @@ class LusersTestCase(cases.BaseServerTestCase):
         for message in messages:
             self.assertEqual(client, message.params[0])
 
-        luserclient = by_numeric[RPL_LUSERCLIENT] # 251
+        luserclient = by_numeric[RPL_LUSERCLIENT]  # 251
         self.assertEqual(len(luserclient.params), 2)
         luserclient_param = luserclient.params[1]
         try:
@@ -77,12 +86,12 @@ class LusersTestCase(cases.BaseServerTestCase):
 
         return result
 
-class BasicLusersTest(LusersTestCase):
 
-    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+class BasicLusersTest(LusersTestCase):
+    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
     def testLusers(self):
-        self.connectClient('bar', name='bar')
-        lusers = self.getLusers('bar')
+        self.connectClient("bar", name="bar")
+        lusers = self.getLusers("bar")
         self.assertIn(lusers.Unregistered, (0, None))
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 1)
@@ -92,8 +101,8 @@ class BasicLusersTest(LusersTestCase):
         self.assertEqual(lusers.LocalTotal, 1)
         self.assertEqual(lusers.LocalMax, 1)
 
-        self.connectClient('qux', name='qux')
-        lusers = self.getLusers('qux')
+        self.connectClient("qux", name="qux")
+        lusers = self.getLusers("qux")
         self.assertIn(lusers.Unregistered, (0, None))
         self.assertEqual(lusers.GlobalTotal, 2)
         self.assertEqual(lusers.GlobalMax, 2)
@@ -103,9 +112,9 @@ class BasicLusersTest(LusersTestCase):
         self.assertEqual(lusers.LocalTotal, 2)
         self.assertEqual(lusers.LocalMax, 2)
 
-        self.sendLine('qux', 'QUIT')
-        self.assertDisconnected('qux')
-        lusers = self.getLusers('bar')
+        self.sendLine("qux", "QUIT")
+        self.assertDisconnected("qux")
+        lusers = self.getLusers("bar")
         self.assertIn(lusers.Unregistered, (0, None))
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 2)
@@ -117,28 +126,27 @@ class BasicLusersTest(LusersTestCase):
 
 
 class LusersUnregisteredTestCase(LusersTestCase):
-
-    @cases.SpecificationSelector.requiredBySpecification('RFC2812')
+    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
     def testLusers(self):
         self.doLusersTest()
 
     def _synchronize(self, client_name):
         """Synchronizes using a PING, but accept ERR_NOTREGISTERED as a response."""
-        self.sendLine(client_name, 'PING')
+        self.sendLine(client_name, "PING")
         for _ in range(1000):
             msg = self.getRegistrationMessage(client_name)
-            if msg.command in (ERR_NOTREGISTERED, 'PONG'):
+            if msg.command in (ERR_NOTREGISTERED, "PONG"):
                 break
             time.sleep(0.01)
         else:
             assert False, (
-                'Sent a PING before registration, '
-                'got neither PONG or ERR_NOTREGISTERED'
+                "Sent a PING before registration, "
+                "got neither PONG or ERR_NOTREGISTERED"
             )
 
     def doLusersTest(self):
-        self.connectClient('bar', name='bar')
-        lusers = self.getLusers('bar')
+        self.connectClient("bar", name="bar")
+        lusers = self.getLusers("bar")
         self.assertIn(lusers.Unregistered, (0, None))
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 1)
@@ -148,10 +156,10 @@ class LusersUnregisteredTestCase(LusersTestCase):
         self.assertEqual(lusers.LocalTotal, 1)
         self.assertEqual(lusers.LocalMax, 1)
 
-        self.addClient('qux')
-        self.sendLine('qux', 'NICK qux')
-        self._synchronize('qux')
-        lusers = self.getLusers('bar')
+        self.addClient("qux")
+        self.sendLine("qux", "NICK qux")
+        self._synchronize("qux")
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.Unregistered, 1)
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 1)
@@ -161,10 +169,10 @@ class LusersUnregisteredTestCase(LusersTestCase):
         self.assertEqual(lusers.LocalTotal, 1)
         self.assertEqual(lusers.LocalMax, 1)
 
-        self.addClient('bat')
-        self.sendLine('bat', 'NICK bat')
-        self._synchronize('bat')
-        lusers = self.getLusers('bar')
+        self.addClient("bat")
+        self.sendLine("bat", "NICK bat")
+        self._synchronize("bat")
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.Unregistered, 2)
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 1)
@@ -175,9 +183,9 @@ class LusersUnregisteredTestCase(LusersTestCase):
         self.assertEqual(lusers.LocalMax, 1)
 
         # complete registration on one client
-        self.sendLine('qux', 'USER u s e r')
-        self.getMessages('qux')
-        lusers = self.getLusers('bar')
+        self.sendLine("qux", "USER u s e r")
+        self.getMessages("qux")
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.Unregistered, 1)
         self.assertEqual(lusers.GlobalTotal, 2)
         self.assertEqual(lusers.GlobalMax, 2)
@@ -188,9 +196,9 @@ class LusersUnregisteredTestCase(LusersTestCase):
         self.assertEqual(lusers.LocalMax, 2)
 
         # QUIT the other without registering
-        self.sendLine('bat', 'QUIT')
-        self.assertDisconnected('bat')
-        lusers = self.getLusers('bar')
+        self.sendLine("bat", "QUIT")
+        self.assertDisconnected("bat")
+        lusers = self.getLusers("bar")
         self.assertIn(lusers.Unregistered, (0, None))
         self.assertEqual(lusers.GlobalTotal, 2)
         self.assertEqual(lusers.GlobalMax, 2)
@@ -203,18 +211,19 @@ class LusersUnregisteredTestCase(LusersTestCase):
 
 class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
     """Same as above but with +i as the default."""
+
     @staticmethod
     def config():
         return {
-            "oragono_config": lambda config: config['accounts'].update(
-                {'default-user-modes': '+i'}
+            "oragono_config": lambda config: config["accounts"].update(
+                {"default-user-modes": "+i"}
             )
         }
 
-    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    @cases.SpecificationSelector.requiredBySpecification("Oragono")
     def testLusers(self):
         self.doLusersTest()
-        lusers = self.getLusers('bar')
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.Unregistered, 0)
         self.assertEqual(lusers.GlobalTotal, 2)
         self.assertEqual(lusers.GlobalMax, 2)
@@ -225,11 +234,10 @@ class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
 
 
 class LuserOpersTest(LusersTestCase):
-
-    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    @cases.SpecificationSelector.requiredBySpecification("Oragono")
     def testLuserOpers(self):
-        self.connectClient('bar', name='bar')
-        lusers = self.getLusers('bar')
+        self.connectClient("bar", name="bar")
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 1)
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
@@ -240,10 +248,10 @@ class LuserOpersTest(LusersTestCase):
         self.assertIn(lusers.Opers, (0, None))
 
         # add 1 oper
-        self.sendLine('bar', 'OPER root frenchfries')
-        msgs = self.getMessages('bar')
+        self.sendLine("bar", "OPER root frenchfries")
+        msgs = self.getMessages("bar")
         self.assertIn(RPL_YOUREOPER, {msg.command for msg in msgs})
-        lusers = self.getLusers('bar')
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 1)
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
@@ -254,10 +262,10 @@ class LuserOpersTest(LusersTestCase):
         self.assertEqual(lusers.Opers, 1)
 
         # now 2 opers
-        self.connectClient('qux', name='qux')
-        self.sendLine('qux', 'OPER root frenchfries')
-        self.getMessages('qux')
-        lusers = self.getLusers('bar')
+        self.connectClient("qux", name="qux")
+        self.sendLine("qux", "OPER root frenchfries")
+        self.getMessages("qux")
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.GlobalTotal, 2)
         self.assertEqual(lusers.GlobalMax, 2)
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
@@ -268,10 +276,10 @@ class LuserOpersTest(LusersTestCase):
         self.assertEqual(lusers.Opers, 2)
 
         # remove oper with MODE
-        self.sendLine('bar', 'MODE bar -o')
-        msgs = self.getMessages('bar')
-        self.assertIn('MODE', {msg.command for msg in msgs})
-        lusers = self.getLusers('bar')
+        self.sendLine("bar", "MODE bar -o")
+        msgs = self.getMessages("bar")
+        self.assertIn("MODE", {msg.command for msg in msgs})
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.GlobalTotal, 2)
         self.assertEqual(lusers.GlobalMax, 2)
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
@@ -282,9 +290,9 @@ class LuserOpersTest(LusersTestCase):
         self.assertEqual(lusers.Opers, 1)
 
         # remove oper by quit
-        self.sendLine('qux', 'QUIT')
-        self.assertDisconnected('qux')
-        lusers = self.getLusers('bar')
+        self.sendLine("qux", "QUIT")
+        self.assertDisconnected("qux")
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 2)
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
@@ -299,15 +307,15 @@ class OragonoInvisibleDefaultTest(LusersTestCase):
     @staticmethod
     def config():
         return {
-            "oragono_config": lambda config: config['accounts'].update(
-                {'default-user-modes': '+i'}
+            "oragono_config": lambda config: config["accounts"].update(
+                {"default-user-modes": "+i"}
             )
         }
 
-    @cases.SpecificationSelector.requiredBySpecification('Oragono')
+    @cases.SpecificationSelector.requiredBySpecification("Oragono")
     def testLusers(self):
-        self.connectClient('bar', name='bar')
-        lusers = self.getLusers('bar')
+        self.connectClient("bar", name="bar")
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 1)
         self.assertEqual(lusers.GlobalInvisible, 1)
@@ -315,8 +323,8 @@ class OragonoInvisibleDefaultTest(LusersTestCase):
         self.assertEqual(lusers.LocalTotal, 1)
         self.assertEqual(lusers.LocalMax, 1)
 
-        self.connectClient('qux', name='qux')
-        lusers = self.getLusers('qux')
+        self.connectClient("qux", name="qux")
+        lusers = self.getLusers("qux")
         self.assertEqual(lusers.GlobalTotal, 2)
         self.assertEqual(lusers.GlobalMax, 2)
         self.assertEqual(lusers.GlobalInvisible, 2)
@@ -325,10 +333,10 @@ class OragonoInvisibleDefaultTest(LusersTestCase):
         self.assertEqual(lusers.LocalMax, 2)
 
         # remove +i with MODE
-        self.sendLine('bar', 'MODE bar -i')
-        msgs = self.getMessages('bar')
-        lusers = self.getLusers('bar')
-        self.assertIn('MODE', {msg.command for msg in msgs})
+        self.sendLine("bar", "MODE bar -i")
+        msgs = self.getMessages("bar")
+        lusers = self.getLusers("bar")
+        self.assertIn("MODE", {msg.command for msg in msgs})
         self.assertEqual(lusers.GlobalTotal, 2)
         self.assertEqual(lusers.GlobalMax, 2)
         self.assertEqual(lusers.GlobalInvisible, 1)
@@ -337,9 +345,9 @@ class OragonoInvisibleDefaultTest(LusersTestCase):
         self.assertEqual(lusers.LocalMax, 2)
 
         # disconnect invisible user
-        self.sendLine('qux', 'QUIT')
-        self.assertDisconnected('qux')
-        lusers = self.getLusers('bar')
+        self.sendLine("qux", "QUIT")
+        self.assertDisconnected("qux")
+        lusers = self.getLusers("bar")
         self.assertEqual(lusers.GlobalTotal, 1)
         self.assertEqual(lusers.GlobalMax, 2)
         self.assertEqual(lusers.GlobalInvisible, 0)

@@ -1,8 +1,6 @@
 from irctest import cases
 from irctest.irc_utils.sasl import sasl_plain_blob
-
-from irctest.numerics import RPL_WELCOME
-from irctest.numerics import ERR_NICKNAMEINUSE
+from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME
 
 
 class Bouncer(cases.BaseServerTestCase):

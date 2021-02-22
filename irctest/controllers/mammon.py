@@ -1,9 +1,12 @@
 import os
-import time
 import subprocess
+import time
 
-from irctest.basecontrollers import NotImplementedByController
-from irctest.basecontrollers import BaseServerController, DirectoryBasedController
+from irctest.basecontrollers import (
+    BaseServerController,
+    DirectoryBasedController,
+    NotImplementedByController,
+)
 
 TEMPLATE_CONFIG = """
 clients:

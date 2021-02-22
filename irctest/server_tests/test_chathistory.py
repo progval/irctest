@@ -2,7 +2,7 @@ import secrets
 import time
 
 from irctest import cases
-from irctest.irc_utils.junkdrawer import to_history_message, random_name
+from irctest.irc_utils.junkdrawer import random_name, to_history_message
 
 CHATHISTORY_CAP = "draft/chathistory"
 EVENT_PLAYBACK_CAP = "draft/event-playback"

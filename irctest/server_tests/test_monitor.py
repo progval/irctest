@@ -3,13 +3,13 @@
 """
 
 from irctest import cases
-from irctest.client_mock import NoMessageException
 from irctest.basecontrollers import NotImplementedByController
+from irctest.client_mock import NoMessageException
 from irctest.numerics import (
-    RPL_MONLIST,
     RPL_ENDOFMONLIST,
-    RPL_MONONLINE,
+    RPL_MONLIST,
     RPL_MONOFFLINE,
+    RPL_MONONLINE,
 )
 
 

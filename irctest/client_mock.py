@@ -1,9 +1,10 @@
+import socket
 import ssl
 import sys
 import time
-import socket
+
+from .exceptions import ConnectionClosed, NoMessageException
 from .irc_utils import message_parser
-from .exceptions import NoMessageException, ConnectionClosed
 
 
 class ClientMock:

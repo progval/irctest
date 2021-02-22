@@ -2,11 +2,11 @@ import importlib
 import sys
 import unittest
 
-import pytest
 import _pytest.unittest
+import pytest
 
-from irctest.cases import _IrcTestCase, BaseClientTestCase, BaseServerTestCase
 from irctest.basecontrollers import BaseClientController, BaseServerController
+from irctest.cases import BaseClientTestCase, BaseServerTestCase, _IrcTestCase
 
 
 def pytest_addoption(parser):

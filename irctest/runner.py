@@ -1,6 +1,6 @@
-import unittest
-import operator
 import collections
+import operator
+import unittest
 
 
 class NotImplementedByController(unittest.SkipTest, NotImplementedError):

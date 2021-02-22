@@ -1,5 +1,5 @@
-import enum
 import collections
+import enum
 
 
 @enum.unique

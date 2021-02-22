@@ -2,7 +2,6 @@ from irctest import cases
 from irctest.irc_utils.junkdrawer import random_name
 from irctest.server_tests.test_chathistory import CHATHISTORY_CAP, EVENT_PLAYBACK_CAP
 
-
 RELAYMSG_CAP = "draft/relaymsg"
 RELAYMSG_TAG_NAME = "draft/relaymsg"
 

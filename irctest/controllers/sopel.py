@@ -1,9 +1,8 @@
 import os
-import tempfile
 import subprocess
+import tempfile
 
-from irctest.basecontrollers import BaseClientController
-from irctest.basecontrollers import NotImplementedByController
+from irctest.basecontrollers import BaseClientController, NotImplementedByController
 
 TEMPLATE_CONFIG = """
 [core]

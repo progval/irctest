@@ -1,5 +1,5 @@
 from irctest import cases
-from irctest.numerics import RPL_WELCOME, ERR_NICKNAMEINUSE
+from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME
 
 
 class ConfusablesTestCase(cases.BaseServerTestCase):

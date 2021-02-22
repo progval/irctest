@@ -3,27 +3,23 @@ Section 3.2 of RFC 2812
 <https://tools.ietf.org/html/rfc2812#section-3.2>
 """
 
-from irctest import cases
-from irctest import client_mock
-from irctest import runner
+from irctest import cases, client_mock, runner
 from irctest.irc_utils import ambiguities
 from irctest.numerics import (
+    ERR_BADCHANNELKEY,
+    ERR_CANNOTSENDTOCHAN,
+    ERR_CHANOPRIVSNEEDED,
+    ERR_INVALIDMODEPARAM,
+    ERR_INVITEONLYCHAN,
+    ERR_NOSUCHCHANNEL,
+    ERR_NOSUCHNICK,
+    ERR_NOTONCHANNEL,
+    ERR_UNKNOWNERROR,
+    RPL_INVITING,
+    RPL_NAMREPLY,
+    RPL_NOTOPIC,
     RPL_TOPIC,
     RPL_TOPICTIME,
-    RPL_NOTOPIC,
-    RPL_NAMREPLY,
-    RPL_INVITING,
-)
-from irctest.numerics import (
-    ERR_NOSUCHCHANNEL,
-    ERR_NOTONCHANNEL,
-    ERR_CHANOPRIVSNEEDED,
-    ERR_NOSUCHNICK,
-    ERR_INVITEONLYCHAN,
-    ERR_CANNOTSENDTOCHAN,
-    ERR_BADCHANNELKEY,
-    ERR_INVALIDMODEPARAM,
-    ERR_UNKNOWNERROR,
 )
 
 MODERN_CAPS = [

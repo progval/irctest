@@ -1,13 +1,15 @@
 import os
-import time
 import shutil
-import tempfile
 import subprocess
+import tempfile
+import time
 
-from irctest import client_mock
-from irctest import authentication
-from irctest.basecontrollers import NotImplementedByController
-from irctest.basecontrollers import BaseServerController, DirectoryBasedController
+from irctest import authentication, client_mock
+from irctest.basecontrollers import (
+    BaseServerController,
+    DirectoryBasedController,
+    NotImplementedByController,
+)
 
 TEMPLATE_CONFIG = """
 serverinfo {{

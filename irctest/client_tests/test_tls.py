@@ -1,8 +1,7 @@
 import socket
 import ssl
 
-from irctest import tls
-from irctest import cases
+from irctest import cases, tls
 from irctest.exceptions import ConnectionClosed
 from irctest.irc_utils.message_parser import Message
 

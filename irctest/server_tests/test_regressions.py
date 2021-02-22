@@ -3,7 +3,6 @@ Regression tests for bugs in oragono.
 """
 
 from irctest import cases
-
 from irctest.numerics import ERR_ERRONEUSNICKNAME, ERR_NICKNAMEINUSE, RPL_WELCOME
 
 

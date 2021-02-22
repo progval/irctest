@@ -5,7 +5,6 @@
 import secrets
 
 from irctest import cases
-
 from irctest.numerics import RPL_AWAY
 
 ANCIENT_TIMESTAMP = "2006-01-02T15:04:05.999Z"

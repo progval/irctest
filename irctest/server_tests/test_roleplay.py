@@ -1,6 +1,6 @@
 from irctest import cases
-from irctest.numerics import ERR_CANNOTSENDRP
 from irctest.irc_utils.junkdrawer import random_name
+from irctest.numerics import ERR_CANNOTSENDRP
 
 
 class RoleplayTestCase(cases.BaseServerTestCase):
