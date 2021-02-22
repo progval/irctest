@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import re
-import time
 
 from irctest import cases
 from irctest.numerics import (
@@ -137,7 +136,6 @@ class LusersUnregisteredTestCase(LusersTestCase):
             msg = self.getRegistrationMessage(client_name)
             if msg.command in (ERR_NOTREGISTERED, "PONG"):
                 break
-            time.sleep(0.01)
         else:
             assert False, (
                 "Sent a PING before registration, "

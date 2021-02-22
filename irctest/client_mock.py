@@ -49,9 +49,6 @@ class ClientMock:
                     if not assert_get_one and not synchronize and data == b"":
                         # Received nothing
                         return []
-                    if self.show_io:
-                        print("{:.3f} {}: waiting…".format(time.time(), self.name))
-                    time.sleep(0.1)
                     continue
                 except ConnectionResetError:
                     raise ConnectionClosed()
@@ -61,7 +58,6 @@ class ClientMock:
                         raise ConnectionClosed()
                 data += new_data
                 if not new_data.endswith(b"\r\n"):
-                    time.sleep(0.1)
                     continue
                 if not synchronize:
                     got_pong = True
