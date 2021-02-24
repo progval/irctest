@@ -44,22 +44,22 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         m = self.getMessage(1)
         self.assertMessageEqual(
             m,
-            command="PRIVMSG",  # RPL_MONONLINE
-            fail_msg="Sent non-730 (RPL_MONONLINE) message after "
-            "“bar” sent a PRIVMSG: {msg}",
+            command="PRIVMSG",
+            params=["foo", "hi"],
+            fail_msg="Expected a private PRIVMSG from 'bar', got: {msg}",
         )
         self.assertIn(
             "account",
             m.tags,
             m,
-            fail_msg="PRIVMSG by logged in nick "
+            fail_msg="PRIVMSG by logged-in nick "
             "does not contain an account tag: {msg}",
         )
         self.assertEqual(
             m.tags["account"],
             "jilles",
             m,
-            fail_msg="PRIVMSG by logged in nick "
+            fail_msg="PRIVMSG by logged-in nick "
             "does not contain the correct account tag (should be "
             "“jilles”): {msg}",
         )
