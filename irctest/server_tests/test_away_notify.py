@@ -22,14 +22,12 @@ class AwayNotifyTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(2, "AWAY :i'm going away")
         self.getMessages(2)
 
-        messages = [msg for msg in self.getMessages(1) if msg.command == "AWAY"]
-        self.assertEqual(len(messages), 1)
-        awayNotify = messages[0]
+        awayNotify = self.getMessage(1)
+        self.assertMessageEqual(awayNotify, command="AWAY", params=["i'm going away"])
         self.assertTrue(
             awayNotify.prefix.startswith("bar!"),
             "Unexpected away-notify source: %s" % (awayNotify.prefix,),
         )
-        self.assertEqual(awayNotify.params, ["i'm going away"])
 
     @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
     def testAwayNotifyOnJoin(self):
@@ -50,10 +48,15 @@ class AwayNotifyTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.getMessages(2)
 
         messages = [msg for msg in self.getMessages(1) if msg.command == "AWAY"]
-        self.assertEqual(len(messages), 1)
+        self.assertEqual(
+            len(messages),
+            1,
+            "Someone away joined a channel, "
+            "but users in the channel did not get AWAY messages.",
+        )
         awayNotify = messages[0]
+        self.assertMessageEqual(awayNotify, command="AWAY", params=["i'm already away"])
         self.assertTrue(
             awayNotify.prefix.startswith("bar!"),
             "Unexpected away-notify source: %s" % (awayNotify.prefix,),
         )
-        self.assertEqual(awayNotify.params, ["i'm already away"])
