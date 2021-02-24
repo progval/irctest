@@ -83,6 +83,7 @@ To run (server) tests on Charybdis::
 cd /tmp/
 git clone https://github.com/atheme/charybdis.git
 cd charybdis
+./autogen.sh
 ./configure --prefix=$HOME/.local/
 make -j 4
 make install
