@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import re
+from typing import Optional
 
 from irctest import cases
 from irctest.numerics import (
@@ -26,19 +27,19 @@ class LusersResult:
     GlobalInvisible: int = None
     Servers: int = None
     Opers: int = None
-    Unregistered: int = None
+    Unregistered: Optional[int] = None
     Channels: int = None
-    LocalTotal: int = None
-    LocalMax: int = None
-    GlobalTotal: int = None
-    GlobalMax: int = None
+    LocalTotal: Optional[int] = None
+    LocalMax: Optional[int] = None
+    GlobalTotal: Optional[int] = None
+    GlobalMax: Optional[int] = None
 
 
 class LusersTestCase(cases.BaseServerTestCase):
     def assertLusersResult(self, lusers, unregistered, total, max_):
         self.assertIn(lusers.Unregistered, (unregistered, None))
-        self.assertEqual(lusers.GlobalTotal, total)
-        self.assertEqual(lusers.GlobalMax, max_)
+        self.assertIn(lusers.GlobalTotal, (total, None))
+        self.assertIn(lusers.GlobalMax, (max_, None))
 
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
         self.assertGreaterEqual(lusers.GlobalVisible, 0)
@@ -46,8 +47,8 @@ class LusersTestCase(cases.BaseServerTestCase):
         self.assertLessEqual(lusers.GlobalVisible, total)
         self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, total)
 
-        self.assertEqual(lusers.LocalTotal, total)
-        self.assertEqual(lusers.LocalMax, max_)
+        self.assertIn(lusers.LocalTotal, (total, None))
+        self.assertIn(lusers.LocalMax, (max_, None))
 
     def getLusers(self, client):
         self.sendLine(client, "LUSERS")
@@ -77,12 +78,20 @@ class LusersTestCase(cases.BaseServerTestCase):
             result.Unregistered = int(by_numeric[RPL_LUSERUNKNOWN].params[1])
         if RPL_LUSERCHANNELS in by_numeric:
             result.Channels = int(by_numeric[RPL_LUSERCHANNELS].params[1])
+
         localusers = by_numeric[RPL_LOCALUSERS]
-        result.LocalTotal = int(localusers.params[1])
-        result.LocalMax = int(localusers.params[2])
         globalusers = by_numeric[RPL_GLOBALUSERS]
-        result.GlobalTotal = int(globalusers.params[1])
-        result.GlobalMax = int(globalusers.params[2])
+        if len(localusers.params) == 4:
+            result.LocalTotal = int(localusers.params[1])
+            result.LocalMax = int(localusers.params[2])
+            result.GlobalTotal = int(globalusers.params[1])
+            result.GlobalMax = int(globalusers.params[2])
+        else:
+            # Arguments 1 and 2 are optional
+            self.assertEqual(len(localusers.params), 2)
+            result.LocalTotal = result.LocalMax = None
+            result.GlobalTotal = result.GlobalMax = None
+            return result
 
         luserme = by_numeric[RPL_LUSERME]
         self.assertEqual(len(luserme.params), 2)
