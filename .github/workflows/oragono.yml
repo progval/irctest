@@ -35,7 +35,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: oragono/oragono
-        ref: v2.5.1
+        ref: irctest_stable
         path: oragono
 
     - name: Build Oragono
