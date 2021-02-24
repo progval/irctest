@@ -35,6 +35,18 @@ class LusersResult:
 
 
 class LusersTestCase(cases.BaseServerTestCase):
+    def assertLusersResult(self, lusers, unregistered, total, max_):
+        self.assertIn(lusers.Unregistered, (unregistered, None))
+        self.assertEqual(lusers.GlobalTotal, total)
+        self.assertEqual(lusers.GlobalMax, max_)
+
+        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
+        self.assertGreaterEqual(lusers.GlobalVisible, 0)
+        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, total)
+
+        self.assertEqual(lusers.LocalTotal, total)
+        self.assertEqual(lusers.LocalMax, max_)
+
     def getLusers(self, client):
         self.sendLine(client, "LUSERS")
         messages = self.getMessages(client)
@@ -91,37 +103,16 @@ class BasicLusersTest(LusersTestCase):
     def testLusers(self):
         self.connectClient("bar", name="bar")
         lusers = self.getLusers("bar")
-        self.assertIn(lusers.Unregistered, (0, None))
-        self.assertEqual(lusers.GlobalTotal, 1)
-        self.assertEqual(lusers.GlobalMax, 1)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
-        self.assertEqual(lusers.LocalTotal, 1)
-        self.assertEqual(lusers.LocalMax, 1)
+        self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
 
         self.connectClient("qux", name="qux")
         lusers = self.getLusers("qux")
-        self.assertIn(lusers.Unregistered, (0, None))
-        self.assertEqual(lusers.GlobalTotal, 2)
-        self.assertEqual(lusers.GlobalMax, 2)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 2)
-        self.assertEqual(lusers.LocalTotal, 2)
-        self.assertEqual(lusers.LocalMax, 2)
+        self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
 
         self.sendLine("qux", "QUIT")
         self.assertDisconnected("qux")
         lusers = self.getLusers("bar")
-        self.assertIn(lusers.Unregistered, (0, None))
-        self.assertEqual(lusers.GlobalTotal, 1)
-        self.assertEqual(lusers.GlobalMax, 2)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
-        self.assertEqual(lusers.LocalTotal, 1)
-        self.assertEqual(lusers.LocalMax, 2)
+        self.assertLusersResult(lusers, unregistered=0, total=1, max_=2)
 
 
 class LusersUnregisteredTestCase(LusersTestCase):
@@ -145,66 +136,31 @@ class LusersUnregisteredTestCase(LusersTestCase):
     def doLusersTest(self):
         self.connectClient("bar", name="bar")
         lusers = self.getLusers("bar")
-        self.assertIn(lusers.Unregistered, (0, None))
-        self.assertEqual(lusers.GlobalTotal, 1)
-        self.assertEqual(lusers.GlobalMax, 1)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
-        self.assertEqual(lusers.LocalTotal, 1)
-        self.assertEqual(lusers.LocalMax, 1)
+        self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
 
         self.addClient("qux")
         self.sendLine("qux", "NICK qux")
         self._synchronize("qux")
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.Unregistered, 1)
-        self.assertEqual(lusers.GlobalTotal, 1)
-        self.assertEqual(lusers.GlobalMax, 1)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
-        self.assertEqual(lusers.LocalTotal, 1)
-        self.assertEqual(lusers.LocalMax, 1)
+        self.assertLusersResult(lusers, unregistered=1, total=1, max_=1)
 
         self.addClient("bat")
         self.sendLine("bat", "NICK bat")
         self._synchronize("bat")
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.Unregistered, 2)
-        self.assertEqual(lusers.GlobalTotal, 1)
-        self.assertEqual(lusers.GlobalMax, 1)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
-        self.assertEqual(lusers.LocalTotal, 1)
-        self.assertEqual(lusers.LocalMax, 1)
+        self.assertLusersResult(lusers, unregistered=2, total=1, max_=1)
 
         # complete registration on one client
         self.sendLine("qux", "USER u s e r")
-        self.getMessages("qux")
+        self.getRegistrationMessage("qux")
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.Unregistered, 1)
-        self.assertEqual(lusers.GlobalTotal, 2)
-        self.assertEqual(lusers.GlobalMax, 2)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 2)
-        self.assertEqual(lusers.LocalTotal, 2)
-        self.assertEqual(lusers.LocalMax, 2)
+        self.assertLusersResult(lusers, unregistered=1, total=2, max_=2)
 
         # QUIT the other without registering
         self.sendLine("bat", "QUIT")
         self.assertDisconnected("bat")
         lusers = self.getLusers("bar")
-        self.assertIn(lusers.Unregistered, (0, None))
-        self.assertEqual(lusers.GlobalTotal, 2)
-        self.assertEqual(lusers.GlobalMax, 2)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 2)
-        self.assertEqual(lusers.LocalTotal, 2)
-        self.assertEqual(lusers.LocalMax, 2)
+        self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
 
 
 class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
@@ -222,13 +178,9 @@ class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
     def testLusers(self):
         self.doLusersTest()
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.Unregistered, 0)
-        self.assertEqual(lusers.GlobalTotal, 2)
-        self.assertEqual(lusers.GlobalMax, 2)
+        self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
         self.assertEqual(lusers.GlobalInvisible, 2)
         self.assertEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.LocalTotal, 2)
-        self.assertEqual(lusers.LocalMax, 2)
 
 
 class LuserOpersTest(LusersTestCase):
@@ -236,13 +188,7 @@ class LuserOpersTest(LusersTestCase):
     def testLuserOpers(self):
         self.connectClient("bar", name="bar")
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.GlobalTotal, 1)
-        self.assertEqual(lusers.GlobalMax, 1)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
-        self.assertEqual(lusers.LocalTotal, 1)
-        self.assertEqual(lusers.LocalMax, 1)
+        self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
         self.assertIn(lusers.Opers, (0, None))
 
         # add 1 oper
@@ -250,13 +196,7 @@ class LuserOpersTest(LusersTestCase):
         msgs = self.getMessages("bar")
         self.assertIn(RPL_YOUREOPER, {msg.command for msg in msgs})
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.GlobalTotal, 1)
-        self.assertEqual(lusers.GlobalMax, 1)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
-        self.assertEqual(lusers.LocalTotal, 1)
-        self.assertEqual(lusers.LocalMax, 1)
+        self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
         self.assertEqual(lusers.Opers, 1)
 
         # now 2 opers
@@ -264,13 +204,7 @@ class LuserOpersTest(LusersTestCase):
         self.sendLine("qux", "OPER root frenchfries")
         self.getMessages("qux")
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.GlobalTotal, 2)
-        self.assertEqual(lusers.GlobalMax, 2)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 2)
-        self.assertEqual(lusers.LocalTotal, 2)
-        self.assertEqual(lusers.LocalMax, 2)
+        self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
         self.assertEqual(lusers.Opers, 2)
 
         # remove oper with MODE
@@ -278,26 +212,14 @@ class LuserOpersTest(LusersTestCase):
         msgs = self.getMessages("bar")
         self.assertIn("MODE", {msg.command for msg in msgs})
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.GlobalTotal, 2)
-        self.assertEqual(lusers.GlobalMax, 2)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 2)
-        self.assertEqual(lusers.LocalTotal, 2)
-        self.assertEqual(lusers.LocalMax, 2)
+        self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
         self.assertEqual(lusers.Opers, 1)
 
         # remove oper by quit
         self.sendLine("qux", "QUIT")
         self.assertDisconnected("qux")
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.GlobalTotal, 1)
-        self.assertEqual(lusers.GlobalMax, 2)
-        self.assertGreaterEqual(lusers.GlobalInvisible, 0)
-        self.assertGreaterEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, 1)
-        self.assertEqual(lusers.LocalTotal, 1)
-        self.assertEqual(lusers.LocalMax, 2)
+        self.assertLusersResult(lusers, unregistered=0, total=1, max_=2)
         self.assertEqual(lusers.Opers, 0)
 
 
@@ -314,41 +236,29 @@ class OragonoInvisibleDefaultTest(LusersTestCase):
     def testLusers(self):
         self.connectClient("bar", name="bar")
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.GlobalTotal, 1)
-        self.assertEqual(lusers.GlobalMax, 1)
+        self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
         self.assertEqual(lusers.GlobalInvisible, 1)
         self.assertEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.LocalTotal, 1)
-        self.assertEqual(lusers.LocalMax, 1)
 
         self.connectClient("qux", name="qux")
         lusers = self.getLusers("qux")
-        self.assertEqual(lusers.GlobalTotal, 2)
-        self.assertEqual(lusers.GlobalMax, 2)
+        self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
         self.assertEqual(lusers.GlobalInvisible, 2)
         self.assertEqual(lusers.GlobalVisible, 0)
-        self.assertEqual(lusers.LocalTotal, 2)
-        self.assertEqual(lusers.LocalMax, 2)
 
         # remove +i with MODE
         self.sendLine("bar", "MODE bar -i")
         msgs = self.getMessages("bar")
         lusers = self.getLusers("bar")
         self.assertIn("MODE", {msg.command for msg in msgs})
-        self.assertEqual(lusers.GlobalTotal, 2)
-        self.assertEqual(lusers.GlobalMax, 2)
+        self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
         self.assertEqual(lusers.GlobalInvisible, 1)
         self.assertEqual(lusers.GlobalVisible, 1)
-        self.assertEqual(lusers.LocalTotal, 2)
-        self.assertEqual(lusers.LocalMax, 2)
 
         # disconnect invisible user
         self.sendLine("qux", "QUIT")
         self.assertDisconnected("qux")
         lusers = self.getLusers("bar")
-        self.assertEqual(lusers.GlobalTotal, 1)
-        self.assertEqual(lusers.GlobalMax, 2)
+        self.assertLusersResult(lusers, unregistered=0, total=1, max_=2)
         self.assertEqual(lusers.GlobalInvisible, 0)
         self.assertEqual(lusers.GlobalVisible, 1)
-        self.assertEqual(lusers.LocalTotal, 1)
-        self.assertEqual(lusers.LocalMax, 2)
