@@ -1,0 +1,51 @@
+name: irctest with InspIRCd
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache
+          $GITHUB_WORKSPACE/inspircd
+        key: ${{ runner.os }}-inspircd
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+
+    - name: Checkout InspIRCd
+      uses: actions/checkout@v2
+      with:
+        repository: inspircd/inspircd
+        ref: v3.8.1
+        path: inspircd
+
+    - name: Build InspIRCd
+      run: |
+        cd $GITHUB_WORKSPACE/inspircd/
+        ./configure --prefix=$HOME/.local/ --development
+        make -j 4
+        make install
+
+    - name: Test with pytest
+      run: |
+        PATH=~/.local/bin:$PATH pytest --controller irctest.controllers.inspircd -k 'not Oragono and not deprecated and not strict'
+
