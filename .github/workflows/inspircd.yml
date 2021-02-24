@@ -47,5 +47,6 @@ jobs:
 
     - name: Test with pytest
       run: |
-        PATH=~/.local/bin:$PATH pytest --controller irctest.controllers.inspircd -k 'not Oragono and not deprecated and not strict'
+        # testNoticeNonexistentChannel fails because of https://github.com/inspircd/inspircd/issues/1849
+        PATH=~/.local/bin:$PATH pytest --controller irctest.controllers.inspircd -k 'not Oragono and not deprecated and not strict and not testNoticeNonexistentChannel'
 
