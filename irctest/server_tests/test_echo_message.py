@@ -8,7 +8,7 @@ from irctest.irc_utils.junkdrawer import random_name
 
 
 class DMEchoMessageTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testDirectMessageEcho(self):
         bar = random_name("bar")
         self.connectClient(
@@ -58,7 +58,7 @@ class DMEchoMessageTestCase(cases.BaseServerTestCase):
 
 class EchoMessageTestCase(cases.BaseServerTestCase):
     def _testEchoMessage(command, solo, server_time):
-        @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+        @cases.mark_specifications("IRCv3.2")
         def f(self):
             """<http://ircv3.net/specs/extensions/echo-message-3.2.html>"""
             self.addClient()

@@ -11,7 +11,7 @@ ANCIENT_TIMESTAMP = "2006-01-02T15:04:05.999Z"
 
 
 class ResumeTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testNoResumeByDefault(self):
         self.connectClient(
             "bar", capabilities=["batch", "echo-message", "labeled-response"]
@@ -24,7 +24,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
             "should not see RESUME messages unless explicitly negotiated",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testResume(self):
         chname = "#" + secrets.token_hex(12)
         self.connectClient(
@@ -175,7 +175,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
             resume_messages[1], command="RESUME", params=["SUCCESS", "baz"]
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testBRB(self):
         chname = "#" + secrets.token_hex(12)
         self.connectClient(

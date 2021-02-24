@@ -542,20 +542,20 @@ class OptionalityHelper:
         return decorator
 
 
-class SpecificationSelector:
-    def requiredBySpecification(*specifications, strict=False):
-        specifications = frozenset(
-            Specifications.of_name(s) if isinstance(s, str) else s
-            for s in specifications
-        )
-        if None in specifications:
-            raise ValueError("Invalid set of specifications: {}".format(specifications))
+def mark_specifications(*specifications, deprecated=False, strict=False):
+    specifications = frozenset(
+        Specifications.of_name(s) if isinstance(s, str) else s for s in specifications
+    )
+    if None in specifications:
+        raise ValueError("Invalid set of specifications: {}".format(specifications))
 
-        def decorator(f):
-            for specification in specifications:
-                f = getattr(pytest.mark, specification.value)(f)
-            if strict:
-                f = pytest.mark.strict(f)
-            return f
+    def decorator(f):
+        for specification in specifications:
+            f = getattr(pytest.mark, specification.value)(f)
+        if strict:
+            f = pytest.mark.strict(f)
+        if deprecated:
+            f = pytest.mark.deprecated(f)
+        return f
 
-        return decorator
+    return decorator

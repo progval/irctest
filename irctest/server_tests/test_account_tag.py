@@ -32,7 +32,7 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(2, "CAP END")
         self.skipToWelcome(2)
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPrivmsg(self):
         self.connectClient("foo", capabilities=["account-tag"], skip_if_cap_nak=True)

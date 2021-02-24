@@ -7,7 +7,7 @@ from irctest.numerics import ERR_ERRONEUSNICKNAME, ERR_NICKNAMEINUSE, RPL_WELCOM
 
 
 class RegressionsTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459")
+    @cases.mark_specifications("RFC1459")
     def testFailedNickChange(self):
         # see oragono commit d0ded906d4ac8f
         self.connectClient("alice")
@@ -27,7 +27,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(ms), 1)
         self.assertMessageEqual(ms[0], command="PRIVMSG", params=["bob", "hi"])
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459")
+    @cases.mark_specifications("RFC1459")
     def testCaseChanges(self):
         self.connectClient("alice")
         self.joinChannel(1, "#test")
@@ -52,7 +52,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         ms = self.getMessages(2)
         self.assertEqual(ms, [])
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testTagCap(self):
         # regression test for oragono #754
         self.connectClient(
@@ -93,7 +93,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertMessageEqual(ms[0], command="PRIVMSG", params=["bob", "hey again"])
         self.assertEqual(ms[0].tags.get("+draft/reply"), "tbxqauh9nykrtpa3n6icd9whan")
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459")
+    @cases.mark_specifications("RFC1459")
     def testStarNick(self):
         self.addClient(1)
         self.sendLine(1, "NICK *")
@@ -111,7 +111,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertNotIn(ERR_ERRONEUSNICKNAME, replies)
         self.assertIn(RPL_WELCOME, replies)
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459")
+    @cases.mark_specifications("RFC1459")
     def testEmptyNick(self):
         self.addClient(1)
         self.sendLine(1, "NICK :")
@@ -121,7 +121,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
             replies = set(msg.command for msg in self.getMessages(1, synchronize=False))
         self.assertNotIn(RPL_WELCOME, replies)
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459")
+    @cases.mark_specifications("RFC1459")
     def testNickRelease(self):
         # regression test for oragono #1252
         self.connectClient("alice")
@@ -138,7 +138,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertNotIn(ERR_NICKNAMEINUSE, replies)
         self.assertIn(RPL_WELCOME, replies)
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459")
+    @cases.mark_specifications("RFC1459")
     def testNickReleaseQuit(self):
         self.connectClient("alice")
         self.getMessages(1)
@@ -161,7 +161,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertNotIn(ERR_NICKNAMEINUSE, replies)
         self.assertIn(RPL_WELCOME, replies)
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459")
+    @cases.mark_specifications("RFC1459")
     def testNickReleaseUnregistered(self):
         self.addClient(1)
         self.sendLine(1, "NICK alice")

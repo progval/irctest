@@ -8,7 +8,7 @@ from irctest import cases
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testLabeledPrivmsgResponsesToMultipleClients(self):
         self.connectClient(
             "foo",
@@ -92,7 +92,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             m, command="BATCH", fail_msg="No BATCH echo received after sending one out"
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testLabeledPrivmsgResponsesToClient(self):
         self.connectClient(
             "foo",
@@ -152,7 +152,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testLabeledPrivmsgResponsesToChannel(self):
         self.connectClient(
             "foo",
@@ -220,7 +220,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testLabeledPrivmsgResponsesToSelf(self):
         self.connectClient(
             "foo",
@@ -263,7 +263,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ).format(number_of_labels),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testLabeledNoticeResponsesToClient(self):
         self.connectClient(
             "foo",
@@ -323,7 +323,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testLabeledNoticeResponsesToChannel(self):
         self.connectClient(
             "foo",
@@ -391,7 +391,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testLabeledNoticeResponsesToSelf(self):
         self.connectClient(
             "foo",
@@ -432,7 +432,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ).format(number_of_labels),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testLabeledTagMsgResponsesToClient(self):
         self.connectClient(
             "foo",
@@ -540,7 +540,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             fail_msg="React tag wasn't the same on the source user's TAGMSG: {msg}",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testLabeledTagMsgResponsesToChannel(self):
         self.connectClient(
             "foo",
@@ -606,7 +606,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testLabeledTagMsgResponsesToSelf(self):
         self.connectClient(
             "foo",
@@ -647,7 +647,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ).format(number_of_labels),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testBatchedJoinMessages(self):
         self.connectClient(
             "bar",
@@ -687,7 +687,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         for message in m[1:-1]:
             self.assertEqual(message.tags.get("batch"), batch_id)
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testNoBatchForSingleMessage(self):
         self.connectClient(
             "bar",
@@ -706,7 +706,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         # check the label
         self.assertEqual(m.tags.get("label"), "98765")
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testEmptyBatchForNoResponse(self):
         self.connectClient(
             "bar",

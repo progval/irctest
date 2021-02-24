@@ -14,7 +14,7 @@ from irctest.numerics import (
 
 
 class WhoisTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testWhoisUser(self):
         """Test basic WHOIS behavior"""
         nick = "myCoolNickname"
@@ -42,7 +42,7 @@ class WhoisTestCase(cases.BaseServerTestCase):
 
 
 class InvisibleTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testInvisibleWhois(self):
         """Test interaction between MODE +i and RPL_WHOISCHANNELS."""
         self.connectClient("userOne")
@@ -116,7 +116,7 @@ class InvisibleTestCase(cases.BaseServerTestCase):
             "RPL_WHOISCHANNELS should be sent for a non-invisible nick",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testWhoisAccount(self):
         """Test numeric 330, RPL_WHOISACCOUNT."""
         self.controller.registerUser(self, "shivaram", "sesame")
@@ -142,7 +142,7 @@ class InvisibleTestCase(cases.BaseServerTestCase):
 
 
 class AwayTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testAway(self):
         self.connectClient("bar")
         self.sendLine(1, "AWAY :I'm not here right now")
@@ -166,7 +166,7 @@ class AwayTestCase(cases.BaseServerTestCase):
 
 
 class TestNoCTCPMode(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testNoCTCPMode(self):
         self.connectClient("bar", "bar")
         self.connectClient("qux", "qux")

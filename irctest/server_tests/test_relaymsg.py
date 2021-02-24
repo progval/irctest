@@ -11,7 +11,7 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
     def config():
         return {"chathistory": True}
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testRelaymsg(self):
         self.connectClient(
             "baz",

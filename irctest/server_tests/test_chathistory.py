@@ -37,7 +37,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     def config():
         return {"chathistory": True}
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testInvalidTargets(self):
         bar, pw = random_name("bar"), random_name("pw")
         self.controller.registerUser(self, bar, pw)
@@ -74,7 +74,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertEqual(msgs[0].command, "FAIL")
         self.assertEqual(msgs[0].params[:2], ["CHATHISTORY", "INVALID_TARGET"])
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testMessagesToSelf(self):
         bar, pw = random_name("bar"), random_name("pw")
         self.controller.registerUser(self, bar, pw)
@@ -139,7 +139,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(set(msg.msgid for msg in echo_messages)), num_messages)
         self.assertEqual(len(set(msg.time for msg in echo_messages)), num_messages)
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testChathistory(self):
         self.connectClient(
             "bar",
@@ -167,7 +167,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
         self.validate_chathistory(echo_messages, 1, chname)
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testChathistoryDMs(self):
         c1 = secrets.token_hex(12)
         c2 = secrets.token_hex(12)
@@ -479,7 +479,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         result = validate_chathistory_batch(self.getMessages(user))
         self.assertIn(echo_messages[7], result)
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testChathistoryTagmsg(self):
         c1 = secrets.token_hex(12)
         c2 = secrets.token_hex(12)
@@ -574,7 +574,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         ]
         self.assertEqual(len(history_tagmsgs), 0)
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testChathistoryDMClientOnlyTags(self):
         # regression test for Oragono #1411
         c1 = secrets.token_hex(12)

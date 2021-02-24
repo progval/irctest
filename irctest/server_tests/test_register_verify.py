@@ -12,7 +12,7 @@ class TestRegisterBeforeConnect(cases.BaseServerTestCase):
             )
         }
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testBeforeConnect(self):
         self.addClient("bar")
         self.sendLine("bar", "CAP LS 302")
@@ -35,7 +35,7 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
             )
         }
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testBeforeConnect(self):
         self.addClient("bar")
         self.sendLine("bar", "CAP LS 302")
@@ -66,7 +66,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
             )
         }
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testBeforeConnect(self):
         self.addClient("bar")
         self.sendLine("bar", "CAP LS 302")
@@ -82,7 +82,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
         self.assertEqual(fail_response.params[:2], ["REGISTER", "INVALID_EMAIL"])
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testAfterConnect(self):
         self.connectClient("bar", name="bar")
         self.sendLine("bar", "REGISTER * shivarampassphrase")
@@ -100,7 +100,7 @@ class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
             )
         }
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testBeforeConnect(self):
         # have an anonymous client take the 'root' username:
         self.connectClient("root", name="root")

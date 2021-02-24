@@ -11,7 +11,7 @@ class ConfusablesTestCase(cases.BaseServerTestCase):
             )
         }
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testConfusableNicks(self):
         self.controller.registerUser(self, "evan", "sesame")
 

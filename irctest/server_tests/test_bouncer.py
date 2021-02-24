@@ -4,7 +4,7 @@ from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME
 
 
 class Bouncer(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testBouncer(self):
         """Test basic bouncer functionality."""
         self.controller.registerUser(self, "observer", "observerpassword")

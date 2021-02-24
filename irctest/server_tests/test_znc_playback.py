@@ -22,7 +22,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
     def config():
         return {"chathistory": True}
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testZncPlayback(self):
         early_time = int(time.time() - 60)
 

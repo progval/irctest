@@ -3,13 +3,13 @@ from irctest.numerics import RPL_NAMREPLY
 
 
 class StatusmsgTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testInIsupport(self):
         """Check that the expected STATUSMSG parameter appears in our isupport list."""
         isupport = self.getISupport()
         self.assertEqual(isupport["STATUSMSG"], "~&@%+")
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testStatusmsg(self):
         """Test that STATUSMSG are sent to the intended recipients,
         with the intended prefixes."""

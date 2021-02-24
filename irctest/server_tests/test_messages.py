@@ -8,7 +8,7 @@ from irctest.numerics import ERR_INPUTTOOLONG
 
 
 class PrivmsgTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testPrivmsg(self):
         """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
         self.connectClient("foo")
@@ -24,7 +24,7 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
             pms[0], command="PRIVMSG", params=["#chan", "hello there"]
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testPrivmsgNonexistentChannel(self):
         """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
         self.connectClient("foo")
@@ -35,7 +35,7 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
 
 
 class NoticeTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testNotice(self):
         """<https://tools.ietf.org/html/rfc2812#section-3.3.2>"""
         self.connectClient("foo")
@@ -51,7 +51,7 @@ class NoticeTestCase(cases.BaseServerTestCase):
             notices[0], command="NOTICE", params=["#chan", "hello there"]
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testNoticeNonexistentChannel(self):
         """
         'automatic replies MUST NEVER be sent in response to a NOTICE message.
@@ -65,7 +65,7 @@ class NoticeTestCase(cases.BaseServerTestCase):
 
 
 class TagsTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testLineTooLong(self):
         self.connectClient("bar")
         self.joinChannel(1, "#xyz")

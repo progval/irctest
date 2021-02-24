@@ -7,7 +7,7 @@ from irctest import cases
 
 
 class MultiPrefixTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.1")
+    @cases.mark_specifications("IRCv3.1")
     def testMultiPrefix(self):
         """“When requested, the multi-prefix client capability will cause the
         IRC server to send all possible prefixes which apply to a user in NAMES
