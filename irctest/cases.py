@@ -165,10 +165,20 @@ class BaseClientTestCase(_IrcTestCase):
         self.server.bind(("", 0))  # Bind any free port
         self.server.listen(1)
 
+        # Used to check if the client is alive from time to time
+        self.server.settimeout(1)
+
     def acceptClient(self, tls_cert=None, tls_key=None, server=None):
         """Make the server accept a client connection. Blocking."""
         server = server or self.server
-        (self.conn, addr) = server.accept()
+        # Wait for the client to connect
+        while True:
+            try:
+                (self.conn, addr) = server.accept()
+            except socket.timeout:
+                self.controller.check_is_alive()
+            else:
+                break
         if tls_cert is None and tls_key is None:
             pass
         else:

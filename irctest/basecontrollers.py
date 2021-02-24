@@ -8,6 +8,12 @@ import time
 from .runner import NotImplementedByController
 
 
+class ProcessStopped(Exception):
+    """Raised when the controlled process stopped unexpectedly"""
+
+    pass
+
+
 class _BaseController:
     """Base class for software controllers.
 
@@ -17,6 +23,12 @@ class _BaseController:
 
     def __init__(self, test_config):
         self.test_config = test_config
+        self.proc = None
+
+    def check_is_alive(self):
+        self.proc.poll()
+        if self.proc.returncode is not None:
+            raise ProcessStopped()
 
 
 class DirectoryBasedController(_BaseController):
@@ -26,7 +38,6 @@ class DirectoryBasedController(_BaseController):
     def __init__(self, test_config):
         super().__init__(test_config)
         self.directory = None
-        self.proc = None
 
     def kill_proc(self):
         """Terminates the controlled process, waits for it to exit, and
@@ -132,6 +143,7 @@ class BaseServerController(_BaseController):
 
     def wait_for_port(self):
         while not self.port_open:
+            self.check_is_alive()
             time.sleep(self._port_wait_interval)
             try:
                 c = socket.create_connection(("localhost", self.port), timeout=1.0)
