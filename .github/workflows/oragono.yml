@@ -1,0 +1,45 @@
+name: irctest with Oragono
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pre-commit pytest
+        pip install -r requirements.txt
+    - name: Lint
+      run: |
+        pre-commit run -a
+
+    - name: Checkout Oragono
+      uses: actions/checkout@v2
+      with:
+        repository: oragono/oragono
+        ref: v2.5.1
+        path: oragono
+
+    - name: Build Oragono
+      run: |
+        cd $GITHUB_WORKSPACE/oragono/
+        make build
+        make install
+
+    - name: Test with pytest
+      run: |
+        PATH=~/go/bin:$PATH pytest --controller=irctest.controllers.oragono -k 'not deprecated'
