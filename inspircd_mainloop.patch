@@ -1,0 +1,25 @@
+When a client registers (ie. sends USER+NICK), InspIRCd does not
+immediately answers with 001. Instead it waits for the next iteration
+of the main loop to call `DoBackgroundUserStuff`.
+
+However, this main loop executes only once a second. This is usually
+fine, but makes irctest considerably slower, as irctest uses hundreds
+of very short-lived connections.
+
+This patch removes the frequency limitation of the main loop to make
+InspIRCd more responsive.
+
+diff --git a/src/inspircd.cpp b/src/inspircd.cpp
+index 5760e631b..1da0285fb 100644
+--- a/src/inspircd.cpp
++++ b/src/inspircd.cpp
+@@ -680,7 +680,7 @@ void InspIRCd::Run()
+		 * timing using this event, so we dont have to
+		 * time this exactly).
+		 */
+-		if (TIME.tv_sec != OLDTIME)
++		if (true)
+		{
+			CollectStats();
+			CheckTimeSkip(OLDTIME, TIME.tv_sec);
+
