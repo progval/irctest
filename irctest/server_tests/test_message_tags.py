@@ -8,7 +8,7 @@ from irctest.numerics import ERR_INPUTTOOLONG
 
 
 class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    @cases.SpecificationSelector.requiredBySpecification("message-tags")
+    @cases.mark_specifications("message-tags")
     def testBasic(self):
         def getAllMessages():
             for name in ["alice", "bob", "carol", "dave"]:
@@ -87,7 +87,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertTrue(alice_msg.tags["msgid"])
         self.assertEqual(alice_msg.tags["msgid"], bob_msg.tags["msgid"])
 
-    @cases.SpecificationSelector.requiredBySpecification("message-tags")
+    @cases.mark_specifications("message-tags")
     def testLengthLimits(self):
         self.connectClient(
             "alice",

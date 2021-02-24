@@ -110,7 +110,7 @@ class LusersTestCase(cases.BaseServerTestCase):
 
 
 class BasicLusersTest(LusersTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testLusers(self):
         self.connectClient("bar", name="bar")
         lusers = self.getLusers("bar")
@@ -127,7 +127,7 @@ class BasicLusersTest(LusersTestCase):
 
 
 class LusersUnregisteredTestCase(LusersTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testLusers(self):
         self.doLusersTest()
 
@@ -185,7 +185,7 @@ class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
             )
         }
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testLusers(self):
         self.doLusersTest()
         lusers = self.getLusers("bar")
@@ -195,7 +195,7 @@ class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
 
 
 class LuserOpersTest(LusersTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testLuserOpers(self):
         self.connectClient("bar", name="bar")
         lusers = self.getLusers("bar")
@@ -243,7 +243,7 @@ class OragonoInvisibleDefaultTest(LusersTestCase):
             )
         }
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testLusers(self):
         self.connectClient("bar", name="bar")
         lusers = self.getLusers("bar")

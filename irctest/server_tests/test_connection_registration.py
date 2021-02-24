@@ -10,7 +10,7 @@ from irctest.client_mock import ConnectionClosed
 class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
     password = "testpassword"
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testPassBeforeNickuser(self):
         self.addClient()
         self.sendLine(1, "PASS {}".format(self.password))
@@ -24,7 +24,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
             fail_msg="Did not get 001 after correct PASS+NICK+USER: {msg}",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testNoPassword(self):
         self.addClient()
         self.sendLine(1, "NICK foo")
@@ -34,7 +34,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
             m.command, "001", msg="Got 001 after NICK+USER but missing PASS"
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testWrongPassword(self):
         self.addClient()
         self.sendLine(1, "PASS {}".format(self.password + "garbage"))
@@ -45,9 +45,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
             m.command, "001", msg="Got 001 after NICK+USER but incorrect PASS"
         )
 
-    @cases.SpecificationSelector.requiredBySpecification(
-        "RFC1459", "RFC2812", strict=True
-    )
+    @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
     def testPassAfterNickuser(self):
         """“The password can and must be set before any attempt to register
         the connection is made.”
@@ -68,7 +66,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
 
 
 class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459")
+    @cases.mark_specifications("RFC1459")
     def testQuitDisconnects(self):
         """“The server must close the connection to a client which sends a
         QUIT message.”
@@ -81,7 +79,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             self.getMessages(1)  # Fetch remaining messages
             self.getMessages(1)
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testQuitErrors(self):
         """“A client session is terminated with a quit message.  The server
         acknowledges this by sending an ERROR message to the client.”
@@ -130,7 +128,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             "both got 001.",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.1", "IRCv3.2")
+    @cases.mark_specifications("IRCv3.1", "IRCv3.2")
     def testIrc301CapLs(self):
         """IRCv3.1: “The LS subcommand is used to list the capabilities
         supported by the server. The client should send an LS subcommand with
@@ -158,7 +156,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             "request: {}".format(m),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.1")
+    @cases.mark_specifications("IRCv3.1")
     def testEmptyCapList(self):
         """“If no capabilities are active, an empty parameter must be sent.”
         -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-list-subcommand>

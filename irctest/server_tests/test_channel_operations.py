@@ -33,9 +33,7 @@ MODERN_CAPS = [
 
 
 class JoinTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification(
-        "RFC1459", "RFC2812", strict=True
-    )
+    @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
     def testJoinAllMessages(self):
         """“If a JOIN is successful, the user receives a JOIN message as
         confirmation and is then sent the channel's topic (using RPL_TOPIC) and
@@ -59,7 +57,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             ),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testJoinNamreply(self):
         """“353    RPL_NAMREPLY
             "( "=" / "*" / "@" ) <channel>
@@ -102,7 +100,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                     "{msg}",
                 )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testPartNotInEmptyChannel(self):
         """“442     ERR_NOTONCHANNEL
             "<channel> :You're not on that channel"
@@ -138,7 +136,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             "one is not on, but got: {msg}",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testPartNotInNonEmptyChannel(self):
         self.connectClient("foo")
         self.connectClient("bar")
@@ -198,7 +196,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                     "{msg}",
                 )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testNormalPart(self):
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan")
@@ -222,7 +220,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(2)
         self.assertMessageEqual(m, command="PART", params=["#chan", "bye everyone"])
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testTopic(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This
@@ -258,7 +256,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(2)
         self.assertMessageEqual(m, command="TOPIC", params=["#chan", "T0P1C"])
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testTopicMode(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This
@@ -303,7 +301,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(1)
         self.assertMessageEqual(m, command="TOPIC", params=["#chan", "T0P1C"])
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testTopicNonexistentChannel(self):
         """RFC2812 specifies ERR_NOTONCHANNEL as the correct response to TOPIC
         on a nonexistent channel. The modern spec prefers ERR_NOSUCHCHANNEL.
@@ -317,7 +315,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         # either 403 ERR_NOSUCHCHANNEL or 443 ERR_NOTONCHANNEL
         self.assertIn(m.command, ("403", "443"))
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testUnsetTopicResponses(self):
         """Test various cases related to RPL_NOTOPIC with set and unset topics."""
         self.connectClient("bar")
@@ -355,7 +353,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         # topic is once again unset, shouldn't send RPL_NOTOPIC on initial join
         self.assertNotIn(RPL_NOTOPIC, [m.command for m in messages])
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testListEmpty(self):
         """<https://tools.ietf.org/html/rfc1459#section-4.2.6>
         <https://tools.ietf.org/html/rfc2812#section-3.2.6>
@@ -380,7 +378,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             "or 323 (RPL_LISTEND), or but: {msg}",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testListOne(self):
         """When a channel exists, LIST should get it in a reply.
         <https://tools.ietf.org/html/rfc1459#section-4.2.6>
@@ -421,7 +419,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             "or 323 (RPL_LISTEND), or but: {msg}",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testKickSendsMessages(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This
@@ -459,7 +457,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         m = self.getMessage(3)
         self.assertMessageEqual(m, command="KICK", params=["#chan", "bar", "bye"])
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testKickPrivileges(self):
         """Test who has the ability to kick / what error codes are sent
         for invalid kicks."""
@@ -516,7 +514,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             f"unexpected kick targets: {kick_targets}",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testKickNonexistentChannel(self):
         """“Kick command [...] Numeric replies: [...] ERR_NOSUCHCHANNEL."""
         self.connectClient("foo")
@@ -525,7 +523,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         # should return ERR_NOSUCHCHANNEL
         self.assertMessageEqual(m, command="403")
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testDoubleKickMessages(self):
         """“The server MUST NOT send KICK messages with multiple channels or
         users to clients.  This is necessarily to maintain backward
@@ -587,7 +585,7 @@ class JoinTestCase(cases.BaseServerTestCase):
                 )
             )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC-deprecated")
+    @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True)
     def testInviteNonExistingChannelTransmitted(self):
         """“There is no requirement that the channel the target user is being
         invited to must exist or be a valid channel.”
@@ -620,7 +618,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             "got this instead: {msg}",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("RFC-deprecated")
+    @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True)
     def testInviteNonExistingChannelEchoed(self):
         """“There is no requirement that the channel the target user is being
         invited to must exist or be a valid channel.”
@@ -655,9 +653,7 @@ class JoinTestCase(cases.BaseServerTestCase):
 
 class testChannelCaseSensitivity(cases.BaseServerTestCase):
     def _testChannelsEquivalent(casemapping, name1, name2):
-        @cases.SpecificationSelector.requiredBySpecification(
-            "RFC1459", "RFC2812", strict=True
-        )
+        @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
         def f(self):
             self.connectClient("foo")
             self.connectClient("bar")
@@ -679,9 +675,7 @@ class testChannelCaseSensitivity(cases.BaseServerTestCase):
         return f
 
     def _testChannelsNotEquivalent(casemapping, name1, name2):
-        @cases.SpecificationSelector.requiredBySpecification(
-            "RFC1459", "RFC2812", strict=True
-        )
+        @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
         def f(self):
             self.connectClient("foo")
             self.connectClient("bar")
@@ -718,7 +712,7 @@ class testChannelCaseSensitivity(cases.BaseServerTestCase):
 
 
 class InviteTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2")
+    @cases.mark_specifications("IRCv3.2")
     def testInvites(self):
         """Test some basic functionality related to INVITE and the +i mode."""
         self.connectClient("foo")
@@ -749,7 +743,7 @@ class InviteTestCase(cases.BaseServerTestCase):
 
 
 class ChannelQuitTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testQuit(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This
@@ -772,7 +766,7 @@ class ChannelQuitTestCase(cases.BaseServerTestCase):
 
 
 class NoCTCPTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testQuit(self):
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
@@ -800,7 +794,7 @@ class NoCTCPTestCase(cases.BaseServerTestCase):
 
 
 class KeyTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testKeyNormal(self):
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
@@ -818,7 +812,7 @@ class KeyTestCase(cases.BaseServerTestCase):
         reply = self.getMessages(2)
         self.assertMessageEqual(reply[0], command="JOIN", params=["#chan"])
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testKeyValidation(self):
         # oragono issue #1021
         self.connectClient("bar")
@@ -830,7 +824,7 @@ class KeyTestCase(cases.BaseServerTestCase):
 
 
 class AuditoriumTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testAuditorium(self):
         self.connectClient("bar", name="bar", capabilities=MODERN_CAPS)
         self.joinChannel("bar", "#auditorium")
@@ -934,7 +928,7 @@ class AuditoriumTestCase(cases.BaseServerTestCase):
 
 
 class TopicPrivileges(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testTopicPrivileges(self):
         # test the +t channel mode, which prevents unprivileged users
         # from changing the topic
@@ -984,7 +978,7 @@ class TopicPrivileges(cases.BaseServerTestCase):
 
 
 class ModeratedMode(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("RFC2812")
+    @cases.mark_specifications("RFC2812")
     def testModeratedMode(self):
         # test the +m channel mode
         self.connectClient("chanop", name="chanop")
@@ -1019,7 +1013,7 @@ class ModeratedMode(cases.BaseServerTestCase):
 
 
 class OpModerated(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testOpModerated(self):
         # test the +U channel mode
         self.connectClient("chanop", name="chanop", capabilities=MODERN_CAPS)
@@ -1075,7 +1069,7 @@ class OpModerated(cases.BaseServerTestCase):
 
 
 class MuteExtban(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testISupport(self):
         isupport = self.getISupport()
         token = isupport["EXTBAN"]
@@ -1084,7 +1078,7 @@ class MuteExtban(cases.BaseServerTestCase):
         self.assertEqual(comma, ",")
         self.assertIn("m", types)
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testMuteExtban(self):
         clients = ("chanop", "bar", "qux")
 
@@ -1165,7 +1159,7 @@ class MuteExtban(cases.BaseServerTestCase):
             [msg for msg in replies if msg.command == "PRIVMSG"],
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testIssue1370(self):
         # regression test for oragono #1370: mutes not correctly enforced against
         # users with capital letters in their NUH

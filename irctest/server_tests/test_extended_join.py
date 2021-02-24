@@ -32,7 +32,7 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(2, "CAP END")
         self.skipToWelcome(2)
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.1")
+    @cases.mark_specifications("IRCv3.1")
     def testNotLoggedIn(self):
         self.connectClient("foo", capabilities=["extended-join"], skip_if_cap_nak=True)
         self.joinChannel(1, "#chan")
@@ -47,7 +47,7 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             "unregistered user joined, got: {msg}",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.1")
+    @cases.mark_specifications("IRCv3.1")
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testLoggedIn(self):
         self.connectClient("foo", capabilities=["extended-join"], skip_if_cap_nak=True)

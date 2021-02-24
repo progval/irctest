@@ -14,7 +14,7 @@ MODERN_CAPS = [
 class ChannelForwarding(cases.BaseServerTestCase):
     """Test the +f channel forwarding mode."""
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testChannelForwarding(self):
         self.connectClient("bar", name="bar", capabilities=MODERN_CAPS)
         self.connectClient("baz", name="baz", capabilities=MODERN_CAPS)

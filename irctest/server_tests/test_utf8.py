@@ -2,7 +2,7 @@ from irctest import cases
 
 
 class Utf8TestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testUtf8Validation(self):
         self.connectClient(
             "bar",

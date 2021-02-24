@@ -10,7 +10,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
     valid_metadata_keys = {"valid_key1", "valid_key2"}
     invalid_metadata_keys = {"invalid_key1", "invalid_key2"}
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2-deprecated")
+    @cases.mark_specifications("IRCv3.2", deprecated=True)
     def testInIsupport(self):
         """“If METADATA is supported, it MUST be specified in RPL_ISUPPORT
         using the METADATA key.”
@@ -33,7 +33,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         self.getMessages(1)
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2-deprecated")
+    @cases.mark_specifications("IRCv3.2", deprecated=True)
     def testGetOneUnsetValid(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html#metadata-get>"""
         self.connectClient("foo")
@@ -46,7 +46,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "request to an unset valid METADATA key.",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2-deprecated")
+    @cases.mark_specifications("IRCv3.2", deprecated=True)
     def testGetTwoUnsetValid(self):
         """“Multiple keys may be given. The response will be either RPL_KEYVALUE,
         ERR_KEYINVALID or ERR_NOMATCHINGKEY for every key in order.”
@@ -83,7 +83,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "did not respond to valid_key2 as second response: {msg}",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2-deprecated")
+    @cases.mark_specifications("IRCv3.2", deprecated=True)
     def testListNoSet(self):
         """“This subcommand MUST list all currently-set metadata keys along
         with their values. The response will be zero or more RPL_KEYVALUE
@@ -100,7 +100,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "762 (RPL_METADATAEND) but: {msg}",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2-deprecated")
+    @cases.mark_specifications("IRCv3.2", deprecated=True)
     def testListInvalidTarget(self):
         """“In case of invalid target RPL_METADATAEND MUST NOT be sent.”
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-list>
@@ -187,13 +187,13 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertSetValue(target, key, value, displayable_value)
         self.assertGetValue(target, key, value, displayable_value)
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2-deprecated")
+    @cases.mark_specifications("IRCv3.2", deprecated=True)
     def testSetGetValid(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient("foo")
         self.assertSetGetValue("*", "valid_key1", "myvalue")
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2-deprecated")
+    @cases.mark_specifications("IRCv3.2", deprecated=True)
     def testSetGetZeroCharInValue(self):
         """“Values are unrestricted, except that they MUST be UTF-8.”
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-restrictions>
@@ -201,7 +201,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.assertSetGetValue("*", "valid_key1", "zero->\0<-zero", "zero->\\0<-zero")
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2-deprecated")
+    @cases.mark_specifications("IRCv3.2", deprecated=True)
     def testSetGetHeartInValue(self):
         """“Values are unrestricted, except that they MUST be UTF-8.”
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-restrictions>
@@ -215,7 +215,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "zero->{}<-zero".format(heart.encode()),
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.2-deprecated")
+    @cases.mark_specifications("IRCv3.2", deprecated=True)
     def testSetInvalidUtf8(self):
         """“Values are unrestricted, except that they MUST be UTF-8.”
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-restrictions>

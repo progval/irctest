@@ -2,7 +2,7 @@ from irctest import cases
 
 
 class CapTestCase(cases.BaseServerTestCase):
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.1")
+    @cases.mark_specifications("IRCv3.1")
     def testNoReq(self):
         """Test the server handles gracefully clients which do not send
         REQs.
@@ -22,7 +22,7 @@ class CapTestCase(cases.BaseServerTestCase):
             m, command="001", fail_msg="Expected 001 after sending CAP END, got {msg}."
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.1")
+    @cases.mark_specifications("IRCv3.1")
     def testReqUnavailable(self):
         """Test the server handles gracefully clients which request
         capabilities that are not available.
@@ -49,7 +49,7 @@ class CapTestCase(cases.BaseServerTestCase):
             m, command="001", fail_msg="Expected 001 after sending CAP END, got {msg}."
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.1")
+    @cases.mark_specifications("IRCv3.1")
     def testNakExactString(self):
         """“The argument of the NAK subcommand MUST consist of at least the
         first 100 characters of the capability list in the REQ subcommand which
@@ -72,7 +72,7 @@ class CapTestCase(cases.BaseServerTestCase):
             "sending “CAP REQ :foo qux bar baz qux quux”, but got {msg}.",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("IRCv3.1")
+    @cases.mark_specifications("IRCv3.1")
     def testNakWhole(self):
         """“The capability identifier set must be accepted as a whole, or
         rejected entirely.”
@@ -123,7 +123,7 @@ class CapTestCase(cases.BaseServerTestCase):
             "sending “CAP REQ :multi-prefix”, but got {msg}.",
         )
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testCapRemovalByClient(self):
         """Test CAP LIST and removal of caps via CAP REQ :-tagname."""
         self.addClient(1)

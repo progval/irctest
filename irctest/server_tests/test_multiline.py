@@ -12,7 +12,7 @@ base_caps = ["message-tags", "batch", "echo-message", "server-time", "labeled-re
 
 
 class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    @cases.SpecificationSelector.requiredBySpecification("multiline")
+    @cases.mark_specifications("multiline")
     def testBasic(self):
         self.connectClient(
             "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
@@ -79,7 +79,7 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             self.assertNotIn(CONCAT_TAG, msg.tags)
         self.assertEqual(relayed_fmsgids, [msgid] + [None] * (len(fallback_relay) - 1))
 
-    @cases.SpecificationSelector.requiredBySpecification("multiline")
+    @cases.mark_specifications("multiline")
     def testBlankLines(self):
         self.connectClient(
             "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True

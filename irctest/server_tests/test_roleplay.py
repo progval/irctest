@@ -8,7 +8,7 @@ class RoleplayTestCase(cases.BaseServerTestCase):
     def config():
         return {"oragono_roleplay": True}
 
-    @cases.SpecificationSelector.requiredBySpecification("Oragono")
+    @cases.mark_specifications("Oragono")
     def testRoleplay(self):
         bar = random_name("bar")
         qux = random_name("qux")
