@@ -42,6 +42,8 @@ class LusersTestCase(cases.BaseServerTestCase):
 
         self.assertGreaterEqual(lusers.GlobalInvisible, 0)
         self.assertGreaterEqual(lusers.GlobalVisible, 0)
+        self.assertLessEqual(lusers.GlobalInvisible, total)
+        self.assertLessEqual(lusers.GlobalVisible, total)
         self.assertEqual(lusers.GlobalInvisible + lusers.GlobalVisible, total)
 
         self.assertEqual(lusers.LocalTotal, total)
