@@ -78,7 +78,6 @@ class _IrcTestCase(unittest.TestCase):
         nick=None,
         fail_msg=None,
         extra_format=(),
-        strip_first_param=False,
         **kwargs,
     ):
         """Helper for partially comparing a message.
@@ -90,8 +89,6 @@ class _IrcTestCase(unittest.TestCase):
         `subparams`, and `target` are given."""
         fail_msg = fail_msg or "{msg}"
         for (key, value) in kwargs.items():
-            if strip_first_param and key == "params":
-                value = value[1:]
             self.assertEqual(
                 getattr(msg, key), value, msg, fail_msg, extra_format=extra_format
             )
