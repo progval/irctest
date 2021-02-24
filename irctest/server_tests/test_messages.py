@@ -54,10 +54,16 @@ class NoticeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testNoticeNonexistentChannel(self):
         """
+        "automatic replies must never be
+        sent in response to a NOTICE message.  This rule applies to servers
+        too - they must not send any error reply back to the client on
+        receipt of a notice"
+        <https://tools.ietf.org/html/rfc1459#section-4.4.2>
+
         'automatic replies MUST NEVER be sent in response to a NOTICE message.
         This rule applies to servers too - they MUST NOT send any error repl
-        back to the client on receipt of a notice.'
-        https://tools.ietf.org/html/rfc2812#section-3.3.2>
+        back to the client on receipt of a notice."
+        <https://tools.ietf.org/html/rfc2812#section-3.3.2>
         """
         self.connectClient("foo")
         self.sendLine(1, "NOTICE #nonexistent :hello there")
