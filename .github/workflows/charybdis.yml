@@ -1,4 +1,4 @@
-name: irctest with Oragono
+name: irctest with Charybdis
 
 on:
   push:
@@ -23,27 +23,30 @@ jobs:
       with:
         path: |
           ~/.cache
-          $GITHUB_WORKSPACE/oragono
-        key: ${{ runner.os }}-oragono
+          $GITHUB_WORKSPACE/charybdis
+        key: ${{ runner.os }}-charybdis
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
 
-    - name: Checkout Oragono
+    - name: Checkout Charybdis
       uses: actions/checkout@v2
       with:
-        repository: oragono/oragono
-        ref: v2.5.1
-        path: oragono
+        repository: charybdis-ircd/charybdis
+        ref: charybdis-4.1.2
+        path: charybdis
 
-    - name: Build Oragono
+    - name: Build Charybdis
       run: |
-        cd $GITHUB_WORKSPACE/oragono/
-        make build
+        cd $GITHUB_WORKSPACE/charybdis/
+        ./autogen.sh
+        ./configure --prefix=$HOME/.local/
+        make -j 4
         make install
 
     - name: Test with pytest
       run: |
-        PATH=~/go/bin:$PATH pytest --controller=irctest.controllers.oragono -k 'not deprecated'
+        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.charybdis -k 'not Oragono and not deprecated and not strict and not testDoubleKickMessages'
+
