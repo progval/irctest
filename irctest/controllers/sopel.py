@@ -39,7 +39,9 @@ class SopelController(BaseClientController):
                 pass
 
     def open_file(self, filename, mode="a"):
-        return open(os.path.join(os.path.expanduser("~/.sopel/"), filename), mode)
+        dir_path = os.path.expanduser("~/.sopel/")
+        os.makedirs(dir_path, exist_ok=True)
+        return open(os.path.join(dir_path, filename), mode)
 
     def create_config(self):
         with self.open_file(self.filename):
