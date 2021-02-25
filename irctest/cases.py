@@ -69,7 +69,24 @@ class _IrcTestCase(unittest.TestCase):
         if self.show_io:
             print("---- new test ----")
 
-    def assertMessageEqual(
+    def assertMessageEqual(self, msg, **kwargs):
+        """Helper for partially comparing a message.
+
+        Takes the message as first arguments, and comparisons to be made
+        as keyword arguments.
+
+        Deals with subcommands (eg. `CAP`) if any of `subcommand`,
+        `subparams`, and `target` are given."""
+        error = self.messageDiffers(msg, **kwargs)
+        if error:
+            self.failureException(msg)
+
+    def messageEqual(self, msg, **kwargs):
+        """Boolean negation of `messageDiffers` (returns a boolean,
+        not an optional string)."""
+        return not self.messageDiffers(msg, **kwargs)
+
+    def messageDiffers(
         self,
         msg,
         subcommand=None,
@@ -80,34 +97,65 @@ class _IrcTestCase(unittest.TestCase):
         extra_format=(),
         **kwargs,
     ):
-        """Helper for partially comparing a message.
-
-        Takes the message as first arguments, and comparisons to be made
-        as keyword arguments.
-
-        Deals with subcommands (eg. `CAP`) if any of `subcommand`,
-        `subparams`, and `target` are given."""
-        fail_msg = fail_msg or "{msg}"
+        """Returns an error message if the message doesn't match the given arguments,
+        or None if it matches."""
         for (key, value) in kwargs.items():
-            self.assertEqual(
-                getattr(msg, key), value, msg, fail_msg, extra_format=extra_format
-            )
+            if getattr(msg, key) != value:
+                fail_msg = (
+                    fail_msg or "expected {param} to be {expects}, got {got}: {msg}"
+                )
+                return fail_msg.format(
+                    *extra_format,
+                    got=getattr(msg, key),
+                    expects=value,
+                    param=key,
+                    msg=msg,
+                )
         if nick:
-            self.assertNotEqual(msg.prefix, None, msg, fail_msg)
-            self.assertEqual(msg.prefix.split("!")[0], nick, msg, fail_msg)
+            got_nick = msg.prefix.split("!")[0]
+            if msg.prefix is None:
+                fail_msg = (
+                    fail_msg or "expected nick to be {expects}, got {got} prefix: {msg}"
+                )
+                return fail_msg.format(
+                    *extra_format, got=got_nick, expects=nick, param=key, msg=msg
+                )
+
         if subcommand is not None or subparams is not None:
             self.assertGreater(len(msg.params), 2, fail_msg)
+            if len(msg.params) <= 2:
+                fail_msg = (
+                    fail_msg or "expected subcommand with params, got only {params}"
+                )
+                return fail_msg.format(
+                    *extra_format,
+                    got=msg.params,
+                    expects=[subcommand] + subparams,
+                    params=msg.params,
+                    msg=msg,
+                )
+
             # msg_target = msg.params[0]
             msg_subcommand = msg.params[1]
             msg_subparams = msg.params[2:]
             if subcommand:
-                self.assertEqual(
-                    msg_subcommand, subcommand, msg, fail_msg, extra_format=extra_format
-                )
+                if msg_subcommand != subcommand:
+                    fail_msg = (
+                        fail_msg or "expected subcommand {expects}, got {got}: {msg}"
+                    )
+                    return fail_msg.format(
+                        *extra_format, got=msg_subcommand, expects=subcommand, msg=msg
+                    )
             if subparams is not None:
-                self.assertEqual(
-                    msg_subparams, subparams, msg, fail_msg, extra_format=extra_format
-                )
+                if msg_subparams != subparams:
+                    fail_msg = (
+                        fail_msg or "expected subparams {expects}, got {got}: {msg}"
+                    )
+                    return fail_msg.format(
+                        *extra_format, got=msg_subparams, expects=subparams, msg=msg
+                    )
+
+        return None
 
     def assertIn(self, item, list_, msg=None, fail_msg=None, extra_format=()):
         if fail_msg:
