@@ -1,7 +1,8 @@
 from irctest import cases
+from irctest.runner import CapabilityNotSupported, ImplementationChoice
 
 
-class CapTestCase(cases.BaseServerTestCase):
+class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.mark_specifications("IRCv3.1")
     def testNoReq(self):
         """Test the server handles gracefully clients which do not send
@@ -123,34 +124,48 @@ class CapTestCase(cases.BaseServerTestCase):
             "sending “CAP REQ :multi-prefix”, but got {msg}.",
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("IRCv3.1")
     def testCapRemovalByClient(self):
         """Test CAP LIST and removal of caps via CAP REQ :-tagname."""
+        cap1 = "echo-message"
+        cap2 = "server-time"
         self.addClient(1)
         self.sendLine(1, "CAP LS 302")
-        self.assertIn("multi-prefix", self.getCapLs(1))
-        self.sendLine(1, "CAP REQ :echo-message server-time")
+        m = self.getMessage(1)
+        if not ({cap1, cap2} <= set(m.params[2].split())):
+            raise CapabilityNotSupported(f"{cap1} or {cap2}")
+        self.sendLine(1, f"CAP REQ :{cap1} {cap2}")
         self.sendLine(1, "nick bar")
         self.sendLine(1, "user user 0 * realname")
         self.sendLine(1, "CAP END")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageEqual(m, command="CAP", subcommand="ACK")
+        self.assertEqual(
+            set(m.params[2].split()), {cap1, cap2}, "Didn't ACK both REQed caps"
+        )
         self.skipToWelcome(1)
-        self.getMessages(1)
 
         self.sendLine(1, "CAP LIST")
         messages = self.getMessages(1)
         cap_list = [m for m in messages if m.command == "CAP"][0]
-        self.assertEqual(
-            set(cap_list.params[2].split()), {"echo-message", "server-time"}
-        )
+        self.assertEqual(set(cap_list.params[2].split()), {cap1, cap2})
         self.assertIn("time", cap_list.tags)
 
         # remove the server-time cap
-        self.sendLine(1, "CAP REQ :-server-time")
-        self.getMessages(1)
+        self.sendLine(1, f"CAP REQ :-{cap2}")
+        m = self.getMessage(1)
+        # Must be either ACK or NAK
+        if self.messageDiffers(
+            m, command="CAP", subcommand="ACK", subparams=[f"-{cap2}"]
+        ):
+            self.assertMessageEqual(
+                m, command="CAP", subcommand="NAK", subparams=[f"-{cap2}"]
+            )
+            raise ImplementationChoice(f"Does not support CAP REQ -{cap2}")
 
         # server-time should be disabled
         self.sendLine(1, "CAP LIST")
         messages = self.getMessages(1)
         cap_list = [m for m in messages if m.command == "CAP"][0]
-        self.assertEqual(set(cap_list.params[2].split()), {"echo-message"})
+        self.assertEqual(set(cap_list.params[2].split()), {cap1})
         self.assertNotIn("time", cap_list.tags)
