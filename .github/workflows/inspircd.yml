@@ -50,5 +50,6 @@ jobs:
       run: |
         # testNoticeNonexistentChannel fails because of https://github.com/inspircd/inspircd/issues/1849
         # testDirectMessageEcho fails because of https://github.com/inspircd/inspircd/issues/1851
-        PATH=~/.local/bin:$PATH pytest --controller irctest.controllers.inspircd -k 'not Oragono and not deprecated and not strict and not testNoticeNonexistentChannel and not testDirectMessageEcho'
+        # testKeyValidation fails because of https://github.com/inspircd/inspircd/issues/1850
+        PATH=~/.local/bin:$PATH pytest --controller irctest.controllers.inspircd -k 'not Oragono and not deprecated and not strict and not testNoticeNonexistentChannel and not testDirectMessageEcho and not testKeyValidation'
 
