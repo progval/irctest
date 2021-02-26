@@ -79,7 +79,7 @@ class _IrcTestCase(unittest.TestCase):
         `subparams`, and `target` are given."""
         error = self.messageDiffers(msg, **kwargs)
         if error:
-            self.failureException(msg)
+            raise self.failureException(msg)
 
     def messageEqual(self, msg, **kwargs):
         """Boolean negation of `messageDiffers` (returns a boolean,
