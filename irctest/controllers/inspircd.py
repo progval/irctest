@@ -21,6 +21,7 @@ TEMPLATE_CONFIG = """
 <module name="ircv3_msgid">
 <module name="ircv3_servertime">
 <module name="monitor">
+<module name="m_muteban">  # for testing mute extbans
 <module name="namesx"> # For multi-prefix
 <connect allow="*"
     resolvehostnames="no" # Faster

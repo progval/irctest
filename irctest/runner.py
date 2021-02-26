@@ -35,6 +35,16 @@ class IsupportTokenNotSupported(unittest.SkipTest):
         return "Unsupported ISUPPORT token: {}".format(self.args[0])
 
 
+class ChannelModeNotSupported(unittest.SkipTest):
+    def __str__(self):
+        return "Unsupported channel mode: {} ({})".format(self.args[0], self.args[1])
+
+
+class ExtbanNotSupported(unittest.SkipTest):
+    def __str__(self):
+        return "Unsupported extban: {} ({})".format(self.args[0], self.args[1])
+
+
 class NotRequiredBySpecifications(unittest.SkipTest):
     def __str__(self):
         return "Tests not required by the set of tested specification(s)."
