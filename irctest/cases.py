@@ -177,6 +177,28 @@ class _IrcTestCase(unittest.TestCase):
             fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
         super().assertNotEqual(got, expects, fail_msg)
 
+    def assertGreater(self, got, expects, msg=None, fail_msg=None, extra_format=()):
+        if fail_msg:
+            fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
+        super().assertGreater(got, expects, fail_msg)
+
+    def assertGreaterEqual(
+        self, got, expects, msg=None, fail_msg=None, extra_format=()
+    ):
+        if fail_msg:
+            fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
+        super().assertGreaterEqual(got, expects, fail_msg)
+
+    def assertLess(self, got, expects, msg=None, fail_msg=None, extra_format=()):
+        if fail_msg:
+            fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
+        super().assertLess(got, expects, fail_msg)
+
+    def assertLessEqual(self, got, expects, msg=None, fail_msg=None, extra_format=()):
+        if fail_msg:
+            fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
+        super().assertLessEqual(got, expects, fail_msg)
+
 
 class BaseClientTestCase(_IrcTestCase):
     """Basic class for client tests. Handles spawning a client and exchanging
