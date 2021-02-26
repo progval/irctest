@@ -131,7 +131,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         cap2 = "server-time"
         self.addClient(1)
         self.sendLine(1, "CAP LS 302")
-        m = self.getMessage(1)
+        m = self.getRegistrationMessage(1)
         if not ({cap1, cap2} <= set(m.params[2].split())):
             raise CapabilityNotSupported(f"{cap1} or {cap2}")
         self.sendLine(1, f"CAP REQ :{cap1} {cap2}")
@@ -148,7 +148,9 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(1, "CAP LIST")
         messages = self.getMessages(1)
         cap_list = [m for m in messages if m.command == "CAP"][0]
-        self.assertEqual(set(cap_list.params[2].split()), {cap1, cap2})
+        enabled_caps = set(cap_list.params[2].split())
+        enabled_caps.discard("cap-notify")  # implicitly added by some impls
+        self.assertEqual(enabled_caps, {cap1, cap2})
         self.assertIn("time", cap_list.tags)
 
         # remove the server-time cap
@@ -167,5 +169,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(1, "CAP LIST")
         messages = self.getMessages(1)
         cap_list = [m for m in messages if m.command == "CAP"][0]
-        self.assertEqual(set(cap_list.params[2].split()), {cap1})
+        enabled_caps = set(cap_list.params[2].split())
+        enabled_caps.discard("cap-notify")  # implicitly added by some impls
+        self.assertEqual(enabled_caps, {cap1})
         self.assertNotIn("time", cap_list.tags)
