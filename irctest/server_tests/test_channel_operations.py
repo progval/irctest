@@ -856,7 +856,7 @@ class NoCTCPTestCase(cases.BaseServerTestCase):
 
 
 class KeyTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testKeyNormal(self):
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
@@ -874,15 +874,66 @@ class KeyTestCase(cases.BaseServerTestCase):
         reply = self.getMessages(2)
         self.assertMessageEqual(reply[0], command="JOIN", params=["#chan"])
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("RFC2812")
     def testKeyValidation(self):
+        """
+          key        =  1*23( %x01-05 / %x07-08 / %x0C / %x0E-1F / %x21-7F )
+                  ; any 7-bit US_ASCII character,
+                  ; except NUL, CR, LF, FF, h/v TABs, and " "
+        <https://tools.ietf.org/html/rfc2812#page-8>
+        """
         # oragono issue #1021
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
-        self.sendLine(1, "MODE #chan +k :invalid channel passphrase")
-        reply = self.getMessages(1)
-        self.assertNotIn(ERR_UNKNOWNERROR, {msg.command for msg in reply})
-        self.assertIn(ERR_INVALIDMODEPARAM, {msg.command for msg in reply})
+        self.sendLine(1, "MODE #chan +k :passphrase with spaces")
+
+        # The spec requires no space; but doesn't say what to do
+        # if there is one.
+        # Let's check the various alternatives
+
+        replies = self.getMessages(1)
+        self.assertNotIn(
+            ERR_UNKNOWNERROR,
+            {msg.command for msg in replies},
+            fail_msg="Sending an invalid key (with a space) caused an "
+            "ERR_UNKNOWNERROR instead of being handled explicitly "
+            "(eg. ERR_INVALIDMODEPARAM or truncation): {msg}",
+        )
+
+        if ERR_INVALIDMODEPARAM in {msg.command for msg in replies}:
+            # First option: ERR_INVALIDMODEPARAM (eg. Oragono)
+            return
+
+        # Second and third options: truncating the key (eg. UnrealIRCd)
+        # or replacing spaces (eg. Charybdis)
+        mode_commands = [msg for msg in replies if msg.command == "MODE"]
+        self.assertGreaterEqual(
+            len(mode_commands),
+            1,
+            fail_msg="Sending an invalid key (with a space) triggered "
+            "neither ERR_UNKNOWNERROR, ERR_INVALIDMODEPARAM, or a MODE. "
+            "Only these: {}",
+            extra_format=(replies,),
+        )
+        self.assertLessEqual(
+            len(mode_commands),
+            1,
+            fail_msg="Sending an invalid key (with a space) triggered "
+            "multiple MODE responses: {}",
+            extra_format=(replies,),
+        )
+
+        mode_command = mode_commands[0]
+        if mode_command.params == ["#chan", "+k", "passphrase"]:
+            key = "passphrase"
+        elif mode_command.params == ["#chan", "+k", "passphrasewithspaces"]:
+            key = "passphrasewithspaces"
+        elif mode_command.params == ["#chan", "+k", "passphrase with spaces"]:
+            raise self.failureException("Invalid key (with a space) was not rejected.")
+
+        self.connectClient("foo")
+        self.sendLine(2, f"JOIN #chan {key}")
+        self.assertMessageEqual(self.getMessage(2), command="JOIN", params=["#chan"])
 
 
 class AuditoriumTestCase(cases.BaseServerTestCase):
@@ -1049,7 +1100,9 @@ class BanMode(cases.BaseServerTestCase):
         self.sendLine("chanop", "MODE #chan +b bar!*@*")
         self.assertMessageEqual(self.getMessage("chanop"), command="MODE")
 
-        self.connectClient("Bar", name="bar", capabilities=["echo-message"])
+        self.connectClient(
+            "Bar", name="bar", capabilities=["echo-message"], skip_if_cap_nak=True
+        )
         self.getMessages("bar")
         self.sendLine("bar", "JOIN #chan")
         self.assertMessageEqual(self.getMessage("bar"), command=ERR_BANNEDFROMCHAN)
