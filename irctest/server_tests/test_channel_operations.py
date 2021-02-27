@@ -7,6 +7,7 @@ from irctest import cases, client_mock, runner
 from irctest.irc_utils import ambiguities
 from irctest.numerics import (
     ERR_BADCHANNELKEY,
+    ERR_BANNEDFROMCHAN,
     ERR_CANNOTSENDTOCHAN,
     ERR_CHANOPRIVSNEEDED,
     ERR_INVALIDMODEPARAM,
@@ -975,6 +976,49 @@ class TopicPrivileges(cases.BaseServerTestCase):
         self.assertEqual(
             len([msg for msg in replies if msg.command == RPL_TOPICTIME]), 1
         )
+
+
+class BanMode(cases.BaseServerTestCase):
+    @cases.mark_specifications("RFC1459", "RFC2812")
+    def testBan(self):
+        """Basic ban operation"""
+        self.connectClient("chanop", name="chanop")
+        self.joinChannel("chanop", "#chan")
+        self.getMessages("chanop")
+        self.sendLine("chanop", "MODE #chan +b bar!*@*")
+        self.assertMessageEqual(self.getMessage("chanop"), command="MODE")
+
+        self.connectClient("Bar", name="bar", capabilities=["echo-message"])
+        self.getMessages("bar")
+        self.sendLine("bar", "JOIN #chan")
+        self.assertMessageEqual(self.getMessage("bar"), command=ERR_BANNEDFROMCHAN)
+
+        self.sendLine("chanop", "MODE #chan -b bar!*@*")
+        self.assertMessageEqual(self.getMessage("chanop"), command="MODE")
+
+        self.sendLine("bar", "JOIN #chan")
+        self.assertMessageEqual(self.getMessage("bar"), command="JOIN")
+
+    @cases.mark_specifications("Oragono")
+    def testCaseInsensitive(self):
+        """Some clients allow unsetting modes if their argument matches
+        up to normalization"""
+        self.connectClient("chanop", name="chanop")
+        self.joinChannel("chanop", "#chan")
+        self.getMessages("chanop")
+        self.sendLine("chanop", "MODE #chan +b BAR!*@*")
+        self.assertMessageEqual(self.getMessage("chanop"), command="MODE")
+
+        self.connectClient("Bar", name="bar", capabilities=["echo-message"])
+        self.getMessages("bar")
+        self.sendLine("bar", "JOIN #chan")
+        self.assertMessageEqual(self.getMessage("bar"), command=ERR_BANNEDFROMCHAN)
+
+        self.sendLine("chanop", "MODE #chan -b bar!*@*")
+        self.assertMessageEqual(self.getMessage("chanop"), command="MODE")
+
+        self.sendLine("bar", "JOIN #chan")
+        self.assertMessageEqual(self.getMessage("bar"), command="JOIN")
 
 
 class ModeratedMode(cases.BaseServerTestCase):
