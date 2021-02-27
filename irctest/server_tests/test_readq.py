@@ -5,6 +5,7 @@ class ReadqTestCase(cases.BaseServerTestCase):
     """Test responses to DoS attacks using long lines."""
 
     @cases.mark_specifications("Oragono")
+    @cases.mark_capabilities("message-tags")
     def testReadqTags(self):
         self.connectClient("mallory", name="mallory", capabilities=["message-tags"])
         self.joinChannel("mallory", "#test")

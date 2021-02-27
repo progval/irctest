@@ -13,7 +13,7 @@ from irctest.numerics import (
 )
 
 
-class WhoisTestCase(cases.BaseServerTestCase):
+class WhoisTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.mark_specifications("RFC2812")
     def testWhoisUser(self):
         """Test basic WHOIS behavior"""
@@ -40,8 +40,6 @@ class WhoisTestCase(cases.BaseServerTestCase):
         )
         self.assertEqual(whois_user.params[5], realname)
 
-
-class InvisibleTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Oragono")
     def testInvisibleWhois(self):
         """Test interaction between MODE +i and RPL_WHOISCHANNELS."""
@@ -116,12 +114,14 @@ class InvisibleTestCase(cases.BaseServerTestCase):
             "RPL_WHOISCHANNELS should be sent for a non-invisible nick",
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.mark_specifications("ircdefs")
     def testWhoisAccount(self):
-        """Test numeric 330, RPL_WHOISACCOUNT."""
+        """Test numeric 330, RPL_WHOISACCOUNT.
+
+        <https://defs.ircdocs.horse/defs/numerics.html#rpl-whoisaccount-330>"""
         self.controller.registerUser(self, "shivaram", "sesame")
-        self.connectClient("netcat")
-        self.sendLine(1, "NS IDENTIFY shivaram sesame")
+        self.connectClient("netcat", account="shivaram", password="sesame")
         self.getMessages(1)
 
         self.connectClient("curious")

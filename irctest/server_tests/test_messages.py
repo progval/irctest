@@ -71,9 +71,9 @@ class NoticeTestCase(cases.BaseServerTestCase):
 
 
 class TagsTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("Oragono")
+    @cases.mark_capabilities("message-tags")
     def testLineTooLong(self):
-        self.connectClient("bar")
+        self.connectClient("bar", capabilities=["message-tags"], skip_if_cap_nak=True)
         self.joinChannel(1, "#xyz")
         monsterMessage = "@+clientOnlyTagExample=" + "a" * 4096 + " PRIVMSG #xyz hi!"
         self.sendLine(1, monsterMessage)

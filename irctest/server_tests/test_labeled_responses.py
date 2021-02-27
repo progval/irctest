@@ -1,4 +1,7 @@
 """
+This specification is a little hard to test because all labels are optional;
+so there may be many false positives.
+
 <https://ircv3.net/specs/extensions/labeled-response.html>
 """
 
@@ -8,29 +11,36 @@ from irctest import cases
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    @cases.mark_capabilities("batch", "echo-message", "labeled-response")
+    def connectClient(self, nick, *, capabilities, **kwargs):
+        if self.controller.software_name == "InspIRCd":
+            # InspIRCd only sends labels if 'batch' is enabled
+            if "batch" not in capabilities:
+                capabilities.append("batch")
+        return super().connectClient(nick, capabilities=capabilities, **kwargs)
+
+    @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledPrivmsgResponsesToMultipleClients(self):
         self.connectClient(
             "foo",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(1)
         self.connectClient(
             "bar",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(2)
         self.connectClient(
             "carl",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(3)
         self.connectClient(
             "alice",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(4)
@@ -96,13 +106,13 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     def testLabeledPrivmsgResponsesToClient(self):
         self.connectClient(
             "foo",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(1)
         self.connectClient(
             "bar",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(2)
@@ -156,13 +166,13 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     def testLabeledPrivmsgResponsesToChannel(self):
         self.connectClient(
             "foo",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(1)
         self.connectClient(
             "bar",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(2)
@@ -224,7 +234,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     def testLabeledPrivmsgResponsesToSelf(self):
         self.connectClient(
             "foo",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(1)
@@ -267,13 +277,13 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     def testLabeledNoticeResponsesToClient(self):
         self.connectClient(
             "foo",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(1)
         self.connectClient(
             "bar",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(2)
@@ -327,13 +337,13 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     def testLabeledNoticeResponsesToChannel(self):
         self.connectClient(
             "foo",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(1)
         self.connectClient(
             "bar",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(2)
@@ -395,7 +405,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     def testLabeledNoticeResponsesToSelf(self):
         self.connectClient(
             "foo",
-            capabilities=["batch", "echo-message", "labeled-response"],
+            capabilities=["echo-message", "labeled-response"],
             skip_if_cap_nak=True,
         )
         self.getMessages(1)
@@ -436,13 +446,13 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     def testLabeledTagMsgResponsesToClient(self):
         self.connectClient(
             "foo",
-            capabilities=["batch", "echo-message", "labeled-response", "message-tags"],
+            capabilities=["echo-message", "labeled-response", "message-tags"],
             skip_if_cap_nak=True,
         )
         self.getMessages(1)
         self.connectClient(
             "bar",
-            capabilities=["batch", "echo-message", "labeled-response", "message-tags"],
+            capabilities=["echo-message", "labeled-response", "message-tags"],
             skip_if_cap_nak=True,
         )
         self.getMessages(2)
@@ -544,13 +554,13 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     def testLabeledTagMsgResponsesToChannel(self):
         self.connectClient(
             "foo",
-            capabilities=["batch", "echo-message", "labeled-response", "message-tags"],
+            capabilities=["echo-message", "labeled-response", "message-tags"],
             skip_if_cap_nak=True,
         )
         self.getMessages(1)
         self.connectClient(
             "bar",
-            capabilities=["batch", "echo-message", "labeled-response", "message-tags"],
+            capabilities=["echo-message", "labeled-response", "message-tags"],
             skip_if_cap_nak=True,
         )
         self.getMessages(2)
@@ -610,7 +620,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     def testLabeledTagMsgResponsesToSelf(self):
         self.connectClient(
             "foo",
-            capabilities=["batch", "echo-message", "labeled-response", "message-tags"],
+            capabilities=["echo-message", "labeled-response", "message-tags"],
             skip_if_cap_nak=True,
         )
         self.getMessages(1)
@@ -647,9 +657,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ).format(number_of_labels),
         )
 
-    @cases.mark_capabilities(
-        "echo-message", "labeled-response", "message-tags", "server-time"
-    )
+    @cases.mark_capabilities("batch", "labeled-response", "message-tags", "server-time")
     def testBatchedJoinMessages(self):
         self.connectClient(
             "bar",
@@ -689,11 +697,10 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         for message in m[1:-1]:
             self.assertEqual(message.tags.get("batch"), batch_id)
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_capabilities("labeled-response")
     def testNoBatchForSingleMessage(self):
         self.connectClient(
-            "bar",
-            capabilities=["batch", "labeled-response", "message-tags", "server-time"],
+            "bar", capabilities=["labeled-response"], skip_if_cap_nak=True
         )
         self.getMessages(1)
 
@@ -708,11 +715,10 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         # check the label
         self.assertEqual(m.tags.get("label"), "98765")
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_capabilities("labeled-response")
     def testEmptyBatchForNoResponse(self):
         self.connectClient(
-            "bar",
-            capabilities=["batch", "labeled-response", "message-tags", "server-time"],
+            "bar", capabilities=["labeled-response"], skip_if_cap_nak=True
         )
         self.getMessages(1)
 
