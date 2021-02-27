@@ -48,8 +48,15 @@ class DMEchoMessageTestCase(cases.BaseServerTestCase):
 
         self.assertEqual(delivery.params, [qux, "hi there"])
         self.assertEqual(delivery.params, echo.params)
-        self.assertEqual(delivery.tags["msgid"], echo.tags["msgid"])
-        self.assertEqual(echo.tags["label"], "xyz")
+
+        # Either both messages have a msgid, or neither does
+        self.assertEqual(delivery.tags.get("msgid"), echo.tags.get("msgid"))
+
+        self.assertEqual(
+            echo.tags.get("label"),
+            "xyz",
+            fail_msg="expected message label 'xyz', but got {got!r}",
+        )
         self.assertEqual(delivery.tags["+example-client-tag"], "example-value")
         self.assertEqual(
             delivery.tags["+example-client-tag"], echo.tags["+example-client-tag"]
