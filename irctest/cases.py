@@ -75,8 +75,8 @@ class _IrcTestCase(unittest.TestCase):
         Takes the message as first arguments, and comparisons to be made
         as keyword arguments.
 
-        Deals with subcommands (eg. `CAP`) if any of `subcommand`,
-        `subparams`, and `target` are given."""
+        Uses self.listMatch on the params argument.
+        """
         error = self.messageDiffers(msg, **kwargs)
         if error:
             raise self.failureException(error)
@@ -89,8 +89,7 @@ class _IrcTestCase(unittest.TestCase):
     def messageDiffers(
         self,
         msg,
-        subcommand=None,
-        subparams=None,
+        params=None,
         target=None,
         nick=None,
         fail_msg=None,
@@ -111,6 +110,13 @@ class _IrcTestCase(unittest.TestCase):
                     param=key,
                     msg=msg,
                 )
+
+        if params and not self.listMatch(msg.params, params):
+            fail_msg = fail_msg or "params to be {expects}, got {got}: {msg}"
+            return fail_msg.format(
+                *extra_format, got=msg.params, expects=params, msg=msg
+            )
+
         if nick:
             got_nick = msg.prefix.split("!")[0]
             if msg.prefix is None:
@@ -121,41 +127,21 @@ class _IrcTestCase(unittest.TestCase):
                     *extra_format, got=got_nick, expects=nick, param=key, msg=msg
                 )
 
-        if subcommand is not None or subparams is not None:
-            self.assertGreater(len(msg.params), 2, fail_msg)
-            if len(msg.params) <= 2:
-                fail_msg = (
-                    fail_msg or "expected subcommand with params, got only {params}"
-                )
-                return fail_msg.format(
-                    *extra_format,
-                    got=msg.params,
-                    expects=[subcommand] + subparams,
-                    params=msg.params,
-                    msg=msg,
-                )
-
-            # msg_target = msg.params[0]
-            msg_subcommand = msg.params[1]
-            msg_subparams = msg.params[2:]
-            if subcommand:
-                if msg_subcommand != subcommand:
-                    fail_msg = (
-                        fail_msg or "expected subcommand {expects}, got {got}: {msg}"
-                    )
-                    return fail_msg.format(
-                        *extra_format, got=msg_subcommand, expects=subcommand, msg=msg
-                    )
-            if subparams is not None:
-                if msg_subparams != subparams:
-                    fail_msg = (
-                        fail_msg or "expected subparams {expects}, got {got}: {msg}"
-                    )
-                    return fail_msg.format(
-                        *extra_format, got=msg_subparams, expects=subparams, msg=msg
-                    )
-
         return None
+
+    def listMatch(self, got, expected):
+        """Returns True iff the list are equal.
+        The ellipsis (aka. "..." aka triple dots) can be used on the 'expected'
+        side as a wildcard, matching any *single* value."""
+        if len(got) != len(expected):
+            return False
+        for (got_value, expected_value) in zip(got, expected):
+            if expected_value is Ellipsis:
+                # wildcard
+                continue
+            if got_value != expected_value:
+                return False
+        return True
 
     def assertIn(self, item, list_, msg=None, fail_msg=None, extra_format=()):
         if fail_msg:
@@ -436,7 +422,8 @@ class BaseServerTestCase(_IrcTestCase):
         caps = []
         while True:
             m = self.getRegistrationMessage(client)
-            self.assertMessageEqual(m, command="CAP", subcommand="LS")
+            self.assertMessageEqual(m, command="CAP")
+            self.assertEqual(m.params[1], "LS", fail_msg="Expected CAP * LS, got {got}")
             if m.params[2] == "*":
                 caps.extend(m.params[3].split())
             else:
