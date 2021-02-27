@@ -1,0 +1,54 @@
+name: irctest with Solanum
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache
+          $GITHUB_WORKSPACE/solanum
+        key: ${{ runner.os }}-solanum
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+
+    - name: Checkout Solanum
+      uses: actions/checkout@v2
+      with:
+        repository: solanum-ircd/solanum
+        ref: 2e8a889fc94313acf53c430cec1bd044850769a0
+        path: solanum
+
+    - name: Build Solanum
+      run: |
+        cd $GITHUB_WORKSPACE/solanum/
+        ./autogen.sh
+        ./configure --prefix=$HOME/.local/
+        make -j 4
+        make install
+
+    - name: Test with pytest
+      run: |
+        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.solanum -k 'not Oragono and not deprecated and not strict and not testDoubleKickMessages'
+
+
+

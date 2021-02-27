@@ -77,6 +77,19 @@ cd ~/irctest
 pytest --controller irctest.controllers.oragono -k 'not deprecated'
 ```
 
+To run (server) tests on Solanum:
+
+```
+cd /tmp/
+git clone https://github.com/solanum-ircd/solanum.git
+cd charybdis
+./autogen.sh
+./configure --prefix=$HOME/.local/
+make -j 4
+make install
+pytest --controller irctest.controllers.solanum -k 'not Oragono and not deprecated and not strict'
+```
+
 To run (server) tests on Charybdis::
 
 ```
