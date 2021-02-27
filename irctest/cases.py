@@ -460,6 +460,7 @@ class BaseServerTestCase(_IrcTestCase):
         capabilities=None,
         skip_if_cap_nak=False,
         show_io=None,
+        account=None,
         password=None,
         ident="username",
     ):
@@ -482,7 +483,7 @@ class BaseServerTestCase(_IrcTestCase):
             self.sendLine(client, "CAP END")
         if password is not None:
             self.sendLine(client, "AUTHENTICATE PLAIN")
-            self.sendLine(client, sasl_plain_blob(nick, password))
+            self.sendLine(client, sasl_plain_blob(account or nick, password))
         self.sendLine(client, "NICK {}".format(nick))
         self.sendLine(client, "USER %s * * :Realname" % (ident,))
 
