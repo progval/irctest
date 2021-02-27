@@ -197,7 +197,63 @@ class JoinTestCase(cases.BaseServerTestCase):
                 )
 
     @cases.mark_specifications("RFC1459", "RFC2812")
-    def testNormalPart(self):
+    def testBasicPart(self):
+        self.connectClient("bar")
+        self.sendLine(1, "JOIN #chan")
+        m = self.getMessage(1)
+        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+
+        self.connectClient("baz")
+        self.sendLine(2, "JOIN #chan")
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+
+        # skip the rest of the JOIN burst:
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(1, "PART #chan")
+        # both the PART'ing client and the other channel member should receive
+        # a PART line:
+        m = self.getMessage(1)
+        self.assertMessageEqual(m, command="PART")
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command="PART")
+
+    @cases.mark_specifications("RFC2812")
+    def testBasicPartRfc2812(self):
+        """
+        “If a "Part Message" is given, this will be sent
+        instead of the default message, the nickname.”
+        """
+        self.connectClient("bar")
+        self.sendLine(1, "JOIN #chan")
+        m = self.getMessage(1)
+        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+
+        self.connectClient("baz")
+        self.sendLine(2, "JOIN #chan")
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+
+        # skip the rest of the JOIN burst:
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(1, "PART #chan :bye everyone")
+        # both the PART'ing client and the other channel member should receive
+        # a PART line:
+        m = self.getMessage(1)
+        self.assertMessageEqual(m, command="PART", params=["#chan", "bye everyone"])
+        m = self.getMessage(2)
+        self.assertMessageEqual(m, command="PART", params=["#chan", "bye everyone"])
+
+    @cases.mark_specifications("RFC2812")
+    def testPartMessage(self):
+        """
+        “If a "Part Message" is given, this will be sent
+        instead of the default message, the nickname.”
+        """
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan")
         m = self.getMessage(1)
