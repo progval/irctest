@@ -7,20 +7,19 @@ from irctest.basecontrollers import NotImplementedByController
 from irctest.irc_utils.junkdrawer import random_name
 
 
-class DMEchoMessageTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("Oragono")
+class EchoMessageTestCase(cases.BaseServerTestCase):
+    @cases.mark_capabilities("labeled-response", "echo-message", "message-tags")
     def testDirectMessageEcho(self):
         bar = random_name("bar")
         self.connectClient(
             bar,
             name=bar,
             capabilities=[
-                "batch",
                 "labeled-response",
                 "echo-message",
                 "message-tags",
-                "server-time",
             ],
+            skip_if_cap_nak=True,
         )
         self.getMessages(bar)
 
@@ -29,11 +28,9 @@ class DMEchoMessageTestCase(cases.BaseServerTestCase):
             qux,
             name=qux,
             capabilities=[
-                "batch",
                 "labeled-response",
                 "echo-message",
                 "message-tags",
-                "server-time",
             ],
         )
         self.getMessages(qux)
@@ -62,8 +59,6 @@ class DMEchoMessageTestCase(cases.BaseServerTestCase):
             delivery.tags["+example-client-tag"], echo.tags["+example-client-tag"]
         )
 
-
-class EchoMessageTestCase(cases.BaseServerTestCase):
     def _testEchoMessage(command, solo, server_time):
         @cases.mark_capabilities("echo-message")
         def f(self):
