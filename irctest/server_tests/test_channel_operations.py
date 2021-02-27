@@ -712,9 +712,13 @@ class testChannelCaseSensitivity(cases.BaseServerTestCase):
 
 
 class InviteTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("Modern")
     def testInvites(self):
-        """Test some basic functionality related to INVITE and the +i mode."""
+        """Test some basic functionality related to INVITE and the +i mode.
+
+        https://modern.ircdocs.horse/#invite-only-channel-mode
+        https://modern.ircdocs.horse/#rplinviting-341
+        """
         self.connectClient("foo")
         self.joinChannel(1, "#chan")
         self.sendLine(1, "MODE #chan +i")

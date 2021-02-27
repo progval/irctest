@@ -30,6 +30,11 @@ class CapabilityNotSupported(unittest.SkipTest):
         return "Unsupported capability: {}".format(self.args[0])
 
 
+class IsupportTokenNotSupported(unittest.SkipTest):
+    def __str__(self):
+        return "Unsupported ISUPPORT token: {}".format(self.args[0])
+
+
 class NotRequiredBySpecifications(unittest.SkipTest):
     def __str__(self):
         return "Tests not required by the set of tested specification(s)."

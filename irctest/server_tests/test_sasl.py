@@ -9,7 +9,7 @@ class RegistrationTestCase(cases.BaseServerTestCase):
 
 
 class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    @cases.mark_specifications("IRCv3.1")
+    @cases.mark_specifications("IRCv3")
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPlain(self):
         """PLAIN authentication with correct username/password."""
@@ -54,7 +54,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             "({expects}), not {got}: {msg}",
         )
 
-    @cases.mark_specifications("IRCv3.1")
+    @cases.mark_specifications("IRCv3")
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPlainNoAuthzid(self):
         """“message   = [authzid] UTF8NUL authcid UTF8NUL passwd
@@ -119,7 +119,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             "({expects}), not {got}: {msg}",
         )
 
-    @cases.mark_specifications("IRCv3.1")
+    @cases.mark_specifications("IRCv3")
     def testMechanismNotAvailable(self):
         """“If authentication fails, a 904 or 905 numeric will be sent”
         -- <http://ircv3.net/specs/extensions/sasl-3.1.html#the-authenticate-command>
@@ -141,7 +141,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             fail_msg="Did not reply with 904 to “AUTHENTICATE FOO”: {msg}",
         )
 
-    @cases.mark_specifications("IRCv3.1")
+    @cases.mark_specifications("IRCv3")
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPlainLarge(self):
         """Test the client splits large AUTHENTICATE messages whose payload
@@ -202,7 +202,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     # I don't know how to do it, because it would make the registration
     # message's length too big for it to be valid.
 
-    @cases.mark_specifications("IRCv3.1")
+    @cases.mark_specifications("IRCv3")
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPlainLargeEquals400(self):
         """Test the client splits large AUTHENTICATE messages whose payload

@@ -52,7 +52,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         ms = self.getMessages(2)
         self.assertEqual(ms, [])
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("message-tags", "batch", "echo-message", "server-time")
     def testTagCap(self):
         # regression test for oragono #754
         self.connectClient(

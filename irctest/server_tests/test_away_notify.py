@@ -6,7 +6,7 @@ from irctest import cases
 
 
 class AwayNotifyTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    @cases.mark_specifications("IRCv3.1")
+    @cases.mark_capabilities("away-notify")
     def testAwayNotify(self):
         """Basic away-notify test."""
         self.connectClient("foo", capabilities=["away-notify"], skip_if_cap_nak=True)
@@ -29,7 +29,7 @@ class AwayNotifyTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             "Unexpected away-notify source: %s" % (awayNotify.prefix,),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("away-notify")
     def testAwayNotifyOnJoin(self):
         """The away-notify specification states:
         "Clients will be sent an AWAY message [...] when a user joins

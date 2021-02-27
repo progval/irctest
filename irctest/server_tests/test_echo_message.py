@@ -58,7 +58,7 @@ class DMEchoMessageTestCase(cases.BaseServerTestCase):
 
 class EchoMessageTestCase(cases.BaseServerTestCase):
     def _testEchoMessage(command, solo, server_time):
-        @cases.mark_specifications("IRCv3.2")
+        @cases.mark_capabilities("echo-message")
         def f(self):
             """<http://ircv3.net/specs/extensions/echo-message-3.2.html>"""
             self.addClient()
