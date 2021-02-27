@@ -12,11 +12,19 @@ TEMPLATE_CONFIG = """
 {ssl_config}
 <module name="cap">
 <module name="ircv3">
+<module name="ircv3_batch">
 <module name="ircv3_capnotify">
+<module name="ircv3_ctctags">
 <module name="ircv3_echomessage">
+<module name="ircv3_invitenotify">
+<module name="ircv3_labeledresponse">
+<module name="ircv3_msgid">
+<module name="ircv3_servertime">
+<module name="monitor">
 <module name="namesx"> # For multi-prefix
 <connect allow="*"
     resolvehostnames="no" # Faster
+    recvq="40960" # Needs to be larger than a valid message with tags
     {password_field}>
 <log method="file" type="*" level="debug" target="/tmp/ircd-{port}.log">
 """
