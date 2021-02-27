@@ -46,6 +46,7 @@ class Capabilities(enum.Enum):
 @enum.unique
 class IsupportTokens(enum.Enum):
     MONITOR = "MONITOR"
+    STATUSMSG = "STATUSMSG"
 
     @classmethod
     def from_name(cls, name):
