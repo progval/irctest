@@ -10,7 +10,7 @@ import pytest
 from . import client_mock, runner
 from .exceptions import ConnectionClosed
 from .irc_utils import capabilities, message_parser
-from .irc_utils.junkdrawer import normalizeWhitespace, random_name
+from .irc_utils.junkdrawer import normalizeWhitespace
 from .irc_utils.sasl import sasl_plain_blob
 from .numerics import (
     ERR_BADCHANNELKEY,
@@ -371,7 +371,7 @@ class BaseServerTestCase(_IrcTestCase):
 
     def setUp(self):
         super().setUp()
-        self.server_support = {}
+        self.server_support = None
         self.find_hostname_and_port()
         self.controller.run(
             self.hostname,
@@ -503,6 +503,7 @@ class BaseServerTestCase(_IrcTestCase):
         self.sendLine(client, "PING foo")
 
         # Skip all that happy welcoming stuff
+        self.server_support = {}
         while True:
             m = self.getMessage(client)
             if m.command == "PONG":
@@ -544,25 +545,6 @@ class BaseServerTestCase(_IrcTestCase):
                     break
                 elif msg.command in CHANNEL_JOIN_FAIL_NUMERICS:
                     raise ChannelJoinException(msg.command, msg.params)
-
-    def getISupport(self):
-        cn = random_name("bar")
-        self.addClient(name=cn)
-        self.sendLine(cn, "NICK %s" % (cn,))
-        self.sendLine(cn, "USER u s e r")
-        messages = self.getMessages(cn)
-        isupport = {}
-        for message in messages:
-            if message.command != "005":
-                continue
-            # 005 nick <tokens...> :are supported by this server
-            tokens = message.params[1:-1]
-            for token in tokens:
-                name, _, value = token.partition("=")
-                isupport[name] = value
-        self.sendLine(cn, "QUIT")
-        self.assertDisconnected(cn)
-        return isupport
 
 
 class OptionalityHelper:

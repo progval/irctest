@@ -1132,7 +1132,8 @@ class OpModerated(cases.BaseServerTestCase):
 class MuteExtban(cases.BaseServerTestCase):
     @cases.mark_specifications("Oragono")
     def testISupport(self):
-        isupport = self.getISupport()
+        self.connectClient(1)  # Fetches ISUPPORT
+        isupport = self.server_support
         token = isupport["EXTBAN"]
         prefix, comma, types = token.partition(",")
         self.assertEqual(prefix, "")

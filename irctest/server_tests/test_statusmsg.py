@@ -6,8 +6,8 @@ class StatusmsgTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Oragono")
     def testInIsupport(self):
         """Check that the expected STATUSMSG parameter appears in our isupport list."""
-        isupport = self.getISupport()
-        self.assertEqual(isupport["STATUSMSG"], "~&@%+")
+        self.connectClient("foo")  # detects ISUPPORT
+        self.assertEqual(self.server_support["STATUSMSG"], "~&@%+")
 
     @cases.mark_specifications("Oragono")
     def testStatusmsg(self):
