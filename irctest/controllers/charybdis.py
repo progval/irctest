@@ -93,7 +93,7 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
                 "-pidfile",
                 os.path.join(self.directory, "server.pid"),
             ],
-            stderr=subprocess.DEVNULL,
+            # stderr=subprocess.DEVNULL,
         )
 
 
