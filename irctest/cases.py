@@ -20,7 +20,7 @@ from .numerics import (
     ERR_NOSUCHCHANNEL,
     ERR_TOOMANYCHANNELS,
 )
-from .specifications import Specifications
+from .specifications import Capabilities, IsupportTokens, Specifications
 
 CHANNEL_JOIN_FAIL_NUMERICS = frozenset(
     [
@@ -489,7 +489,7 @@ class BaseServerTestCase(_IrcTestCase):
                 )
             except AssertionError:
                 if skip_if_cap_nak:
-                    raise runner.NotImplementedByController(", ".join(capabilities))
+                    raise runner.CapabilityNotSupported(" or ".join(capabilities))
                 else:
                     raise
             self.sendLine(client, "CAP END")
@@ -614,7 +614,7 @@ class OptionalityHelper:
 
 def mark_specifications(*specifications, deprecated=False, strict=False):
     specifications = frozenset(
-        Specifications.of_name(s) if isinstance(s, str) else s for s in specifications
+        Specifications.from_name(s) if isinstance(s, str) else s for s in specifications
     )
     if None in specifications:
         raise ValueError("Invalid set of specifications: {}".format(specifications))
@@ -626,6 +626,38 @@ def mark_specifications(*specifications, deprecated=False, strict=False):
             f = pytest.mark.strict(f)
         if deprecated:
             f = pytest.mark.deprecated(f)
+        return f
+
+    return decorator
+
+
+def mark_capabilities(*capabilities, deprecated=False, strict=False):
+    capabilities = frozenset(
+        Capabilities.from_name(c) if isinstance(c, str) else c for c in capabilities
+    )
+    if None in capabilities:
+        raise ValueError("Invalid set of capabilities: {}".format(capabilities))
+
+    def decorator(f):
+        for capability in capabilities:
+            f = getattr(pytest.mark, capability.value)(f)
+        # Support for any capability implies IRCv3
+        f = pytest.mark.IRCv3(f)
+        return f
+
+    return decorator
+
+
+def mark_isupport(*tokens, deprecated=False, strict=False):
+    tokens = frozenset(
+        IsupportTokens.from_name(c) if isinstance(c, str) else c for c in tokens
+    )
+    if None in tokens:
+        raise ValueError("Invalid set of isupport tokens: {}".format(tokens))
+
+    def decorator(f):
+        for token in tokens:
+            f = getattr(pytest.mark, token.value)(f)
         return f
 
     return decorator

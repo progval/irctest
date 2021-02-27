@@ -66,7 +66,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
             extra_format=(nick,),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testMonitorOneDisconnected(self):
         """“If any of the targets being added are online, the server will
         generate RPL_MONONLINE numerics listing those targets that are
@@ -86,7 +87,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
             pass
         self.assertMonoffline(1, "bar")
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testMonitorOneConnection(self):
         self.connectClient("foo")
         self.check_server_support()
@@ -95,7 +97,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
         self.connectClient("bar")
         self.assertMononline(1, "bar")
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testMonitorOneConnected(self):
         """“If any of the targets being added are offline, the server will
         generate RPL_MONOFFLINE numerics listing those targets that are
@@ -114,7 +117,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
             pass
         self.assertMonoffline(1, "bar")
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testMonitorOneConnectionWithQuit(self):
         self.connectClient("foo")
         self.check_server_support()
@@ -130,7 +134,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
         self.connectClient("bar")
         self.assertMononline(1, "bar")
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testMonitorConnectedAndDisconnected(self):
         """“If any of the targets being added are online, the server will
         generate RPL_MONONLINE numerics listing those targets that are
@@ -185,7 +190,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
             "“MONITOR + bar,baz” and “baz” is disconnected: {msg}",
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testUnmonitor(self):
         self.connectClient("foo")
         self.check_server_support()
@@ -210,7 +216,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
             fail_msg="Got messages after disconnection of unmonitored " "nick: {got}",
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testMonitorForbidsMasks(self):
         """“The MONITOR implementation also enhances user privacy by
         disallowing subscription to hostmasks, allowing users to avoid
@@ -247,7 +254,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
                 "was requested via hostmask connected: {}".format(m)
             )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testTwoMonitoringOneRemove(self):
         """Tests the following scenario:
         * foo MONITORs qux
@@ -286,7 +294,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
             extra_format=(messages,),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testMonitorList(self):
         def checkMonitorSubjects(messages, client_nick, expected_targets):
             # collect all the RPL_MONLIST nicks into a set:
@@ -320,7 +329,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "MONITOR L")
         checkMonitorSubjects(self.getMessages(1), "bar", {"bazbat"})
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testNickChange(self):
         # see oragono issue #1076: nickname changes must trigger RPL_MONOFFLINE
         self.connectClient("bar")

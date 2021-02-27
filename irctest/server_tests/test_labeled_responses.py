@@ -8,7 +8,7 @@ from irctest import cases
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("batch", "echo-message", "labeled-response")
     def testLabeledPrivmsgResponsesToMultipleClients(self):
         self.connectClient(
             "foo",
@@ -92,7 +92,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             m, command="BATCH", fail_msg="No BATCH echo received after sending one out"
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledPrivmsgResponsesToClient(self):
         self.connectClient(
             "foo",
@@ -152,7 +152,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledPrivmsgResponsesToChannel(self):
         self.connectClient(
             "foo",
@@ -220,7 +220,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledPrivmsgResponsesToSelf(self):
         self.connectClient(
             "foo",
@@ -263,7 +263,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ).format(number_of_labels),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledNoticeResponsesToClient(self):
         self.connectClient(
             "foo",
@@ -323,7 +323,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledNoticeResponsesToChannel(self):
         self.connectClient(
             "foo",
@@ -391,7 +391,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledNoticeResponsesToSelf(self):
         self.connectClient(
             "foo",
@@ -432,7 +432,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ).format(number_of_labels),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("echo-message", "labeled-response", "message-tags")
     def testLabeledTagMsgResponsesToClient(self):
         self.connectClient(
             "foo",
@@ -540,7 +540,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             fail_msg="React tag wasn't the same on the source user's TAGMSG: {msg}",
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("echo-message", "labeled-response", "message-tags")
     def testLabeledTagMsgResponsesToChannel(self):
         self.connectClient(
             "foo",
@@ -606,7 +606,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities("echo-message", "labeled-response", "message-tags")
     def testLabeledTagMsgResponsesToSelf(self):
         self.connectClient(
             "foo",
@@ -647,7 +647,9 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ).format(number_of_labels),
         )
 
-    @cases.mark_specifications("IRCv3.2")
+    @cases.mark_capabilities(
+        "echo-message", "labeled-response", "message-tags", "server-time"
+    )
     def testBatchedJoinMessages(self):
         self.connectClient(
             "bar",

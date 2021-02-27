@@ -128,9 +128,22 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             "both got 001.",
         )
 
-    @cases.mark_specifications("IRCv3.1", "IRCv3.2")
+    @cases.mark_specifications("IRCv3")
     def testIrc301CapLs(self):
-        """IRCv3.1: “The LS subcommand is used to list the capabilities
+        """
+        Current version:
+
+        "The LS subcommand is used to list the capabilities supported by the server.
+        The client should send an LS subcommand with no other arguments to solicit
+        a list of all capabilities."
+
+        "If a client has not indicated support for CAP LS 302 features,
+        the server MUST NOT send these new features to the client."
+        -- <https://ircv3.net/specs/core/capability-negotiation.html>
+
+        Before the v3.1 / v3.2 merge:
+
+        IRCv3.1: “The LS subcommand is used to list the capabilities
         supported by the server. The client should send an LS subcommand with
         no other arguments to solicit a list of all capabilities.”
         -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-ls-subcommand>
@@ -156,7 +169,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             "request: {}".format(m),
         )
 
-    @cases.mark_specifications("IRCv3.1")
+    @cases.mark_specifications("IRCv3")
     def testEmptyCapList(self):
         """“If no capabilities are active, an empty parameter must be sent.”
         -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-list-subcommand>
