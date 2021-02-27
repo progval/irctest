@@ -91,6 +91,18 @@ cd ~/irctest
 pytest --controller irctest.controllers.charybdis -k 'not Oragono and not deprecated and not strict'
 ```
 
+To run (server) tests on ircd-seven:
+
+```
+cd /tmp/
+git clone https://github.com/freenode/ircd-seven.git
+autoconf
+./configure --prefix=$HOME/.local/
+make  # can't use -j, may cause 'y.tab.h: No such file or directory'
+make install
+mv $HOME/.local/bin/ircd $HOME/.local/bin/ircd-seven
+```
+
 To run (server) tests on InspIRCd:
 
 ```

@@ -42,6 +42,7 @@ TEMPLATE_SSL_CONFIG = """
 
 class CharybdisController(BaseServerController, DirectoryBasedController):
     software_name = "Charybdis"
+    binary_name = "charybdis"
     supported_sasl_mechanisms = set()
     supported_capabilities = set()  # Not exhaustive
 
@@ -85,7 +86,7 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
             )
         self.proc = subprocess.Popen(
             [
-                "charybdis",
+                self.binary_name,
                 "-foreground",
                 "-configfile",
                 os.path.join(self.directory, "server.conf"),

@@ -334,6 +334,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "MODE #chan +t")
         self.getMessages(1)
 
+        self.getMessages(2)
         self.sendLine(2, "TOPIC #chan :T0P1C")
         m = self.getMessage(2)
         self.assertMessageEqual(
