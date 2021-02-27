@@ -23,10 +23,16 @@ class MultiPrefixTestCase(cases.BaseServerTestCase):
         # TODO(dan): Make sure +v is voice
 
         self.sendLine(1, "NAMES #chan")
+        reply = self.getMessage(1)
         self.assertMessageEqual(
-            self.getMessage(1),
+            reply,
             command="353",
-            params=["foo", "=", "#chan", "@+foo"],
+            fail_msg="Expected NAMES response (353) with @+foo, got: {msg}",
+        )
+        self.assertMessageEqual(
+            reply,
+            command="353",
+            params=["foo", reply.params[1], "#chan", "@+foo"],
             fail_msg="Expected NAMES response (353) with @+foo, got: {msg}",
         )
         self.getMessages(1)
