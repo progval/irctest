@@ -4,6 +4,7 @@ import socket
 import subprocess
 import tempfile
 import time
+from typing import Set
 
 from .runner import NotImplementedByController
 
@@ -134,6 +135,9 @@ class BaseServerController(_BaseController):
 
     _port_wait_interval = 0.1
     port_open = False
+
+    supports_sts: bool
+    supported_sasl_mechanisms: Set[str]
 
     def run(self, hostname, port, password, valid_metadata_keys, invalid_metadata_keys):
         raise NotImplementedError()

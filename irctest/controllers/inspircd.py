@@ -1,5 +1,6 @@
 import os
 import subprocess
+from typing import Set
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -38,8 +39,8 @@ TEMPLATE_SSL_CONFIG = """
 
 class InspircdController(BaseServerController, DirectoryBasedController):
     software_name = "InspIRCd"
-    supported_sasl_mechanisms = set()
-    supported_capabilities = set()  # Not exhaustive
+    supported_sasl_mechanisms: Set[str] = set()
+    supports_str = False
 
     def create_config(self):
         super().create_config()

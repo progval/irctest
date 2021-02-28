@@ -709,55 +709,61 @@ class JoinTestCase(cases.BaseServerTestCase):
         )
 
 
+def _testChannelsEquivalent(casemapping, name1, name2):
+    """Generates test functions"""
+
+    @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
+    def f(self):
+        self.connectClient("foo")
+        self.connectClient("bar")
+        if self.server_support["CASEMAPPING"] != casemapping:
+            raise runner.NotImplementedByController(
+                "Casemapping {} not implemented".format(casemapping)
+            )
+        self.joinClient(1, name1)
+        self.joinClient(2, name2)
+        try:
+            m = self.getMessage(1)
+            self.assertMessageEqual(m, command="JOIN", nick="bar")
+        except client_mock.NoMessageException:
+            raise AssertionError(
+                "Channel names {} and {} are not equivalent.".format(name1, name2)
+            )
+
+    f.__name__ = "testEquivalence__{}__{}".format(name1, name2)
+    return f
+
+
+def _testChannelsNotEquivalent(casemapping, name1, name2):
+    """Generates test functions"""
+
+    @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
+    def f(self):
+        self.connectClient("foo")
+        self.connectClient("bar")
+        if self.server_support["CASEMAPPING"] != casemapping:
+            raise runner.NotImplementedByController(
+                "Casemapping {} not implemented".format(casemapping)
+            )
+        self.joinClient(1, name1)
+        self.joinClient(2, name2)
+        try:
+            m = self.getMessage(1)
+        except client_mock.NoMessageException:
+            pass
+        else:
+            self.assertMessageEqual(
+                m, command="JOIN", nick="bar"
+            )  # This should always be true
+            raise AssertionError(
+                "Channel names {} and {} are equivalent.".format(name1, name2)
+            )
+
+    f.__name__ = "testEquivalence__{}__{}".format(name1, name2)
+    return f
+
+
 class testChannelCaseSensitivity(cases.BaseServerTestCase):
-    def _testChannelsEquivalent(casemapping, name1, name2):
-        @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
-        def f(self):
-            self.connectClient("foo")
-            self.connectClient("bar")
-            if self.server_support["CASEMAPPING"] != casemapping:
-                raise runner.NotImplementedByController(
-                    "Casemapping {} not implemented".format(casemapping)
-                )
-            self.joinClient(1, name1)
-            self.joinClient(2, name2)
-            try:
-                m = self.getMessage(1)
-                self.assertMessageEqual(m, command="JOIN", nick="bar")
-            except client_mock.NoMessageException:
-                raise AssertionError(
-                    "Channel names {} and {} are not equivalent.".format(name1, name2)
-                )
-
-        f.__name__ = "testEquivalence__{}__{}".format(name1, name2)
-        return f
-
-    def _testChannelsNotEquivalent(casemapping, name1, name2):
-        @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
-        def f(self):
-            self.connectClient("foo")
-            self.connectClient("bar")
-            if self.server_support["CASEMAPPING"] != casemapping:
-                raise runner.NotImplementedByController(
-                    "Casemapping {} not implemented".format(casemapping)
-                )
-            self.joinClient(1, name1)
-            self.joinClient(2, name2)
-            try:
-                m = self.getMessage(1)
-            except client_mock.NoMessageException:
-                pass
-            else:
-                self.assertMessageEqual(
-                    m, command="JOIN", nick="bar"
-                )  # This should always be true
-                raise AssertionError(
-                    "Channel names {} and {} are equivalent.".format(name1, name2)
-                )
-
-        f.__name__ = "testEquivalence__{}__{}".format(name1, name2)
-        return f
-
     testAsciiSimpleEquivalent = _testChannelsEquivalent("ascii", "#Foo", "#foo")
     testAsciiSimpleNotEquivalent = _testChannelsNotEquivalent("ascii", "#Foo", "#fooa")
 

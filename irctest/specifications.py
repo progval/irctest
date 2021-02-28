@@ -34,6 +34,7 @@ class Capabilities(enum.Enum):
     MULTILINE = "draft/multiline"
     MULTI_PREFIX = "multi-prefix"
     SERVER_TIME = "server-time"
+    STS = "sts"
 
     @classmethod
     def from_name(cls, name):

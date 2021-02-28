@@ -1,5 +1,6 @@
 import os
 import subprocess
+from typing import Set
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -40,8 +41,8 @@ TEMPLATE_SSL_CONFIG = """
 
 class HybridController(BaseServerController, DirectoryBasedController):
     software_name = "Hybrid"
-    supported_sasl_mechanisms = set()
-    supported_capabilities = set()  # Not exhaustive
+    supports_sts = False
+    supported_sasl_mechanisms: Set[str] = set()
 
     def create_config(self):
         super().create_config()

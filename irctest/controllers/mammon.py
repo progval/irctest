@@ -68,7 +68,6 @@ def make_list(list_):
 class MammonController(BaseServerController, DirectoryBasedController):
     software_name = "Mammon"
     supported_sasl_mechanisms = {"PLAIN", "ECDSA-NIST256P-CHALLENGE"}
-    supported_capabilities = set()  # Not exhaustive
 
     def create_config(self):
         super().create_config()
