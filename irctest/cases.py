@@ -24,7 +24,7 @@ import unittest
 
 import pytest
 
-from . import basecontrollers, client_mock, runner, tls
+from . import basecontrollers, client_mock, patma, runner, tls
 from .authentication import Authentication
 from .basecontrollers import TestCaseControllerConfig
 from .exceptions import ConnectionClosed
@@ -63,13 +63,6 @@ TController = TypeVar("TController", bound=basecontrollers._BaseController)
 
 # general-purpose typevar
 T = TypeVar("T")
-
-
-class AnyStr:
-    """Used as a wildcard when matching message arguments
-    (see assertMessageMatch and listMatch)"""
-
-    pass
 
 
 class ChannelJoinException(Exception):
@@ -116,7 +109,7 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         Takes the message as first arguments, and comparisons to be made
         as keyword arguments.
 
-        Uses self.listMatch on the params argument.
+        Uses patma.list_match on the params argument.
         """
         error = self.messageDiffers(msg, **kwargs)
         if error:
@@ -130,7 +123,7 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
     def messageDiffers(
         self,
         msg: Message,
-        params: Optional[List[Union[str, Type[AnyStr]]]] = None,
+        params: Optional[List[Union[str, patma.Operator]]] = None,
         target: Optional[str] = None,
         nick: Optional[str] = None,
         fail_msg: Optional[str] = None,
@@ -152,7 +145,7 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
                     msg=msg,
                 )
 
-        if params and not self.listMatch(msg.params, params):
+        if params and not patma.list_match(msg.params, params):
             fail_msg = fail_msg or "params to be {expects}, got {got}: {msg}"
             return fail_msg.format(
                 *extra_format, got=msg.params, expects=params, msg=msg
@@ -169,22 +162,6 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
                 )
 
         return None
-
-    def listMatch(
-        self, got: List[str], expected: List[Union[str, Type[AnyStr]]]
-    ) -> bool:
-        """Returns True iff the list are equal.
-        The ellipsis (aka. "..." aka triple dots) can be used on the 'expected'
-        side as a wildcard, matching any *single* value."""
-        if len(got) != len(expected):
-            return False
-        for (got_value, expected_value) in zip(got, expected):
-            if expected_value is AnyStr:
-                # wildcard
-                continue
-            if got_value != expected_value:
-                return False
-        return True
 
     def assertIn(
         self,
