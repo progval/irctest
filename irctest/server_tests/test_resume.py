@@ -28,12 +28,12 @@ class ResumeTestCase(cases.BaseServerTestCase):
     def testResume(self):
         chname = "#" + secrets.token_hex(12)
         self.connectClient(
-            "bar", capabilities=["batch", "labeled-response", "server-time"]
+            "observer", capabilities=["batch", "labeled-response", "server-time"]
         )
         ms = self.getMessages(1)
 
         welcome = self.connectClient(
-            "baz",
+            "mainnick",
             capabilities=[
                 "batch",
                 "labeled-response",
@@ -49,7 +49,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.joinChannel(1, chname)
         self.joinChannel(2, chname)
         self.sendLine(1, "PRIVMSG %s :hello friends" % (chname,))
-        self.sendLine(1, "PRIVMSG baz :hello friend singular")
+        self.sendLine(1, "PRIVMSG mainnick :hello friend singular")
         self.getMessages(1)
         # should receive these messages
         privmsgs = [m for m in self.getMessages(2) if m.command == "PRIVMSG"]
@@ -59,7 +59,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
             privmsgs[0], command="PRIVMSG", params=[chname, "hello friends"]
         )
         self.assertMessageEqual(
-            privmsgs[1], command="PRIVMSG", params=["baz", "hello friend singular"]
+            privmsgs[1], command="PRIVMSG", params=["mainnick", "hello friend singular"]
         )
         channelMsgTime = privmsgs[0].tags.get("time")
 
@@ -111,12 +111,12 @@ class ResumeTestCase(cases.BaseServerTestCase):
         )
         # success message
         self.assertMessageEqual(
-            resume_messages[1], command="RESUME", params=["SUCCESS", "baz"]
+            resume_messages[1], command="RESUME", params=["SUCCESS", "mainnick"]
         )
 
         # test replay of messages
         privmsgs = [
-            m for m in ms if m.command == "PRIVMSG" and m.prefix.startswith("bar")
+            m for m in ms if m.command == "PRIVMSG" and m.prefix.startswith("observer")
         ]
         self.assertEqual(len(privmsgs), 2)
         privmsgs.sort(key=lambda m: m.params[0])
@@ -124,7 +124,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
             privmsgs[0], command="PRIVMSG", params=[chname, "hello friends"]
         )
         self.assertMessageEqual(
-            privmsgs[1], command="PRIVMSG", params=["baz", "hello friend singular"]
+            privmsgs[1], command="PRIVMSG", params=["mainnick", "hello friend singular"]
         )
         # should replay with the original server-time
         # TODO this probably isn't testing anything because the timestamp only
@@ -134,17 +134,17 @@ class ResumeTestCase(cases.BaseServerTestCase):
         # legacy client should receive a QUIT and a JOIN
         quit, join = [m for m in self.getMessages(1) if m.command in ("QUIT", "JOIN")]
         self.assertEqual(quit.command, "QUIT")
-        self.assertTrue(quit.prefix.startswith("baz"))
+        self.assertTrue(quit.prefix.startswith("mainnick"))
         self.assertMessageEqual(join, command="JOIN", params=[chname])
-        self.assertTrue(join.prefix.startswith("baz"))
+        self.assertTrue(join.prefix.startswith("mainnick"))
 
         # original client should have been disconnected
         self.assertDisconnected(2)
-        # new client should be receiving PRIVMSG sent to baz
-        self.sendLine(1, "PRIVMSG baz :hello again")
+        # new client should be receiving PRIVMSG sent to mainnick
+        self.sendLine(1, "PRIVMSG mainnick :hello again")
         self.getMessages(1)
         self.assertMessageEqual(
-            self.getMessage(4), command="PRIVMSG", params=["baz", "hello again"]
+            self.getMessage(4), command="PRIVMSG", params=["mainnick", "hello again"]
         )
 
         # test chain-resuming (resuming the resumed connection, using the new token)
@@ -172,14 +172,14 @@ class ResumeTestCase(cases.BaseServerTestCase):
         )
         # success message
         self.assertMessageEqual(
-            resume_messages[1], command="RESUME", params=["SUCCESS", "baz"]
+            resume_messages[1], command="RESUME", params=["SUCCESS", "mainnick"]
         )
 
     @cases.mark_specifications("Oragono")
     def testBRB(self):
         chname = "#" + secrets.token_hex(12)
         self.connectClient(
-            "bar",
+            "observer",
             capabilities=[
                 "batch",
                 "labeled-response",
@@ -192,7 +192,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.joinChannel(1, chname)
 
         welcome = self.connectClient(
-            "baz",
+            "mainnick",
             capabilities=[
                 "batch",
                 "labeled-response",
@@ -217,12 +217,12 @@ class ResumeTestCase(cases.BaseServerTestCase):
         # without sending a QUIT line to friends
         self.assertEqual(self.getMessages(1), [])
 
-        self.sendLine(1, "PRIVMSG baz :hey there")
+        self.sendLine(1, "PRIVMSG mainnick :hey there")
         # BRB message should be sent as an away message
         self.assertMessageEqual(
             self.getMessage(1),
             command=RPL_AWAY,
-            params=["bar", "baz", "software upgrade"],
+            params=["observer", "mainnick", "software upgrade"],
         )
 
         self.addClient(3)
@@ -234,16 +234,21 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(resume_messages), 2)
         self.assertEqual(resume_messages[0].params[0], "TOKEN")
         self.assertMessageEqual(
-            resume_messages[1], command="RESUME", params=["SUCCESS", "baz"]
+            resume_messages[1], command="RESUME", params=["SUCCESS", "mainnick"]
         )
 
         privmsgs = [
-            m for m in ms if m.command == "PRIVMSG" and m.prefix.startswith("bar")
+            m for m in ms if m.command == "PRIVMSG" and m.prefix.startswith("observer")
         ]
-        self.assertEqual(len(privmsgs), 1)
-        self.assertMessageEqual(privmsgs[0], params=["baz", "hey there"])
+        self.assertEqual(len(privmsgs), 1, privmsgs)
+        self.assertMessageEqual(
+            privmsgs[0],
+            nick="observer",
+            command="PRIVMSG",
+            params=["mainnick", "hey there"],
+        )
 
         # friend with the resume cap should receive a RESUMED message
         resumed_messages = [m for m in self.getMessages(1) if m.command == "RESUMED"]
         self.assertEqual(len(resumed_messages), 1)
-        self.assertTrue(resumed_messages[0].prefix.startswith("baz"))
+        self.assertTrue(resumed_messages[0].prefix.startswith("mainnick"))
