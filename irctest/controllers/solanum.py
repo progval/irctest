@@ -1,3 +1,5 @@
+from typing import Type
+
 from .charybdis import CharybdisController
 
 
@@ -6,5 +8,5 @@ class SolanumController(CharybdisController):
     binary_name = "solanum"
 
 
-def get_irctest_controller_class():
+def get_irctest_controller_class() -> Type[SolanumController]:
     return SolanumController

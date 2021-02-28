@@ -2,7 +2,7 @@ from irctest import cases
 from irctest.irc_utils.message_parser import Message
 
 
-class CapTestCase(cases.BaseClientTestCase, cases.ClientNegociationHelper):
+class CapTestCase(cases.BaseClientTestCase):
     @cases.mark_specifications("IRCv3")
     def testSendCap(self):
         """Send CAP LS 302 and read the result."""

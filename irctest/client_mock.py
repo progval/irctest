@@ -2,36 +2,41 @@ import socket
 import ssl
 import sys
 import time
+from typing import Any, Callable, List, Optional, Union
 
 from .exceptions import ConnectionClosed, NoMessageException
 from .irc_utils import message_parser
 
 
 class ClientMock:
-    def __init__(self, name, show_io):
+    def __init__(self, name: Any, show_io: bool):
         self.name = name
         self.show_io = show_io
-        self.inbuffer = []
+        self.inbuffer: List[message_parser.Message] = []
         self.ssl = False
 
-    def connect(self, hostname, port):
+    def connect(self, hostname: str, port: int) -> None:
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.settimeout(1)  # TODO: configurable
         self.conn.connect((hostname, port))
         if self.show_io:
             print("{:.3f} {}: connects to server.".format(time.time(), self.name))
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         if self.show_io:
             print("{:.3f} {}: disconnects from server.".format(time.time(), self.name))
         self.conn.close()
 
-    def starttls(self):
+    def starttls(self) -> None:
         assert not self.ssl, "SSL already active."
         self.conn = ssl.wrap_socket(self.conn)
         self.ssl = True
 
-    def getMessages(self, synchronize=True, assert_get_one=False, raw=False):
+    def getMessages(
+        self, synchronize: bool = True, assert_get_one: bool = False, raw: bool = False
+    ) -> List[message_parser.Message]:
+        """actually returns List[str] in the rare case where raw=True."""
+        token: Optional[str]
         if synchronize:
             token = "synchronize{}".format(time.monotonic())
             self.sendLine("PING {}".format(token))
@@ -79,7 +84,7 @@ class ClientMock:
                             got_pong = True
                         else:
                             if raw:
-                                messages.append(line)
+                                messages.append(line)  # type: ignore
                             else:
                                 messages.append(message)
                 data = b""
@@ -91,7 +96,13 @@ class ClientMock:
         else:
             return messages
 
-    def getMessage(self, filter_pred=None, synchronize=True, raw=False):
+    def getMessage(
+        self,
+        filter_pred: Optional[Callable[[message_parser.Message], bool]] = None,
+        synchronize: bool = True,
+        raw: bool = False,
+    ) -> message_parser.Message:
+        """Returns str in the rare case where raw=True"""
         while True:
             if not self.inbuffer:
                 self.inbuffer = self.getMessages(
@@ -103,7 +114,7 @@ class ClientMock:
             if not filter_pred or filter_pred(message):
                 return message
 
-    def sendLine(self, line):
+    def sendLine(self, line: Union[str, bytes]) -> None:
         if isinstance(line, str):
             encoded_line = line.encode()
         elif isinstance(line, bytes):
@@ -113,7 +124,7 @@ class ClientMock:
         if not encoded_line.endswith(b"\r\n"):
             encoded_line += b"\r\n"
         try:
-            ret = self.conn.sendall(encoded_line)
+            ret = self.conn.sendall(encoded_line)  # type: ignore
         except BrokenPipeError:
             raise ConnectionClosed()
         if (

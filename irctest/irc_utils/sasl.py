@@ -1,7 +1,7 @@
 import base64
 
 
-def sasl_plain_blob(username, passphrase):
+def sasl_plain_blob(username: str, passphrase: str) -> str:
     blob = base64.b64encode(
         b"\x00".join(
             (

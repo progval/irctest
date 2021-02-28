@@ -1,7 +1,8 @@
 import os
 import subprocess
+from typing import Optional, Type
 
-from irctest import tls
+from irctest import authentication, tls
 from irctest.basecontrollers import BaseClientController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
@@ -35,15 +36,20 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
     }
     supports_sts = True
 
-    def create_config(self):
-        create_config = super().create_config()
-        if create_config:
-            with self.open_file("bot.conf"):
-                pass
-            with self.open_file("conf/users.conf"):
-                pass
+    def create_config(self) -> None:
+        super().create_config()
+        with self.open_file("bot.conf"):
+            pass
+        with self.open_file("conf/users.conf"):
+            pass
 
-    def run(self, hostname, port, auth, tls_config=None):
+    def run(
+        self,
+        hostname: str,
+        port: int,
+        auth: Optional[authentication.Authentication],
+        tls_config: Optional[tls.TlsConfig] = None,
+    ) -> None:
         if tls_config is None:
             tls_config = tls.TlsConfig(enable=False, trusted_fingerprints=[])
         # Runs a client with the config given as arguments
@@ -72,10 +78,11 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
                     else "",
                 )
             )
+        assert self.directory
         self.proc = subprocess.Popen(
             ["supybot", os.path.join(self.directory, "bot.conf")]
         )
 
 
-def get_irctest_controller_class():
+def get_irctest_controller_class() -> Type[LimnoriaController]:
     return LimnoriaController

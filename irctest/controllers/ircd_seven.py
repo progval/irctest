@@ -1,3 +1,5 @@
+from typing import Type
+
 from .charybdis import CharybdisController
 
 
@@ -6,5 +8,5 @@ class IrcdSevenController(CharybdisController):
     binary_name = "ircd-seven"
 
 
-def get_irctest_controller_class():
+def get_irctest_controller_class() -> Type[IrcdSevenController]:
     return IrcdSevenController

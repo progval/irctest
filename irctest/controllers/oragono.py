@@ -2,12 +2,14 @@ import copy
 import json
 import os
 import subprocess
+from typing import Any, Dict, Optional, Set, Type, Union
 
 from irctest.basecontrollers import (
     BaseServerController,
     DirectoryBasedController,
     NotImplementedByController,
 )
+from irctest.cases import BaseServerTestCase
 
 OPER_PWD = "frenchfries"
 
@@ -116,7 +118,7 @@ BASE_CONFIG = {
 LOGGING_CONFIG = {"logging": [{"method": "stderr", "level": "debug", "type": "*"}]}
 
 
-def hash_password(password):
+def hash_password(password: Union[str, bytes]) -> str:
     if isinstance(password, str):
         password = password.encode("utf-8")
     # simulate entry of password and confirmation:
@@ -134,25 +136,23 @@ class OragonoController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = True
 
-    def create_config(self):
+    def create_config(self) -> None:
         super().create_config()
         with self.open_file("ircd.yaml"):
             pass
 
-    def kill_proc(self):
-        self.proc.kill()
-
     def run(
         self,
-        hostname,
-        port,
-        password=None,
-        ssl=False,
-        restricted_metadata_keys=None,
-        valid_metadata_keys=None,
-        invalid_metadata_keys=None,
-        config=None,
-    ):
+        hostname: str,
+        port: int,
+        *,
+        password: Optional[str],
+        ssl: bool,
+        valid_metadata_keys: Optional[Set[str]] = None,
+        invalid_metadata_keys: Optional[Set[str]] = None,
+        restricted_metadata_keys: Optional[Set[str]] = None,
+        config: Optional[Any] = None,
+    ) -> None:
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
                 "Defining valid and invalid METADATA keys."
@@ -161,6 +161,8 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         self.create_config()
         if config is None:
             config = copy.deepcopy(BASE_CONFIG)
+
+        assert self.directory
 
         enable_chathistory = self.test_config.chathistory
         enable_roleplay = self.test_config.oragono_roleplay
@@ -180,12 +182,14 @@ class OragonoController(BaseServerController, DirectoryBasedController):
             self.key_path = os.path.join(self.directory, "ssl.key")
             self.pem_path = os.path.join(self.directory, "ssl.pem")
             listener_conf = {"tls": {"cert": self.pem_path, "key": self.key_path}}
-        config["server"]["listeners"][bind_address] = listener_conf
+        config["server"]["listeners"][bind_address] = listener_conf  # type: ignore
 
-        config["datastore"]["path"] = os.path.join(self.directory, "ircd.db")
+        config["datastore"]["path"] = os.path.join(  # type: ignore
+            self.directory, "ircd.db"
+        )
 
         if password is not None:
-            config["server"]["password"] = hash_password(password)
+            config["server"]["password"] = hash_password(password)  # type: ignore
 
         assert self.proc is None
 
@@ -198,7 +202,12 @@ class OragonoController(BaseServerController, DirectoryBasedController):
             ["oragono", "run", "--conf", self._config_path, "--quiet"]
         )
 
-    def registerUser(self, case, username, password=None):
+    def registerUser(
+        self,
+        case: BaseServerTestCase,
+        username: str,
+        password: Optional[str] = None,
+    ) -> None:
         # XXX: Move this somewhere else when
         # https://github.com/ircv3/ircv3-specifications/pull/152 becomes
         # part of the specification
@@ -210,34 +219,35 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         while case.getRegistrationMessage(client).command != "001":
             pass
         case.getMessages(client)
+        assert password
         case.sendLine(client, "NS REGISTER " + password)
         msg = case.getMessage(client)
         assert msg.params == [username, "Account created"]
         case.sendLine(client, "QUIT")
         case.assertDisconnected(client)
 
-    def _write_config(self):
+    def _write_config(self) -> None:
         with open(self._config_path, "w") as fd:
             json.dump(self._config, fd)
 
-    def baseConfig(self):
+    def baseConfig(self) -> Dict:
         return copy.deepcopy(BASE_CONFIG)
 
-    def getConfig(self):
+    def getConfig(self) -> Dict:
         return copy.deepcopy(self._config)
 
-    def addLoggingToConfig(self, config=None):
+    def addLoggingToConfig(self, config: Optional[Dict] = None) -> Dict:
         if config is None:
             config = self.baseConfig()
         config.update(LOGGING_CONFIG)
         return config
 
-    def addMysqlToConfig(self, config=None):
+    def addMysqlToConfig(self, config: Optional[Dict] = None) -> Dict:
         mysql_password = os.getenv("MYSQL_PASSWORD")
-        if not mysql_password:
-            return config
         if config is None:
             config = self.baseConfig()
+        if not mysql_password:
+            return config
         config["datastore"]["mysql"] = {
             "enabled": True,
             "host": "localhost",
@@ -259,7 +269,7 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         }
         return config
 
-    def rehash(self, case, config):
+    def rehash(self, case: BaseServerTestCase, config: Dict) -> None:
         self._config = config
         self._write_config()
         client = "operator_for_rehash"
@@ -270,11 +280,11 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         case.sendLine(client, "QUIT")
         case.assertDisconnected(client)
 
-    def enable_debug_logging(self, case):
+    def enable_debug_logging(self, case: BaseServerTestCase) -> None:
         config = self.getConfig()
         config.update(LOGGING_CONFIG)
         self.rehash(case, config)
 
 
-def get_irctest_controller_class():
+def get_irctest_controller_class() -> Type[OragonoController]:
     return OragonoController

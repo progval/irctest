@@ -2,8 +2,10 @@
 Handles ambiguities of RFCs.
 """
 
+from typing import List
 
-def normalize_namreply_params(params):
+
+def normalize_namreply_params(params: List[str]) -> List[str]:
     # So… RFC 2812 says:
     #       "( "=" / "*" / "@" ) <channel>
     #       :[ "@" / "+" ] <nick> *( " " [ "@" / "+" ] <nick> )
@@ -12,6 +14,7 @@ def normalize_namreply_params(params):
     # prefix.
     # So let's normalize this to “with space”, and strip spaces at the
     # end of the nick list.
+    params = list(params)  # copy the list
     if len(params) == 3:
         assert params[1][0] in "=*@", params
         params.insert(1, params[1][0])

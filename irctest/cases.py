@@ -3,16 +3,34 @@ import socket
 import ssl
 import tempfile
 import time
-from typing import Optional, Set
+from typing import (
+    Any,
+    Callable,
+    Container,
+    Dict,
+    Generic,
+    Hashable,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 import unittest
 
 import pytest
 
-from . import basecontrollers, client_mock, runner
+from . import basecontrollers, client_mock, runner, tls
+from .authentication import Authentication
 from .basecontrollers import TestCaseControllerConfig
 from .exceptions import ConnectionClosed
 from .irc_utils import capabilities, message_parser
 from .irc_utils.junkdrawer import normalizeWhitespace
+from .irc_utils.message_parser import Message
 from .irc_utils.sasl import sasl_plain_blob
 from .numerics import (
     ERR_BADCHANNELKEY,
@@ -35,18 +53,33 @@ CHANNEL_JOIN_FAIL_NUMERICS = frozenset(
     ]
 )
 
+# typevar for decorators
+TCallable = TypeVar("TCallable", bound=Callable)
+
+# typevar for the client name used by tests (usually int or str)
+TClientName = TypeVar("TClientName", bound=Union[Hashable, int])
+
+TController = TypeVar("TController", bound=basecontrollers._BaseController)
+
+# general-purpose typevar
+T = TypeVar("T")
+
 
 class ChannelJoinException(Exception):
-    def __init__(self, code, params):
+    def __init__(self, code: str, params: List[str]):
         super().__init__(f"Failed to join channel ({code}): {params}")
         self.code = code
         self.params = params
 
 
-class _IrcTestCase(unittest.TestCase):
+class _IrcTestCase(unittest.TestCase, Generic[TController]):
     """Base class for test cases."""
 
-    controllerClass = None  # Will be set by __main__.py
+    # Will be set by __main__.py
+    controllerClass: Type[TController]
+    show_io: bool
+
+    controller: TController
 
     @staticmethod
     def config() -> TestCaseControllerConfig:
@@ -56,7 +89,7 @@ class _IrcTestCase(unittest.TestCase):
         """
         return TestCaseControllerConfig()
 
-    def description(self):
+    def description(self) -> str:
         method_doc = self._testMethodDoc
         if not method_doc:
             return ""
@@ -64,14 +97,13 @@ class _IrcTestCase(unittest.TestCase):
             method_doc, removeNewline=False
         ).strip().replace("\n ", "\n\t")
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self.controller = self.controllerClass(self.config())
-        self.inbuffer = []
         if self.show_io:
             print("---- new test ----")
 
-    def assertMessageEqual(self, msg, **kwargs):
+    def assertMessageEqual(self, msg: Message, **kwargs: Any) -> None:
         """Helper for partially comparing a message.
 
         Takes the message as first arguments, and comparisons to be made
@@ -83,21 +115,21 @@ class _IrcTestCase(unittest.TestCase):
         if error:
             raise self.failureException(error)
 
-    def messageEqual(self, msg, **kwargs):
+    def messageEqual(self, msg: Message, **kwargs: Any) -> bool:
         """Boolean negation of `messageDiffers` (returns a boolean,
         not an optional string)."""
         return not self.messageDiffers(msg, **kwargs)
 
     def messageDiffers(
         self,
-        msg,
-        params=None,
-        target=None,
-        nick=None,
-        fail_msg=None,
-        extra_format=(),
-        **kwargs,
-    ):
+        msg: Message,
+        params: Optional[List[Any]] = None,
+        target: Optional[str] = None,
+        nick: Optional[str] = None,
+        fail_msg: Optional[str] = None,
+        extra_format: Tuple = (),
+        **kwargs: Any,
+    ) -> Optional[str]:
         """Returns an error message if the message doesn't match the given arguments,
         or None if it matches."""
         for (key, value) in kwargs.items():
@@ -120,7 +152,7 @@ class _IrcTestCase(unittest.TestCase):
             )
 
         if nick:
-            got_nick = msg.prefix.split("!")[0]
+            got_nick = msg.prefix.split("!")[0] if msg.prefix else None
             if msg.prefix is None:
                 fail_msg = (
                     fail_msg or "expected nick to be {expects}, got {got} prefix: {msg}"
@@ -131,7 +163,7 @@ class _IrcTestCase(unittest.TestCase):
 
         return None
 
-    def listMatch(self, got, expected):
+    def listMatch(self, got: List[str], expected: List[Any]) -> bool:
         """Returns True iff the list are equal.
         The ellipsis (aka. "..." aka triple dots) can be used on the 'expected'
         side as a wildcard, matching any *single* value."""
@@ -145,62 +177,124 @@ class _IrcTestCase(unittest.TestCase):
                 return False
         return True
 
-    def assertIn(self, item, list_, msg=None, fail_msg=None, extra_format=()):
+    def assertIn(
+        self,
+        member: Any,
+        container: Union[Iterable[Any], Container[Any]],
+        msg: Optional[str] = None,
+        fail_msg: Optional[str] = None,
+        extra_format: Tuple = (),
+    ) -> None:
         if fail_msg:
-            fail_msg = fail_msg.format(*extra_format, item=item, list=list_, msg=msg)
-        super().assertIn(item, list_, fail_msg)
+            fail_msg = fail_msg.format(
+                *extra_format, item=member, list=container, msg=msg
+            )
+        super().assertIn(member, container, fail_msg)
 
-    def assertNotIn(self, item, list_, msg=None, fail_msg=None, extra_format=()):
+    def assertNotIn(
+        self,
+        member: Any,
+        container: Union[Iterable[Any], Container[Any]],
+        msg: Optional[str] = None,
+        fail_msg: Optional[str] = None,
+        extra_format: Tuple = (),
+    ) -> None:
         if fail_msg:
-            fail_msg = fail_msg.format(*extra_format, item=item, list=list_, msg=msg)
-        super().assertNotIn(item, list_, fail_msg)
+            fail_msg = fail_msg.format(
+                *extra_format, item=member, list=container, msg=msg
+            )
+        super().assertNotIn(member, container, fail_msg)
 
-    def assertEqual(self, got, expects, msg=None, fail_msg=None, extra_format=()):
+    def assertEqual(
+        self,
+        got: T,
+        expects: T,
+        msg: Any = None,
+        fail_msg: Optional[str] = None,
+        extra_format: Tuple = (),
+    ) -> None:
         if fail_msg:
             fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
         super().assertEqual(got, expects, fail_msg)
 
-    def assertNotEqual(self, got, expects, msg=None, fail_msg=None, extra_format=()):
+    def assertNotEqual(
+        self,
+        got: T,
+        expects: T,
+        msg: Any = None,
+        fail_msg: Optional[str] = None,
+        extra_format: Tuple = (),
+    ) -> None:
         if fail_msg:
             fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
         super().assertNotEqual(got, expects, fail_msg)
 
-    def assertGreater(self, got, expects, msg=None, fail_msg=None, extra_format=()):
+    def assertGreater(
+        self,
+        got: T,
+        expects: T,
+        msg: Any = None,
+        fail_msg: Optional[str] = None,
+        extra_format: Tuple = (),
+    ) -> None:
         if fail_msg:
             fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
         super().assertGreater(got, expects, fail_msg)
 
     def assertGreaterEqual(
-        self, got, expects, msg=None, fail_msg=None, extra_format=()
-    ):
+        self,
+        got: T,
+        expects: T,
+        msg: Any = None,
+        fail_msg: Optional[str] = None,
+        extra_format: Tuple = (),
+    ) -> None:
         if fail_msg:
             fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
         super().assertGreaterEqual(got, expects, fail_msg)
 
-    def assertLess(self, got, expects, msg=None, fail_msg=None, extra_format=()):
+    def assertLess(
+        self,
+        got: T,
+        expects: T,
+        msg: Any = None,
+        fail_msg: Optional[str] = None,
+        extra_format: Tuple = (),
+    ) -> None:
         if fail_msg:
             fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
         super().assertLess(got, expects, fail_msg)
 
-    def assertLessEqual(self, got, expects, msg=None, fail_msg=None, extra_format=()):
+    def assertLessEqual(
+        self,
+        got: T,
+        expects: T,
+        msg: Any = None,
+        fail_msg: Optional[str] = None,
+        extra_format: Tuple = (),
+    ) -> None:
         if fail_msg:
             fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
         super().assertLessEqual(got, expects, fail_msg)
 
 
-class BaseClientTestCase(_IrcTestCase):
+class BaseClientTestCase(_IrcTestCase[basecontrollers.BaseClientController]):
     """Basic class for client tests. Handles spawning a client and exchanging
     messages with it."""
 
-    nick = None
-    user = None
+    conn: Optional[socket.socket]
+    nick: Optional[str] = None
+    user: Optional[List[str]] = None
+    server: socket.socket
+    protocol_version = Optional[str]
+    acked_capabilities = Optional[Set[str]]
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self.conn = None
         self._setUpServer()
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         if self.conn:
             try:
                 self.conn.sendall(b"QUIT :end of test.")
@@ -214,7 +308,7 @@ class BaseClientTestCase(_IrcTestCase):
             self.conn.close()
         self.server.close()
 
-    def _setUpServer(self):
+    def _setUpServer(self) -> None:
         """Creates the server and make it listen."""
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(("", 0))  # Bind any free port
@@ -223,9 +317,15 @@ class BaseClientTestCase(_IrcTestCase):
         # Used to check if the client is alive from time to time
         self.server.settimeout(1)
 
-    def acceptClient(self, tls_cert=None, tls_key=None, server=None):
+    def acceptClient(
+        self,
+        tls_cert: Optional[str] = None,
+        tls_key: Optional[str] = None,
+        server: Optional[socket.socket] = None,
+    ) -> None:
         """Make the server accept a client connection. Blocking."""
         server = server or self.server
+        assert server
         # Wait for the client to connect
         while True:
             try:
@@ -252,17 +352,17 @@ class BaseClientTestCase(_IrcTestCase):
                 self.conn = context.wrap_socket(self.conn, server_side=True)
         self.conn_file = self.conn.makefile(newline="\r\n", encoding="utf8")
 
-    def getLine(self):
+    def getLine(self) -> str:
         line = self.conn_file.readline()
         if self.show_io:
             print("{:.3f} C: {}".format(time.time(), line.strip()))
         return line
 
-    def getMessages(self, *args):
-        lines = self.getLines(*args)
-        return map(message_parser.parse_message, lines)
-
-    def getMessage(self, *args, filter_pred=None):
+    def getMessage(
+        self,
+        *args: Any,
+        filter_pred: Optional[Callable[[Message], bool]] = None,
+    ) -> Message:
         """Gets a message and returns it. If a filter predicate is given,
         fetches messages until the predicate returns a False on a message,
         and returns this message."""
@@ -274,18 +374,17 @@ class BaseClientTestCase(_IrcTestCase):
             if not filter_pred or filter_pred(msg):
                 return msg
 
-    def sendLine(self, line):
+    def sendLine(self, line: str) -> None:
+        assert self.conn
         self.conn.sendall(line.encode())
         if not line.endswith("\r\n"):
             self.conn.sendall(b"\r\n")
         if self.show_io:
             print("{:.3f} S: {}".format(time.time(), line.strip()))
 
-
-class ClientNegociationHelper:
-    """Helper class for tests handling capabilities negociation."""
-
-    def readCapLs(self, auth=None, tls_config=None):
+    def readCapLs(
+        self, auth: Optional[Authentication] = None, tls_config: tls.TlsConfig = None
+    ) -> None:
         (hostname, port) = self.server.getsockname()
         self.controller.run(
             hostname=hostname, port=port, auth=auth, tls_config=tls_config
@@ -302,28 +401,33 @@ class ClientNegociationHelper:
         else:
             raise AssertionError("Unknown CAP params: {}".format(m.params))
 
-    def userNickPredicate(self, msg):
+    def userNickPredicate(self, msg: Message) -> bool:
         """Predicate to be used with getMessage to handle NICK/USER
         transparently."""
         if msg.command == "NICK":
-            self.assertEqual(len(msg.params), 1, msg)
+            self.assertEqual(len(msg.params), 1, msg=msg)
             self.nick = msg.params[0]
             return False
         elif msg.command == "USER":
-            self.assertEqual(len(msg.params), 4, msg)
+            self.assertEqual(len(msg.params), 4, msg=msg)
             self.user = msg.params
             return False
         else:
             return True
 
-    def negotiateCapabilities(self, caps, cap_ls=True, auth=None):
+    def negotiateCapabilities(
+        self,
+        caps: List[str],
+        cap_ls: bool = True,
+        auth: Optional[Authentication] = None,
+    ) -> Optional[Message]:
         """Performes a complete capability negociation process, without
         ending it, so the caller can continue the negociation."""
         if cap_ls:
             self.readCapLs(auth)
             if not self.protocol_version:
                 # No negotiation.
-                return
+                return None
             self.sendLine("CAP * LS :{}".format(" ".join(caps)))
         capability_names = frozenset(capabilities.cap_list_to_dict(caps))
         self.acked_capabilities = set()
@@ -343,21 +447,25 @@ class ClientNegociationHelper:
                     self.sendLine(
                         "CAP {} ACK :{}".format(self.nick or "*", m.params[1])
                     )
-                    self.acked_capabilities.update(requested)
+                    self.acked_capabilities.update(requested)  # type: ignore
             else:
                 return m
 
 
-class BaseServerTestCase(_IrcTestCase):
+class BaseServerTestCase(
+    _IrcTestCase[basecontrollers.BaseServerController], Generic[TClientName]
+):
     """Basic class for server tests. Handles spawning a server and exchanging
     messages with it."""
+
+    show_io: bool  # set by conftest.py
 
     password: Optional[str] = None
     ssl = False
     valid_metadata_keys: Set[str] = set()
     invalid_metadata_keys: Set[str] = set()
 
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self.server_support = None
         self.find_hostname_and_port()
@@ -369,53 +477,64 @@ class BaseServerTestCase(_IrcTestCase):
             invalid_metadata_keys=self.invalid_metadata_keys,
             ssl=self.ssl,
         )
-        self.clients = {}
+        self.clients: Dict[TClientName, client_mock.ClientMock] = {}
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.controller.kill()
         for client in list(self.clients):
             self.removeClient(client)
 
-    def find_hostname_and_port(self):
+    def find_hostname_and_port(self) -> None:
         """Find available hostname/port to listen on."""
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(("", 0))
         (self.hostname, self.port) = s.getsockname()
         s.close()
 
-    def addClient(self, name=None, show_io=None):
+    def addClient(
+        self, name: Optional[TClientName] = None, show_io: Optional[bool] = None
+    ) -> TClientName:
         """Connects a client to the server and adds it to the dict.
         If 'name' is not given, uses the lowest unused non-negative integer."""
         self.controller.wait_for_port()
         if not name:
-            name = max(map(int, list(self.clients) + [0])) + 1
+            new_name: int = (
+                max(
+                    [int(name) for name in self.clients if isinstance(name, (int, str))]
+                    + [0]
+                )
+                + 1
+            )
+            name = cast(TClientName, new_name)
         show_io = show_io if show_io is not None else self.show_io
         self.clients[name] = client_mock.ClientMock(name=name, show_io=show_io)
         self.clients[name].connect(self.hostname, self.port)
         return name
 
-    def removeClient(self, name):
+    def removeClient(self, name: TClientName) -> None:
         """Disconnects the client, without QUIT."""
         assert name in self.clients
         self.clients[name].disconnect()
         del self.clients[name]
 
-    def getMessages(self, client, **kwargs):
+    def getMessages(self, client: TClientName, **kwargs: Any) -> List[Message]:
         return self.clients[client].getMessages(**kwargs)
 
-    def getMessage(self, client, **kwargs):
+    def getMessage(self, client: TClientName, **kwargs: Any) -> Message:
         return self.clients[client].getMessage(**kwargs)
 
-    def getRegistrationMessage(self, client):
+    def getRegistrationMessage(self, client: TClientName) -> Message:
         """Filter notices, do not send pings."""
         return self.getMessage(
             client, synchronize=False, filter_pred=lambda m: m.command != "NOTICE"
         )
 
-    def sendLine(self, client, line):
+    def sendLine(self, client: TClientName, line: Union[str, bytes]) -> None:
         return self.clients[client].sendLine(line)
 
-    def getCapLs(self, client, as_list=False):
+    def getCapLs(
+        self, client: TClientName, as_list: bool = False
+    ) -> Union[List[str], Dict[str, Optional[str]]]:
         """Waits for a CAP LS block, parses all CAP LS messages, and return
         the dict capabilities, with their values.
 
@@ -431,10 +550,10 @@ class BaseServerTestCase(_IrcTestCase):
             else:
                 caps.extend(m.params[2].split())
                 if not as_list:
-                    caps = capabilities.cap_list_to_dict(caps)
+                    return capabilities.cap_list_to_dict(caps)
                 return caps
 
-    def assertDisconnected(self, client):
+    def assertDisconnected(self, client: TClientName) -> None:
         try:
             self.getMessages(client)
             self.getMessages(client)
@@ -444,7 +563,7 @@ class BaseServerTestCase(_IrcTestCase):
         else:
             raise AssertionError("Client not disconnected.")
 
-    def skipToWelcome(self, client):
+    def skipToWelcome(self, client: TClientName) -> List[Message]:
         """Skip to the point where we are registered
         <https://tools.ietf.org/html/rfc2812#section-3.1>
         """
@@ -457,15 +576,19 @@ class BaseServerTestCase(_IrcTestCase):
 
     def connectClient(
         self,
-        nick,
-        name=None,
-        capabilities=None,
-        skip_if_cap_nak=False,
-        show_io=None,
-        account=None,
-        password=None,
-        ident="username",
-    ):
+        nick: str,
+        name: TClientName = None,
+        capabilities: Optional[List[str]] = None,
+        skip_if_cap_nak: bool = False,
+        show_io: Optional[bool] = None,
+        account: Optional[str] = None,
+        password: Optional[str] = None,
+        ident: str = "username",
+    ) -> List[Message]:
+        """Connections a new client, does the cap negotiation
+        and connection registration, and skips to the end of the MOTD.
+        Returns the list of all messages received after registration,
+        just like `skipToWelcome`."""
         client = self.addClient(name, show_io=show_io)
         if capabilities is not None and 0 < len(capabilities):
             self.sendLine(client, "CAP REQ :{}".format(" ".join(capabilities)))
@@ -502,14 +625,14 @@ class BaseServerTestCase(_IrcTestCase):
                 for param in m.params[1:-1]:
                     if "=" in param:
                         (key, value) = param.split("=")
+                        self.server_support[key] = value
                     else:
-                        (key, value) = (param, None)
-                    self.server_support[key] = value
+                        self.server_support[param] = None
             welcome.append(m)
 
         return welcome
 
-    def joinClient(self, client, channel):
+    def joinClient(self, client: TClientName, channel: str) -> None:
         self.sendLine(client, "JOIN {}".format(channel))
         received = {m.command for m in self.getMessages(client)}
         self.assertIn(
@@ -520,7 +643,7 @@ class BaseServerTestCase(_IrcTestCase):
             extra_format=(channel,),
         )
 
-    def joinChannel(self, client, channel):
+    def joinChannel(self, client: TClientName, channel: str) -> None:
         self.sendLine(client, "JOIN {}".format(channel))
         # wait until we see them join the channel
         joined = False
@@ -537,24 +660,34 @@ class BaseServerTestCase(_IrcTestCase):
                     raise ChannelJoinException(msg.command, msg.params)
 
 
-class OptionalityHelper:
-    controller: basecontrollers.BaseServerController
+_TSelf = TypeVar("_TSelf", bound="OptionalityHelper")
+_TReturn = TypeVar("_TReturn")
 
-    def checkSaslSupport(self):
+
+class OptionalityHelper(Generic[TController]):
+    controller: TController
+
+    def checkSaslSupport(self) -> None:
         if self.controller.supported_sasl_mechanisms:
             return
         raise runner.NotImplementedByController("SASL")
 
-    def checkMechanismSupport(self, mechanism):
+    def checkMechanismSupport(self, mechanism: str) -> None:
         if mechanism in self.controller.supported_sasl_mechanisms:
             return
         raise runner.OptionalSaslMechanismNotSupported(mechanism)
 
     @staticmethod
-    def skipUnlessHasMechanism(mech):
-        def decorator(f):
+    def skipUnlessHasMechanism(
+        mech: str,
+    ) -> Callable[[Callable[[_TSelf], _TReturn]], Callable[[_TSelf], _TReturn]]:
+        # Just a function returning a function that takes functions and
+        # returns functions, nothing to see here.
+        # If Python didn't have such an awful syntax for callables, it would be:
+        # str -> ((TSelf -> TReturn) -> (TSelf -> TReturn))
+        def decorator(f: Callable[[_TSelf], _TReturn]) -> Callable[[_TSelf], _TReturn]:
             @functools.wraps(f)
-            def newf(self):
+            def newf(self: _TSelf) -> _TReturn:
                 self.checkMechanismSupport(mech)
                 return f(self)
 
@@ -562,23 +695,29 @@ class OptionalityHelper:
 
         return decorator
 
-    def skipUnlessHasSasl(f):
+    @staticmethod
+    def skipUnlessHasSasl(
+        f: Callable[[_TSelf], _TReturn]
+    ) -> Callable[[_TSelf], _TReturn]:
         @functools.wraps(f)
-        def newf(self):
+        def newf(self: _TSelf) -> _TReturn:
             self.checkSaslSupport()
             return f(self)
 
         return newf
 
 
-def mark_specifications(*specifications, deprecated=False, strict=False):
+def mark_specifications(
+    *specifications_str: str, deprecated: bool = False, strict: bool = False
+) -> Callable[[TCallable], TCallable]:
     specifications = frozenset(
-        Specifications.from_name(s) if isinstance(s, str) else s for s in specifications
+        Specifications.from_name(s) if isinstance(s, str) else s
+        for s in specifications_str
     )
     if None in specifications:
         raise ValueError("Invalid set of specifications: {}".format(specifications))
 
-    def decorator(f):
+    def decorator(f: TCallable) -> TCallable:
         for specification in specifications:
             f = getattr(pytest.mark, specification.value)(f)
         if strict:
@@ -590,14 +729,16 @@ def mark_specifications(*specifications, deprecated=False, strict=False):
     return decorator
 
 
-def mark_capabilities(*capabilities, deprecated=False, strict=False):
+def mark_capabilities(
+    *capabilities_str: str, deprecated: bool = False, strict: bool = False
+) -> Callable[[TCallable], TCallable]:
     capabilities = frozenset(
-        Capabilities.from_name(c) if isinstance(c, str) else c for c in capabilities
+        Capabilities.from_name(c) if isinstance(c, str) else c for c in capabilities_str
     )
     if None in capabilities:
         raise ValueError("Invalid set of capabilities: {}".format(capabilities))
 
-    def decorator(f):
+    def decorator(f: TCallable) -> TCallable:
         for capability in capabilities:
             f = getattr(pytest.mark, capability.value)(f)
         # Support for any capability implies IRCv3
@@ -607,14 +748,16 @@ def mark_capabilities(*capabilities, deprecated=False, strict=False):
     return decorator
 
 
-def mark_isupport(*tokens, deprecated=False, strict=False):
+def mark_isupport(
+    *tokens_str: str, deprecated: bool = False, strict: bool = False
+) -> Callable[[TCallable], TCallable]:
     tokens = frozenset(
-        IsupportTokens.from_name(c) if isinstance(c, str) else c for c in tokens
+        IsupportTokens.from_name(c) if isinstance(c, str) else c for c in tokens_str
     )
     if None in tokens:
         raise ValueError("Invalid set of isupport tokens: {}".format(tokens))
 
-    def decorator(f):
+    def decorator(f: TCallable) -> TCallable:
         for token in tokens:
             f = getattr(pytest.mark, token.value)(f)
         return f

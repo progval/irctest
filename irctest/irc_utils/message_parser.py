@@ -18,8 +18,8 @@ unescape_tag_value = MultipleReplacer(dict(map(lambda x: (x[1], x[0]), TAG_ESCAP
 tag_key_validator = re.compile(r"\+?(\S+/)?[a-zA-Z0-9-]+")
 
 
-def parse_tags(s):
-    tags = {}
+def parse_tags(s: str) -> Dict[str, Optional[str]]:
+    tags: Dict[str, Optional[str]] = {}
     for tag in s.split(";"):
         if "=" not in tag:
             tags[tag] = None
@@ -54,15 +54,15 @@ class Message:
         )
 
 
-def parse_message(s):
+def parse_message(s: str) -> Message:
     """Parse a message according to
     http://tools.ietf.org/html/rfc1459#section-2.3.1
     and
     http://ircv3.net/specs/core/message-tags-3.2.html"""
     s = s.rstrip("\r\n")
     if s.startswith("@"):
-        (tags, s) = s.split(" ", 1)
-        tags = parse_tags(tags[1:])
+        (tags_str, s) = s.split(" ", 1)
+        tags = parse_tags(tags_str[1:])
     else:
         tags = {}
     if " :" in s:
@@ -70,10 +70,7 @@ def parse_message(s):
         tokens = list(filter(bool, other_tokens.split(" "))) + [trailing_param]
     else:
         tokens = list(filter(bool, s.split(" ")))
-    if tokens[0].startswith(":"):
-        prefix = tokens.pop(0)[1:]
-    else:
-        prefix = None
+    prefix = prefix = tokens.pop(0)[1:] if tokens[0].startswith(":") else None
     command = tokens.pop(0)
     params = tokens
     return Message(tags=tags, prefix=prefix, command=command, params=params)

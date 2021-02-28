@@ -1,8 +1,14 @@
 import os
 import subprocess
 import tempfile
+from typing import Optional, TextIO, Type, cast
 
-from irctest.basecontrollers import BaseClientController, NotImplementedByController
+from irctest import authentication, tls
+from irctest.basecontrollers import (
+    BaseClientController,
+    NotImplementedByController,
+    TestCaseControllerConfig,
+)
 
 TEMPLATE_CONFIG = """
 [core]
@@ -24,30 +30,34 @@ class SopelController(BaseClientController):
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
 
-    def __init__(self, test_config):
+    def __init__(self, test_config: TestCaseControllerConfig):
         super().__init__(test_config)
-        self.filename = next(tempfile._get_candidate_names()) + ".cfg"
-        self.proc = None
+        self.filename = next(tempfile._get_candidate_names()) + ".cfg"  # type: ignore
 
-    def kill(self):
-        if self.proc:
-            self.proc.kill()
+    def kill(self) -> None:
+        super().kill()
         if self.filename:
             try:
                 os.unlink(os.path.join(os.path.expanduser("~/.sopel/"), self.filename))
             except OSError:  #  File does not exist
                 pass
 
-    def open_file(self, filename, mode="a"):
+    def open_file(self, filename: str, mode: str = "a") -> TextIO:
         dir_path = os.path.expanduser("~/.sopel/")
         os.makedirs(dir_path, exist_ok=True)
-        return open(os.path.join(dir_path, filename), mode)
+        return cast(TextIO, open(os.path.join(dir_path, filename), mode))
 
-    def create_config(self):
+    def create_config(self) -> None:
         with self.open_file(self.filename):
             pass
 
-    def run(self, hostname, port, auth, tls_config):
+    def run(
+        self,
+        hostname: str,
+        port: int,
+        auth: Optional[authentication.Authentication],
+        tls_config: Optional[tls.TlsConfig] = None,
+    ) -> None:
         # Runs a client with the config given as arguments
         if tls_config is not None:
             raise NotImplementedByController("TLS configuration")
@@ -66,5 +76,5 @@ class SopelController(BaseClientController):
         self.proc = subprocess.Popen(["sopel", "--quiet", "-c", self.filename])
 
 
-def get_irctest_controller_class():
+def get_irctest_controller_class() -> Type[SopelController]:
     return SopelController
