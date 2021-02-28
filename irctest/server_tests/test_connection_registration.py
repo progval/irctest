@@ -18,7 +18,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "USER username * * :Realname")
 
         m = self.getRegistrationMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="001",
             fail_msg="Did not get 001 after correct PASS+NICK+USER: {msg}",
@@ -177,7 +177,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.addClient()
         self.sendLine(1, "CAP LIST")
         m = self.getRegistrationMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="CAP",
             params=["*", "LIST", ""],

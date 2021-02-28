@@ -25,7 +25,7 @@ class ChannelRename(cases.BaseServerTestCase):
         self.getMessages("baz")
 
         self.sendLine("bar", "RENAME #bar #qux :no reason")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             self.getMessage("bar"),
             command="RENAME",
             params=["#bar", "#qux", "no reason"],

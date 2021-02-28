@@ -50,7 +50,7 @@ class StatusmsgTestCase(cases.BaseServerTestCase):
 
         # check the operator's messages
         statusMsg = self.getMessage(1, filter_pred=lambda m: m.command == "PRIVMSG")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             statusMsg, params=["@#chan", "this message is for operators"]
         )
 
@@ -96,7 +96,7 @@ class StatusmsgTestCase(cases.BaseServerTestCase):
 
         # check the operator's messages
         statusMsg = self.getMessage(1, filter_pred=lambda m: m.command == "PRIVMSG")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             statusMsg, params=["@#chan", "this message is for operators"]
         )
 

@@ -20,7 +20,7 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         self.getMessages(1)  # synchronize
         pms = [msg for msg in self.getMessages(2) if msg.command == "PRIVMSG"]
         self.assertEqual(len(pms), 1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             pms[0], command="PRIVMSG", params=["#chan", "hello there"]
         )
 
@@ -47,7 +47,7 @@ class NoticeTestCase(cases.BaseServerTestCase):
         self.getMessages(1)  # synchronize
         notices = [msg for msg in self.getMessages(2) if msg.command == "NOTICE"]
         self.assertEqual(len(notices), 1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             notices[0], command="NOTICE", params=["#chan", "hello there"]
         )
 

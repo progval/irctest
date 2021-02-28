@@ -24,12 +24,12 @@ class MultiPrefixTestCase(cases.BaseServerTestCase):
 
         self.sendLine(1, "NAMES #chan")
         reply = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             reply,
             command="353",
             fail_msg="Expected NAMES response (353) with @+foo, got: {msg}",
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             reply,
             command="353",
             params=["foo", reply.params[1], "#chan", "@+foo"],

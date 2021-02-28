@@ -57,23 +57,23 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
 
         self.sendLine("baz", "RELAYMSG %s smt/discord hi" % (chname,))
         response = self.getMessages("baz")[0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             response, nick="smt/discord", command="PRIVMSG", params=[chname, "hi"]
         )
         relayed_msg = self.getMessages("qux")[0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             relayed_msg, nick="smt/discord", command="PRIVMSG", params=[chname, "hi"]
         )
 
         # labeled-response
         self.sendLine("baz", "@label=x RELAYMSG %s smt/discord :hi again" % (chname,))
         response = self.getMessages("baz")[0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             response, nick="smt/discord", command="PRIVMSG", params=[chname, "hi again"]
         )
         self.assertEqual(response.tags.get("label"), "x")
         relayed_msg = self.getMessages("qux")[0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             relayed_msg,
             nick="smt/discord",
             command="PRIVMSG",
@@ -91,7 +91,7 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
         self.getMessages("qux")
         # give baz the relaymsg cap
         self.sendLine("baz", "CAP REQ %s" % (RELAYMSG_CAP))
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             self.getMessages("baz")[0],
             command="CAP",
             params=["baz", "ACK", RELAYMSG_CAP],
@@ -99,14 +99,14 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
 
         self.sendLine("qux", "RELAYMSG %s smt/discord :hi a third time" % (chname,))
         response = self.getMessages("qux")[0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             response,
             nick="smt/discord",
             command="PRIVMSG",
             params=[chname, "hi a third time"],
         )
         relayed_msg = self.getMessages("baz")[0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             relayed_msg,
             nick="smt/discord",
             command="PRIVMSG",

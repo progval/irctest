@@ -13,7 +13,7 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         assert "sasl" in capabilities
         self.sendLine(2, "AUTHENTICATE PLAIN")
         m = self.getMessage(2, filter_pred=lambda m: m.command != "NOTICE")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
             params=["+"],
@@ -22,7 +22,7 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
         self.sendLine(2, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
         m = self.getMessage(2, filter_pred=lambda m: m.command != "NOTICE")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="900",
             fail_msg="Did not send 900 after correct SASL authentication.",
@@ -39,7 +39,7 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.connectClient("bar")
         self.joinChannel(2, "#chan")
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="JOIN",
             params=["#chan", "*", "Realname"],
@@ -58,7 +58,7 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.joinChannel(2, "#chan")
 
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="JOIN",
             params=["#chan", "jilles", "Realname"],

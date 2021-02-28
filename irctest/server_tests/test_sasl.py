@@ -32,7 +32,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             )
         self.sendLine(1, "AUTHENTICATE PLAIN")
         m = self.getMessage(1, filter_pred=lambda m: m.command != "NOTICE")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
             params=["+"],
@@ -41,7 +41,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
         self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
         m = self.getMessage(1, filter_pred=lambda m: m.command != "NOTICE")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="900",
             fail_msg="Did not send 900 after correct SASL authentication.",
@@ -97,7 +97,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             )
         self.sendLine(1, "AUTHENTICATE PLAIN")
         m = self.getMessage(1, filter_pred=lambda m: m.command != "NOTICE")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
             params=["+"],
@@ -106,7 +106,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
         self.sendLine(1, "AUTHENTICATE AGppbGxlcwBzZXNhbWU=")
         m = self.getMessage(1, filter_pred=lambda m: m.command != "NOTICE")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="900",
             fail_msg="Did not send 900 after correct SASL authentication.",
@@ -135,7 +135,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
         self.sendLine(1, "AUTHENTICATE FOO")
         m = self.getRegistrationMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="904",
             fail_msg="Did not reply with 904 to “AUTHENTICATE FOO”: {msg}",
@@ -168,7 +168,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             )
         self.sendLine(1, "AUTHENTICATE PLAIN")
         m = self.getRegistrationMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
             params=["+"],
@@ -184,14 +184,14 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         # TODO: check username/etc in this as well, so we can apply it to other tests
         # TODO: may be in the other order
         m = self.getRegistrationMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="900",
             fail_msg="Expected 900 (RPL_LOGGEDIN) after successful "
             "login, but got: {msg}",
         )
         m = self.getRegistrationMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="903",
             fail_msg="Expected 903 (RPL_SASLSUCCESS) after successful "
@@ -230,7 +230,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             )
         self.sendLine(1, "AUTHENTICATE PLAIN")
         m = self.getRegistrationMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
             params=["+"],

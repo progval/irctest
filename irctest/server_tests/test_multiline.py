@@ -48,7 +48,7 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         assert time
         privmsgs = echo[1:-1]
         for msg in privmsgs:
-            self.assertMessageEqual(msg, command="PRIVMSG")
+            self.assertMessageMatch(msg, command="PRIVMSG")
             self.assertNotIn("msgid", msg.tags)
             self.assertNotIn("time", msg.tags)
         self.assertIn(CONCAT_TAG, echo[3].tags)
@@ -64,7 +64,7 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertEqual(batchStart.tags.get("time"), time)
         privmsgs = relay[1:-1]
         for msg in privmsgs:
-            self.assertMessageEqual(msg, command="PRIVMSG")
+            self.assertMessageMatch(msg, command="PRIVMSG")
             self.assertNotIn("msgid", msg.tags)
             self.assertNotIn("time", msg.tags)
             self.assertEqual(msg.tags.get("batch"), batchTag)
@@ -73,7 +73,7 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         fallback_relay = self.getMessages(3)
         relayed_fmsgids = []
         for msg in fallback_relay:
-            self.assertMessageEqual(msg, command="PRIVMSG")
+            self.assertMessageMatch(msg, command="PRIVMSG")
             relayed_fmsgids.append(msg.tags.get("msgid"))
             self.assertEqual(msg.tags.get("time"), time)
             self.assertNotIn(CONCAT_TAG, msg.tags)
@@ -107,11 +107,11 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         batch_start = relay[0]
         privmsgs = relay[1:-1]
         self.assertEqual(len(privmsgs), 3)
-        self.assertMessageEqual(privmsgs[0], command="PRIVMSG", params=["#test", ""])
-        self.assertMessageEqual(
+        self.assertMessageMatch(privmsgs[0], command="PRIVMSG", params=["#test", ""])
+        self.assertMessageMatch(
             privmsgs[1], command="PRIVMSG", params=["#test", "#how is "]
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             privmsgs[2], command="PRIVMSG", params=["#test", "everyone?"]
         )
         self.assertIn("+client-only-tag", batch_start.tags)
@@ -119,10 +119,10 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
         fallback_relay = self.getMessages(3)
         self.assertEqual(len(fallback_relay), 2)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             fallback_relay[0], command="PRIVMSG", params=["#test", "#how is "]
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             fallback_relay[1], command="PRIVMSG", params=["#test", "everyone?"]
         )
         self.assertIn("+client-only-tag", fallback_relay[0].tags)

@@ -140,7 +140,7 @@ class Bouncer(cases.BaseServerTestCase):
             msg for msg in self.getMessages(3) if msg.command == "PRIVMSG"
         ]
         self.assertEqual(len(messagesforthree), 1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             messagesforthree[0], command="PRIVMSG", params=["#chan", "hey again"]
         )
 

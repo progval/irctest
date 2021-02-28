@@ -40,14 +40,14 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.getMessages("alice")
         bob_msg = self.getMessage("bob")
         carol_line = self.getMessage("carol", raw=True)
-        self.assertMessageEqual(bob_msg, command="PRIVMSG", params=["#test", "hi"])
+        self.assertMessageMatch(bob_msg, command="PRIVMSG", params=["#test", "hi"])
         self.assertEqual(bob_msg.tags["+baz"], "bat")
         self.assertIn("msgid", bob_msg.tags)
         # should not relay a non-client-only tag
         self.assertNotIn("fizz", bob_msg.tags)
         # carol MUST NOT receive tags
         carol_msg = assertNoTags(carol_line)
-        self.assertMessageEqual(carol_msg, command="PRIVMSG", params=["#test", "hi"])
+        self.assertMessageMatch(carol_msg, command="PRIVMSG", params=["#test", "hi"])
         # dave SHOULD receive server-time tag
         dave_msg = self.getMessage("dave")
         self.assertIn("time", dave_msg.tags)
@@ -61,7 +61,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         carol_line = self.getMessage("carol", raw=True)
         carol_msg = assertNoTags(carol_line)
         for msg in [alice_msg, bob_msg, carol_msg]:
-            self.assertMessageEqual(
+            self.assertMessageMatch(
                 msg, command="PRIVMSG", params=["#test", "hi yourself"]
             )
         for msg in [alice_msg, bob_msg]:
@@ -80,7 +80,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         # dave MUST NOT receive TAGMSG either, despite having server-time
         self.assertEqual(self.getMessages("dave"), [])
         for msg in [alice_msg, bob_msg]:
-            self.assertMessageEqual(alice_msg, command="TAGMSG", params=["#test"])
+            self.assertMessageMatch(alice_msg, command="TAGMSG", params=["#test"])
             self.assertEqual(msg.tags["+buzz"], "fizz;buzz")
             self.assertEqual(msg.tags["+steel"], "wootz")
             self.assertNotIn("cat", msg.tags)
@@ -108,8 +108,8 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine("alice", max_tagmsg)
         echo = self.getMessage("alice")
         relay = self.getMessage("bob")
-        self.assertMessageEqual(echo, command="TAGMSG", params=["#test"])
-        self.assertMessageEqual(relay, command="TAGMSG", params=["#test"])
+        self.assertMessageMatch(echo, command="TAGMSG", params=["#test"])
+        self.assertMessageMatch(relay, command="TAGMSG", params=["#test"])
         self.assertNotEqual(echo.tags["msgid"], "")
         self.assertEqual(echo.tags["msgid"], relay.tags["msgid"])
         self.assertEqual(echo.tags["+baz"], "a" * 4081)

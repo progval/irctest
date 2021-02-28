@@ -24,7 +24,7 @@ class ChannelForwarding(cases.BaseServerTestCase):
 
         self.sendLine("bar", "MODE #bar +f #nonexistent")
         msg = self.getMessage("bar")
-        self.assertMessageEqual(msg, command=ERR_INVALIDMODEPARAM)
+        self.assertMessageMatch(msg, command=ERR_INVALIDMODEPARAM)
 
         # need chanops in the target channel as well
         self.sendLine("bar", "MODE #bar +f #baz")
@@ -33,7 +33,7 @@ class ChannelForwarding(cases.BaseServerTestCase):
 
         self.sendLine("bar", "MODE #bar +f #bar_two")
         msg = self.getMessage("bar")
-        self.assertMessageEqual(msg, command="MODE", params=["#bar", "+f", "#bar_two"])
+        self.assertMessageMatch(msg, command="MODE", params=["#bar", "+f", "#bar_two"])
 
         # can still join the channel fine
         self.joinChannel("baz", "#bar")
@@ -49,4 +49,4 @@ class ChannelForwarding(cases.BaseServerTestCase):
         forward = [msg for msg in msgs if msg.command == ERR_LINKCHANNEL]
         self.assertEqual(forward[0].params[:3], ["baz", "#bar", "#bar_two"])
         join = [msg for msg in msgs if msg.command == "JOIN"]
-        self.assertMessageEqual(join[0], params=["#bar_two"])
+        self.assertMessageMatch(join[0], params=["#bar_two"])

@@ -17,7 +17,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "NICK alice")
         ms = self.getMessages(2)
         self.assertEqual(len(ms), 1)
-        self.assertMessageEqual(ms[0], command=ERR_NICKNAMEINUSE)
+        self.assertMessageMatch(ms[0], command=ERR_NICKNAMEINUSE)
 
         # bob MUST still own the bob nick, and be able to receive PRIVMSG as bob
         self.sendLine(1, "PRIVMSG bob hi")
@@ -25,7 +25,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(ms), 0)
         ms = self.getMessages(2)
         self.assertEqual(len(ms), 1)
-        self.assertMessageEqual(ms[0], command="PRIVMSG", params=["bob", "hi"])
+        self.assertMessageMatch(ms[0], command="PRIVMSG", params=["bob", "hi"])
 
     @cases.mark_specifications("RFC1459")
     def testCaseChanges(self):
@@ -40,10 +40,10 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "NICK Alice")
         ms = self.getMessages(1)
         self.assertEqual(len(ms), 1)
-        self.assertMessageEqual(ms[0], command="NICK", params=["Alice"])
+        self.assertMessageMatch(ms[0], command="NICK", params=["Alice"])
         ms = self.getMessages(2)
         self.assertEqual(len(ms), 1)
-        self.assertMessageEqual(ms[0], command="NICK", params=["Alice"])
+        self.assertMessageMatch(ms[0], command="NICK", params=["Alice"])
 
         # no responses, either to the user or to friends, from a no-op nick change
         self.sendLine(1, "NICK Alice")
@@ -69,14 +69,14 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         )
         ms = self.getMessages(1)
         self.assertEqual(len(ms), 1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             ms[0], command="PRIVMSG", params=["bob", "hey yourself"]
         )
         self.assertEqual(ms[0].tags.get("+draft/reply"), "ct95w3xemz8qj9du2h74wp8pee")
 
         ms = self.getMessages(2)
         self.assertEqual(len(ms), 1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             ms[0], command="PRIVMSG", params=["bob", "hey yourself"]
         )
         self.assertEqual(ms[0].tags, {})
@@ -90,7 +90,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         ms = self.getMessages(2)
         # now bob has the tags cap, so he should receive the tags
         self.assertEqual(len(ms), 1)
-        self.assertMessageEqual(ms[0], command="PRIVMSG", params=["bob", "hey again"])
+        self.assertMessageMatch(ms[0], command="PRIVMSG", params=["bob", "hey again"])
         self.assertEqual(ms[0].tags.get("+draft/reply"), "tbxqauh9nykrtpa3n6icd9whan")
 
     @cases.mark_specifications("RFC1459")
@@ -129,7 +129,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "NICK malice")
         nick_msgs = [msg for msg in self.getMessages(1) if msg.command == "NICK"]
         self.assertEqual(len(nick_msgs), 1)
-        self.assertMessageEqual(nick_msgs[0], command="NICK", params=["malice"])
+        self.assertMessageMatch(nick_msgs[0], command="NICK", params=["malice"])
 
         self.addClient(2)
         self.sendLine(2, "NICK alice")
@@ -172,4 +172,4 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "NICK alice")
         self.sendLine(2, "USER u s e r")
         reply = self.getRegistrationMessage(2)
-        self.assertMessageEqual(reply, command=RPL_WELCOME)
+        self.assertMessageMatch(reply, command=RPL_WELCOME)

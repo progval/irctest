@@ -21,7 +21,7 @@ class MonitorTestCase(cases.BaseServerTestCase):
     def assertMononline(self, client, nick, m=None):
         if not m:
             m = self.getMessage(client)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="730",  # RPL_MONONLINE
             fail_msg="Sent non-730 (RPL_MONONLINE) message after "
@@ -45,7 +45,7 @@ class MonitorTestCase(cases.BaseServerTestCase):
     def assertMonoffline(self, client, nick, m=None):
         if not m:
             m = self.getMessage(client)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="731",  # RPL_MONOFFLINE
             fail_msg="Did not reply with 731 (RPL_MONOFFLINE) to "
