@@ -33,7 +33,7 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
         "SCRAM-SHA-256",
         "EXTERNAL",
     }
-    supported_capabilities = set(["sts"])  # Not exhaustive
+    supports_sts = True
 
     def create_config(self):
         create_config = super().create_config()

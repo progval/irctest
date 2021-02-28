@@ -1,5 +1,6 @@
-import collections
+import dataclasses
 import enum
+from typing import Optional, Tuple
 
 
 @enum.unique
@@ -19,7 +20,9 @@ class Mechanisms(enum.Enum):
     scram_sha_256 = 3
 
 
-Authentication = collections.namedtuple(
-    "Authentication", "mechanisms username password ecdsa_key"
-)
-Authentication.__new__.__defaults__ = ([Mechanisms.plain], None, None, None)
+@dataclasses.dataclass
+class Authentication:
+    mechanisms: Tuple[Mechanisms] = (Mechanisms.plain,)
+    username: Optional[str] = None
+    password: Optional[str] = None
+    ecdsa_key: Optional[str] = None

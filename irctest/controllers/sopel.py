@@ -22,7 +22,7 @@ auth_password = {password}
 class SopelController(BaseClientController):
     software_name = "Sopel"
     supported_sasl_mechanisms = {"PLAIN"}
-    supported_capabilities = set()  # Not exhaustive
+    supports_sts = False
 
     def __init__(self, test_config):
         super().__init__(test_config)

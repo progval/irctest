@@ -1,5 +1,6 @@
 import os
 import subprocess
+from typing import Set
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -43,8 +44,8 @@ TEMPLATE_SSL_CONFIG = """
 class CharybdisController(BaseServerController, DirectoryBasedController):
     software_name = "Charybdis"
     binary_name = "charybdis"
-    supported_sasl_mechanisms = set()
-    supported_capabilities = set()  # Not exhaustive
+    supported_sasl_mechanisms: Set[str] = set()
+    supports_sts = False
 
     def create_config(self):
         super().create_config()

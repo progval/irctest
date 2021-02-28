@@ -1,7 +1,7 @@
 import socket
 import ssl
 
-from irctest import cases, tls
+from irctest import cases, runner, tls
 from irctest.exceptions import ConnectionClosed
 
 BAD_CERT = """
@@ -146,8 +146,10 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.insecure_server.close()
         super().tearDown()
 
-    @cases.OptionalityHelper.skipUnlessSupportsCapability("sts")
+    @cases.mark_capabilities("sts")
     def testSts(self):
+        if not self.controller.supports_sts:
+            raise runner.CapabilityNotSupported("sts")
         tls_config = tls.TlsConfig(
             enable=False, trusted_fingerprints=[GOOD_FINGERPRINT]
         )
@@ -191,8 +193,11 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         # server
         self.acceptClient()
 
-    @cases.OptionalityHelper.skipUnlessSupportsCapability("sts")
+    @cases.mark_capabilities("sts")
     def testStsInvalidCertificate(self):
+        if not self.controller.supports_sts:
+            raise runner.CapabilityNotSupported("sts")
+
         # Connect client to insecure server
         (hostname, port) = self.insecure_server.getsockname()
         self.controller.run(hostname=hostname, port=port, auth=None)

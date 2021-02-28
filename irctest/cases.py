@@ -3,11 +3,12 @@ import socket
 import ssl
 import tempfile
 import time
+from typing import Optional, Set
 import unittest
 
 import pytest
 
-from . import client_mock, runner
+from . import basecontrollers, client_mock, runner
 from .exceptions import ConnectionClosed
 from .irc_utils import capabilities, message_parser
 from .irc_utils.junkdrawer import normalizeWhitespace
@@ -350,10 +351,10 @@ class BaseServerTestCase(_IrcTestCase):
     """Basic class for server tests. Handles spawning a server and exchanging
     messages with it."""
 
-    password = None
+    password: Optional[str] = None
     ssl = False
-    valid_metadata_keys = frozenset()
-    invalid_metadata_keys = frozenset()
+    valid_metadata_keys: Set[str] = set()
+    invalid_metadata_keys: Set[str] = set()
 
     def setUp(self):
         super().setUp()
@@ -536,6 +537,8 @@ class BaseServerTestCase(_IrcTestCase):
 
 
 class OptionalityHelper:
+    controller: basecontrollers.BaseServerController
+
     def checkSaslSupport(self):
         if self.controller.supported_sasl_mechanisms:
             return
@@ -546,6 +549,7 @@ class OptionalityHelper:
             return
         raise runner.OptionalSaslMechanismNotSupported(mechanism)
 
+    @staticmethod
     def skipUnlessHasMechanism(mech):
         def decorator(f):
             @functools.wraps(f)
@@ -564,22 +568,6 @@ class OptionalityHelper:
             return f(self)
 
         return newf
-
-    def checkCapabilitySupport(self, cap):
-        if cap in self.controller.supported_capabilities:
-            return
-        raise runner.CapabilityNotSupported(cap)
-
-    def skipUnlessSupportsCapability(cap):
-        def decorator(f):
-            @functools.wraps(f)
-            def newf(self):
-                self.checkCapabilitySupport(cap)
-                return f(self)
-
-            return newf
-
-        return decorator
 
 
 def mark_specifications(*specifications, deprecated=False, strict=False):

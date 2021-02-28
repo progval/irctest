@@ -6,7 +6,6 @@ from irctest.basecontrollers import BaseClientController, NotImplementedByContro
 class GircController(BaseClientController):
     software_name = "gIRC"
     supported_sasl_mechanisms = ["PLAIN"]
-    supported_capabilities = set()  # Not exhaustive
 
     def __init__(self):
         super().__init__()

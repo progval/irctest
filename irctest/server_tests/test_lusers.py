@@ -23,12 +23,12 @@ LUSERME_REGEX = re.compile(r"^.*( [-0-9]* ).*( [-0-9]* ).*$")
 
 @dataclass
 class LusersResult:
-    GlobalVisible: int = None
-    GlobalInvisible: int = None
-    Servers: int = None
-    Opers: int = None
+    GlobalVisible: Optional[int] = None
+    GlobalInvisible: Optional[int] = None
+    Servers: Optional[int] = None
+    Opers: Optional[int] = None
     Unregistered: Optional[int] = None
-    Channels: int = None
+    Channels: Optional[int] = None
     LocalTotal: Optional[int] = None
     LocalMax: Optional[int] = None
     GlobalTotal: Optional[int] = None

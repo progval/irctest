@@ -130,9 +130,9 @@ def hash_password(password):
 
 class OragonoController(BaseServerController, DirectoryBasedController):
     software_name = "Oragono"
-    supported_sasl_mechanisms = {"PLAIN"}
     _port_wait_interval = 0.01
-    supported_capabilities = set()  # Not exhaustive
+    supported_sasl_mechanisms = {"PLAIN"}
+    supports_sts = True
 
     def create_config(self):
         super().create_config()
