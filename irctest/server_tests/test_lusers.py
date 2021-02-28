@@ -178,12 +178,12 @@ class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
     """Same as above but with +i as the default."""
 
     @staticmethod
-    def config():
-        return {
-            "oragono_config": lambda config: config["accounts"].update(
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(
+            oragono_config=lambda config: config["accounts"].update(
                 {"default-user-modes": "+i"}
             )
-        }
+        )
 
     @cases.mark_specifications("Oragono")
     def testLusers(self):
@@ -236,12 +236,12 @@ class LuserOpersTest(LusersTestCase):
 
 class OragonoInvisibleDefaultTest(LusersTestCase):
     @staticmethod
-    def config():
-        return {
-            "oragono_config": lambda config: config["accounts"].update(
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(
+            oragono_config=lambda config: config["accounts"].update(
                 {"default-user-modes": "+i"}
             )
-        }
+        )
 
     @cases.mark_specifications("Oragono")
     def testLusers(self):

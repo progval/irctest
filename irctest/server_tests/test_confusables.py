@@ -4,12 +4,12 @@ from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME
 
 class ConfusablesTestCase(cases.BaseServerTestCase):
     @staticmethod
-    def config():
-        return {
-            "oragono_config": lambda config: config["accounts"].update(
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(
+            oragono_config=lambda config: config["accounts"].update(
                 {"nick-reservation": {"enabled": True, "method": "strict"}}
             )
-        }
+        )
 
     @cases.mark_specifications("Oragono")
     def testConfusableNicks(self):

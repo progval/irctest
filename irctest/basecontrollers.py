@@ -1,10 +1,11 @@
+import dataclasses
 import os
 import shutil
 import socket
 import subprocess
 import tempfile
 import time
-from typing import Set
+from typing import Any, Callable, Dict, Optional, Set
 
 from .runner import NotImplementedByController
 
@@ -15,6 +16,24 @@ class ProcessStopped(Exception):
     pass
 
 
+@dataclasses.dataclass
+class TestCaseControllerConfig:
+    """Test-case-specific configuration passed to the controller.
+    This is usually used to ask controllers to enable a feature;
+    but should not be an issue if controllers enable it all the time."""
+
+    chathistory: bool = False
+    """Whether to enable chathistory features."""
+
+    oragono_roleplay: bool = False
+    """Whether to enable the Oragono role-play commands."""
+
+    oragono_config: Optional[Callable[[Dict], Any]] = None
+    """Oragono-specific configuration function that alters the dict in-place
+    This should be used as little as possible, using the other attributes instead;
+    as they are work with any controller."""
+
+
 class _BaseController:
     """Base class for software controllers.
 
@@ -22,7 +41,7 @@ class _BaseController:
     a process (eg. a server or a client), as well as sending it instructions
     that are not part of the IRC specification."""
 
-    def __init__(self, test_config):
+    def __init__(self, test_config: TestCaseControllerConfig):
         self.test_config = test_config
         self.proc = None
 
@@ -36,7 +55,7 @@ class DirectoryBasedController(_BaseController):
     """Helper for controllers whose software configuration is based on an
     arbitrary directory."""
 
-    def __init__(self, test_config):
+    def __init__(self, test_config: TestCaseControllerConfig):
         super().__init__(test_config)
         self.directory = None
 

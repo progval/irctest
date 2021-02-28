@@ -1,19 +1,6 @@
-from collections import namedtuple
 import datetime
 import re
 import secrets
-
-HistoryMessage = namedtuple("HistoryMessage", ["time", "msgid", "target", "text"])
-
-
-def to_history_message(msg):
-    return HistoryMessage(
-        time=msg.tags.get("time"),
-        msgid=msg.tags.get("msgid"),
-        target=msg.params[0],
-        text=msg.params[1],
-    )
-
 
 # thanks jess!
 IRCV3_FORMAT_STRFTIME = "%Y-%m-%dT%H:%M:%S.%f%z"

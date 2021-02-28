@@ -1,11 +1,7 @@
 import time
 
 from irctest import cases
-from irctest.irc_utils.junkdrawer import (
-    ircv3_timestamp_to_unixtime,
-    random_name,
-    to_history_message,
-)
+from irctest.irc_utils.junkdrawer import ircv3_timestamp_to_unixtime, random_name
 
 
 def extract_playback_privmsgs(messages):
@@ -13,14 +9,14 @@ def extract_playback_privmsgs(messages):
     result = []
     for msg in messages:
         if msg.command == "PRIVMSG" and msg.params[0].lower() != "*playback":
-            result.append(to_history_message(msg))
+            result.append(msg.to_history_message())
     return result
 
 
 class ZncPlaybackTestCase(cases.BaseServerTestCase):
     @staticmethod
-    def config():
-        return {"chathistory": True}
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(chathistory=True)
 
     @cases.mark_specifications("Oragono")
     def testZncPlayback(self):
@@ -58,9 +54,9 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         self.joinChannel(qux, chname)
 
         self.sendLine(qux, "PRIVMSG %s :hi there" % (bar,))
-        dm = to_history_message(
-            [msg for msg in self.getMessages(qux) if msg.command == "PRIVMSG"][0]
-        )
+        dm = [msg for msg in self.getMessages(qux) if msg.command == "PRIVMSG"][
+            0
+        ].to_history_message()
         self.assertEqual(dm.text, "hi there")
 
         NUM_MESSAGES = 10
@@ -68,7 +64,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
         for i in range(NUM_MESSAGES):
             self.sendLine(qux, "PRIVMSG %s :this is message %d" % (chname, i))
             echo_messages.extend(
-                to_history_message(msg)
+                msg.to_history_message()
                 for msg in self.getMessages(qux)
                 if msg.command == "PRIVMSG"
             )

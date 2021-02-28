@@ -5,12 +5,12 @@ REGISTER_CAP_NAME = "draft/register"
 
 class TestRegisterBeforeConnect(cases.BaseServerTestCase):
     @staticmethod
-    def config():
-        return {
-            "oragono_config": lambda config: config["accounts"]["registration"].update(
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(
+            oragono_config=lambda config: config["accounts"]["registration"].update(
                 {"allow-before-connect": True}
             )
-        }
+        )
 
     @cases.mark_specifications("Oragono")
     def testBeforeConnect(self):
@@ -28,12 +28,12 @@ class TestRegisterBeforeConnect(cases.BaseServerTestCase):
 
 class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
     @staticmethod
-    def config():
-        return {
-            "oragono_config": lambda config: config["accounts"]["registration"].update(
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(
+            oragono_config=lambda config: config["accounts"]["registration"].update(
                 {"allow-before-connect": False}
             )
-        }
+        )
 
     @cases.mark_specifications("Oragono")
     def testBeforeConnect(self):
@@ -51,9 +51,9 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
 
 class TestRegisterEmailVerified(cases.BaseServerTestCase):
     @staticmethod
-    def config():
-        return {
-            "oragono_config": lambda config: config["accounts"]["registration"].update(
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(
+            oragono_config=lambda config: config["accounts"]["registration"].update(
                 {
                     "email-verification": {
                         "enabled": True,
@@ -64,7 +64,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
                     "allow-before-connect": True,
                 }
             )
-        }
+        )
 
     @cases.mark_specifications("Oragono")
     def testBeforeConnect(self):
@@ -93,12 +93,12 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
 
 class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
     @staticmethod
-    def config():
-        return {
-            "oragono_config": lambda config: config["accounts"]["registration"].update(
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(
+            oragono_config=lambda config: config["accounts"]["registration"].update(
                 {"allow-before-connect": True}
             )
-        }
+        )
 
     @cases.mark_specifications("Oragono")
     def testBeforeConnect(self):

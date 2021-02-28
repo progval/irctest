@@ -9,6 +9,7 @@ import unittest
 import pytest
 
 from . import basecontrollers, client_mock, runner
+from .basecontrollers import TestCaseControllerConfig
 from .exceptions import ConnectionClosed
 from .irc_utils import capabilities, message_parser
 from .irc_utils.junkdrawer import normalizeWhitespace
@@ -48,12 +49,12 @@ class _IrcTestCase(unittest.TestCase):
     controllerClass = None  # Will be set by __main__.py
 
     @staticmethod
-    def config():
+    def config() -> TestCaseControllerConfig:
         """Some configuration to pass to the controllers.
         For example, Oragono only enables its MySQL support if
         config()["chathistory"]=True.
         """
-        return {}
+        return TestCaseControllerConfig()
 
     def description(self):
         method_doc = self._testMethodDoc

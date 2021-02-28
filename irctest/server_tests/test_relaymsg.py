@@ -8,8 +8,8 @@ RELAYMSG_TAG_NAME = "draft/relaymsg"
 
 class RelaymsgTestCase(cases.BaseServerTestCase):
     @staticmethod
-    def config():
-        return {"chathistory": True}
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(chathistory=True)
 
     @cases.mark_specifications("Oragono")
     def testRelaymsg(self):

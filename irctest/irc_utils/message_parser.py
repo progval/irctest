@@ -1,5 +1,6 @@
-import collections
+import dataclasses
 import re
+from typing import Any, Dict, List, Optional
 
 from .junkdrawer import MultipleReplacer
 
@@ -29,7 +30,28 @@ def parse_tags(s):
     return tags
 
 
-Message = collections.namedtuple("Message", "tags prefix command params")
+@dataclasses.dataclass(frozen=True)
+class HistoryMessage:
+    time: Any
+    msgid: Optional[str]
+    target: str
+    text: str
+
+
+@dataclasses.dataclass(frozen=True)
+class Message:
+    tags: Dict[str, Optional[str]]
+    prefix: Optional[str]
+    command: str
+    params: List[str]
+
+    def to_history_message(self) -> HistoryMessage:
+        return HistoryMessage(
+            time=self.tags.get("time"),
+            msgid=self.tags.get("msgid"),
+            target=self.params[0],
+            text=self.params[1],
+        )
 
 
 def parse_message(s):
