@@ -27,9 +27,6 @@ class StatusmsgTestCase(cases.BaseServerTestCase):
         self.connectClient("schmoe")
         self.sendLine(3, "join #chan")
 
-        self.sendLine(1, "MODE #chan +o schmoe")
-        self.getMessages(1)
-
         messages = self.getMessages(3)
         names = set()
         for message in messages:
@@ -39,6 +36,9 @@ class StatusmsgTestCase(cases.BaseServerTestCase):
         self.assertEqual(
             names, {"@chanop", "joe", "schmoe"}, f"unexpected names: {names}"
         )
+
+        self.sendLine(1, "MODE #chan +o schmoe")
+        self.getMessages(1)
 
         self.getMessages(3)
         self.sendLine(3, "privmsg @#chan :this message is for operators")
