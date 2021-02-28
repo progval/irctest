@@ -26,7 +26,7 @@ Alternatively, run `pre-commit run -a`
 [Follow PEP 8](https://www.python.org/dev/peps/pep-0008/#naming-conventions),
 with these exceptions:
 
-* assertion methods (eg. `assertMessageEqual` are mixedCase to be consistent
+* assertion methods (eg. `assertMessageMatch` are mixedCase to be consistent
   with the unittest module)
 * other methods defined in `cases.py` are also mixedCase for consistency with
   the former, for now
@@ -67,7 +67,7 @@ This does not relax the requirement on documentating tests.
 
 **Use unittest-style assertions** (`self.assertEqual(x, y)` instead of
 pytest-style (`assert x == y`). This allows consistency with the assertion
-methods we define, such as `assertMessageEqual`.
+methods we define, such as `assertMessageMatch`.
 
 Always **add an error message in assertions**.
 `irctest` should show readable errors to people unfamiliar with the

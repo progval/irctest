@@ -4,6 +4,7 @@ Tests multi-prefix.
 """
 
 from irctest import cases
+from irctest.patma import ANYSTR
 
 
 class MultiPrefixTestCase(cases.BaseServerTestCase):
@@ -32,7 +33,7 @@ class MultiPrefixTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             reply,
             command="353",
-            params=["foo", reply.params[1], "#chan", "@+foo"],
+            params=["foo", ANYSTR, "#chan", "@+foo"],
             fail_msg="Expected NAMES response (353) with @+foo, got: {msg}",
         )
         self.getMessages(1)

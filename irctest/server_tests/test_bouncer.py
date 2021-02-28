@@ -1,6 +1,7 @@
 from irctest import cases
 from irctest.irc_utils.sasl import sasl_plain_blob
 from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME
+from irctest.patma import ANYSTR, StrRe
 
 
 class Bouncer(cases.BaseServerTestCase):
@@ -27,7 +28,7 @@ class Bouncer(cases.BaseServerTestCase):
         welcomes = [message for message in messages if message.command == RPL_WELCOME]
         self.assertEqual(len(welcomes), 1)
         # should see a regburst for testnick
-        self.assertEqual(welcomes[0].params[0], "testnick")
+        self.assertMessageMatch(welcomes[0], params=["testnick", ANYSTR])
         self.joinChannel(2, "#chan")
 
         self.addClient()
@@ -42,10 +43,10 @@ class Bouncer(cases.BaseServerTestCase):
         welcomes = [message for message in messages if message.command == RPL_WELCOME]
         self.assertEqual(len(welcomes), 1)
         # should see the *same* regburst for testnick
-        self.assertEqual(welcomes[0].params[0], "testnick")
+        self.assertMessageMatch(welcomes[0], params=["testnick", ANYSTR])
         joins = [message for message in messages if message.command == "JOIN"]
         # we should be automatically joined to #chan
-        self.assertEqual(joins[0].params[0], "#chan")
+        self.assertMessageMatch(joins[0], params=["#chan"])
 
         # disable multiclient in nickserv
         self.sendLine(3, "NS SET MULTICLIENT OFF")
@@ -95,9 +96,9 @@ class Bouncer(cases.BaseServerTestCase):
         messagefortwo = messagesfortwo[0]
         messageforthree = messagesforthree[0]
         messageforfive = self.getMessage(5)
-        self.assertEqual(messagefortwo.params, ["#chan", "hey"])
-        self.assertEqual(messageforthree.params, ["#chan", "hey"])
-        self.assertEqual(messageforfive.params, ["#chan", "hey"])
+        self.assertMessageMatch(messagefortwo, params=["#chan", "hey"])
+        self.assertMessageMatch(messageforthree, params=["#chan", "hey"])
+        self.assertMessageMatch(messageforfive, params=["#chan", "hey"])
         self.assertIn("time", messagefortwo.tags)
         self.assertIn("time", messageforthree.tags)
         self.assertIn("time", messageforfive.tags)
@@ -126,7 +127,7 @@ class Bouncer(cases.BaseServerTestCase):
         self.sendLine(2, "QUIT :two out")
         quitLines = [msg for msg in self.getMessages(2) if msg.command == "QUIT"]
         self.assertEqual(len(quitLines), 1)
-        self.assertIn("two out", quitLines[0].params[0])
+        self.assertMessageMatch(quitLines[0], params=[StrRe(".*two out.*")])
         # neither the observer nor the other attached session should see a quit here
         quitLines = [msg for msg in self.getMessages(1) if msg.command == "QUIT"]
         self.assertEqual(quitLines, [])
@@ -149,8 +150,8 @@ class Bouncer(cases.BaseServerTestCase):
         self.sendLine(3, "QUIT :three out")
         quitLines = [msg for msg in self.getMessages(3) if msg.command == "QUIT"]
         self.assertEqual(len(quitLines), 1)
-        self.assertIn("three out", quitLines[0].params[0])
+        self.assertMessageMatch(quitLines[0], params=[StrRe(".*three out.*")])
         # observer should see *this* quit
         quitLines = [msg for msg in self.getMessages(1) if msg.command == "QUIT"]
         self.assertEqual(len(quitLines), 1)
-        self.assertIn("three out", quitLines[0].params[0])
+        self.assertMessageMatch(quitLines[0], params=[StrRe(".*three out.*")])

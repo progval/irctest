@@ -1,4 +1,5 @@
 from irctest import cases
+from irctest.patma import ANYSTR
 
 REGISTER_CAP_NAME = "draft/register"
 
@@ -23,7 +24,7 @@ class TestRegisterBeforeConnect(cases.BaseServerTestCase):
         self.sendLine("bar", "REGISTER * shivarampassphrase")
         msgs = self.getMessages("bar")
         register_response = [msg for msg in msgs if msg.command == "REGISTER"][0]
-        self.assertEqual(register_response.params[0], "SUCCESS")
+        self.assertMessageMatch(register_response, params=["SUCCESS", ANYSTR, ANYSTR])
 
 
 class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
@@ -46,7 +47,9 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
         self.sendLine("bar", "REGISTER * shivarampassphrase")
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
-        self.assertEqual(fail_response.params[:2], ["REGISTER", "DISALLOWED"])
+        self.assertMessageMatch(
+            fail_response, params=["REGISTER", "DISALLOWED", ANYSTR]
+        )
 
 
 class TestRegisterEmailVerified(cases.BaseServerTestCase):
@@ -80,7 +83,9 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
         self.sendLine("bar", "REGISTER * shivarampassphrase")
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
-        self.assertEqual(fail_response.params[:2], ["REGISTER", "INVALID_EMAIL"])
+        self.assertMessageMatch(
+            fail_response, params=["REGISTER", "INVALID_EMAIL", ANYSTR, ANYSTR]
+        )
 
     @cases.mark_specifications("Oragono")
     def testAfterConnect(self):
@@ -88,7 +93,9 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
         self.sendLine("bar", "REGISTER * shivarampassphrase")
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
-        self.assertEqual(fail_response.params[:2], ["REGISTER", "INVALID_EMAIL"])
+        self.assertMessageMatch(
+            fail_response, params=["REGISTER", "INVALID_EMAIL", ANYSTR, ANYSTR]
+        )
 
 
 class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
@@ -111,4 +118,6 @@ class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
         self.sendLine("bar", "REGISTER * shivarampassphrase")
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
-        self.assertEqual(fail_response.params[:2], ["REGISTER", "USERNAME_EXISTS"])
+        self.assertMessageMatch(
+            fail_response, params=["REGISTER", "USERNAME_EXISTS", ANYSTR, ANYSTR]
+        )

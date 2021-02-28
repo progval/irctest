@@ -3,6 +3,7 @@ draft/multiline
 """
 
 from irctest import cases
+from irctest.patma import StrRe
 
 CAP_NAME = "draft/multiline"
 BATCH_TYPE = "draft/multiline"
@@ -35,13 +36,16 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
         echo = self.getMessages(1)
         batchStart, batchEnd = echo[0], echo[-1]
-        self.assertEqual(batchStart.command, "BATCH")
+        self.assertMessageMatch(
+            batchStart, command="BATCH", params=[StrRe(r"\+.*"), BATCH_TYPE, "#test"]
+        )
         self.assertEqual(batchStart.tags.get("label"), "xyz")
-        self.assertEqual(len(batchStart.params), 3)
-        self.assertEqual(batchStart.params[1], CAP_NAME)
-        self.assertEqual(batchStart.params[2], "#test")
-        self.assertEqual(batchEnd.command, "BATCH")
-        self.assertEqual(batchStart.params[0][1:], batchEnd.params[0][1:])
+        self.assertMessageMatch(batchEnd, command="BATCH", params=[StrRe("-.*")])
+        self.assertEqual(
+            batchStart.params[0][1:],
+            batchEnd.params[0][1:],
+            fail_msg="batch start and end do not match",
+        )
         msgid = batchStart.tags.get("msgid")
         time = batchStart.tags.get("time")
         assert msgid
@@ -55,11 +59,11 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
         relay = self.getMessages(2)
         batchStart, batchEnd = relay[0], relay[-1]
-        self.assertEqual(batchStart.command, "BATCH")
-        self.assertEqual(batchEnd.command, "BATCH")
+        self.assertMessageMatch(
+            batchStart, command="BATCH", params=[StrRe(r"\+.*"), BATCH_TYPE, "#test"]
+        )
         batchTag = batchStart.params[0][1:]
-        self.assertEqual(batchStart.params[0], "+" + batchTag)
-        self.assertEqual(batchEnd.params[0], "-" + batchTag)
+        self.assertMessageMatch(batchEnd, command="BATCH", params=["-" + batchTag])
         self.assertEqual(batchStart.tags.get("msgid"), msgid)
         self.assertEqual(batchStart.tags.get("time"), time)
         privmsgs = relay[1:-1]

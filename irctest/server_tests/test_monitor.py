@@ -11,6 +11,7 @@ from irctest.numerics import (
     RPL_MONOFFLINE,
     RPL_MONONLINE,
 )
+from irctest.patma import ANYSTR, StrRe
 
 
 class MonitorTestCase(cases.BaseServerTestCase):
@@ -24,21 +25,9 @@ class MonitorTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="730",  # RPL_MONONLINE
-            fail_msg="Sent non-730 (RPL_MONONLINE) message after "
-            "monitored nick “{}” connected: {msg}",
-            extra_format=(nick,),
-        )
-        self.assertEqual(
-            len(m.params),
-            2,
-            m,
-            fail_msg="Invalid number of params of RPL_MONONLINE: {msg}",
-        )
-        self.assertEqual(
-            m.params[1].split("!")[0],
-            "bar",
-            fail_msg="730 (RPL_MONONLINE) with bad target after “{}” "
-            "connects: {msg}",
+            params=[ANYSTR, StrRe(nick + "(!.*)?")],
+            fail_msg="Unexpected notification that monitored nick “{}” "
+            "is online: {msg}",
             extra_format=(nick,),
         )
 
@@ -48,21 +37,9 @@ class MonitorTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="731",  # RPL_MONOFFLINE
-            fail_msg="Did not reply with 731 (RPL_MONOFFLINE) to "
-            "“MONITOR + {}”, while “{}” is offline: {msg}",
-            extra_format=(nick, nick),
-        )
-        self.assertEqual(
-            len(m.params),
-            2,
-            m,
-            fail_msg="Invalid number of params of RPL_MONOFFLINE: {msg}",
-        )
-        self.assertEqual(
-            m.params[1].split("!")[0],
-            "bar",
-            fail_msg="731 (RPL_MONOFFLINE) reply to “MONITOR + {}” "
-            "with bad target: {msg}",
+            params=[ANYSTR, nick],
+            fail_msg="Unexpected notification that monitored nick “{}” "
+            "is offline: {msg}",
             extra_format=(nick,),
         )
 
@@ -163,32 +140,9 @@ class MonitorTestCase(cases.BaseServerTestCase):
         )
         if m1.command == "731":
             (m1, m2) = (m2, m1)
-        self.assertEqual(
-            len(m1.params),
-            2,
-            m1,
-            fail_msg="Invalid number of params of RPL_MONONLINE: {msg}",
-        )
-        self.assertEqual(
-            len(m2.params),
-            2,
-            m2,
-            fail_msg="Invalid number of params of RPL_MONONLINE: {msg}",
-        )
-        self.assertEqual(
-            m1.params[1].split("!")[0],
-            "bar",
-            m1,
-            fail_msg="730 (RPL_MONONLINE) with bad target after "
-            "“MONITOR + bar,baz” and “bar” is connected: {msg}",
-        )
-        self.assertEqual(
-            m2.params[1].split("!")[0],
-            "baz",
-            m2,
-            fail_msg="731 (RPL_MONOFFLINE) with bad target after "
-            "“MONITOR + bar,baz” and “baz” is disconnected: {msg}",
-        )
+
+        self.assertMononline(None, "bar", m=m1)
+        self.assertMonoffline(None, "baz", m=m2)
 
     @cases.mark_specifications("IRCv3")
     @cases.mark_isupport("MONITOR")

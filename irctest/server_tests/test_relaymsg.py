@@ -1,5 +1,6 @@
 from irctest import cases
 from irctest.irc_utils.junkdrawer import random_name
+from irctest.patma import ANYSTR
 from irctest.server_tests.test_chathistory import CHATHISTORY_CAP, EVENT_PLAYBACK_CAP
 
 RELAYMSG_CAP = "draft/relaymsg"
@@ -46,14 +47,18 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
         self.getMessages("qux")
 
         self.sendLine("baz", "RELAYMSG %s invalid!nick/discord hi" % (chname,))
-        response = self.getMessages("baz")[0]
-        self.assertEqual(response.command, "FAIL")
-        self.assertEqual(response.params[:2], ["RELAYMSG", "INVALID_NICK"])
+        self.assertMessageMatch(
+            self.getMessages("baz")[0],
+            command="FAIL",
+            params=["RELAYMSG", "INVALID_NICK", ANYSTR],
+        )
 
         self.sendLine("baz", "RELAYMSG %s regular_nick hi" % (chname,))
-        response = self.getMessages("baz")[0]
-        self.assertEqual(response.command, "FAIL")
-        self.assertEqual(response.params[:2], ["RELAYMSG", "INVALID_NICK"])
+        self.assertMessageMatch(
+            self.getMessages("baz")[0],
+            command="FAIL",
+            params=["RELAYMSG", "INVALID_NICK", ANYSTR],
+        )
 
         self.sendLine("baz", "RELAYMSG %s smt/discord hi" % (chname,))
         response = self.getMessages("baz")[0]
@@ -81,9 +86,11 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
         )
 
         self.sendLine("qux", "RELAYMSG %s smt/discord :hi a third time" % (chname,))
-        response = self.getMessages("qux")[0]
-        self.assertEqual(response.command, "FAIL")
-        self.assertEqual(response.params[:2], ["RELAYMSG", "PRIVS_NEEDED"])
+        self.assertMessageMatch(
+            self.getMessages("qux")[0],
+            command="FAIL",
+            params=["RELAYMSG", "PRIVS_NEEDED", ANYSTR],
+        )
 
         # grant qux chanop, allowing relaymsg
         self.sendLine("baz", "MODE %s +o qux" % (chname,))
