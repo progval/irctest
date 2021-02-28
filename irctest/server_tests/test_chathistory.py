@@ -3,6 +3,7 @@ import time
 
 from irctest import cases
 from irctest.irc_utils.junkdrawer import random_name
+from irctest.patma import ANYSTR
 
 CHATHISTORY_CAP = "draft/chathistory"
 EVENT_PLAYBACK_CAP = "draft/event-playback"
@@ -64,15 +65,19 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
         # test a nonexistent channel
         self.sendLine(bar, "CHATHISTORY LATEST #nonexistent_channel * 10")
-        msgs = self.getMessages(bar)
-        self.assertEqual(msgs[0].command, "FAIL")
-        self.assertEqual(msgs[0].params[:2], ["CHATHISTORY", "INVALID_TARGET"])
+        self.assertMessageMatch(
+            self.getMessages(bar)[0],
+            command="FAIL",
+            params=["CHATHISTORY", "INVALID_TARGET", ANYSTR, ANYSTR],
+        )
 
         # as should a real channel to which one is not joined:
         self.sendLine(bar, "CHATHISTORY LATEST %s * 10" % (real_chname,))
-        msgs = self.getMessages(bar)
-        self.assertEqual(msgs[0].command, "FAIL")
-        self.assertEqual(msgs[0].params[:2], ["CHATHISTORY", "INVALID_TARGET"])
+        self.assertMessageMatch(
+            self.getMessages(bar)[0],
+            command="FAIL",
+            params=["CHATHISTORY", "INVALID_TARGET", ANYSTR, ANYSTR],
+        )
 
     @cases.mark_specifications("Oragono")
     def testMessagesToSelf(self):
@@ -92,7 +97,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         replies = [msg for msg in self.getMessages(bar) if msg.command == "PRIVMSG"]
         self.assertEqual(len(replies), 1)
         msg = replies[0]
-        self.assertEqual(msg.params, [bar, "this is a privmsg sent to myself"])
+        self.assertMessageMatch(msg, params=[bar, "this is a privmsg sent to myself"])
         messages.append(msg.to_history_message())
 
         self.sendLine(bar, "CAP REQ echo-message")
@@ -103,8 +108,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         replies = [msg for msg in self.getMessages(bar) if msg.command == "PRIVMSG"]
         # two messages, the echo and the delivery
         self.assertEqual(len(replies), 2)
-        self.assertEqual(
-            replies[0].params, [bar, "this is a second privmsg sent to myself"]
+        self.assertMessageMatch(
+            replies[0], params=[bar, "this is a second privmsg sent to myself"]
         )
         messages.append(replies[0].to_history_message())
         # messages should be otherwise identical
@@ -121,7 +126,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         # exactly one of the replies MUST be labeled
         echo = [msg for msg in replies if msg.tags.get("label") == "xyz"][0]
         delivery = [msg for msg in replies if msg.tags.get("label") is None][0]
-        self.assertEqual(echo.params, [bar, "this is a third privmsg sent to myself"])
+        self.assertMessageMatch(
+            echo, params=[bar, "this is a third privmsg sent to myself"]
+        )
         messages.append(echo.to_history_message())
         self.assertEqual(echo.to_history_message(), delivery.to_history_message())
 
@@ -527,10 +534,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         msgid = echo.tags["msgid"]
 
         def validate_tagmsg(msg, target, msgid):
-            self.assertEqual(msg.command, "TAGMSG")
+            self.assertMessageMatch(msg, command="TAGMSG", params=[target])
             self.assertEqual(msg.tags["+client-only-tag-test"], "success")
             self.assertEqual(msg.tags["msgid"], msgid)
-            self.assertEqual(msg.params, [target])
 
         validate_tagmsg(echo, chname, msgid)
 
@@ -616,10 +622,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         echo_msgid = None
 
         def validate_msg(msg):
-            self.assertEqual(msg.command, "PRIVMSG")
+            self.assertMessageMatch(msg, command="PRIVMSG", params=[c2, "hi"])
             self.assertEqual(msg.tags["+client-only-tag-test"], "success")
             self.assertEqual(msg.tags["msgid"], echo_msgid)
-            self.assertEqual(msg.params, [c2, "hi"])
 
         self.sendLine(
             1, "@+client-only-tag-test=success;+draft/persist PRIVMSG %s hi" % (c2,)

@@ -151,10 +151,11 @@ class AwayTestCase(cases.BaseServerTestCase):
 
         self.connectClient("qux")
         self.sendLine(2, "PRIVMSG bar :what's up")
-        replies = self.getMessages(2)
-        self.assertEqual(len(replies), 1)
-        self.assertEqual(replies[0].command, RPL_AWAY)
-        self.assertEqual(replies[0].params, ["qux", "bar", "I'm not here right now"])
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command=RPL_AWAY,
+            params=["qux", "bar", "I'm not here right now"],
+        )
 
         self.sendLine(1, "AWAY")
         replies = self.getMessages(1)
@@ -174,7 +175,9 @@ class TestNoCTCPMode(cases.BaseServerTestCase):
         self.sendLine("qux", "PRIVMSG bar :\x01VERSION\x01")
         self.getMessages("qux")
         relay = [msg for msg in self.getMessages("bar") if msg.command == "PRIVMSG"][0]
-        self.assertEqual(relay.params[-1], "\x01VERSION\x01")
+        self.assertMessageMatch(
+            relay, command="PRIVMSG", params=["bar", "\x01VERSION\x01"]
+        )
 
         # set the no-CTCP user mode on bar:
         self.sendLine("bar", "MODE bar +T")

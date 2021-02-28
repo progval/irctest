@@ -3,6 +3,7 @@ import ssl
 
 from irctest import cases, runner, tls
 from irctest.exceptions import ConnectionClosed
+from irctest.patma import ANYSTR
 
 BAD_CERT = """
 -----BEGIN CERTIFICATE-----
@@ -162,9 +163,12 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.acceptClient(server=self.insecure_server)
 
         # Send STS policy to client
-        m = self.getMessage()
-        self.assertEqual(m.command, "CAP", "First message is not CAP LS.")
-        self.assertEqual(m.params[0], "LS", "First message is not CAP LS.")
+        self.assertMessageMatch(
+            self.getMessage(),
+            command="CAP",
+            params=["LS", ANYSTR],
+            fail_msg="First message is not CAP LS: {got}",
+        )
         self.sendLine("CAP * LS :sts=port={}".format(self.server.getsockname()[1]))
 
         # "If the client is not already connected securely to the server
@@ -204,9 +208,12 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.acceptClient(server=self.insecure_server)
 
         # Send STS policy to client
-        m = self.getMessage()
-        self.assertEqual(m.command, "CAP", "First message is not CAP LS.")
-        self.assertEqual(m.params[0], "LS", "First message is not CAP LS.")
+        self.assertMessageMatch(
+            self.getMessage(),
+            command="CAP",
+            params=["LS", ANYSTR],
+            fail_msg="First message is not CAP LS: {got}",
+        )
         self.sendLine("CAP * LS :sts=port={}".format(self.server.getsockname()[1]))
 
         # The client will reconnect to the TLS port. Unfortunately, it does

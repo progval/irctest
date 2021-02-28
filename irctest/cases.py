@@ -109,7 +109,7 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         Takes the message as first arguments, and comparisons to be made
         as keyword arguments.
 
-        Uses patma.list_match on the params argument.
+        Uses patma.match_list on the params argument.
         """
         error = self.messageDiffers(msg, **kwargs)
         if error:
@@ -145,7 +145,7 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
                     msg=msg,
                 )
 
-        if params and not patma.list_match(msg.params, params):
+        if params and not patma.match_list(msg.params, params):
             fail_msg = fail_msg or "params to be {expects}, got {got}: {msg}"
             return fail_msg.format(
                 *extra_format, got=msg.params, expects=params, msg=msg

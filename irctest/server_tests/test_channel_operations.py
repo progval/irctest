@@ -22,6 +22,7 @@ from irctest.numerics import (
     RPL_TOPIC,
     RPL_TOPICTIME,
 )
+from irctest.patma import ANYSTR, StrRe
 
 MODERN_CAPS = [
     "server-time",
@@ -396,11 +397,9 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "TOPIC #test :new topic")
         self.getMessages(1)
         # client 2 should get the new TOPIC line
-        messages = [
-            message for message in self.getMessages(2) if message.command == "TOPIC"
-        ]
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0].params, ["#test", "new topic"])
+        self.assertMessageMatch(
+            self.getMessage(2), command="TOPIC", params=["#test", "new topic"]
+        )
 
         # unset the topic:
         self.sendLine(1, "TOPIC #test :")
@@ -625,12 +624,8 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.assertGreaterEqual(len(mgroup), 2)
         m1, m2 = mgroup[:2]
 
-        for m in m1, m2:
-            self.assertEqual(m.command, "KICK")
-
-            self.assertEqual(len(m.params), 3)
-            self.assertEqual(m.params[0], "#chan")
-            self.assertEqual(m.params[2], "bye")
+        self.assertMessageMatch(m1, command="KICK", params=["#chan", ANYSTR, "bye"])
+        self.assertMessageMatch(m2, command="KICK", params=["#chan", ANYSTR, "bye"])
 
         if (m1.params[1] == "bar" and m2.params[1] == "baz") or (
             m1.params[1] == "baz" and m2.params[1] == "bar"
@@ -798,13 +793,11 @@ class InviteTestCase(cases.BaseServerTestCase):
 
         self.sendLine(1, "INVITE bar #chan")
         m = self.getMessage(1)
-        self.assertEqual(m.command, RPL_INVITING)
         # modern/ircv3 param order: inviter, invitee, channel
-        self.assertEqual(m.params, ["foo", "bar", "#chan"])
+        self.assertMessageMatch(m, command=RPL_INVITING, params=["foo", "bar", "#chan"])
         m = self.getMessage(2)
-        self.assertEqual(m.command, "INVITE")
+        self.assertMessageMatch(m, command="INVITE", params=["bar", "#chan"])
         self.assertTrue(m.prefix.startswith("foo"))  # nickmask of inviter
-        self.assertEqual(m.params, ["bar", "#chan"])
 
         # we were invited, so join should succeed now
         self.joinChannel(2, "#chan")
@@ -828,9 +821,8 @@ class ChannelQuitTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "QUIT :qux out")
         self.getMessages(2)
         m = self.getMessage(1)
-        self.assertEqual(m.command, "QUIT")
+        self.assertMessageMatch(m, command="QUIT", params=[StrRe(".*qux out.*")])
         self.assertTrue(m.prefix.startswith("qux"))  # nickmask of quitter
-        self.assertIn("qux out", m.params[0])
 
 
 class NoCTCPTestCase(cases.BaseServerTestCase):

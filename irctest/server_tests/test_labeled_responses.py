@@ -8,6 +8,7 @@ so there may be many false positives.
 import re
 
 from irctest import cases
+from irctest.patma import StrRe
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
@@ -674,11 +675,10 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         # valid BATCH start line:
         batch_start = m[0]
-        self.assertMessageMatch(batch_start, command="BATCH")
-        self.assertEqual(len(batch_start.params), 2)
-        self.assertTrue(
-            batch_start.params[0].startswith("+"),
-            "batch start param must begin with +, got %s" % (batch_start.params[0],),
+        self.assertMessageMatch(
+            batch_start,
+            command="BATCH",
+            params=[StrRe(r"\+.*"), "labeled-response"],
         )
         batch_id = batch_start.params[0][1:]
         # batch id MUST be alphanumerics and hyphens
@@ -686,7 +686,6 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             re.match(r"^[A-Za-z0-9\-]+$", batch_id) is not None,
             "batch id must be alphanumerics and hyphens, got %r" % (batch_id,),
         )
-        self.assertEqual(batch_start.params[1], "labeled-response")
         self.assertEqual(batch_start.tags.get("label"), "12345")
 
         # valid BATCH end line
@@ -712,6 +711,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         m = ms[0]
         self.assertEqual(m.command, "PONG")
         self.assertEqual(m.params[-1], "adhoctestline")
+
         # check the label
         self.assertEqual(m.tags.get("label"), "98765")
 

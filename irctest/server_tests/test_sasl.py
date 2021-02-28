@@ -1,6 +1,7 @@
 import base64
 
 from irctest import cases
+from irctest.patma import ANYSTR
 
 
 class RegistrationTestCase(cases.BaseServerTestCase):
@@ -44,14 +45,8 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertMessageMatch(
             m,
             command="900",
-            fail_msg="Did not send 900 after correct SASL authentication.",
-        )
-        self.assertEqual(
-            m.params[2],
-            "jilles",
-            m,
-            fail_msg="900 should contain the account name as 3rd argument "
-            "({expects}), not {got}: {msg}",
+            params=[ANYSTR, ANYSTR, "jilles", ANYSTR],
+            fail_msg="Unexpected reply to correct SASL authentication: {msg}",
         )
 
     @cases.mark_specifications("IRCv3")
@@ -109,14 +104,8 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertMessageMatch(
             m,
             command="900",
-            fail_msg="Did not send 900 after correct SASL authentication.",
-        )
-        self.assertEqual(
-            m.params[2],
-            "jilles",
-            m,
-            fail_msg="900 should contain the account name as 3rd argument "
-            "({expects}), not {got}: {msg}",
+            params=[ANYSTR, ANYSTR, "jilles", ANYSTR],
+            fail_msg="Unexpected reply to correct SASL authentication: {msg}",
         )
 
     @cases.mark_specifications("IRCv3")
