@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from irctest import authentication, tls
+from irctest import tls
 from irctest.basecontrollers import BaseClientController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
@@ -50,9 +50,7 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
         assert self.proc is None
         self.create_config()
         if auth:
-            mechanisms = " ".join(
-                map(authentication.Mechanisms.as_string, auth.mechanisms)
-            )
+            mechanisms = " ".join(mech.to_string() for mech in auth.mechanisms)
             if auth.ecdsa_key:
                 with self.open_file("ecdsa_key.pem") as fd:
                     fd.write(auth.ecdsa_key)

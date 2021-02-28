@@ -1,3 +1,8 @@
-import collections
+import dataclasses
+from typing import List
 
-TlsConfig = collections.namedtuple("TlsConfig", "enable trusted_fingerprints")
+
+@dataclasses.dataclass
+class TlsConfig:
+    enable: bool
+    trusted_fingerprints: List[str]

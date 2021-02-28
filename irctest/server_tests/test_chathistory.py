@@ -2,7 +2,7 @@ import secrets
 import time
 
 from irctest import cases
-from irctest.irc_utils.junkdrawer import random_name, to_history_message
+from irctest.irc_utils.junkdrawer import random_name
 
 CHATHISTORY_CAP = "draft/chathistory"
 EVENT_PLAYBACK_CAP = "draft/event-playback"
@@ -27,15 +27,15 @@ def validate_chathistory_batch(msgs):
             and batch_tag is not None
             and msg.tags.get("batch") == batch_tag
         ):
-            result.append(to_history_message(msg))
+            result.append(msg.to_history_message())
     assert batch_tag == closed_batch_tag
     return result
 
 
 class ChathistoryTestCase(cases.BaseServerTestCase):
     @staticmethod
-    def config():
-        return {"chathistory": True}
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(chathistory=True)
 
     @cases.mark_specifications("Oragono")
     def testInvalidTargets(self):
@@ -93,7 +93,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(replies), 1)
         msg = replies[0]
         self.assertEqual(msg.params, [bar, "this is a privmsg sent to myself"])
-        messages.append(to_history_message(msg))
+        messages.append(msg.to_history_message())
 
         self.sendLine(bar, "CAP REQ echo-message")
         self.getMessages(bar)
@@ -106,9 +106,11 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertEqual(
             replies[0].params, [bar, "this is a second privmsg sent to myself"]
         )
-        messages.append(to_history_message(replies[0]))
+        messages.append(replies[0].to_history_message())
         # messages should be otherwise identical
-        self.assertEqual(to_history_message(replies[0]), to_history_message(replies[1]))
+        self.assertEqual(
+            replies[0].to_history_message(), replies[1].to_history_message()
+        )
 
         self.sendLine(
             bar,
@@ -120,17 +122,17 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         echo = [msg for msg in replies if msg.tags.get("label") == "xyz"][0]
         delivery = [msg for msg in replies if msg.tags.get("label") is None][0]
         self.assertEqual(echo.params, [bar, "this is a third privmsg sent to myself"])
-        messages.append(to_history_message(echo))
-        self.assertEqual(to_history_message(echo), to_history_message(delivery))
+        messages.append(echo.to_history_message())
+        self.assertEqual(echo.to_history_message(), delivery.to_history_message())
 
         # should receive exactly 3 messages in the correct order, no duplicates
         self.sendLine(bar, "CHATHISTORY LATEST * * 10")
         replies = [msg for msg in self.getMessages(bar) if msg.command == "PRIVMSG"]
-        self.assertEqual([to_history_message(msg) for msg in replies], messages)
+        self.assertEqual([msg.to_history_message() for msg in replies], messages)
 
         self.sendLine(bar, "CHATHISTORY LATEST %s * 10" % (bar,))
         replies = [msg for msg in self.getMessages(bar) if msg.command == "PRIVMSG"]
-        self.assertEqual([to_history_message(msg) for msg in replies], messages)
+        self.assertEqual([msg.to_history_message() for msg in replies], messages)
 
     def validate_echo_messages(self, num_messages, echo_messages):
         # sanity checks: should have received the correct number of echo messages,
@@ -161,7 +163,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         echo_messages = []
         for i in range(NUM_MESSAGES):
             self.sendLine(1, "PRIVMSG %s :this is message %d" % (chname, i))
-            echo_messages.extend(to_history_message(msg) for msg in self.getMessages(1))
+            echo_messages.extend(
+                msg.to_history_message() for msg in self.getMessages(1)
+            )
             time.sleep(0.002)
 
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
@@ -213,7 +217,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             self.getMessages(user)
             self.sendLine(user, "PRIVMSG %s :this is message %d" % (target, i))
             echo_messages.extend(
-                to_history_message(msg) for msg in self.getMessages(user)
+                msg.to_history_message() for msg in self.getMessages(user)
             )
             time.sleep(0.002)
 
@@ -245,7 +249,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         )
         # 3 received the first message as a delivery and the second as an echo
         new_convo = [
-            to_history_message(msg)
+            msg.to_history_message()
             for msg in self.getMessages(3)
             if msg.command == "PRIVMSG"
         ]
@@ -262,7 +266,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.sendLine(1, "CHATHISTORY LATEST %s * 10" % (c3,))
         results = [
-            to_history_message(msg)
+            msg.to_history_message()
             for msg in self.getMessages(1)
             if msg.command == "PRIVMSG"
         ]
@@ -296,7 +300,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.getMessages(c3)
         self.sendLine(c3, "CHATHISTORY LATEST %s * 10" % (c1,))
         results = [
-            to_history_message(msg)
+            msg.to_history_message()
             for msg in self.getMessages(c3)
             if msg.command == "PRIVMSG"
         ]

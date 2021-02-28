@@ -5,8 +5,8 @@ from irctest.numerics import ERR_CANNOTSENDRP
 
 class RoleplayTestCase(cases.BaseServerTestCase):
     @staticmethod
-    def config():
-        return {"oragono_roleplay": True}
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(oragono_roleplay=True)
 
     @cases.mark_specifications("Oragono")
     def testRoleplay(self):

@@ -7,13 +7,8 @@ from typing import Optional, Tuple
 class Mechanisms(enum.Enum):
     """Enumeration for representing possible mechanisms."""
 
-    @classmethod
-    def as_string(cls, mech):
-        return {
-            cls.plain: "PLAIN",
-            cls.ecdsa_nist256p_challenge: "ECDSA-NIST256P-CHALLENGE",
-            cls.scram_sha_256: "SCRAM-SHA-256",
-        }[mech]
+    def to_string(self) -> str:
+        return self.name.upper().replace("_", "-")
 
     plain = 1
     ecdsa_nist256p_challenge = 2
