@@ -14,11 +14,7 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
         self.connectClient(
             bar,
             name=bar,
-            capabilities=[
-                "labeled-response",
-                "echo-message",
-                "message-tags",
-            ],
+            capabilities=["labeled-response", "echo-message", "message-tags"],
             skip_if_cap_nak=True,
         )
         self.getMessages(bar)
@@ -27,11 +23,7 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
         self.connectClient(
             qux,
             name=qux,
-            capabilities=[
-                "labeled-response",
-                "echo-message",
-                "message-tags",
-            ],
+            capabilities=["labeled-response", "echo-message", "message-tags"],
         )
         self.getMessages(qux)
 
