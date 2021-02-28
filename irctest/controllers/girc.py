@@ -1,33 +1,25 @@
 import subprocess
+from typing import Optional, Type
 
-from irctest.basecontrollers import BaseClientController, NotImplementedByController
+from irctest import authentication, tls
+from irctest.basecontrollers import (
+    BaseClientController,
+    DirectoryBasedController,
+    NotImplementedByController,
+)
 
 
-class GircController(BaseClientController):
+class GircController(BaseClientController, DirectoryBasedController):
     software_name = "gIRC"
-    supported_sasl_mechanisms = ["PLAIN"]
+    supported_sasl_mechanisms = {"PLAIN"}
 
-    def __init__(self):
-        super().__init__()
-        self.directory = None
-        self.proc = None
-
-    def kill(self):
-        if self.proc:
-            self.proc.terminate()
-            try:
-                self.proc.wait(5)
-            except subprocess.TimeoutExpired:
-                self.proc.kill()
-            self.proc = None
-
-    def __del__(self):
-        if self.proc:
-            self.proc.kill()
-        if self.directory:
-            self.directory.cleanup()
-
-    def run(self, hostname, port, auth, tls_config):
+    def run(
+        self,
+        hostname: str,
+        port: int,
+        auth: Optional[authentication.Authentication],
+        tls_config: Optional[tls.TlsConfig] = None,
+    ) -> None:
         if tls_config:
             print(tls_config)
             raise NotImplementedByController("TLS options")
@@ -42,5 +34,5 @@ class GircController(BaseClientController):
         self.proc = subprocess.Popen(["girc_test", "connect"] + args)
 
 
-def get_irctest_controller_class():
+def get_irctest_controller_class() -> Type[GircController]:
     return GircController

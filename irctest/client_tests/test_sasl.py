@@ -39,9 +39,7 @@ class IdentityHash:
         return self._data
 
 
-class SaslTestCase(
-    cases.BaseClientTestCase, cases.ClientNegociationHelper, cases.OptionalityHelper
-):
+class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPlain(self):
         """Test PLAIN authentication with correct username/password."""
@@ -263,9 +261,7 @@ class SaslTestCase(
             authenticator.response(msg)
 
 
-class Irc302SaslTestCase(
-    cases.BaseClientTestCase, cases.ClientNegociationHelper, cases.OptionalityHelper
-):
+class Irc302SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPlainNotAvailable(self):
         """Test the client does not try to authenticate using a mechanism the

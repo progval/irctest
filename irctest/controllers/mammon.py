@@ -1,11 +1,13 @@
 import os
 import subprocess
+from typing import Optional, Set, Type
 
 from irctest.basecontrollers import (
     BaseServerController,
     DirectoryBasedController,
     NotImplementedByController,
 )
+from irctest.cases import BaseServerTestCase
 
 TEMPLATE_CONFIG = """
 clients:
@@ -61,7 +63,7 @@ server:
 """
 
 
-def make_list(list_):
+def make_list(list_: Set[str]) -> str:
     return "\n".join(map("  - {}".format, list_))
 
 
@@ -69,25 +71,27 @@ class MammonController(BaseServerController, DirectoryBasedController):
     software_name = "Mammon"
     supported_sasl_mechanisms = {"PLAIN", "ECDSA-NIST256P-CHALLENGE"}
 
-    def create_config(self):
+    def create_config(self) -> None:
         super().create_config()
         with self.open_file("server.conf"):
             pass
 
-    def kill_proc(self):
+    def kill_proc(self) -> None:
         # Mammon does not seem to handle SIGTERM very well
+        assert self.proc
         self.proc.kill()
 
     def run(
         self,
-        hostname,
-        port,
-        password=None,
-        ssl=False,
-        restricted_metadata_keys=(),
-        valid_metadata_keys=(),
-        invalid_metadata_keys=(),
-    ):
+        hostname: str,
+        port: int,
+        *,
+        password: Optional[str],
+        ssl: bool,
+        valid_metadata_keys: Optional[Set[str]] = None,
+        invalid_metadata_keys: Optional[Set[str]] = None,
+        restricted_metadata_keys: Optional[Set[str]] = None,
+    ) -> None:
         if password is not None:
             raise NotImplementedByController("PASS command")
         if ssl:
@@ -101,12 +105,13 @@ class MammonController(BaseServerController, DirectoryBasedController):
                     directory=self.directory,
                     hostname=hostname,
                     port=port,
-                    authorized_keys=make_list(valid_metadata_keys),
-                    restricted_keys=make_list(restricted_metadata_keys),
+                    authorized_keys=make_list(valid_metadata_keys or set()),
+                    restricted_keys=make_list(restricted_metadata_keys or set()),
                 )
             )
         # with self.open_file('server.yml', 'r') as fd:
         #    print(fd.read())
+        assert self.directory
         self.proc = subprocess.Popen(
             [
                 "mammond",
@@ -116,7 +121,12 @@ class MammonController(BaseServerController, DirectoryBasedController):
             ]
         )
 
-    def registerUser(self, case, username, password=None):
+    def registerUser(
+        self,
+        case: BaseServerTestCase,
+        username: str,
+        password: Optional[str] = None,
+    ) -> None:
         # XXX: Move this somewhere else when
         # https://github.com/ircv3/ircv3-specifications/pull/152 becomes
         # part of the specification
@@ -135,5 +145,5 @@ class MammonController(BaseServerController, DirectoryBasedController):
         case.removeClient(client)
 
 
-def get_irctest_controller_class():
+def get_irctest_controller_class() -> Type[MammonController]:
     return MammonController

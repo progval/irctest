@@ -1,6 +1,6 @@
 import os
 import subprocess
-from typing import Set
+from typing import Optional, Set, Type
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -47,20 +47,21 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms: Set[str] = set()
     supports_sts = False
 
-    def create_config(self):
+    def create_config(self) -> None:
         super().create_config()
         with self.open_file("server.conf"):
             pass
 
     def run(
         self,
-        hostname,
-        port,
-        password=None,
-        ssl=False,
-        valid_metadata_keys=None,
-        invalid_metadata_keys=None,
-    ):
+        hostname: str,
+        port: int,
+        *,
+        password: Optional[str],
+        ssl: bool,
+        valid_metadata_keys: Optional[Set[str]] = None,
+        invalid_metadata_keys: Optional[Set[str]] = None,
+    ) -> None:
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
                 "Defining valid and invalid METADATA keys."
@@ -85,6 +86,7 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
                     ssl_config=ssl_config,
                 )
             )
+        assert self.directory
         self.proc = subprocess.Popen(
             [
                 self.binary_name,
@@ -98,5 +100,5 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
         )
 
 
-def get_irctest_controller_class():
+def get_irctest_controller_class() -> Type[CharybdisController]:
     return CharybdisController

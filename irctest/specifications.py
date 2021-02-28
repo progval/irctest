@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 
 
@@ -15,7 +17,7 @@ class Specifications(enum.Enum):
     Modern = "modern"
 
     @classmethod
-    def from_name(cls, name):
+    def from_name(cls, name: str) -> Specifications:
         name = name.upper()
         for spec in cls:
             if spec.value.upper() == name:
@@ -37,7 +39,7 @@ class Capabilities(enum.Enum):
     STS = "sts"
 
     @classmethod
-    def from_name(cls, name):
+    def from_name(cls, name: str) -> Capabilities:
         try:
             return cls(name.lower())
         except ValueError:
@@ -50,7 +52,7 @@ class IsupportTokens(enum.Enum):
     STATUSMSG = "STATUSMSG"
 
     @classmethod
-    def from_name(cls, name):
+    def from_name(cls, name: str) -> IsupportTokens:
         try:
             return cls(name.upper())
         except ValueError:
