@@ -1,4 +1,5 @@
 from irctest import cases
+from irctest.cases import AnyStr
 from irctest.runner import CapabilityNotSupported, ImplementationChoice
 
 
@@ -39,7 +40,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[..., "NAK", "foo"],
+            params=[AnyStr, "NAK", "foo"],
             fail_msg="Expected CAP NAK after requesting non-existing "
             "capability, got {msg}.",
         )
@@ -66,7 +67,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[..., "NAK", "foo qux bar baz qux quux"],
+            params=[AnyStr, "NAK", "foo qux bar baz qux quux"],
             fail_msg="Expected “CAP NAK :foo qux bar baz qux quux” after "
             "sending “CAP REQ :foo qux bar baz qux quux”, but got {msg}.",
         )
@@ -85,7 +86,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[..., "NAK", "foo multi-prefix bar"],
+            params=[AnyStr, "NAK", "foo multi-prefix bar"],
             fail_msg="Expected “CAP NAK :foo multi-prefix bar” after "
             "sending “CAP REQ :foo multi-prefix bar”, but got {msg}.",
         )
@@ -94,7 +95,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[..., "NAK", "multi-prefix bar"],
+            params=[AnyStr, "NAK", "multi-prefix bar"],
             fail_msg="Expected “CAP NAK :multi-prefix bar” after "
             "sending “CAP REQ :multi-prefix bar”, but got {msg}.",
         )
@@ -103,7 +104,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[..., "NAK", "foo multi-prefix"],
+            params=[AnyStr, "NAK", "foo multi-prefix"],
             fail_msg="Expected “CAP NAK :foo multi-prefix” after "
             "sending “CAP REQ :foo multi-prefix”, but got {msg}.",
         )
@@ -113,7 +114,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[..., "ACK", "multi-prefix"],
+            params=[AnyStr, "ACK", "multi-prefix"],
             fail_msg="Expected “CAP ACK :multi-prefix” after "
             "sending “CAP REQ :multi-prefix”, but got {msg}.",
         )
@@ -133,7 +134,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(1, "user user 0 * realname")
         self.sendLine(1, "CAP END")
         m = self.getRegistrationMessage(1)
-        self.assertMessageMatch(m, command="CAP", params=[..., "ACK", ...])
+        self.assertMessageMatch(m, command="CAP", params=[AnyStr, "ACK", AnyStr])
         self.assertEqual(
             set(m.params[2].split()), {cap1, cap2}, "Didn't ACK both REQed caps"
         )
@@ -151,8 +152,10 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(1, f"CAP REQ :-{cap2}")
         m = self.getMessage(1)
         # Must be either ACK or NAK
-        if self.messageDiffers(m, command="CAP", params=[..., "ACK", f"-{cap2}"]):
-            self.assertMessageMatch(m, command="CAP", params=[..., "NAK", f"-{cap2}"])
+        if self.messageDiffers(m, command="CAP", params=[AnyStr, "ACK", f"-{cap2}"]):
+            self.assertMessageMatch(
+                m, command="CAP", params=[AnyStr, "NAK", f"-{cap2}"]
+            )
             raise ImplementationChoice(f"Does not support CAP REQ -{cap2}")
 
         # server-time should be disabled
