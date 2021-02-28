@@ -14,7 +14,7 @@ def normalize_namreply_params(params):
     # end of the nick list.
     if len(params) == 3:
         assert params[1][0] in "=*@", params
-        params.insert(1), params[1][0]
+        params.insert(1, params[1][0])
         params[2] = params[2][1:]
     params[3] = params[3].rstrip()
     return params
