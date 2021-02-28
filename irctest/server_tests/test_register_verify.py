@@ -48,7 +48,8 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
         self.assertMessageMatch(
-            fail_response, params=["REGISTER", "DISALLOWED", ANYSTR]
+            fail_response,
+            params=["REGISTER", "COMPLETE_CONNECTION_REQUIRED", ANYSTR, ANYSTR],
         )
 
 
