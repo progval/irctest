@@ -115,7 +115,7 @@ class WhoisTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
 
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
-    @cases.mark_specifications("ircdefs")
+    @cases.mark_specifications("ircdocs")
     def testWhoisAccount(self):
         """Test numeric 330, RPL_WHOISACCOUNT.
 
