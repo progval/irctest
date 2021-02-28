@@ -103,7 +103,7 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         if self.show_io:
             print("---- new test ----")
 
-    def assertMessageEqual(self, msg: Message, **kwargs: Any) -> None:
+    def assertMessageMatch(self, msg: Message, **kwargs: Any) -> None:
         """Helper for partially comparing a message.
 
         Takes the message as first arguments, and comparisons to be made
@@ -543,7 +543,7 @@ class BaseServerTestCase(
         caps = []
         while True:
             m = self.getRegistrationMessage(client)
-            self.assertMessageEqual(m, command="CAP")
+            self.assertMessageMatch(m, command="CAP")
             self.assertEqual(m.params[1], "LS", fail_msg="Expected CAP * LS, got {got}")
             if m.params[2] == "*":
                 caps.extend(m.params[3].split())
@@ -594,7 +594,7 @@ class BaseServerTestCase(
             self.sendLine(client, "CAP REQ :{}".format(" ".join(capabilities)))
             m = self.getRegistrationMessage(client)
             try:
-                self.assertMessageEqual(
+                self.assertMessageMatch(
                     m, command="CAP", fail_msg="Expected CAP ACK, got: {msg}"
                 )
                 self.assertEqual(

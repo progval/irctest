@@ -13,7 +13,7 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         assert "sasl" in capabilities
         self.sendLine(2, "AUTHENTICATE PLAIN")
         m = self.getMessage(2, filter_pred=lambda m: m.command != "NOTICE")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
             params=["+"],
@@ -22,7 +22,7 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
         self.sendLine(2, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
         m = self.getMessage(2, filter_pred=lambda m: m.command != "NOTICE")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="900",
             fail_msg="Did not send 900 after correct SASL authentication.",
@@ -42,7 +42,7 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(2, "PRIVMSG foo :hi")
         self.getMessages(2)
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="PRIVMSG",
             params=["foo", "hi"],

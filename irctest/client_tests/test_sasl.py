@@ -87,7 +87,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.assertEqual(m, Message({}, None, "AUTHENTICATE", ["PLAIN"]))
         self.sendLine("904 {} :SASL auth failed".format(self.nick))
         m = self.getMessage()
-        self.assertMessageEqual(m, command="CAP")
+        self.assertMessageMatch(m, command="CAP")
 
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPlainLarge(self):
@@ -167,7 +167,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
             "AUTHENTICATE {}".format(base64.b64encode(CHALLENGE).decode("ascii"))
         )
         m = self.getMessage()
-        self.assertMessageEqual(m, command="AUTHENTICATE")
+        self.assertMessageMatch(m, command="AUTHENTICATE")
         sk = ecdsa.SigningKey.from_pem(ECDSA_KEY)
         vk = sk.get_verifying_key()
         signature = base64.b64decode(m.params[0])

@@ -39,7 +39,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.sendLine(1, "METADATA * GET valid_key1")
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="766",  # ERR_NOMATCHINGKEY
             fail_msg="Did not reply with 766 (ERR_NOMATCHINGKEY) to a "
@@ -55,7 +55,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.sendLine(1, "METADATA * GET valid_key1 valid_key2")
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="766",  # ERR_NOMATCHINGKEY
             fail_msg="Did not reply with 766 (ERR_NOMATCHINGKEY) to a "
@@ -69,7 +69,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "did not respond to valid_key1 first: {msg}",
         )
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="766",  # ERR_NOMATCHINGKEY
             fail_msg="Did not reply with two 766 (ERR_NOMATCHINGKEY) to a "
@@ -93,7 +93,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.sendLine(1, "METADATA * LIST")
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="762",  # RPL_METADATAEND
             fail_msg="Response to “METADATA * LIST” was not "
@@ -108,7 +108,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.sendLine(1, "METADATA foobar LIST")
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="765",  # ERR_TARGETINVALID
             fail_msg="Response to “METADATA <invalid target> LIST” was "
@@ -127,7 +127,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             displayable_value = value
         self.sendLine(1, "METADATA {} SET {} :{}".format(target, key, value))
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="761",  # RPL_KEYVALUE
             fail_msg="Did not reply with 761 (RPL_KEYVALUE) to a valid "
@@ -151,7 +151,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             extra_format=(key, displayable_value),
         )
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="762",  # RPL_METADATAEND
             fail_msg="Did not send RPL_METADATAEND after setting "
@@ -161,7 +161,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
     def assertGetValue(self, target, key, value, displayable_value=None):
         self.sendLine(1, "METADATA * GET {}".format(key))
         m = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="761",  # RPL_KEYVALUE
             fail_msg="Did not reply with 761 (RPL_KEYVALUE) to a valid "

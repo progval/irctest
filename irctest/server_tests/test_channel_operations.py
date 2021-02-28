@@ -145,7 +145,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.getMessages(1)  # Synchronize
         self.sendLine(2, "PART #chan")
         m = self.getMessage(2)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="442",  # ERR_NOTONCHANNEL
             fail_msg="Expected ERR_NOTONCHANNEL (442) "
@@ -160,7 +160,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.sendLine(1, "JOIN #chan")
         m = self.getMessage(1)
-        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+        self.assertMessageMatch(m, command="JOIN", params=["#chan"])
         self.getMessages(1)
         self.sendLine(1, "JOIN #chan")
         # Note that there may be no message. Both RFCs require replies only
@@ -202,12 +202,12 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan")
         m = self.getMessage(1)
-        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+        self.assertMessageMatch(m, command="JOIN", params=["#chan"])
 
         self.connectClient("baz")
         self.sendLine(2, "JOIN #chan")
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+        self.assertMessageMatch(m, command="JOIN", params=["#chan"])
 
         # skip the rest of the JOIN burst:
         self.getMessages(1)
@@ -217,9 +217,9 @@ class JoinTestCase(cases.BaseServerTestCase):
         # both the PART'ing client and the other channel member should receive
         # a PART line:
         m = self.getMessage(1)
-        self.assertMessageEqual(m, command="PART")
+        self.assertMessageMatch(m, command="PART")
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command="PART")
+        self.assertMessageMatch(m, command="PART")
 
     @cases.mark_specifications("RFC2812")
     def testBasicPartRfc2812(self):
@@ -230,12 +230,12 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan")
         m = self.getMessage(1)
-        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+        self.assertMessageMatch(m, command="JOIN", params=["#chan"])
 
         self.connectClient("baz")
         self.sendLine(2, "JOIN #chan")
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+        self.assertMessageMatch(m, command="JOIN", params=["#chan"])
 
         # skip the rest of the JOIN burst:
         self.getMessages(1)
@@ -245,9 +245,9 @@ class JoinTestCase(cases.BaseServerTestCase):
         # both the PART'ing client and the other channel member should receive
         # a PART line:
         m = self.getMessage(1)
-        self.assertMessageEqual(m, command="PART", params=["#chan", "bye everyone"])
+        self.assertMessageMatch(m, command="PART", params=["#chan", "bye everyone"])
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command="PART", params=["#chan", "bye everyone"])
+        self.assertMessageMatch(m, command="PART", params=["#chan", "bye everyone"])
 
     @cases.mark_specifications("RFC2812")
     def testPartMessage(self):
@@ -258,12 +258,12 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan")
         m = self.getMessage(1)
-        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+        self.assertMessageMatch(m, command="JOIN", params=["#chan"])
 
         self.connectClient("baz")
         self.sendLine(2, "JOIN #chan")
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command="JOIN", params=["#chan"])
+        self.assertMessageMatch(m, command="JOIN", params=["#chan"])
 
         # skip the rest of the JOIN burst:
         self.getMessages(1)
@@ -273,9 +273,9 @@ class JoinTestCase(cases.BaseServerTestCase):
         # both the PART'ing client and the other channel member should receive
         # a PART line:
         m = self.getMessage(1)
-        self.assertMessageEqual(m, command="PART", params=["#chan", "bye everyone"])
+        self.assertMessageMatch(m, command="PART", params=["#chan", "bye everyone"])
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command="PART", params=["#chan", "bye everyone"])
+        self.assertMessageMatch(m, command="PART", params=["#chan", "bye everyone"])
 
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testTopic(self):
@@ -306,12 +306,12 @@ class JoinTestCase(cases.BaseServerTestCase):
                     "channel modes to no allow regular users to change "
                     "topic."
                 )
-            self.assertMessageEqual(m, command="TOPIC")
+            self.assertMessageMatch(m, command="TOPIC")
         except client_mock.NoMessageException:
             # The RFCs do not say TOPIC must be echoed
             pass
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command="TOPIC", params=["#chan", "T0P1C"])
+        self.assertMessageMatch(m, command="TOPIC", params=["#chan", "T0P1C"])
 
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testTopicMode(self):
@@ -338,7 +338,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
         self.sendLine(2, "TOPIC #chan :T0P1C")
         m = self.getMessage(2)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m, command="482", fail_msg="Non-op user was not refused use of TOPIC: {msg}"
         )
         self.assertEqual(self.getMessages(1), [])
@@ -357,7 +357,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             # The RFCs do not say TOPIC must be echoed
             pass
         m = self.getMessage(1)
-        self.assertMessageEqual(m, command="TOPIC", params=["#chan", "T0P1C"])
+        self.assertMessageMatch(m, command="TOPIC", params=["#chan", "T0P1C"])
 
     @cases.mark_specifications("RFC2812")
     def testTopicNonexistentChannel(self):
@@ -429,7 +429,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             "322",  # RPL_LIST
             "LIST response gives (at least) one channel, whereas there " "is none.",
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="323",  # RPL_LISTEND
             fail_msg="Second reply to LIST is not 322 (RPL_LIST) "
@@ -457,7 +457,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             fail_msg="LIST response ended (ie. 323, aka RPL_LISTEND) "
             "without listing any channel, whereas there is one.",
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="322",  # RPL_LIST
             fail_msg="Second reply to LIST is not 322 (RPL_LIST), "
@@ -470,7 +470,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             fail_msg="LIST response gives (at least) two channels, "
             "whereas there is only one.",
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="323",  # RPL_LISTEND
             fail_msg="Third reply to LIST is not 322 (RPL_LIST) "
@@ -506,14 +506,14 @@ class JoinTestCase(cases.BaseServerTestCase):
                 raise runner.ImplementationChoice(
                     "Channel creators are not opped by default."
                 )
-            self.assertMessageEqual(m, command="KICK")
+            self.assertMessageMatch(m, command="KICK")
         except client_mock.NoMessageException:
             # The RFCs do not say KICK must be echoed
             pass
         m = self.getMessage(2)
-        self.assertMessageEqual(m, command="KICK", params=["#chan", "bar", "bye"])
+        self.assertMessageMatch(m, command="KICK", params=["#chan", "bar", "bye"])
         m = self.getMessage(3)
-        self.assertMessageEqual(m, command="KICK", params=["#chan", "bar", "bye"])
+        self.assertMessageMatch(m, command="KICK", params=["#chan", "bar", "bye"])
 
     @cases.mark_specifications("RFC2812")
     def testKickPrivileges(self):
@@ -579,7 +579,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "KICK #chan nick")
         m = self.getMessage(1)
         # should return ERR_NOSUCHCHANNEL
-        self.assertMessageEqual(m, command="403")
+        self.assertMessageMatch(m, command="403")
 
     @cases.mark_specifications("RFC2812")
     def testDoubleKickMessages(self):
@@ -667,7 +667,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             fail_msg="After using “INVITE #chan bar” while #chan does "
             "not exist, “bar” received nothing.",
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             messages[0],
             command="INVITE",
             params=["#chan", "bar"],
@@ -699,7 +699,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             fail_msg="After using “INVITE #chan bar” while #chan does "
             "not exist, the author received nothing.",
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             messages[0],
             command="INVITE",
             params=["#chan", "bar"],
@@ -724,7 +724,7 @@ def _testChannelsEquivalent(casemapping, name1, name2):
         self.joinClient(2, name2)
         try:
             m = self.getMessage(1)
-            self.assertMessageEqual(m, command="JOIN", nick="bar")
+            self.assertMessageMatch(m, command="JOIN", nick="bar")
         except client_mock.NoMessageException:
             raise AssertionError(
                 "Channel names {} and {} are not equivalent.".format(name1, name2)
@@ -752,7 +752,7 @@ def _testChannelsNotEquivalent(casemapping, name1, name2):
         except client_mock.NoMessageException:
             pass
         else:
-            self.assertMessageEqual(
+            self.assertMessageMatch(
                 m, command="JOIN", nick="bar"
             )  # This should always be true
             raise AssertionError(
@@ -849,14 +849,14 @@ class NoCTCPTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         ms = self.getMessages(2)
         self.assertEqual(len(ms), 1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             ms[0], command="PRIVMSG", params=["#chan", "\x01ACTION hi\x01"]
         )
 
         self.sendLine(1, "PRIVMSG #chan :\x01PING 1473523796 918320\x01")
         ms = self.getMessages(1)
         self.assertEqual(len(ms), 1)
-        self.assertMessageEqual(ms[0], command=ERR_CANNOTSENDTOCHAN)
+        self.assertMessageMatch(ms[0], command=ERR_CANNOTSENDTOCHAN)
         ms = self.getMessages(2)
         self.assertEqual(ms, [])
 
@@ -878,7 +878,7 @@ class KeyTestCase(cases.BaseServerTestCase):
 
         self.sendLine(2, "JOIN #chan beer")
         reply = self.getMessages(2)
-        self.assertMessageEqual(reply[0], command="JOIN", params=["#chan"])
+        self.assertMessageMatch(reply[0], command="JOIN", params=["#chan"])
 
     @cases.mark_specifications("RFC2812")
     def testKeyValidation(self):
@@ -939,7 +939,7 @@ class KeyTestCase(cases.BaseServerTestCase):
 
         self.connectClient("foo")
         self.sendLine(2, f"JOIN #chan {key}")
-        self.assertMessageEqual(self.getMessage(2), command="JOIN", params=["#chan"])
+        self.assertMessageMatch(self.getMessage(2), command="JOIN", params=["#chan"])
 
 
 class AuditoriumTestCase(cases.BaseServerTestCase):
@@ -951,7 +951,7 @@ class AuditoriumTestCase(cases.BaseServerTestCase):
         self.sendLine("bar", "MODE #auditorium +u")
         modelines = [msg for msg in self.getMessages("bar") if msg.command == "MODE"]
         self.assertEqual(len(modelines), 1)
-        self.assertMessageEqual(modelines[0], params=["#auditorium", "+u"])
+        self.assertMessageMatch(modelines[0], params=["#auditorium", "+u"])
 
         self.connectClient("guest1", name="guest1", capabilities=MODERN_CAPS)
         self.joinChannel("guest1", "#auditorium")
@@ -959,7 +959,7 @@ class AuditoriumTestCase(cases.BaseServerTestCase):
         # chanop should get a JOIN message
         join_msgs = [msg for msg in self.getMessages("bar") if msg.command == "JOIN"]
         self.assertEqual(len(join_msgs), 1)
-        self.assertMessageEqual(join_msgs[0], nick="guest1", params=["#auditorium"])
+        self.assertMessageMatch(join_msgs[0], nick="guest1", params=["#auditorium"])
 
         self.connectClient("guest2", name="guest2", capabilities=MODERN_CAPS)
         self.joinChannel("guest2", "#auditorium")
@@ -967,7 +967,7 @@ class AuditoriumTestCase(cases.BaseServerTestCase):
         # chanop should get a JOIN message
         join_msgs = [msg for msg in self.getMessages("bar") if msg.command == "JOIN"]
         self.assertEqual(len(join_msgs), 1)
-        self.assertMessageEqual(join_msgs[0], nick="guest2", params=["#auditorium"])
+        self.assertMessageMatch(join_msgs[0], nick="guest2", params=["#auditorium"])
         # fellow unvoiced participant should not
         unvoiced_join_msgs = [
             msg for msg in self.getMessages("guest1") if msg.command == "JOIN"
@@ -1088,7 +1088,7 @@ class TopicPrivileges(cases.BaseServerTestCase):
         self.sendLine("buzz", "JOIN #chan")
         replies = self.getMessages("buzz")
         rpl_topic = [msg for msg in replies if msg.command == RPL_TOPIC][0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             rpl_topic, command=RPL_TOPIC, params=["buzz", "#chan", "new topic"]
         )
         self.assertEqual(
@@ -1104,20 +1104,20 @@ class BanMode(cases.BaseServerTestCase):
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
         self.sendLine("chanop", "MODE #chan +b bar!*@*")
-        self.assertMessageEqual(self.getMessage("chanop"), command="MODE")
+        self.assertMessageMatch(self.getMessage("chanop"), command="MODE")
 
         self.connectClient(
             "Bar", name="bar", capabilities=["echo-message"], skip_if_cap_nak=True
         )
         self.getMessages("bar")
         self.sendLine("bar", "JOIN #chan")
-        self.assertMessageEqual(self.getMessage("bar"), command=ERR_BANNEDFROMCHAN)
+        self.assertMessageMatch(self.getMessage("bar"), command=ERR_BANNEDFROMCHAN)
 
         self.sendLine("chanop", "MODE #chan -b bar!*@*")
-        self.assertMessageEqual(self.getMessage("chanop"), command="MODE")
+        self.assertMessageMatch(self.getMessage("chanop"), command="MODE")
 
         self.sendLine("bar", "JOIN #chan")
-        self.assertMessageEqual(self.getMessage("bar"), command="JOIN")
+        self.assertMessageMatch(self.getMessage("bar"), command="JOIN")
 
     @cases.mark_specifications("Oragono")
     def testCaseInsensitive(self):
@@ -1127,18 +1127,18 @@ class BanMode(cases.BaseServerTestCase):
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
         self.sendLine("chanop", "MODE #chan +b BAR!*@*")
-        self.assertMessageEqual(self.getMessage("chanop"), command="MODE")
+        self.assertMessageMatch(self.getMessage("chanop"), command="MODE")
 
         self.connectClient("Bar", name="bar", capabilities=["echo-message"])
         self.getMessages("bar")
         self.sendLine("bar", "JOIN #chan")
-        self.assertMessageEqual(self.getMessage("bar"), command=ERR_BANNEDFROMCHAN)
+        self.assertMessageMatch(self.getMessage("bar"), command=ERR_BANNEDFROMCHAN)
 
         self.sendLine("chanop", "MODE #chan -b bar!*@*")
-        self.assertMessageEqual(self.getMessage("chanop"), command="MODE")
+        self.assertMessageMatch(self.getMessage("chanop"), command="MODE")
 
         self.sendLine("bar", "JOIN #chan")
-        self.assertMessageEqual(self.getMessage("bar"), command="JOIN")
+        self.assertMessageMatch(self.getMessage("bar"), command="JOIN")
 
 
 class ModeratedMode(cases.BaseServerTestCase):
@@ -1151,7 +1151,7 @@ class ModeratedMode(cases.BaseServerTestCase):
         self.sendLine("chanop", "MODE #chan +m")
         replies = self.getMessages("chanop")
         modeLines = [line for line in replies if line.command == "MODE"]
-        self.assertMessageEqual(modeLines[0], command="MODE", params=["#chan", "+m"])
+        self.assertMessageMatch(modeLines[0], command="MODE", params=["#chan", "+m"])
 
         self.connectClient("baz", name="baz")
         self.joinChannel("baz", "#chan")
@@ -1171,7 +1171,7 @@ class ModeratedMode(cases.BaseServerTestCase):
         self.getMessages("baz")
         relays = self.getMessages("chanop")
         relay = relays[0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             relay, command="PRIVMSG", params=["#chan", "hi again from baz"]
         )
 
@@ -1192,7 +1192,7 @@ class OpModerated(cases.BaseServerTestCase):
         self.joinChannel("baz", "#chan")
         self.sendLine("baz", "PRIVMSG #chan :hi from baz")
         echo = self.getMessages("baz")[0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             echo, command="PRIVMSG", params=["#chan", "hi from baz"]
         )
         self.assertEqual(
@@ -1204,7 +1204,7 @@ class OpModerated(cases.BaseServerTestCase):
         self.joinChannel("qux", "#chan")
         self.sendLine("qux", "PRIVMSG #chan :hi from qux")
         echo = self.getMessages("qux")[0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             echo, command="PRIVMSG", params=["#chan", "hi from qux"]
         )
         # message is relayed to chanop but not to unprivileged
@@ -1220,7 +1220,7 @@ class OpModerated(cases.BaseServerTestCase):
         self.getMessages("chanop")
         self.sendLine("qux", "PRIVMSG #chan :hi again from qux")
         echo = [msg for msg in self.getMessages("qux") if msg.command == "PRIVMSG"][0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             echo, command="PRIVMSG", params=["#chan", "hi again from qux"]
         )
         self.assertEqual(

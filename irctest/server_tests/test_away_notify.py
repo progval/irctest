@@ -23,7 +23,7 @@ class AwayNotifyTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.getMessages(2)
 
         awayNotify = self.getMessage(1)
-        self.assertMessageEqual(awayNotify, command="AWAY", params=["i'm going away"])
+        self.assertMessageMatch(awayNotify, command="AWAY", params=["i'm going away"])
         self.assertTrue(
             awayNotify.prefix.startswith("bar!"),
             "Unexpected away-notify source: %s" % (awayNotify.prefix,),
@@ -55,7 +55,7 @@ class AwayNotifyTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             "but users in the channel did not get AWAY messages.",
         )
         awayNotify = messages[0]
-        self.assertMessageEqual(awayNotify, command="AWAY", params=["i'm already away"])
+        self.assertMessageMatch(awayNotify, command="AWAY", params=["i'm already away"])
         self.assertTrue(
             awayNotify.prefix.startswith("bar!"),
             "Unexpected away-notify source: %s" % (awayNotify.prefix,),

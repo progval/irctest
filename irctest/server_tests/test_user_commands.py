@@ -180,7 +180,7 @@ class TestNoCTCPMode(cases.BaseServerTestCase):
         self.sendLine("bar", "MODE bar +T")
         replies = self.getMessages("bar")
         umode_line = [msg for msg in replies if msg.command == "MODE"][0]
-        self.assertMessageEqual(umode_line, command="MODE", params=["bar", "+T"])
+        self.assertMessageMatch(umode_line, command="MODE", params=["bar", "+T"])
 
         # CTCP is now blocked:
         self.sendLine("qux", "PRIVMSG bar :\x01VERSION\x01")
@@ -191,7 +191,7 @@ class TestNoCTCPMode(cases.BaseServerTestCase):
         self.sendLine("qux", "PRIVMSG bar :please just tell me your client version")
         self.getMessages("qux")
         relay = self.getMessages("bar")[0]
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             relay,
             command="PRIVMSG",
             nick="qux",

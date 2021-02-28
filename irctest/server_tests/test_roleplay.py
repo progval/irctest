@@ -35,7 +35,7 @@ class RoleplayTestCase(cases.BaseServerTestCase):
         self.sendLine(bar, "MODE %s +E" % (chan,))
         reply = self.getMessages(bar)[0]
         self.assertEqual(reply.command, "MODE")
-        self.assertMessageEqual(reply, command="MODE", params=[chan, "+E"])
+        self.assertMessageMatch(reply, command="MODE", params=[chan, "+E"])
         self.getMessages(qux)
 
         self.sendLine(bar, "NPC %s bilbo too much bread" % (chan,))

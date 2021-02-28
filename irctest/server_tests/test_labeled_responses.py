@@ -52,7 +52,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         m4 = self.getMessage(4)
 
         # ensure the label isn't sent to recipients
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m2,
             command="PRIVMSG",
             fail_msg="No PRIVMSG received by target 1 after sending one out",
@@ -67,7 +67,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
                 "(only the sending user should): {msg}"
             ),
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m3,
             command="PRIVMSG",
             fail_msg="No PRIVMSG received by target 1 after sending one out",
@@ -82,7 +82,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
                 "(only the sending user should): {msg}"
             ),
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m4,
             command="PRIVMSG",
             fail_msg="No PRIVMSG received by target 1 after sending one out",
@@ -98,7 +98,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m, command="BATCH", fail_msg="No BATCH echo received after sending one out"
         )
 
@@ -122,7 +122,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         m2 = self.getMessage(2)
 
         # ensure the label isn't sent to recipient
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m2,
             command="PRIVMSG",
             fail_msg="No PRIVMSG received by the target after sending one out",
@@ -138,7 +138,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="PRIVMSG",
             fail_msg="No PRIVMSG echo received after sending one out",
@@ -191,7 +191,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         mt = self.getMessage(2)
 
         # ensure the label isn't sent to recipient
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             mt,
             command="PRIVMSG",
             fail_msg="No PRIVMSG received by the target after sending one out",
@@ -208,7 +208,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         )
 
         # ensure sender correctly receives msg
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             ms, command="PRIVMSG", fail_msg="Got a message back that wasn't a PRIVMSG"
         )
         self.assertIn(
@@ -245,7 +245,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         number_of_labels = 0
         for m in [m1, m2]:
-            self.assertMessageEqual(
+            self.assertMessageMatch(
                 m,
                 command="PRIVMSG",
                 fail_msg="Got a message back that wasn't a PRIVMSG",
@@ -293,7 +293,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         m2 = self.getMessage(2)
 
         # ensure the label isn't sent to recipient
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m2,
             command="NOTICE",
             fail_msg="No NOTICE received by the target after sending one out",
@@ -309,7 +309,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ),
         )
 
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="NOTICE",
             fail_msg="No NOTICE echo received after sending one out",
@@ -362,7 +362,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         mt = self.getMessage(2)
 
         # ensure the label isn't sent to recipient
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             mt,
             command="NOTICE",
             fail_msg="No NOTICE received by the target after sending one out",
@@ -379,7 +379,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         )
 
         # ensure sender correctly receives msg
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             ms, command="NOTICE", fail_msg="Got a message back that wasn't a NOTICE"
         )
         self.assertIn(
@@ -416,7 +416,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         number_of_labels = 0
         for m in [m1, m2]:
-            self.assertMessageEqual(
+            self.assertMessageMatch(
                 m, command="NOTICE", fail_msg="Got a message back that wasn't a NOTICE"
             )
             if "label" in m.tags:
@@ -462,7 +462,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         m2 = self.getMessage(2)
 
         # ensure the label isn't sent to recipient
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m2,
             command="TAGMSG",
             fail_msg="No TAGMSG received by the target after sending one out",
@@ -502,7 +502,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             fail_msg="React tag wasn't the same on the target user's TAGMSG: {msg}",
         )
 
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m,
             command="TAGMSG",
             fail_msg="No TAGMSG echo received after sending one out",
@@ -577,7 +577,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         mt = self.getMessage(2)
 
         # ensure the label isn't sent to recipient
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             mt,
             command="TAGMSG",
             fail_msg="No TAGMSG received by the target after sending one out",
@@ -594,7 +594,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         )
 
         # ensure sender correctly receives msg
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             ms, command="TAGMSG", fail_msg="Got a message back that wasn't a TAGMSG"
         )
         self.assertIn(
@@ -631,7 +631,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         number_of_labels = 0
         for m in [m1, m2]:
-            self.assertMessageEqual(
+            self.assertMessageMatch(
                 m, command="TAGMSG", fail_msg="Got a message back that wasn't a TAGMSG"
             )
             if "label" in m.tags:
@@ -674,7 +674,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         # valid BATCH start line:
         batch_start = m[0]
-        self.assertMessageEqual(batch_start, command="BATCH")
+        self.assertMessageMatch(batch_start, command="BATCH")
         self.assertEqual(len(batch_start.params), 2)
         self.assertTrue(
             batch_start.params[0].startswith("+"),
@@ -691,7 +691,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         # valid BATCH end line
         batch_end = m[-1]
-        self.assertMessageEqual(batch_end, command="BATCH", params=["-" + batch_id])
+        self.assertMessageMatch(batch_end, command="BATCH", params=["-" + batch_id])
 
         # messages must have the BATCH tag
         for message in m[1:-1]:

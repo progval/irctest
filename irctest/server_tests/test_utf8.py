@@ -11,7 +11,7 @@ class Utf8TestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.joinChannel(1, "#qux")
         self.sendLine(1, "PRIVMSG #qux hi")
         ms = self.getMessages(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             [m for m in ms if m.command == "PRIVMSG"][0], params=["#qux", "hi"]
         )
 

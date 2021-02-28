@@ -55,10 +55,10 @@ class ResumeTestCase(cases.BaseServerTestCase):
         privmsgs = [m for m in self.getMessages(2) if m.command == "PRIVMSG"]
         self.assertEqual(len(privmsgs), 2)
         privmsgs.sort(key=lambda m: m.params[0])
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             privmsgs[0], command="PRIVMSG", params=[chname, "hello friends"]
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             privmsgs[1], command="PRIVMSG", params=["mainnick", "hello friend singular"]
         )
         channelMsgTime = privmsgs[0].tags.get("time")
@@ -110,7 +110,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
             "should receive a new, strong resume token; instead got " + new_token,
         )
         # success message
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             resume_messages[1], command="RESUME", params=["SUCCESS", "mainnick"]
         )
 
@@ -120,10 +120,10 @@ class ResumeTestCase(cases.BaseServerTestCase):
         ]
         self.assertEqual(len(privmsgs), 2)
         privmsgs.sort(key=lambda m: m.params[0])
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             privmsgs[0], command="PRIVMSG", params=[chname, "hello friends"]
         )
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             privmsgs[1], command="PRIVMSG", params=["mainnick", "hello friend singular"]
         )
         # should replay with the original server-time
@@ -135,7 +135,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         quit, join = [m for m in self.getMessages(1) if m.command in ("QUIT", "JOIN")]
         self.assertEqual(quit.command, "QUIT")
         self.assertTrue(quit.prefix.startswith("mainnick"))
-        self.assertMessageEqual(join, command="JOIN", params=[chname])
+        self.assertMessageMatch(join, command="JOIN", params=[chname])
         self.assertTrue(join.prefix.startswith("mainnick"))
 
         # original client should have been disconnected
@@ -143,7 +143,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         # new client should be receiving PRIVMSG sent to mainnick
         self.sendLine(1, "PRIVMSG mainnick :hello again")
         self.getMessages(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             self.getMessage(4), command="PRIVMSG", params=["mainnick", "hello again"]
         )
 
@@ -171,7 +171,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
             "should receive a new, strong resume token; instead got " + new_new_token,
         )
         # success message
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             resume_messages[1], command="RESUME", params=["SUCCESS", "mainnick"]
         )
 
@@ -219,7 +219,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
 
         self.sendLine(1, "PRIVMSG mainnick :hey there")
         # BRB message should be sent as an away message
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             self.getMessage(1),
             command=RPL_AWAY,
             params=["observer", "mainnick", "software upgrade"],
@@ -233,7 +233,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
         resume_messages = [m for m in ms if m.command == "RESUME"]
         self.assertEqual(len(resume_messages), 2)
         self.assertEqual(resume_messages[0].params[0], "TOKEN")
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             resume_messages[1], command="RESUME", params=["SUCCESS", "mainnick"]
         )
 
@@ -241,7 +241,7 @@ class ResumeTestCase(cases.BaseServerTestCase):
             m for m in ms if m.command == "PRIVMSG" and m.prefix.startswith("observer")
         ]
         self.assertEqual(len(privmsgs), 1, privmsgs)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             privmsgs[0],
             nick="observer",
             command="PRIVMSG",

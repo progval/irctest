@@ -29,7 +29,7 @@ def _testEchoMessage(command, solo, server_time):
         self.getRegistrationMessage(1)
         # TODO: Remove this one the trailing space issue is fixed in Charybdis
         # and Mammon:
-        # self.assertMessageEqual(m, command='CAP',
+        # self.assertMessageMatch(m, command='CAP',
         #        params=['*', 'ACK', 'echo-message'] +
         #        (['server-time'] if server_time else []),
         #        fail_msg='Did not ACK advertised capabilities: {msg}')
@@ -54,7 +54,7 @@ def _testEchoMessage(command, solo, server_time):
 
         self.sendLine(1, "{} #chan :hello everyone".format(command))
         m1 = self.getMessage(1)
-        self.assertMessageEqual(
+        self.assertMessageMatch(
             m1,
             command=command,
             params=["#chan", "hello everyone"],
@@ -64,7 +64,7 @@ def _testEchoMessage(command, solo, server_time):
 
         if not solo:
             m2 = self.getMessage(2)
-            self.assertMessageEqual(
+            self.assertMessageMatch(
                 m2,
                 command=command,
                 params=["#chan", "hello everyone"],
