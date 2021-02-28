@@ -65,6 +65,13 @@ TController = TypeVar("TController", bound=basecontrollers._BaseController)
 T = TypeVar("T")
 
 
+class AnyStr:
+    """Used as a wildcard when matching message arguments
+    (see assertMessageMatch and listMatch)"""
+
+    pass
+
+
 class ChannelJoinException(Exception):
     def __init__(self, code: str, params: List[str]):
         super().__init__(f"Failed to join channel ({code}): {params}")
@@ -123,7 +130,7 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
     def messageDiffers(
         self,
         msg: Message,
-        params: Optional[List[Any]] = None,
+        params: Optional[List[Union[str, Type[AnyStr]]]] = None,
         target: Optional[str] = None,
         nick: Optional[str] = None,
         fail_msg: Optional[str] = None,
@@ -163,14 +170,16 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
 
         return None
 
-    def listMatch(self, got: List[str], expected: List[Any]) -> bool:
+    def listMatch(
+        self, got: List[str], expected: List[Union[str, Type[AnyStr]]]
+    ) -> bool:
         """Returns True iff the list are equal.
         The ellipsis (aka. "..." aka triple dots) can be used on the 'expected'
         side as a wildcard, matching any *single* value."""
         if len(got) != len(expected):
             return False
         for (got_value, expected_value) in zip(got, expected):
-            if expected_value is Ellipsis:
+            if expected_value is AnyStr:
                 # wildcard
                 continue
             if got_value != expected_value:
