@@ -43,23 +43,5 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.getMessages(2)
         m = self.getMessage(1)
         self.assertMessageMatch(
-            m,
-            command="PRIVMSG",
-            params=["foo", "hi"],
-            fail_msg="Expected a private PRIVMSG from 'bar', got: {msg}",
-        )
-        self.assertIn(
-            "account",
-            m.tags,
-            m,
-            fail_msg="PRIVMSG by logged-in nick "
-            "does not contain an account tag: {msg}",
-        )
-        self.assertEqual(
-            m.tags["account"],
-            "jilles",
-            m,
-            fail_msg="PRIVMSG by logged-in nick "
-            "does not contain the correct account tag (should be "
-            "“jilles”): {msg}",
+            m, command="PRIVMSG", params=["foo", "hi"], tags={"account": "jilles"}
         )

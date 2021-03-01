@@ -8,7 +8,7 @@ so there may be many false positives.
 import re
 
 from irctest import cases
-from irctest.patma import StrRe
+from irctest.patma import ANYDICT, StrRe
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
@@ -53,51 +53,13 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         m4 = self.getMessage(4)
 
         # ensure the label isn't sent to recipients
-        self.assertMessageMatch(
-            m2,
-            command="PRIVMSG",
-            fail_msg="No PRIVMSG received by target 1 after sending one out",
-        )
-        self.assertNotIn(
-            "label",
-            m2.tags,
-            m2,
-            fail_msg=(
-                "When sending a PRIVMSG with a label, "
-                "the target users shouldn't receive the label "
-                "(only the sending user should): {msg}"
-            ),
-        )
+        self.assertMessageMatch(m2, command="PRIVMSG", tags={})
         self.assertMessageMatch(
             m3,
             command="PRIVMSG",
-            fail_msg="No PRIVMSG received by target 1 after sending one out",
+            tags={},
         )
-        self.assertNotIn(
-            "label",
-            m3.tags,
-            m3,
-            fail_msg=(
-                "When sending a PRIVMSG with a label, "
-                "the target users shouldn't receive the label "
-                "(only the sending user should): {msg}"
-            ),
-        )
-        self.assertMessageMatch(
-            m4,
-            command="PRIVMSG",
-            fail_msg="No PRIVMSG received by target 1 after sending one out",
-        )
-        self.assertNotIn(
-            "label",
-            m4.tags,
-            m4,
-            fail_msg=(
-                "When sending a PRIVMSG with a label, "
-                "the target users shouldn't receive the label "
-                "(only the sending user should): {msg}"
-            ),
-        )
+        self.assertMessageMatch(m4, command="PRIVMSG", tags={})
 
         self.assertMessageMatch(
             m, command="BATCH", fail_msg="No BATCH echo received after sending one out"
@@ -123,45 +85,9 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         m2 = self.getMessage(2)
 
         # ensure the label isn't sent to recipient
-        self.assertMessageMatch(
-            m2,
-            command="PRIVMSG",
-            fail_msg="No PRIVMSG received by the target after sending one out",
-        )
-        self.assertNotIn(
-            "label",
-            m2.tags,
-            m2,
-            fail_msg=(
-                "When sending a PRIVMSG with a label, "
-                "the target user shouldn't receive the label "
-                "(only the sending user should): {msg}"
-            ),
-        )
+        self.assertMessageMatch(m2, command="PRIVMSG", tags={})
 
-        self.assertMessageMatch(
-            m,
-            command="PRIVMSG",
-            fail_msg="No PRIVMSG echo received after sending one out",
-        )
-        self.assertIn(
-            "label",
-            m.tags,
-            m,
-            fail_msg=(
-                "When sending a PRIVMSG with a label, "
-                "the echo'd message didn't contain the label at all: {msg}"
-            ),
-        )
-        self.assertEqual(
-            m.tags["label"],
-            "12345",
-            m,
-            fail_msg=(
-                "Echo'd PRIVMSG to a client did not contain the same label "
-                "we sent it with(should be '12345'): {msg}"
-            ),
-        )
+        self.assertMessageMatch(m, command="PRIVMSG", tags={"label": "12345"})
 
     @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledPrivmsgResponsesToChannel(self):
@@ -192,44 +118,10 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         mt = self.getMessage(2)
 
         # ensure the label isn't sent to recipient
-        self.assertMessageMatch(
-            mt,
-            command="PRIVMSG",
-            fail_msg="No PRIVMSG received by the target after sending one out",
-        )
-        self.assertNotIn(
-            "label",
-            mt.tags,
-            mt,
-            fail_msg=(
-                "When sending a PRIVMSG with a label, "
-                "the target user shouldn't receive the label "
-                "(only the sending user should): {msg}"
-            ),
-        )
+        self.assertMessageMatch(mt, command="PRIVMSG", tags={})
 
         # ensure sender correctly receives msg
-        self.assertMessageMatch(
-            ms, command="PRIVMSG", fail_msg="Got a message back that wasn't a PRIVMSG"
-        )
-        self.assertIn(
-            "label",
-            ms.tags,
-            ms,
-            fail_msg=(
-                "When sending a PRIVMSG with a label, "
-                "the source user should receive the label but didn't: {msg}"
-            ),
-        )
-        self.assertEqual(
-            ms.tags["label"],
-            "12345",
-            ms,
-            fail_msg=(
-                "Echo'd label doesn't match the label we sent "
-                "(should be '12345'): {msg}"
-            ),
-        )
+        self.assertMessageMatch(ms, command="PRIVMSG", tags={"label": "12345"})
 
     @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledPrivmsgResponsesToSelf(self):
@@ -294,45 +186,9 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         m2 = self.getMessage(2)
 
         # ensure the label isn't sent to recipient
-        self.assertMessageMatch(
-            m2,
-            command="NOTICE",
-            fail_msg="No NOTICE received by the target after sending one out",
-        )
-        self.assertNotIn(
-            "label",
-            m2.tags,
-            m2,
-            fail_msg=(
-                "When sending a NOTICE with a label, "
-                "the target user shouldn't receive the label "
-                "(only the sending user should): {msg}"
-            ),
-        )
+        self.assertMessageMatch(m2, command="NOTICE", tags={})
 
-        self.assertMessageMatch(
-            m,
-            command="NOTICE",
-            fail_msg="No NOTICE echo received after sending one out",
-        )
-        self.assertIn(
-            "label",
-            m.tags,
-            m,
-            fail_msg=(
-                "When sending a NOTICE with a label, "
-                "the echo'd message didn't contain the label at all: {msg}"
-            ),
-        )
-        self.assertEqual(
-            m.tags["label"],
-            "12345",
-            m,
-            fail_msg=(
-                "Echo'd NOTICE to a client did not contain the same label "
-                "we sent it with (should be '12345'): {msg}"
-            ),
-        )
+        self.assertMessageMatch(m, command="NOTICE", tags={"label": "12345"})
 
     @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledNoticeResponsesToChannel(self):
@@ -363,44 +219,10 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         mt = self.getMessage(2)
 
         # ensure the label isn't sent to recipient
-        self.assertMessageMatch(
-            mt,
-            command="NOTICE",
-            fail_msg="No NOTICE received by the target after sending one out",
-        )
-        self.assertNotIn(
-            "label",
-            mt.tags,
-            mt,
-            fail_msg=(
-                "When sending a NOTICE with a label, "
-                "the target user shouldn't receive the label "
-                "(only the sending user should): {msg}"
-            ),
-        )
+        self.assertMessageMatch(mt, command="NOTICE", tags={})
 
         # ensure sender correctly receives msg
-        self.assertMessageMatch(
-            ms, command="NOTICE", fail_msg="Got a message back that wasn't a NOTICE"
-        )
-        self.assertIn(
-            "label",
-            ms.tags,
-            ms,
-            fail_msg=(
-                "When sending a NOTICE with a label, "
-                "the source user should receive the label but didn't: {msg}"
-            ),
-        )
-        self.assertEqual(
-            ms.tags["label"],
-            "12345",
-            ms,
-            fail_msg=(
-                "Echo'd label doesn't match the label we sent "
-                "(should be '12345'): {msg}"
-            ),
-        )
+        self.assertMessageMatch(ms, command="NOTICE", tags={"label": "12345"})
 
     @cases.mark_capabilities("echo-message", "labeled-response")
     def testLabeledNoticeResponsesToSelf(self):
@@ -466,7 +288,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.assertMessageMatch(
             m2,
             command="TAGMSG",
-            fail_msg="No TAGMSG received by the target after sending one out",
+            tags={"+draft/reply": "123", "+draft/react": "l😃l", **ANYDICT},
         )
         self.assertNotIn(
             "label",
@@ -478,77 +300,16 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
                 "(only the sending user should): {msg}"
             ),
         )
-        self.assertIn(
-            "+draft/reply",
-            m2.tags,
-            m2,
-            fail_msg="Reply tag wasn't present on the target user's TAGMSG: {msg}",
-        )
-        self.assertEqual(
-            m2.tags["+draft/reply"],
-            "123",
-            m2,
-            fail_msg="Reply tag wasn't the same on the target user's TAGMSG: {msg}",
-        )
-        self.assertIn(
-            "+draft/react",
-            m2.tags,
-            m2,
-            fail_msg="React tag wasn't present on the target user's TAGMSG: {msg}",
-        )
-        self.assertEqual(
-            m2.tags["+draft/react"],
-            "l😃l",
-            m2,
-            fail_msg="React tag wasn't the same on the target user's TAGMSG: {msg}",
-        )
 
         self.assertMessageMatch(
             m,
             command="TAGMSG",
-            fail_msg="No TAGMSG echo received after sending one out",
-        )
-        self.assertIn(
-            "label",
-            m.tags,
-            m,
-            fail_msg=(
-                "When sending a TAGMSG with a label, "
-                "the echo'd message didn't contain the label at all: {msg}"
-            ),
-        )
-        self.assertEqual(
-            m.tags["label"],
-            "12345",
-            m,
-            fail_msg=(
-                "Echo'd TAGMSG to a client did not contain the same label "
-                "we sent it with (should be '12345'): {msg}"
-            ),
-        )
-        self.assertIn(
-            "+draft/reply",
-            m.tags,
-            m,
-            fail_msg="Reply tag wasn't present on the source user's TAGMSG: {msg}",
-        )
-        self.assertEqual(
-            m2.tags["+draft/reply"],
-            "123",
-            m,
-            fail_msg="Reply tag wasn't the same on the source user's TAGMSG: {msg}",
-        )
-        self.assertIn(
-            "+draft/react",
-            m.tags,
-            m,
-            fail_msg="React tag wasn't present on the source user's TAGMSG: {msg}",
-        )
-        self.assertEqual(
-            m2.tags["+draft/react"],
-            "l😃l",
-            m,
-            fail_msg="React tag wasn't the same on the source user's TAGMSG: {msg}",
+            tags={
+                "label": "12345",
+                "+draft/reply": "123",
+                "+draft/react": "l😃l",
+                **ANYDICT,
+            },
         )
 
     @cases.mark_capabilities("echo-message", "labeled-response", "message-tags")
@@ -596,25 +357,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         # ensure sender correctly receives msg
         self.assertMessageMatch(
-            ms, command="TAGMSG", fail_msg="Got a message back that wasn't a TAGMSG"
-        )
-        self.assertIn(
-            "label",
-            ms.tags,
-            ms,
-            fail_msg=(
-                "When sending a TAGMSG with a label, "
-                "the source user should receive the label but didn't: {msg}"
-            ),
-        )
-        self.assertEqual(
-            ms.tags["label"],
-            "12345",
-            ms,
-            fail_msg=(
-                "Echo'd label doesn't match the label we sent "
-                "(should be '12345'): {msg}"
-            ),
+            ms, command="TAGMSG", tags={"label": "12345", **ANYDICT}
         )
 
     @cases.mark_capabilities("echo-message", "labeled-response", "message-tags")
@@ -706,14 +449,9 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.sendLine(1, "@label=98765 PING adhoctestline")
         # no BATCH should be initiated for a one-line response,
         # it should just be labeled
-        ms = self.getMessages(1)
-        self.assertEqual(len(ms), 1)
-        m = ms[0]
-        self.assertEqual(m.command, "PONG")
+        m = self.getMessage(1)
+        self.assertMessageMatch(m, command="PONG", tags={"label": "98765"})
         self.assertEqual(m.params[-1], "adhoctestline")
-
-        # check the label
-        self.assertEqual(m.tags.get("label"), "98765")
 
     @cases.mark_capabilities("labeled-response")
     def testEmptyBatchForNoResponse(self):
@@ -732,5 +470,4 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.assertEqual(len(ms), 1)
         ack = ms[0]
 
-        self.assertEqual(ack.command, "ACK")
-        self.assertEqual(ack.tags.get("label"), "98765")
+        self.assertMessageMatch(ack, command="ACK", tags={"label": "98765"})

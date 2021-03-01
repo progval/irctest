@@ -6,6 +6,7 @@ import secrets
 
 from irctest import cases
 from irctest.numerics import RPL_AWAY
+from irctest.patma import ANYDICT, ANYSTR
 
 ANCIENT_TIMESTAMP = "2006-01-02T15:04:05.999Z"
 
@@ -59,7 +60,10 @@ class ResumeTestCase(cases.BaseServerTestCase):
             privmsgs[0], command="PRIVMSG", params=[chname, "hello friends"]
         )
         self.assertMessageMatch(
-            privmsgs[1], command="PRIVMSG", params=["mainnick", "hello friend singular"]
+            privmsgs[1],
+            command="PRIVMSG",
+            params=["mainnick", "hello friend singular"],
+            tags={"time": ANYSTR, **ANYDICT},
         )
         channelMsgTime = privmsgs[0].tags.get("time")
 
@@ -121,15 +125,17 @@ class ResumeTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(privmsgs), 2)
         privmsgs.sort(key=lambda m: m.params[0])
         self.assertMessageMatch(
-            privmsgs[0], command="PRIVMSG", params=[chname, "hello friends"]
-        )
-        self.assertMessageMatch(
-            privmsgs[1], command="PRIVMSG", params=["mainnick", "hello friend singular"]
+            privmsgs[0],
+            command="PRIVMSG",
+            params=[chname, "hello friends"],
+            tags={"time": channelMsgTime, **ANYDICT},
         )
         # should replay with the original server-time
         # TODO this probably isn't testing anything because the timestamp only
         # has second resolution, hence will typically match by accident
-        self.assertEqual(privmsgs[0].tags.get("time"), channelMsgTime)
+        self.assertMessageMatch(
+            privmsgs[1], command="PRIVMSG", params=["mainnick", "hello friend singular"]
+        )
 
         # legacy client should receive a QUIT and a JOIN
         quit, join = [m for m in self.getMessages(1) if m.command in ("QUIT", "JOIN")]

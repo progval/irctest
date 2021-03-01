@@ -4,6 +4,7 @@ Regression tests for bugs in oragono.
 
 from irctest import cases
 from irctest.numerics import ERR_ERRONEUSNICKNAME, ERR_NICKNAMEINUSE, RPL_WELCOME
+from irctest.patma import ANYDICT
 
 
 class RegressionsTestCase(cases.BaseServerTestCase):
@@ -67,19 +68,19 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.sendLine(
             1, "@+draft/reply=ct95w3xemz8qj9du2h74wp8pee PRIVMSG bob :hey yourself"
         )
-        ms = self.getMessages(1)
-        self.assertEqual(len(ms), 1)
         self.assertMessageMatch(
-            ms[0], command="PRIVMSG", params=["bob", "hey yourself"]
+            self.getMessage(1),
+            command="PRIVMSG",
+            params=["bob", "hey yourself"],
+            tags={"+draft/reply": "ct95w3xemz8qj9du2h74wp8pee", **ANYDICT},
         )
-        self.assertEqual(ms[0].tags.get("+draft/reply"), "ct95w3xemz8qj9du2h74wp8pee")
 
-        ms = self.getMessages(2)
-        self.assertEqual(len(ms), 1)
         self.assertMessageMatch(
-            ms[0], command="PRIVMSG", params=["bob", "hey yourself"]
+            self.getMessage(2),
+            command="PRIVMSG",
+            params=["bob", "hey yourself"],
+            tags={},
         )
-        self.assertEqual(ms[0].tags, {})
 
         self.sendLine(2, "CAP REQ :message-tags server-time")
         self.getMessages(2)
@@ -87,11 +88,13 @@ class RegressionsTestCase(cases.BaseServerTestCase):
             1, "@+draft/reply=tbxqauh9nykrtpa3n6icd9whan PRIVMSG bob :hey again"
         )
         self.getMessages(1)
-        ms = self.getMessages(2)
         # now bob has the tags cap, so he should receive the tags
-        self.assertEqual(len(ms), 1)
-        self.assertMessageMatch(ms[0], command="PRIVMSG", params=["bob", "hey again"])
-        self.assertEqual(ms[0].tags.get("+draft/reply"), "tbxqauh9nykrtpa3n6icd9whan")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="PRIVMSG",
+            params=["bob", "hey again"],
+            tags={"+draft/reply": "tbxqauh9nykrtpa3n6icd9whan", **ANYDICT},
+        )
 
     @cases.mark_specifications("RFC1459")
     def testStarNick(self):

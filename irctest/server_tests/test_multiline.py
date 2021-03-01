@@ -3,7 +3,7 @@ draft/multiline
 """
 
 from irctest import cases
-from irctest.patma import StrRe
+from irctest.patma import ANYDICT, StrRe
 
 CAP_NAME = "draft/multiline"
 BATCH_TYPE = "draft/multiline"
@@ -37,7 +37,10 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         echo = self.getMessages(1)
         batchStart, batchEnd = echo[0], echo[-1]
         self.assertMessageMatch(
-            batchStart, command="BATCH", params=[StrRe(r"\+.*"), BATCH_TYPE, "#test"]
+            batchStart,
+            command="BATCH",
+            params=[StrRe(r"\+.*"), BATCH_TYPE, "#test"],
+            tags={"label": "xyz", **ANYDICT},
         )
         self.assertEqual(batchStart.tags.get("label"), "xyz")
         self.assertMessageMatch(batchEnd, command="BATCH", params=[StrRe("-.*")])

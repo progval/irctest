@@ -1,4 +1,5 @@
 from irctest import cases
+from irctest.patma import ANYSTR
 
 
 class Utf8TestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
@@ -6,7 +7,7 @@ class Utf8TestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     def testUtf8Validation(self):
         self.connectClient(
             "bar",
-            capabilities=["batch", "echo-message", "labeled-response", "message-tags"],
+            capabilities=["batch", "echo-message", "labeled-response"],
         )
         self.joinChannel(1, "#qux")
         self.sendLine(1, "PRIVMSG #qux hi")
@@ -16,14 +17,17 @@ class Utf8TestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
 
         self.sendLine(1, b"PRIVMSG #qux hi\xaa")
-        ms = self.getMessages(1)
-        self.assertEqual(len(ms), 1)
-        self.assertEqual(ms[0].command, "FAIL")
-        self.assertEqual(ms[0].params[:2], ["PRIVMSG", "INVALID_UTF8"])
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["PRIVMSG", "INVALID_UTF8", ANYSTR],
+            tags={},
+        )
 
         self.sendLine(1, b"@label=xyz PRIVMSG #qux hi\xaa")
-        ms = self.getMessages(1)
-        self.assertEqual(len(ms), 1)
-        self.assertEqual(ms[0].command, "FAIL")
-        self.assertEqual(ms[0].params[:2], ["PRIVMSG", "INVALID_UTF8"])
-        self.assertEqual(ms[0].tags.get("label"), "xyz")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["PRIVMSG", "INVALID_UTF8", ANYSTR],
+            tags={"label": "xyz"},
+        )

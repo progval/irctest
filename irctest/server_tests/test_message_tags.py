@@ -5,6 +5,7 @@ https://ircv3.net/specs/extensions/message-tags.html
 from irctest import cases
 from irctest.irc_utils.message_parser import parse_message
 from irctest.numerics import ERR_INPUTTOOLONG
+from irctest.patma import ANYDICT, ANYSTR, StrRe
 
 
 class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
@@ -40,9 +41,12 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.getMessages("alice")
         bob_msg = self.getMessage("bob")
         carol_line = self.getMessage("carol", raw=True)
-        self.assertMessageMatch(bob_msg, command="PRIVMSG", params=["#test", "hi"])
-        self.assertEqual(bob_msg.tags["+baz"], "bat")
-        self.assertIn("msgid", bob_msg.tags)
+        self.assertMessageMatch(
+            bob_msg,
+            command="PRIVMSG",
+            params=["#test", "hi"],
+            tags={"+baz": "bat", "msgid": ANYSTR, **ANYDICT},
+        )
         # should not relay a non-client-only tag
         self.assertNotIn("fizz", bob_msg.tags)
         # carol MUST NOT receive tags
@@ -50,7 +54,12 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertMessageMatch(carol_msg, command="PRIVMSG", params=["#test", "hi"])
         # dave SHOULD receive server-time tag
         dave_msg = self.getMessage("dave")
-        self.assertIn("time", dave_msg.tags)
+        self.assertMessageMatch(
+            dave_msg,
+            command="PRIVMSG",
+            params=["#test", "hi"],
+            tags={"time": ANYSTR, **ANYDICT},
+        )
         # dave MUST NOT receive client-only tags
         self.assertNotIn("+baz", dave_msg.tags)
         getAllMessages()
@@ -60,14 +69,18 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         alice_msg = self.getMessage("alice")
         carol_line = self.getMessage("carol", raw=True)
         carol_msg = assertNoTags(carol_line)
-        for msg in [alice_msg, bob_msg, carol_msg]:
-            self.assertMessageMatch(
-                msg, command="PRIVMSG", params=["#test", "hi yourself"]
-            )
         for msg in [alice_msg, bob_msg]:
-            self.assertEqual(msg.tags["+bat"], "baz")
-            self.assertEqual(msg.tags["+fizz"], "buzz")
-        self.assertTrue(alice_msg.tags["msgid"])
+            self.assertMessageMatch(
+                msg,
+                command="PRIVMSG",
+                params=["#test", "hi yourself"],
+                tags={"+bat": "baz", "+fizz": "buzz", "msgid": ANYSTR, **ANYDICT},
+            )
+        self.assertMessageMatch(
+            carol_msg,
+            command="PRIVMSG",
+            params=["#test", "hi yourself"],
+        )
         self.assertEqual(alice_msg.tags["msgid"], bob_msg.tags["msgid"])
         getAllMessages()
 
@@ -80,11 +93,18 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         # dave MUST NOT receive TAGMSG either, despite having server-time
         self.assertEqual(self.getMessages("dave"), [])
         for msg in [alice_msg, bob_msg]:
-            self.assertMessageMatch(alice_msg, command="TAGMSG", params=["#test"])
-            self.assertEqual(msg.tags["+buzz"], "fizz;buzz")
-            self.assertEqual(msg.tags["+steel"], "wootz")
+            self.assertMessageMatch(
+                alice_msg,
+                command="TAGMSG",
+                params=["#test"],
+                tags={
+                    "+buzz": "fizz;buzz",
+                    "+steel": "wootz",
+                    "msgid": ANYSTR,
+                    **ANYDICT,
+                },
+            )
             self.assertNotIn("cat", msg.tags)
-        self.assertTrue(alice_msg.tags["msgid"])
         self.assertEqual(alice_msg.tags["msgid"], bob_msg.tags["msgid"])
 
     @cases.mark_capabilities("message-tags")
@@ -108,12 +128,19 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine("alice", max_tagmsg)
         echo = self.getMessage("alice")
         relay = self.getMessage("bob")
-        self.assertMessageMatch(echo, command="TAGMSG", params=["#test"])
-        self.assertMessageMatch(relay, command="TAGMSG", params=["#test"])
-        self.assertNotEqual(echo.tags["msgid"], "")
+        self.assertMessageMatch(
+            echo,
+            command="TAGMSG",
+            params=["#test"],
+            tags={"+baz": "a" * 4081, "msgid": StrRe(".+"), **ANYDICT},
+        )
+        self.assertMessageMatch(
+            relay,
+            command="TAGMSG",
+            params=["#test"],
+            tags={"+baz": "a" * 4081, "msgid": StrRe(".+"), **ANYDICT},
+        )
         self.assertEqual(echo.tags["msgid"], relay.tags["msgid"])
-        self.assertEqual(echo.tags["+baz"], "a" * 4081)
-        self.assertEqual(relay.tags["+baz"], echo.tags["+baz"])
 
         excess_tagmsg = "@foo=bar;+baz=%s TAGMSG #test" % ("a" * 4082,)
         self.assertEqual(excess_tagmsg.index("TAGMSG"), 4097)
@@ -128,10 +155,19 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine("alice", max_privmsg)
         echo = self.getMessage("alice")
         relay = self.getMessage("bob")
-        self.assertNotEqual(echo.tags["msgid"], "")
+        self.assertMessageMatch(
+            echo,
+            command="PRIVMSG",
+            params=["#test", StrRe("b{400,496}")],
+            tags={"+baz": "a" * 4081, "msgid": StrRe(".+"), **ANYDICT},
+        )
+        self.assertMessageMatch(
+            relay,
+            command="PRIVMSG",
+            params=["#test", StrRe("b{400,496}")],
+            tags={"+baz": "a" * 4081, "msgid": StrRe(".+"), **ANYDICT},
+        )
         self.assertEqual(echo.tags["msgid"], relay.tags["msgid"])
-        self.assertEqual(echo.tags["+baz"], "a" * 4081)
-        self.assertEqual(relay.tags["+baz"], echo.tags["+baz"])
         # message may have been truncated
         self.assertIn("b" * 400, echo.params[1])
         self.assertEqual(echo.params[1].rstrip("b"), "")

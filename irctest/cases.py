@@ -123,8 +123,11 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
     def messageDiffers(
         self,
         msg: Message,
-        params: Optional[List[Union[str, patma.Operator]]] = None,
+        params: Optional[List[Union[str, None, patma.Operator]]] = None,
         target: Optional[str] = None,
+        tags: Optional[
+            Dict[Union[str, patma.Operator], Union[str, patma.Operator, None]]
+        ] = None,
         nick: Optional[str] = None,
         fail_msg: Optional[str] = None,
         extra_format: Tuple = (),
@@ -145,11 +148,17 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
                     msg=msg,
                 )
 
-        if params and not patma.match_list(msg.params, params):
-            fail_msg = fail_msg or "params to be {expects}, got {got}: {msg}"
+        if params and not patma.match_list(list(msg.params), params):
+            fail_msg = (
+                fail_msg or "expected params to match {expects}, got {got}: {msg}"
+            )
             return fail_msg.format(
                 *extra_format, got=msg.params, expects=params, msg=msg
             )
+
+        if tags and not patma.match_dict(msg.tags, tags):
+            fail_msg = fail_msg or "expected tags to match {expects}, got {got}: {msg}"
+            return fail_msg.format(*extra_format, got=msg.tags, expects=tags, msg=msg)
 
         if nick:
             got_nick = msg.prefix.split("!")[0] if msg.prefix else None

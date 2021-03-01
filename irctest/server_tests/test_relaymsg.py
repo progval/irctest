@@ -18,8 +18,6 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
             "baz",
             name="baz",
             capabilities=[
-                "server-time",
-                "message-tags",
                 "batch",
                 "labeled-response",
                 "echo-message",
@@ -31,8 +29,6 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
             "qux",
             name="qux",
             capabilities=[
-                "server-time",
-                "message-tags",
                 "batch",
                 "labeled-response",
                 "echo-message",
@@ -74,9 +70,12 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
         self.sendLine("baz", "@label=x RELAYMSG %s smt/discord :hi again" % (chname,))
         response = self.getMessages("baz")[0]
         self.assertMessageMatch(
-            response, nick="smt/discord", command="PRIVMSG", params=[chname, "hi again"]
+            response,
+            nick="smt/discord",
+            command="PRIVMSG",
+            params=[chname, "hi again"],
+            tags={"label": "x"},
         )
-        self.assertEqual(response.tags.get("label"), "x")
         relayed_msg = self.getMessages("qux")[0]
         self.assertMessageMatch(
             relayed_msg,
@@ -118,8 +117,8 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
             nick="smt/discord",
             command="PRIVMSG",
             params=[chname, "hi a third time"],
+            tags={RELAYMSG_TAG_NAME: "qux"},
         )
-        self.assertEqual(relayed_msg.tags.get(RELAYMSG_TAG_NAME), "qux")
 
         self.sendLine("baz", "CHATHISTORY LATEST %s * 10" % (chname,))
         messages = self.getMessages("baz")

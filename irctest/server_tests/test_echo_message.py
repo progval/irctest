@@ -5,6 +5,7 @@
 from irctest import cases
 from irctest.basecontrollers import NotImplementedByController
 from irctest.irc_utils.junkdrawer import random_name
+from irctest.patma import ANYDICT
 
 
 def _testEchoMessage(command, solo, server_time):
@@ -123,21 +124,21 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
         echo = self.getMessages(bar)[0]
         delivery = self.getMessages(qux)[0]
 
-        self.assertEqual(delivery.params, [qux, "hi there"])
-        self.assertEqual(delivery.params, echo.params)
+        self.assertMessageMatch(
+            echo,
+            command="PRIVMSG",
+            params=[qux, "hi there"],
+            tags={"label": "xyz", "+example-client-tag": "example-value", **ANYDICT},
+        )
+        self.assertMessageMatch(
+            delivery,
+            command="PRIVMSG",
+            params=[qux, "hi there"],
+            tags={"+example-client-tag": "example-value", **ANYDICT},
+        )
 
         # Either both messages have a msgid, or neither does
         self.assertEqual(delivery.tags.get("msgid"), echo.tags.get("msgid"))
-
-        self.assertEqual(
-            echo.tags.get("label"),
-            "xyz",
-            fail_msg="expected message label 'xyz', but got {got!r}",
-        )
-        self.assertEqual(delivery.tags["+example-client-tag"], "example-value")
-        self.assertEqual(
-            delivery.tags["+example-client-tag"], echo.tags["+example-client-tag"]
-        )
 
     testEchoMessagePrivmsgNoServerTime = _testEchoMessage("PRIVMSG", False, False)
     testEchoMessagePrivmsgSolo = _testEchoMessage("PRIVMSG", True, True)
