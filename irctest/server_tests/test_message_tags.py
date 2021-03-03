@@ -108,6 +108,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertEqual(alice_msg.tags["msgid"], bob_msg.tags["msgid"])
 
     @cases.mark_capabilities("message-tags")
+    @cases.mark_specifications("ircdocs")
     def testLengthLimits(self):
         self.connectClient(
             "alice",
@@ -157,7 +158,9 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         # the server may still reject this message on the grounds that the final
         # parameter is too long to be relayed without truncation, once alice's
         # NUH is included. however, if the message was accepted, the tags MUST
-        # be relayed intact, because they are unquestionably valid:
+        # be relayed intact, because they are unquestionably valid. See the
+        # original context of ERR_INPUTTOOLONG:
+        # https://defs.ircdocs.horse/defs/numerics.html#err-inputtoolong-417
         if echo.command != ERR_INPUTTOOLONG:
             relay = self.getMessage("bob")
             self.assertMessageMatch(
