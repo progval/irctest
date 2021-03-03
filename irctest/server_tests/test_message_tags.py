@@ -154,25 +154,30 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertEqual(len(max_privmsg), 4096 + (512 - 2))
         self.sendLine("alice", max_privmsg)
         echo = self.getMessage("alice")
-        relay = self.getMessage("bob")
-        self.assertMessageMatch(
-            echo,
-            command="PRIVMSG",
-            params=["#test", StrRe("b{400,496}")],
-            tags={"+baz": "a" * 4081, "msgid": StrRe(".+"), **ANYDICT},
-        )
-        self.assertMessageMatch(
-            relay,
-            command="PRIVMSG",
-            params=["#test", StrRe("b{400,496}")],
-            tags={"+baz": "a" * 4081, "msgid": StrRe(".+"), **ANYDICT},
-        )
-        self.assertEqual(echo.tags["msgid"], relay.tags["msgid"])
-        # message may have been truncated
-        self.assertIn("b" * 400, echo.params[1])
-        self.assertEqual(echo.params[1].rstrip("b"), "")
-        self.assertIn("b" * 400, relay.params[1])
-        self.assertEqual(relay.params[1].rstrip("b"), "")
+        # the server may still reject this message on the grounds that the final
+        # parameter is too long to be relayed without truncation, once alice's
+        # NUH is included. however, if the message was accepted, the tags MUST
+        # be relayed intact, because they are unquestionably valid:
+        if echo.command != ERR_INPUTTOOLONG:
+            relay = self.getMessage("bob")
+            self.assertMessageMatch(
+                echo,
+                command="PRIVMSG",
+                params=["#test", StrRe("b{400,496}")],
+                tags={"+baz": "a" * 4081, "msgid": StrRe(".+"), **ANYDICT},
+            )
+            self.assertMessageMatch(
+                relay,
+                command="PRIVMSG",
+                params=["#test", StrRe("b{400,496}")],
+                tags={"+baz": "a" * 4081, "msgid": StrRe(".+"), **ANYDICT},
+            )
+            self.assertEqual(echo.tags["msgid"], relay.tags["msgid"])
+            # message may have been truncated
+            self.assertIn("b" * 400, echo.params[1])
+            self.assertEqual(echo.params[1].rstrip("b"), "")
+            self.assertIn("b" * 400, relay.params[1])
+            self.assertEqual(relay.params[1].rstrip("b"), "")
 
         excess_privmsg = "@foo=bar;+baz=%s PRIVMSG #test %s" % ("a" * 4082, "b" * 495)
         # TAGMSG data is over the limit, but we're within the overall limit for a line
