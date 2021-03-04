@@ -97,13 +97,15 @@ def _testEchoMessage(command, solo, server_time):
 
 
 class EchoMessageTestCase(cases.BaseServerTestCase):
-    @cases.mark_capabilities("labeled-response", "echo-message", "message-tags")
+    @cases.mark_capabilities(
+        "batch", "labeled-response", "echo-message", "message-tags"
+    )
     def testDirectMessageEcho(self):
         bar = random_name("bar")
         self.connectClient(
             bar,
             name=bar,
-            capabilities=["labeled-response", "echo-message", "message-tags"],
+            capabilities=["batch", "labeled-response", "echo-message", "message-tags"],
             skip_if_cap_nak=True,
         )
         self.getMessages(bar)
@@ -112,7 +114,7 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
         self.connectClient(
             qux,
             name=qux,
-            capabilities=["labeled-response", "echo-message", "message-tags"],
+            capabilities=["batch", "labeled-response", "echo-message", "message-tags"],
         )
         self.getMessages(qux)
 
