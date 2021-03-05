@@ -17,6 +17,11 @@ class ClientMock:
 
     def connect(self, hostname: str, port: int) -> None:
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # probably useful for test_buffering, as it relies on chunking
+        # the packets to be useful
+        self.conn.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
+
         self.conn.settimeout(1)  # TODO: configurable
         self.conn.connect((hostname, port))
         if self.show_io:
