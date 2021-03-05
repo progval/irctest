@@ -79,3 +79,34 @@ class TagsTestCase(cases.BaseServerTestCase):
         self.sendLine(1, monsterMessage)
         replies = self.getMessages(1)
         self.assertIn(ERR_INPUTTOOLONG, set(reply.command for reply in replies))
+
+
+class LengthLimitTestCase(cases.BaseServerTestCase):
+    @cases.mark_specifications("Oragono")
+    def testLineAtLimit(self):
+        self.connectClient("bar", name="bar")
+        self.getMessages("bar")
+        line = "PING " + ("x" * (512 - 7))
+        # this line is exactly as the limit, after including \r\n:
+        self.assertEqual(len(line), 510)
+        # oragono should accept and process this message. the outgoing PONG
+        # will be truncated due to the addition of the server name as source
+        # and initial parameter; this is fine:
+        self.sendLine("bar", line)
+        result = self.getMessage("bar", synchronize=False)
+        self.assertMessageMatch(result, command="PONG")
+        self.assertIn("x" * 450, result.params[-1])
+
+    @cases.mark_specifications("Oragono")
+    def testLineBeyondLimit(self):
+        self.connectClient("bar", name="bar")
+        self.getMessages("bar")
+        line = "PING " + ("x" * (512 - 6))
+        # this line is one over the limit after including \r\n:
+        self.assertEqual(len(line), 511)
+        # oragono should reject this message for exceeding the length limit:
+        self.sendLine("bar", line)
+        result = self.getMessage("bar", synchronize=False)
+        self.assertMessageMatch(result, command=ERR_INPUTTOOLONG)
+        # we should not be disconnected and should be able to join a channel
+        self.joinChannel("bar", "#test_channel")
