@@ -5,6 +5,7 @@ import socket
 
 from irctest import cases
 from irctest.irc_utils import message_parser
+from irctest.numerics import ERR_INPUTTOOLONG
 from irctest.patma import ANYSTR
 
 
@@ -55,7 +56,16 @@ def _testNoTags(sender_function, colon):
         ]
         for payload in payloads:
             sender_function(self, line + payload + "\r\n")
-            self.getMessages(1)
+            messages = self.getMessages(1)
+            if messages and ERR_INPUTTOOLONG in (m.command for m in messages):
+                # https://defs.ircdocs.horse/defs/numerics.html#err-inputtoolong-417
+                self.assertGreater(
+                    len(line + payload + "\r\n"),
+                    512 - overhead,
+                    "Got ERR_INPUTTOOLONG for a messag that should fit "
+                    "withing 512 characters.",
+                )
+                continue
 
             received_line = self._getLine(2)
             print("received", repr(received_line))
