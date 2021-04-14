@@ -132,11 +132,6 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         messages.append(echo.to_history_message())
         self.assertEqual(echo.to_history_message(), delivery.to_history_message())
 
-        # should receive exactly 3 messages in the correct order, no duplicates
-        self.sendLine(bar, "CHATHISTORY LATEST * * 10")
-        replies = [msg for msg in self.getMessages(bar) if msg.command == "PRIVMSG"]
-        self.assertEqual([msg.to_history_message() for msg in replies], messages)
-
         self.sendLine(bar, "CHATHISTORY LATEST %s * 10" % (bar,))
         replies = [msg for msg in self.getMessages(bar) if msg.command == "PRIVMSG"]
         self.assertEqual([msg.to_history_message() for msg in replies], messages)
@@ -230,9 +225,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
         self.validate_chathistory(echo_messages, 1, c2)
-        self.validate_chathistory(echo_messages, 1, "*")
         self.validate_chathistory(echo_messages, 2, c1)
-        self.validate_chathistory(echo_messages, 2, "*")
 
         c3 = secrets.token_hex(12)
         self.connectClient(
@@ -634,13 +627,3 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         validate_msg(echo)
         relay = self.getMessage(2)
         validate_msg(relay)
-
-        self.sendLine(1, "CHATHISTORY LATEST * * 10")
-        hist = [msg for msg in self.getMessages(1) if msg.command == "PRIVMSG"]
-        self.assertEqual(len(hist), 1)
-        validate_msg(hist[0])
-
-        self.sendLine(2, "CHATHISTORY LATEST * * 10")
-        hist = [msg for msg in self.getMessages(2) if msg.command == "PRIVMSG"]
-        self.assertEqual(len(hist), 1)
-        validate_msg(hist[0])
