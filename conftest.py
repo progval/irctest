@@ -23,7 +23,10 @@ def pytest_configure(config):
     module_name = config.getoption("controller")
 
     if module_name is None:
-        pytest.exit("--controller is required.", 1)
+        print("Missing --controller option, errors may occur.")
+        _IrcTestCase.controllerClass = None
+        _IrcTestCase.show_io = True  # TODO
+        return
 
     try:
         module = importlib.import_module(module_name)
@@ -57,10 +60,13 @@ def pytest_collection_modifyitems(session, config, items):
     """
 
     # First, check if we should run server tests or client tests
-    if issubclass(_IrcTestCase.controllerClass, BaseServerController):
+    server_tests = client_tests = False
+    if _IrcTestCase.controllerClass is None:
+        return
+    elif issubclass(_IrcTestCase.controllerClass, BaseServerController):
         server_tests = True
     elif issubclass(_IrcTestCase.controllerClass, BaseClientController):
-        server_tests = False
+        client_tests = True
     else:
         assert False, (
             f"{_IrcTestCase.controllerClass} inherits neither "
@@ -86,13 +92,10 @@ def pytest_collection_modifyitems(session, config, items):
             if server_tests:
                 filtered_items.append(item)
         elif issubclass(item.parent.cls, BaseClientTestCase):
-            if not server_tests:
+            if client_tests:
                 filtered_items.append(item)
         else:
-            assert False, (
-                f"{item}'s class inherits neither BaseServerTestCase "
-                "or BaseClientTestCase"
-            )
+            filtered_items.append(item)
 
     # Finally, rewrite in-place the list of tests pytest will run
     items[:] = filtered_items
