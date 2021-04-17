@@ -99,7 +99,8 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
 
     def setUp(self) -> None:
         super().setUp()
-        self.controller = self.controllerClass(self.config())
+        if self.controllerClass is not None:
+            self.controller = self.controllerClass(self.config())
         if self.show_io:
             print("---- new test ----")
 
@@ -162,9 +163,10 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
 
         if nick:
             got_nick = msg.prefix.split("!")[0] if msg.prefix else None
-            if msg.prefix is None:
+            if nick != got_nick:
                 fail_msg = (
-                    fail_msg or "expected nick to be {expects}, got {got} prefix: {msg}"
+                    fail_msg
+                    or "expected nick to be {expects}, got {got} instead: {msg}"
                 )
                 return fail_msg.format(
                     *extra_format, got=got_nick, expects=nick, param=key, msg=msg
@@ -354,9 +356,7 @@ class BaseClientTestCase(_IrcTestCase[basecontrollers.BaseClientController]):
         return line
 
     def getMessage(
-        self,
-        *args: Any,
-        filter_pred: Optional[Callable[[Message], bool]] = None,
+        self, *args: Any, filter_pred: Optional[Callable[[Message], bool]] = None
     ) -> Message:
         """Gets a message and returns it. If a filter predicate is given,
         fetches messages until the predicate returns a False on a message,
