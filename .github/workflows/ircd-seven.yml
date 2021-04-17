@@ -53,6 +53,7 @@ jobs:
         # testNakWhole fails because ircd-seven sends a trailing space in CAP ACK
         # testPartMessage and testBasicPartRfc2812 fail because ircd-seven adds quotes around the message
         # testListOne fails because ircd-seven makes channels secret by default
-        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.ircd_seven -k 'not Oragono and not deprecated and not strict and not testDoubleKickMessages and not testNakWhole and not testPartMessage and not testBasicPartRfc2812 and not testListOne'
+        # testQuitErrors is very flaky
+        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.ircd_seven -k 'not Oragono and not deprecated and not strict and not testDoubleKickMessages and not testNakWhole and not testPartMessage and not testBasicPartRfc2812 and not testListOne and not testQuitErrors'
 
 
