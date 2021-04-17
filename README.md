@@ -14,7 +14,7 @@ This project contains:
 * small wrappers around existing software to run tests on them
 
 Wrappers run software in temporary directories, so running `irctest` should
-have no side effect, with [the exception of Sopel](https://github.com/sopel-irc/sopel/issues/946).
+have no side effect.
 
 ## Prerequisites
 
