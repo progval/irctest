@@ -48,5 +48,6 @@ jobs:
 
     - name: Test with pytest
       run: |
-        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.charybdis -k 'not Oragono and not deprecated and not strict and not testDoubleKickMessages'
+        # testQuitErrors is very flaky
+        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.charybdis -k 'not Oragono and not deprecated and not strict and not testDoubleKickMessages and not testQuitErrors'
 
