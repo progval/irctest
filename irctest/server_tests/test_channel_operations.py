@@ -3,8 +3,12 @@ Section 3.2 of RFC 2812
 <https://tools.ietf.org/html/rfc2812#section-3.2>
 """
 
+import math
+import time
+
 from irctest import cases, client_mock, runner
 from irctest.irc_utils import ambiguities
+from irctest.irc_utils.junkdrawer import ircv3_timestamp_to_unixtime
 from irctest.numerics import (
     ERR_BADCHANNELKEY,
     ERR_BANNEDFROMCHAN,
@@ -959,7 +963,15 @@ class AuditoriumTestCase(cases.BaseServerTestCase):
         # chanop should get a JOIN message
         join_msgs = [msg for msg in self.getMessages("bar") if msg.command == "JOIN"]
         self.assertEqual(len(join_msgs), 1)
-        self.assertMessageMatch(join_msgs[0], nick="guest2", params=["#auditorium"])
+        join_msg = join_msgs[0]
+        self.assertMessageMatch(join_msg, nick="guest2", params=["#auditorium"])
+        # oragono/oragono#1642 ; msgid should be populated,
+        # and the time tag should be sane
+        self.assertTrue(join_msg.tags.get("msgid"))
+        self.assertLessEqual(
+            math.fabs(time.time() - ircv3_timestamp_to_unixtime(join_msg.tags["time"])),
+            60.0,
+        )
         # fellow unvoiced participant should not
         unvoiced_join_msgs = [
             msg for msg in self.getMessages("guest1") if msg.command == "JOIN"
