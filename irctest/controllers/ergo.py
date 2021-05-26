@@ -127,7 +127,7 @@ def hash_password(password: Union[str, bytes]) -> str:
     # simulate entry of password and confirmation:
     input_ = password + b"\n" + password + b"\n"
     p = subprocess.Popen(
-        ["oragono", "genpasswd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
+        ["ergo", "genpasswd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
     out, _ = p.communicate(input_)
     return out.decode("utf-8")
@@ -199,10 +199,10 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         self._config_path = os.path.join(self.directory, "server.yml")
         self._config = config
         self._write_config()
-        subprocess.call(["oragono", "initdb", "--conf", self._config_path, "--quiet"])
-        subprocess.call(["oragono", "mkcerts", "--conf", self._config_path, "--quiet"])
+        subprocess.call(["ergo", "initdb", "--conf", self._config_path, "--quiet"])
+        subprocess.call(["ergo", "mkcerts", "--conf", self._config_path, "--quiet"])
         self.proc = subprocess.Popen(
-            ["oragono", "run", "--conf", self._config_path, "--quiet"]
+            ["ergo", "run", "--conf", self._config_path, "--quiet"]
         )
 
     def registerUser(
@@ -254,9 +254,9 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         config["datastore"]["mysql"] = {
             "enabled": True,
             "host": "localhost",
-            "user": "oragono",
+            "user": "ergo",
             "password": mysql_password,
-            "history-database": "oragono_history",
+            "history-database": "ergo_history",
             "timeout": "3s",
         }
         config["accounts"]["multiclient"] = {
