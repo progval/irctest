@@ -48,7 +48,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.solanum -k 'not Oragono and not deprecated and not strict and not testDoubleKickMessages'
+        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.solanum -k 'not Ergo and not deprecated and not strict and not testDoubleKickMessages'
 
 
 

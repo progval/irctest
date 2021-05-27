@@ -3,7 +3,7 @@ from irctest.patma import ANYSTR
 
 
 class Utf8TestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testUtf8Validation(self):
         self.connectClient(
             "bar",

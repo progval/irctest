@@ -7,9 +7,9 @@ from irctest.patma import StrRe
 class RoleplayTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
-        return cases.TestCaseControllerConfig(oragono_roleplay=True)
+        return cases.TestCaseControllerConfig(ergo_roleplay=True)
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testRoleplay(self):
         bar = random_name("bar")
         qux = random_name("qux")

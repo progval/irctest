@@ -1,4 +1,4 @@
-name: irctest with Oragono
+name: irctest with Ergo
 
 on:
   push:
@@ -28,27 +28,27 @@ jobs:
       with:
         path: |
           ~/.cache
-          $GITHUB_WORKSPACE/oragono
-        key: ${{ runner.os }}-oragono
+          $GITHUB_WORKSPACE/ergo
+        key: ${{ runner.os }}-ergo
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
 
-    - name: Checkout Oragono
+    - name: Checkout Ergo
       uses: actions/checkout@v2
       with:
-        repository: oragono/oragono
+        repository: ergo/ergo
         ref: irctest_stable
-        path: oragono
+        path: ergo
 
-    - name: Build Oragono
+    - name: Build Ergo
       run: |
-        cd $GITHUB_WORKSPACE/oragono/
+        cd $GITHUB_WORKSPACE/ergo/
         make build
         make install
 
     - name: Test with pytest
       run: |
-        PATH=~/go/bin:$PATH pytest --controller=irctest.controllers.oragono -k 'not deprecated'
+        PATH=~/go/bin:$PATH pytest --controller=irctest.controllers.ergo -k 'not deprecated'

@@ -59,7 +59,7 @@ See `irctest/server_tests/test_channel_operations.py` for example.
 Tests for **pending/draft specifications are welcome**.
 
 Note that irctest also welcomes implementation-specific tests for
-functional testing; for now only Oragono.
+functional testing; for now only Ergo.
 This does not relax the requirement on documentating tests.
 
 

@@ -180,12 +180,12 @@ class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            oragono_config=lambda config: config["accounts"].update(
+            ergo_config=lambda config: config["accounts"].update(
                 {"default-user-modes": "+i"}
             )
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testLusers(self):
         self.doLusersTest()
         lusers = self.getLusers("bar")
@@ -195,7 +195,7 @@ class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
 
 
 class LuserOpersTest(LusersTestCase):
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testLuserOpers(self):
         self.connectClient("bar", name="bar")
         lusers = self.getLusers("bar")
@@ -238,12 +238,12 @@ class OragonoInvisibleDefaultTest(LusersTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            oragono_config=lambda config: config["accounts"].update(
+            ergo_config=lambda config: config["accounts"].update(
                 {"default-user-modes": "+i"}
             )
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testLusers(self):
         self.connectClient("bar", name="bar")
         lusers = self.getLusers("bar")

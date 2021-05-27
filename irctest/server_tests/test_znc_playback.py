@@ -18,7 +18,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(chathistory=True)
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testZncPlayback(self):
         early_time = int(time.time() - 60)
 

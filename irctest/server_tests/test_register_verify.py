@@ -8,12 +8,12 @@ class TestRegisterBeforeConnect(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            oragono_config=lambda config: config["accounts"]["registration"].update(
+            ergo_config=lambda config: config["accounts"]["registration"].update(
                 {"allow-before-connect": True}
             )
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testBeforeConnect(self):
         self.addClient("bar")
         self.sendLine("bar", "CAP LS 302")
@@ -31,12 +31,12 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            oragono_config=lambda config: config["accounts"]["registration"].update(
+            ergo_config=lambda config: config["accounts"]["registration"].update(
                 {"allow-before-connect": False}
             )
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testBeforeConnect(self):
         self.addClient("bar")
         self.sendLine("bar", "CAP LS 302")
@@ -57,7 +57,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            oragono_config=lambda config: config["accounts"]["registration"].update(
+            ergo_config=lambda config: config["accounts"]["registration"].update(
                 {
                     "email-verification": {
                         "enabled": True,
@@ -70,7 +70,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
             )
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testBeforeConnect(self):
         self.addClient("bar")
         self.sendLine("bar", "CAP LS 302")
@@ -88,7 +88,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
             fail_response, params=["REGISTER", "INVALID_EMAIL", ANYSTR, ANYSTR]
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testAfterConnect(self):
         self.connectClient("bar", name="bar")
         self.sendLine("bar", "REGISTER * shivarampassphrase")
@@ -103,12 +103,12 @@ class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            oragono_config=lambda config: config["accounts"]["registration"].update(
+            ergo_config=lambda config: config["accounts"]["registration"].update(
                 {"allow-before-connect": True}
             )
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testBeforeConnect(self):
         # have an anonymous client take the 'root' username:
         self.connectClient("root", name="root")

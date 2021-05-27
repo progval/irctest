@@ -40,7 +40,7 @@ class WhoisTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
         self.assertEqual(whois_user.params[5], realname)
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testInvisibleWhois(self):
         """Test interaction between MODE +i and RPL_WHOISCHANNELS."""
         self.connectClient("userOne")
@@ -167,7 +167,7 @@ class AwayTestCase(cases.BaseServerTestCase):
 
 
 class TestNoCTCPMode(cases.BaseServerTestCase):
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testNoCTCPMode(self):
         self.connectClient("bar", "bar")
         self.connectClient("qux", "qux")

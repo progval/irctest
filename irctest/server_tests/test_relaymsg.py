@@ -12,7 +12,7 @@ class RelaymsgTestCase(cases.BaseServerTestCase):
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(chathistory=True)
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testRelaymsg(self):
         self.connectClient(
             "baz",

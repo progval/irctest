@@ -14,9 +14,9 @@ from irctest.cases import BaseServerTestCase
 OPER_PWD = "frenchfries"
 
 BASE_CONFIG = {
-    "network": {"name": "OragonoTest"},
+    "network": {"name": "ErgoTest"},
     "server": {
-        "name": "oragono.test",
+        "name": "ergo.test",
         "listeners": {},
         "max-sendq": "16k",
         "connection-limits": {
@@ -133,8 +133,8 @@ def hash_password(password: Union[str, bytes]) -> str:
     return out.decode("utf-8")
 
 
-class OragonoController(BaseServerController, DirectoryBasedController):
-    software_name = "Oragono"
+class ErgoController(BaseServerController, DirectoryBasedController):
+    software_name = "Ergo"
     _port_wait_interval = 0.01
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = True
@@ -168,15 +168,15 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         assert self.directory
 
         enable_chathistory = self.test_config.chathistory
-        enable_roleplay = self.test_config.oragono_roleplay
+        enable_roleplay = self.test_config.ergo_roleplay
         if enable_chathistory or enable_roleplay:
             config = self.addMysqlToConfig(config)
 
         if enable_roleplay:
             config["roleplay"] = {"enabled": True}
 
-        if self.test_config.oragono_config:
-            self.test_config.oragono_config(config)
+        if self.test_config.ergo_config:
+            self.test_config.ergo_config(config)
 
         self.port = port
         bind_address = "127.0.0.1:%s" % (port,)
@@ -289,5 +289,5 @@ class OragonoController(BaseServerController, DirectoryBasedController):
         self.rehash(case, config)
 
 
-def get_irctest_controller_class() -> Type[OragonoController]:
-    return OragonoController
+def get_irctest_controller_class() -> Type[ErgoController]:
+    return ErgoController

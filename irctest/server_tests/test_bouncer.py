@@ -5,7 +5,7 @@ from irctest.patma import ANYSTR, StrRe
 
 
 class Bouncer(cases.BaseServerTestCase):
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testBouncer(self):
         """Test basic bouncer functionality."""
         self.controller.registerUser(self, "observer", "observerpassword")
