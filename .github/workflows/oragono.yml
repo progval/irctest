@@ -39,7 +39,7 @@ jobs:
     - name: Checkout Ergo
       uses: actions/checkout@v2
       with:
-        repository: ergo/ergo
+        repository: ergochat/ergo
         ref: irctest_stable
         path: ergo
 
