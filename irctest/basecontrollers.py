@@ -30,10 +30,10 @@ class TestCaseControllerConfig:
     chathistory: bool = False
     """Whether to enable chathistory features."""
 
-    oragono_roleplay: bool = False
-    """Whether to enable the Oragono role-play commands."""
+    ergo_roleplay: bool = False
+    """Whether to enable the Ergo role-play commands."""
 
-    oragono_config: Optional[Callable[[Dict], Any]] = None
+    ergo_config: Optional[Callable[[Dict], Any]] = None
     """Oragono-specific configuration function that alters the dict in-place
     This should be used as little as possible, using the other attributes instead;
     as they are work with any controller."""

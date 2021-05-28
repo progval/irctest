@@ -6,12 +6,12 @@ class ConfusablesTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            oragono_config=lambda config: config["accounts"].update(
+            ergo_config=lambda config: config["accounts"].update(
                 {"nick-reservation": {"enabled": True, "method": "strict"}}
             )
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testConfusableNicks(self):
         self.controller.registerUser(self, "evan", "sesame")
 

@@ -3,7 +3,7 @@ from irctest.numerics import RPL_NAMREPLY
 
 
 class StatusmsgTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testInIsupport(self):
         """Check that the expected STATUSMSG parameter appears in our isupport list."""
         self.connectClient("foo")  # detects ISUPPORT

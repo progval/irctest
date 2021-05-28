@@ -830,7 +830,7 @@ class ChannelQuitTestCase(cases.BaseServerTestCase):
 
 
 class NoCTCPTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testQuit(self):
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
@@ -903,7 +903,7 @@ class KeyTestCase(cases.BaseServerTestCase):
         )
 
         if ERR_INVALIDMODEPARAM in {msg.command for msg in replies}:
-            # First option: ERR_INVALIDMODEPARAM (eg. Oragono)
+            # First option: ERR_INVALIDMODEPARAM (eg. Ergo)
             return
 
         # Second and third options: truncating the key (eg. UnrealIRCd)
@@ -939,7 +939,7 @@ class KeyTestCase(cases.BaseServerTestCase):
 
 
 class AuditoriumTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testAuditorium(self):
         self.connectClient("bar", name="bar", capabilities=MODERN_CAPS)
         self.joinChannel("bar", "#auditorium")
@@ -1123,7 +1123,7 @@ class BanMode(cases.BaseServerTestCase):
         self.sendLine("bar", "JOIN #chan")
         self.assertMessageMatch(self.getMessage("bar"), command="JOIN")
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testCaseInsensitive(self):
         """Some clients allow unsetting modes if their argument matches
         up to normalization"""
@@ -1181,7 +1181,7 @@ class ModeratedMode(cases.BaseServerTestCase):
 
 
 class OpModerated(cases.BaseServerTestCase):
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testOpModerated(self):
         # test the +U channel mode
         self.connectClient("chanop", name="chanop", capabilities=MODERN_CAPS)
@@ -1250,7 +1250,7 @@ class MuteExtban(cases.BaseServerTestCase):
     (f474e7e6dc2d36f96150ebe33b23b4ea76814415) and it is the most popular
     definition so we're going with that one."""
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testISupport(self):
         self.connectClient(1)  # Fetches ISUPPORT
         isupport = self.server_support
@@ -1431,7 +1431,7 @@ class MuteExtban(cases.BaseServerTestCase):
             [msg for msg in replies if msg.command == "PRIVMSG"],
         )
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testCapitalization(self):
         """
         Regression test for oragono #1370: mutes not correctly enforced against

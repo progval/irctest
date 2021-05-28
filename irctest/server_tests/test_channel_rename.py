@@ -15,7 +15,7 @@ RENAME_CAP = "draft/channel-rename"
 class ChannelRename(cases.BaseServerTestCase):
     """Basic tests for channel-rename."""
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testChannelRename(self):
         self.connectClient("bar", name="bar", capabilities=MODERN_CAPS + [RENAME_CAP])
         self.connectClient("baz", name="baz", capabilities=MODERN_CAPS)

@@ -82,7 +82,7 @@ class TagsTestCase(cases.BaseServerTestCase):
 
 
 class LengthLimitTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testLineAtLimit(self):
         self.connectClient("bar", name="bar")
         self.getMessages("bar")
@@ -97,7 +97,7 @@ class LengthLimitTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(result, command="PONG")
         self.assertIn("x" * 450, result.params[-1])
 
-    @cases.mark_specifications("Oragono")
+    @cases.mark_specifications("Ergo")
     def testLineBeyondLimit(self):
         self.connectClient("bar", name="bar")
         self.getMessages("bar")

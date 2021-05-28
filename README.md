@@ -27,7 +27,7 @@ pip3 install --user -r requirements.txt pyxmpp2-scram
 python3 setup.py install --user
 ```
 
-Add `~/.local/bin/` (and/or `~/.local/bin/` for Oragono)
+Add `~/.local/bin/` (and/or `~/.local/bin/` for Ergo)
 to your `PATH` if it is not.
 
 ```
@@ -53,10 +53,10 @@ For example, you can run `LUSERS`-related tests with `-k lusers`.
 Or only tests based on RFC1459 with `-k rfc1459`.
 
 By default, all tests run; even niche ones. So you probably always want to
-use these options: `-k 'not Oragono and not deprecated and not strict`.
+use these options: `-k 'not Ergo and not deprecated and not strict`.
 This excludes:
 
-* `Oragono`-specific tests (included as Oragono uses irctest as its official
+* `Ergo`-specific tests (included as Ergo uses irctest as its official
   integration test suite)
 * tests for deprecated specifications, such as the IRCv3 METADATA
   specification
@@ -65,16 +65,15 @@ This excludes:
 
 ## Run tests
 
-To run (server) tests on Oragono:
+To run (server) tests on Ergo:
 
 ```
 cd /tmp/
-git clone https://github.com/oragono/oragono.git
-cd oragono/
-make build
+git clone https://github.com/ergochat/ergo.git
+cd ergo/
 make install
 cd ~/irctest
-pytest --controller irctest.controllers.oragono -k 'not deprecated'
+pytest --controller irctest.controllers.ergo -k 'not deprecated'
 ```
 
 To run (server) tests on Solanum:
@@ -87,7 +86,7 @@ cd charybdis
 ./configure --prefix=$HOME/.local/
 make -j 4
 make install
-pytest --controller irctest.controllers.solanum -k 'not Oragono and not deprecated and not strict'
+pytest --controller irctest.controllers.solanum -k 'not Ergo and not deprecated and not strict'
 ```
 
 To run (server) tests on Charybdis::
@@ -101,7 +100,7 @@ cd charybdis
 make -j 4
 make install
 cd ~/irctest
-pytest --controller irctest.controllers.charybdis -k 'not Oragono and not deprecated and not strict'
+pytest --controller irctest.controllers.charybdis -k 'not Ergo and not deprecated and not strict'
 ```
 
 To run (server) tests on ircd-seven:
@@ -130,7 +129,7 @@ patch src/inspircd.cpp < ../irctest/inspircd_mainloop.patch
 make -j 4
 make install
 cd ~/irctest
-pytest --controller irctest.controllers.inspircd -k 'not Oragono and not deprecated and not strict'
+pytest --controller irctest.controllers.inspircd -k 'not Ergo and not deprecated and not strict'
 ```
 
 To run (server) tests on Mammon:
@@ -138,7 +137,7 @@ To run (server) tests on Mammon:
 ```
 pip3 install --user git+https://github.com/mammon-ircd/mammon.git
 cd ~/irctest
-pytest --controller irctest.controllers.mammon -k 'not Oragono and not deprecated and not strict'
+pytest --controller irctest.controllers.mammon -k 'not Ergo and not deprecated and not strict'
 ```
 
 To run (client) tests on Limnoria:
