@@ -29,7 +29,7 @@ from .authentication import Authentication
 from .basecontrollers import TestCaseControllerConfig
 from .exceptions import ConnectionClosed
 from .irc_utils import capabilities, message_parser
-from .irc_utils.junkdrawer import normalizeWhitespace
+from .irc_utils.junkdrawer import find_hostname_and_port, normalizeWhitespace
 from .irc_utils.message_parser import Message
 from .irc_utils.sasl import sasl_plain_blob
 from .numerics import (
@@ -462,7 +462,7 @@ class BaseServerTestCase(
     def setUp(self) -> None:
         super().setUp()
         self.server_support = None
-        self.find_hostname_and_port()
+        (self.hostname, self.port) = find_hostname_and_port()
         self.controller.run(
             self.hostname,
             self.port,
@@ -477,13 +477,6 @@ class BaseServerTestCase(
         self.controller.kill()
         for client in list(self.clients):
             self.removeClient(client)
-
-    def find_hostname_and_port(self) -> None:
-        """Find available hostname/port to listen on."""
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind(("", 0))
-        (self.hostname, self.port) = s.getsockname()
-        s.close()
 
     def addClient(
         self, name: Optional[TClientName] = None, show_io: Optional[bool] = None

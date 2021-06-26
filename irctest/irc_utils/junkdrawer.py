@@ -1,7 +1,8 @@
 import datetime
 import re
 import secrets
-from typing import Dict
+import socket
+from typing import Dict, Tuple
 
 # thanks jess!
 IRCV3_FORMAT_STRFTIME = "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -13,6 +14,15 @@ def ircv3_timestamp_to_unixtime(timestamp: str) -> float:
 
 def random_name(base: str) -> str:
     return base + "-" + secrets.token_hex(8)
+
+
+def find_hostname_and_port() -> Tuple[str, int]:
+    """Find available hostname/port to listen on."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("", 0))
+    (hostname, port) = s.getsockname()
+    s.close()
+    return (hostname, port)
 
 
 """
