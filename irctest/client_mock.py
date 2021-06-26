@@ -88,6 +88,14 @@ class ClientMock:
                         message = message_parser.parse_message(line)
                         if message.command == "PONG" and token in message.params:
                             got_pong = True
+                        elif (
+                            synchronize
+                            and message.command == "451"
+                            and message.params[1] == "PING"
+                        ):
+                            raise ValueError(
+                                "Got '451 * PONG'. Did you forget synchronize=False?"
+                            )
                         else:
                             if raw:
                                 messages.append(line)  # type: ignore
