@@ -185,10 +185,8 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         extra_format: Tuple = (),
     ) -> None:
         if fail_msg:
-            fail_msg = fail_msg.format(
-                *extra_format, item=member, list=container, msg=msg
-            )
-        super().assertIn(member, container, fail_msg)
+            msg = fail_msg.format(*extra_format, item=member, list=container, msg=msg)
+        super().assertIn(member, container, msg)
 
     def assertNotIn(
         self,
@@ -199,10 +197,8 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         extra_format: Tuple = (),
     ) -> None:
         if fail_msg:
-            fail_msg = fail_msg.format(
-                *extra_format, item=member, list=container, msg=msg
-            )
-        super().assertNotIn(member, container, fail_msg)
+            msg = fail_msg.format(*extra_format, item=member, list=container, msg=msg)
+        super().assertNotIn(member, container, msg)
 
     def assertEqual(
         self,
@@ -213,8 +209,8 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         extra_format: Tuple = (),
     ) -> None:
         if fail_msg:
-            fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
-        super().assertEqual(got, expects, fail_msg)
+            msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
+        super().assertEqual(got, expects, msg)
 
     def assertNotEqual(
         self,
@@ -225,8 +221,8 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         extra_format: Tuple = (),
     ) -> None:
         if fail_msg:
-            fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
-        super().assertNotEqual(got, expects, fail_msg)
+            msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
+        super().assertNotEqual(got, expects, msg)
 
     def assertGreater(
         self,
@@ -237,8 +233,8 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         extra_format: Tuple = (),
     ) -> None:
         if fail_msg:
-            fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
-        super().assertGreater(got, expects, fail_msg)
+            msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
+        super().assertGreater(got, expects, msg)
 
     def assertGreaterEqual(
         self,
@@ -249,8 +245,8 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         extra_format: Tuple = (),
     ) -> None:
         if fail_msg:
-            fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
-        super().assertGreaterEqual(got, expects, fail_msg)
+            msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
+        super().assertGreaterEqual(got, expects, msg)
 
     def assertLess(
         self,
@@ -261,8 +257,8 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         extra_format: Tuple = (),
     ) -> None:
         if fail_msg:
-            fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
-        super().assertLess(got, expects, fail_msg)
+            msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
+        super().assertLess(got, expects, msg)
 
     def assertLessEqual(
         self,
@@ -273,8 +269,8 @@ class _IrcTestCase(unittest.TestCase, Generic[TController]):
         extra_format: Tuple = (),
     ) -> None:
         if fail_msg:
-            fail_msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
-        super().assertLessEqual(got, expects, fail_msg)
+            msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
+        super().assertLessEqual(got, expects, msg)
 
 
 class BaseClientTestCase(_IrcTestCase[basecontrollers.BaseClientController]):
