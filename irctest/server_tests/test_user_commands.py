@@ -121,7 +121,9 @@ class WhoisTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
         <https://defs.ircdocs.horse/defs/numerics.html#rpl-whoisaccount-330>"""
         self.controller.registerUser(self, "shivaram", "sesame")
-        self.connectClient("netcat", account="shivaram", password="sesame")
+        self.connectClient(
+            "netcat", account="shivaram", password="sesame", capabilities=["sasl"]
+        )
         self.getMessages(1)
 
         self.connectClient("curious")
@@ -129,7 +131,7 @@ class WhoisTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         messages = self.getMessages(2)
         # 330 RPL_WHOISACCOUNT
         whoisaccount = [message for message in messages if message.command == "330"]
-        self.assertEqual(len(whoisaccount), 1)
+        self.assertEqual(len(whoisaccount), 1, messages)
         params = whoisaccount[0].params
         # <client> <nick> <authname> :<info>
         self.assertEqual(len(params), 4)
