@@ -461,6 +461,7 @@ class BaseServerTestCase(
     ssl = False
     valid_metadata_keys: Set[str] = set()
     invalid_metadata_keys: Set[str] = set()
+    server_support: Optional[Dict[str, Optional[str]]]
 
     def setUp(self) -> None:
         super().setUp()
