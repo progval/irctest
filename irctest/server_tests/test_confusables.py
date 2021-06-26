@@ -24,7 +24,9 @@ class ConfusablesTestCase(cases.BaseServerTestCase):
         self.assertNotIn(RPL_WELCOME, commands)
         self.assertIn(ERR_NICKNAMEINUSE, commands)
 
-        self.connectClient("evan", name="evan", password="sesame")
+        self.connectClient(
+            "evan", name="evan", password="sesame", capabilities=["sasl"]
+        )
         # should be able to switch to the confusable nick
         self.sendLine("evan", "NICK еvan")
         messages = self.getMessages("evan")
