@@ -595,6 +595,8 @@ class BaseServerTestCase(
                 else:
                     raise
         if password is not None:
+            if "sasl" not in (capabilities or ()):
+                raise ValueError("Used 'password' option without sasl capbilitiy")
             self.sendLine(client, "AUTHENTICATE PLAIN")
             m = self.getRegistrationMessage(client)
             self.assertMessageMatch(m, command="AUTHENTICATE", params=["+"])

@@ -34,6 +34,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
                 "message-tags",
                 "server-time",
                 "echo-message",
+                "sasl",
             ],
             password=pw,
         )
@@ -49,6 +50,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
                 "message-tags",
                 "server-time",
                 "echo-message",
+                "sasl",
             ],
         )
         self.joinChannel(qux, chname)
@@ -83,6 +85,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
                 "message-tags",
                 "server-time",
                 "echo-message",
+                "sasl",
             ],
             password=pw,
         )
@@ -102,6 +105,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
                 "message-tags",
                 "server-time",
                 "echo-message",
+                "sasl",
             ],
             password=pw,
         )
@@ -125,6 +129,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
                 "message-tags",
                 "server-time",
                 "echo-message",
+                "sasl",
             ],
             password=pw,
         )
@@ -160,6 +165,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
                 "message-tags",
                 "server-time",
                 "echo-message",
+                "sasl",
             ],
             password=pw,
         )
@@ -185,6 +191,7 @@ class ZncPlaybackTestCase(cases.BaseServerTestCase):
                 "message-tags",
                 "server-time",
                 "echo-message",
+                "sasl",
             ],
             password=pw,
         )
