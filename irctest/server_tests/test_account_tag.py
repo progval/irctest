@@ -11,8 +11,16 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(2, "CAP LS 302")
         capabilities = self.getCapLs(2)
         assert "sasl" in capabilities
+
+        self.sendLine(2, "USER f * * :Realname")
+        self.sendLine(2, "NICK {}".format(nick))
+        self.sendLine(2, "CAP REQ :sasl")
+        self.getRegistrationMessage(2)
+
         self.sendLine(2, "AUTHENTICATE PLAIN")
-        m = self.getMessage(2, filter_pred=lambda m: m.command != "NOTICE")
+        m = self.getMessage(
+            2, filter_pred=lambda m: m.command != "NOTICE", synchronize=False
+        )
         self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
@@ -21,7 +29,9 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(2, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
-        m = self.getMessage(2, filter_pred=lambda m: m.command != "NOTICE")
+        m = self.getMessage(
+            2, filter_pred=lambda m: m.command != "NOTICE", synchronize=False
+        )
         self.assertMessageMatch(
             m,
             command="900",

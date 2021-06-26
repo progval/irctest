@@ -577,7 +577,9 @@ class BaseServerTestCase(
         Returns the list of all messages received after registration,
         just like `skipToWelcome`."""
         client = self.addClient(name, show_io=show_io)
-        if capabilities is not None and 0 < len(capabilities):
+        if capabilities:
+            self.sendLine(client, "CAP LS 302")
+            m = self.getRegistrationMessage(client)
             self.sendLine(client, "CAP REQ :{}".format(" ".join(capabilities)))
             m = self.getRegistrationMessage(client)
             try:
@@ -592,12 +594,18 @@ class BaseServerTestCase(
                     raise runner.CapabilityNotSupported(" or ".join(capabilities))
                 else:
                     raise
-            self.sendLine(client, "CAP END")
         if password is not None:
             self.sendLine(client, "AUTHENTICATE PLAIN")
+            m = self.getRegistrationMessage(client)
+            self.assertMessageMatch(m, command="AUTHENTICATE", params=["+"])
             self.sendLine(client, sasl_plain_blob(account or nick, password))
+            m = self.getRegistrationMessage(client)
+            self.assertIn(m.command, ["900", "903"], str(m))
+
         self.sendLine(client, "NICK {}".format(nick))
         self.sendLine(client, "USER %s * * :Realname" % (ident,))
+        if capabilities:
+            self.sendLine(client, "CAP END")
 
         welcome = self.skipToWelcome(client)
         self.sendLine(client, "PING foo")
