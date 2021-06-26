@@ -42,6 +42,8 @@ from .numerics import (
 )
 from .specifications import Capabilities, IsupportTokens, Specifications
 
+__tracebackhide__ = True  # Hide from pytest tracebacks on test failure.
+
 CHANNEL_JOIN_FAIL_NUMERICS = frozenset(
     [
         ERR_NOSUCHCHANNEL,

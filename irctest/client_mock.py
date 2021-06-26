@@ -41,6 +41,7 @@ class ClientMock:
         self, synchronize: bool = True, assert_get_one: bool = False, raw: bool = False
     ) -> List[message_parser.Message]:
         """actually returns List[str] in the rare case where raw=True."""
+        __tracebackhide__ = True  # Hide from pytest tracebacks on test failure.
         token: Optional[str]
         if synchronize:
             token = "synchronize{}".format(time.monotonic())
@@ -108,6 +109,7 @@ class ClientMock:
         raw: bool = False,
     ) -> message_parser.Message:
         """Returns str in the rare case where raw=True"""
+        __tracebackhide__ = True  # Hide from pytest tracebacks on test failure.
         while True:
             if not self.inbuffer:
                 self.inbuffer = self.getMessages(
