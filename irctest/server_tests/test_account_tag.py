@@ -32,7 +32,7 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(2, "CAP END")
         self.skipToWelcome(2)
 
-    @cases.mark_specifications("IRCv3")
+    @cases.mark_capabilities("account-tag")
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPrivmsg(self):
         self.connectClient("foo", capabilities=["account-tag"], skip_if_cap_nak=True)
@@ -44,4 +44,20 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         m = self.getMessage(1)
         self.assertMessageMatch(
             m, command="PRIVMSG", params=["foo", "hi"], tags={"account": "jilles"}
+        )
+
+    @cases.mark_capabilities("account-tag")
+    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    def testInvite(self):
+        self.connectClient("foo", capabilities=["account-tag"], skip_if_cap_nak=True)
+        self.getMessages(1)
+        self.controller.registerUser(self, "jilles", "sesame")
+        self.connectRegisteredClient("bar")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(2)
+        self.sendLine(2, "INVITE foo #chan")
+        self.getMessages(2)
+        m = self.getMessage(1)
+        self.assertMessageMatch(
+            m, command="INVITE", params=["foo", "#chan"], tags={"account": "jilles"}
         )

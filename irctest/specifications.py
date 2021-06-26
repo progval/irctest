@@ -27,6 +27,7 @@ class Specifications(enum.Enum):
 
 @enum.unique
 class Capabilities(enum.Enum):
+    ACCOUNT_TAG = "account-tag"
     AWAY_NOTIFY = "away-notify"
     BATCH = "batch"
     ECHO_MESSAGE = "echo-message"
