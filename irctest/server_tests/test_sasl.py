@@ -5,11 +5,15 @@ from irctest.patma import ANYSTR
 
 
 class RegistrationTestCase(cases.BaseServerTestCase):
+    run_services = True
+
     def testRegistration(self):
         self.controller.registerUser(self, "testuser", "mypassword")
 
 
 class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+    run_services = True
+
     @cases.mark_specifications("IRCv3")
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPlain(self):
@@ -47,6 +51,34 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             m,
             command="900",
             params=[ANYSTR, ANYSTR, "jilles", ANYSTR],
+            fail_msg="Unexpected reply to correct SASL authentication: {msg}",
+        )
+
+    @cases.mark_specifications("IRCv3")
+    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    def testPlainNonAscii(self):
+        password = "é" * 100
+        authstring = base64.b64encode(
+            b"\x00".join([b"foo", b"foo", password.encode()])
+        ).decode()
+        self.controller.registerUser(self, "foo", password)
+        self.addClient()
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        self.sendLine(1, "AUTHENTICATE " + authstring)
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="900",
+            params=[ANYSTR, ANYSTR, "foo", ANYSTR],
             fail_msg="Unexpected reply to correct SASL authentication: {msg}",
         )
 
@@ -127,6 +159,8 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
         self.sendLine(1, "AUTHENTICATE FOO")
         m = self.getRegistrationMessage(1)
+        while m.command == "908":  # RPL_SASLMECHS
+            m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
             command="904",

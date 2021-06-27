@@ -59,6 +59,7 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
         *,
         password: Optional[str],
         ssl: bool,
+        run_services: bool,
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
     ) -> None:
@@ -66,6 +67,8 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
             raise NotImplementedByController(
                 "Defining valid and invalid METADATA keys."
             )
+        if run_services:
+            raise NotImplementedByController("Registration services")
         assert self.proc is None
         self.create_config()
         self.port = port

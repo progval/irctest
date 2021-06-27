@@ -178,6 +178,7 @@ class BaseServerController(_BaseController):
     _port_wait_interval = 0.1
     port_open = False
     port: int
+    hostname: str
 
     def run(
         self,
@@ -186,6 +187,7 @@ class BaseServerController(_BaseController):
         *,
         password: Optional[str],
         ssl: bool,
+        run_services: bool,
         valid_metadata_keys: Optional[Set[str]],
         invalid_metadata_keys: Optional[Set[str]],
     ) -> None:
@@ -219,3 +221,6 @@ class BaseServerController(_BaseController):
                 self.port_open = True
             except Exception:
                 continue
+
+    def wait_for_services(self) -> None:
+        pass

@@ -31,6 +31,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
 
+    - name: Install atheme
+      run: sudo apt-get install atheme-services
+
     - name: Checkout InspIRCd
       uses: actions/checkout@v2
       with:

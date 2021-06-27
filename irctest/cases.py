@@ -458,6 +458,7 @@ class BaseServerTestCase(
     valid_metadata_keys: Set[str] = set()
     invalid_metadata_keys: Set[str] = set()
     server_support: Optional[Dict[str, Optional[str]]]
+    run_services = False
 
     def setUp(self) -> None:
         super().setUp()
@@ -470,6 +471,7 @@ class BaseServerTestCase(
             valid_metadata_keys=self.valid_metadata_keys,
             invalid_metadata_keys=self.invalid_metadata_keys,
             ssl=self.ssl,
+            run_services=self.run_services,
         )
         self.clients: Dict[TClientName, client_mock.ClientMock] = {}
 
@@ -484,6 +486,8 @@ class BaseServerTestCase(
         """Connects a client to the server and adds it to the dict.
         If 'name' is not given, uses the lowest unused non-negative integer."""
         self.controller.wait_for_port()
+        if self.run_services:
+            self.controller.wait_for_services()
         if not name:
             new_name: int = (
                 max(

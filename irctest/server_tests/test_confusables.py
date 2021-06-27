@@ -3,6 +3,8 @@ from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME
 
 
 class ConfusablesTestCase(cases.BaseServerTestCase):
+    run_services = True
+
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
