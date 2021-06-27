@@ -177,6 +177,7 @@ class BaseClientController(_BaseController):
 class BaseServerController(_BaseController):
     """Base controller for IRC server."""
 
+    software_name: str  # Class property
     _port_wait_interval = 0.1
     port_open = False
     port: int
@@ -250,19 +251,31 @@ class BaseServicesController(_BaseController):
         c.sendLine("NICK chkNS")
         c.sendLine("USER chk chk chk chk")
         c.getMessages(synchronize=False)
+        c.getMessages()
 
-        msgs: List[Message] = []
-        while not msgs:
+        timeout = time.time() + 5
+        while True:
             c.sendLine("PRIVMSG NickServ :HELP")
             msgs = self.getNickServResponse(c)
-        if msgs[0].command == "401":
-            # NickServ not available yet
-            pass
-        elif msgs[0].command == "NOTICE":
-            # NickServ is available
-            assert "nickserv" in (msgs[0].prefix or "").lower(), msgs
-        else:
-            assert False, f"unexpected reply from NickServ: {msgs[0]}"
+            for msg in msgs:
+                if msg.command == "401":
+                    # NickServ not available yet
+                    pass
+                elif msg.command == "NOTICE":
+                    # NickServ is available
+                    assert "nickserv" in (msg.prefix or "").lower(), msg
+                    print("breaking")
+                    break
+                else:
+                    assert False, f"unexpected reply from NickServ: {msg}"
+            else:
+                if time.time() > timeout:
+                    raise Exception("Timeout while waiting for NickServ")
+                continue
+
+            # If we're here, it means we broke from the for loop, so NickServ
+            # is available and we can break again
+            break
 
         c.sendLine("QUIT")
         c.getMessages()
@@ -296,6 +309,8 @@ class BaseServicesController(_BaseController):
         case.getMessages(client)
         case.sendLine(client, f"PRIVMSG NickServ :REGISTER {password} foo@example.org")
         msgs = self.getNickServResponse(case.clients[client])
-        assert "900" in {msg.command for msg in msgs}, msgs
+        if self.server_controller.software_name == "inspircd":
+            assert "900" in {msg.command for msg in msgs}, msgs
+        assert "NOTICE" in {msg.command for msg in msgs}, msgs
         case.sendLine(client, "QUIT")
         case.assertDisconnected(client)

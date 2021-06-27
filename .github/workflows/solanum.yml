@@ -28,6 +28,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        sudo apt-get install atheme-services
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
 
@@ -35,7 +36,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: solanum-ircd/solanum
-        ref: 2e8a889fc94313acf53c430cec1bd044850769a0
+        ref: e370888264da666a1bd9faac86cd5f2aa06084f4
         path: solanum
 
     - name: Build Solanum

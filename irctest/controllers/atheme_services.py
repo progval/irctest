@@ -8,7 +8,7 @@ import irctest.cases
 import irctest.runner
 
 TEMPLATE_CONFIG = """
-loadmodule "modules/protocol/inspircd";
+loadmodule "modules/protocol/{protocol}";
 loadmodule "modules/backend/opensex";
 loadmodule "modules/crypto/pbkdf2";
 
@@ -39,7 +39,7 @@ general {{
     commit_interval = 5;
 }};
 
-uplink "irc.example.com" {{
+uplink "My.Little.Server" {{
     host = "{server_hostname}";
     port = {server_port};
     send_password = "password";
@@ -55,12 +55,15 @@ saslserv {{
 class AthemeServices(BaseServicesController, DirectoryBasedController):
     """Mixin for server controllers that rely on Atheme"""
 
-    def run(self, server_hostname: str, server_port: int) -> None:
+    def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
+
+        assert protocol in ("inspircd", "charybdis")
 
         with self.open_file("services.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
+                    protocol=protocol,
                     server_hostname=server_hostname,
                     server_port=server_port,
                 )
@@ -81,7 +84,7 @@ class AthemeServices(BaseServicesController, DirectoryBasedController):
                 self.directory,
             ],
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            # stderr=subprocess.DEVNULL,
         )
 
     def registerUser(
