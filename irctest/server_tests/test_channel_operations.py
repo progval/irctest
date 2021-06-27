@@ -1180,6 +1180,56 @@ class ModeratedMode(cases.BaseServerTestCase):
         )
 
 
+class RegisteredOnlySpeakMode(cases.BaseServerTestCase):
+    @cases.mark_specifications("Ergo")
+    def testRegisteredOnlySpeakMode(self):
+        self.controller.registerUser(self, "evan", "sesame")
+
+        # test the +M (only registered users and ops can speak) channel mode
+        self.connectClient("chanop", name="chanop")
+        self.joinChannel("chanop", "#chan")
+        self.getMessages("chanop")
+        self.sendLine("chanop", "MODE #chan +M")
+        replies = self.getMessages("chanop")
+        modeLines = [line for line in replies if line.command == "MODE"]
+        self.assertMessageMatch(modeLines[0], command="MODE", params=["#chan", "+M"])
+
+        self.connectClient("baz", name="baz")
+        self.joinChannel("baz", "#chan")
+        self.getMessages("chanop")
+        # this message should be suppressed completely by +M
+        self.sendLine("baz", "PRIVMSG #chan :hi from baz")
+        replies = self.getMessages("baz")
+        reply_cmds = {reply.command for reply in replies}
+        self.assertIn(ERR_CANNOTSENDTOCHAN, reply_cmds)
+        self.assertEqual(self.getMessages("chanop"), [])
+
+        # +v exempts users from the registration requirement:
+        self.sendLine("chanop", "MODE #chan +v baz")
+        self.getMessages("chanop")
+        self.getMessages("baz")
+        self.sendLine("baz", "PRIVMSG #chan :hi again from baz")
+        replies = self.getMessages("baz")
+        # baz should not receive an error (or an echo)
+        self.assertEqual(replies, [])
+        replies = self.getMessages("chanop")
+        self.assertMessageMatch(
+            replies[0], command="PRIVMSG", params=["#chan", "hi again from baz"]
+        )
+
+        self.connectClient("evan", name="evan", account="evan", password="sesame")
+        self.joinChannel("evan", "#chan")
+        self.getMessages("baz")
+        self.sendLine("evan", "PRIVMSG #chan :hi from evan")
+        replies = self.getMessages("evan")
+        # evan should not receive an error (or an echo)
+        self.assertEqual(replies, [])
+        replies = self.getMessages("baz")
+        self.assertMessageMatch(
+            replies[0], command="PRIVMSG", params=["#chan", "hi from evan"]
+        )
+
+
 class OpModerated(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
     def testOpModerated(self):
