@@ -18,9 +18,7 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.getRegistrationMessage(2)
 
         self.sendLine(2, "AUTHENTICATE PLAIN")
-        m = self.getMessage(
-            2, filter_pred=lambda m: m.command != "NOTICE", synchronize=False
-        )
+        m = self.getRegistrationMessage(2)
         self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
@@ -29,9 +27,7 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(2, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
-        m = self.getMessage(
-            2, filter_pred=lambda m: m.command != "NOTICE", synchronize=False
-        )
+        m = self.getRegistrationMessage(2)
         self.assertMessageMatch(
             m,
             command="900",

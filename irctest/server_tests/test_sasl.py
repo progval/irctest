@@ -32,7 +32,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 fail_msg="Does not have PLAIN mechanism as the controller " "claims",
             )
         self.sendLine(1, "AUTHENTICATE PLAIN")
-        m = self.getMessage(1, filter_pred=lambda m: m.command != "NOTICE")
+        m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
@@ -41,7 +41,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
-        m = self.getMessage(1, filter_pred=lambda m: m.command != "NOTICE")
+        m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
             command="900",
@@ -91,7 +91,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 fail_msg="Does not have PLAIN mechanism as the controller " "claims",
             )
         self.sendLine(1, "AUTHENTICATE PLAIN")
-        m = self.getMessage(1, filter_pred=lambda m: m.command != "NOTICE")
+        m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
@@ -100,7 +100,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(1, "AUTHENTICATE AGppbGxlcwBzZXNhbWU=")
-        m = self.getMessage(1, filter_pred=lambda m: m.command != "NOTICE")
+        m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
             command="900",
