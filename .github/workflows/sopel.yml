@@ -32,6 +32,6 @@ jobs:
 
     - name: Test with pytest
       run: |
-        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.sopel -k "not testPlainNotAvailable"
+        PATH=~/.local/bin:$PATH make sopel
 
 

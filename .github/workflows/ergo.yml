@@ -51,4 +51,4 @@ jobs:
 
     - name: Test with pytest
       run: |
-        PATH=~/go/bin:$PATH pytest --controller=irctest.controllers.ergo -k 'not deprecated'
+        PATH=~/go/bin:$PATH make ergo

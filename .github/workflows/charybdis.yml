@@ -49,7 +49,5 @@ jobs:
 
     - name: Test with pytest
       run: |
-        # testQuitErrors is very flaky
-        # AccountTagTestCase.testInvite fails because https://github.com/solanum-ircd/solanum/issues/166
-        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.charybdis -k 'not Ergo and not deprecated and not strict and not testDoubleKickMessages and not testQuitErrors and not (AccountTagTestCase and testInvite)'
+        PATH=~/.local/bin:$PATH make charybdis
 
