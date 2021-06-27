@@ -11,6 +11,7 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.sendLine(2, "CAP LS 302")
         capabilities = self.getCapLs(2)
         assert "sasl" in capabilities
+        self.requestCapabilities(2, ["sasl"], skip_if_cap_nak=False)
         self.sendLine(2, "AUTHENTICATE PLAIN")
         m = self.getRegistrationMessage(2)
         self.assertMessageMatch(

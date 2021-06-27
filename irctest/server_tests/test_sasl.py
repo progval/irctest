@@ -31,6 +31,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 capabilities["sasl"],
                 fail_msg="Does not have PLAIN mechanism as the controller " "claims",
             )
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
         self.sendLine(1, "AUTHENTICATE PLAIN")
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
@@ -90,6 +91,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 capabilities["sasl"],
                 fail_msg="Does not have PLAIN mechanism as the controller " "claims",
             )
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
         self.sendLine(1, "AUTHENTICATE PLAIN")
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
@@ -122,6 +124,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             capabilities,
             fail_msg="Does not have SASL as the controller claims.",
         )
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
         self.sendLine(1, "AUTHENTICATE FOO")
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
@@ -155,6 +158,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 capabilities["sasl"],
                 fail_msg="Does not have PLAIN mechanism as the controller " "claims",
             )
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
         self.sendLine(1, "AUTHENTICATE PLAIN")
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
@@ -217,6 +221,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 capabilities["sasl"],
                 fail_msg="Does not have PLAIN mechanism as the controller " "claims",
             )
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
         self.sendLine(1, "AUTHENTICATE PLAIN")
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(

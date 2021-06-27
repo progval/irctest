@@ -561,6 +561,27 @@ class BaseServerTestCase(
             if m.command == "001":
                 return result
 
+    def requestCapabilities(
+        self,
+        client: TClientName,
+        capabilities: List[str],
+        skip_if_cap_nak: bool = False,
+    ) -> None:
+        self.sendLine(client, "CAP REQ :{}".format(" ".join(capabilities)))
+        m = self.getRegistrationMessage(client)
+        try:
+            self.assertMessageMatch(
+                m, command="CAP", fail_msg="Expected CAP ACK, got: {msg}"
+            )
+            self.assertEqual(
+                m.params[1], "ACK", m, fail_msg="Expected CAP ACK, got: {msg}"
+            )
+        except AssertionError:
+            if skip_if_cap_nak:
+                raise runner.CapabilityNotSupported(" or ".join(capabilities))
+            else:
+                raise
+
     def connectClient(
         self,
         nick: str,
@@ -580,20 +601,7 @@ class BaseServerTestCase(
         if capabilities:
             self.sendLine(client, "CAP LS 302")
             m = self.getRegistrationMessage(client)
-            self.sendLine(client, "CAP REQ :{}".format(" ".join(capabilities)))
-            m = self.getRegistrationMessage(client)
-            try:
-                self.assertMessageMatch(
-                    m, command="CAP", fail_msg="Expected CAP ACK, got: {msg}"
-                )
-                self.assertEqual(
-                    m.params[1], "ACK", m, fail_msg="Expected CAP ACK, got: {msg}"
-                )
-            except AssertionError:
-                if skip_if_cap_nak:
-                    raise runner.CapabilityNotSupported(" or ".join(capabilities))
-                else:
-                    raise
+            self.requestCapabilities(client, capabilities, skip_if_cap_nak)
         if password is not None:
             if "sasl" not in (capabilities or ()):
                 raise ValueError("Used 'password' option without sasl capbilitiy")
