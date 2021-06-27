@@ -6,6 +6,8 @@ from irctest import cases
 
 
 class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+    run_services = True
+
     def connectRegisteredClient(self, nick):
         self.addClient()
         self.sendLine(2, "CAP LS 302")

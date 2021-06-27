@@ -7,12 +7,38 @@ from irctest.basecontrollers import (
     DirectoryBasedController,
     NotImplementedByController,
 )
+from irctest.controllers.atheme_services import AthemeServices
+from irctest.irc_utils.junkdrawer import find_hostname_and_port
 
 TEMPLATE_CONFIG = """
+# Clients:
 <bind address="{hostname}" port="{port}" type="clients">
 {ssl_config}
+<connect allow="*"
+    resolvehostnames="no" # Faster
+    recvq="40960" # Needs to be larger than a valid message with tags
+    timeout="10"  # So tests don't hang too long
+    {password_field}>
+
+# Services:
+<bind address="{services_hostname}" port="{services_port}" type="servers">
+<link name="services.example.org"
+    ipaddr="{services_hostname}"
+    port="{services_port}"
+    allowmask="*"
+    recvpass="password"
+    sendpass="password"
+    >
+<module name="spanningtree">
+<module name="services_account">
+<module name="svshold">  # Atheme raises a warning when missing
+<sasl requiressl="no"
+      target="services.example.org">
+
+# Protocol:
 <module name="cap">
 <module name="ircv3">
+<module name="ircv3_accounttag">
 <module name="ircv3_batch">
 <module name="ircv3_capnotify">
 <module name="ircv3_ctctags">
@@ -24,11 +50,11 @@ TEMPLATE_CONFIG = """
 <module name="monitor">
 <module name="m_muteban">  # for testing mute extbans
 <module name="namesx"> # For multi-prefix
-<connect allow="*"
-    resolvehostnames="no" # Faster
-    recvq="40960" # Needs to be larger than a valid message with tags
-    {password_field}>
+<module name="sasl">
+
+# Misc:
 <log method="file" type="*" level="debug" target="/tmp/ircd-{port}.log">
+<server name="irc.example.com" description="testnet" id="000" network="testnet">
 """
 
 TEMPLATE_SSL_CONFIG = """
@@ -37,10 +63,12 @@ TEMPLATE_SSL_CONFIG = """
 """
 
 
-class InspircdController(BaseServerController, DirectoryBasedController):
+class InspircdController(
+    AthemeServices, BaseServerController, DirectoryBasedController
+):
     software_name = "InspIRCd"
-    supported_sasl_mechanisms: Set[str] = set()
-    supports_str = False
+    supported_sasl_mechanisms = {"PLAIN"}
+    supports_sts = False
 
     def create_config(self) -> None:
         super().create_config()
@@ -54,6 +82,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         *,
         password: Optional[str],
         ssl: bool,
+        run_services: bool,
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
         restricted_metadata_keys: Optional[Set[str]] = None,
@@ -64,8 +93,12 @@ class InspircdController(BaseServerController, DirectoryBasedController):
             )
         assert self.proc is None
         self.port = port
+        self.hostname = hostname
         self.create_config()
+        (services_hostname, services_port) = find_hostname_and_port()
+
         password_field = 'password="{}"'.format(password) if password else ""
+
         if ssl:
             self.gen_ssl()
             ssl_config = TEMPLATE_SSL_CONFIG.format(
@@ -73,11 +106,14 @@ class InspircdController(BaseServerController, DirectoryBasedController):
             )
         else:
             ssl_config = ""
+
         with self.open_file("server.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
                     hostname=hostname,
                     port=port,
+                    services_hostname=services_hostname,
+                    services_port=services_port,
                     password_field=password_field,
                     ssl_config=ssl_config,
                 )
@@ -92,6 +128,11 @@ class InspircdController(BaseServerController, DirectoryBasedController):
             ],
             stdout=subprocess.DEVNULL,
         )
+
+        if run_services:
+            self.run_services(
+                server_hostname=services_hostname, server_port=services_port
+            )
 
 
 def get_irctest_controller_class() -> Type[InspircdController]:

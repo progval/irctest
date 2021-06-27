@@ -151,6 +151,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         *,
         password: Optional[str],
         ssl: bool,
+        run_services: bool,
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
         restricted_metadata_keys: Optional[Set[str]] = None,
@@ -214,6 +215,13 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         # XXX: Move this somewhere else when
         # https://github.com/ircv3/ircv3-specifications/pull/152 becomes
         # part of the specification
+        if not case.run_services:
+            # Ergo does not actually need this, but other controllers do, so we
+            # are checking it here as well for tests that aren't tested with other
+            # controllers.
+            raise ValueError(
+                "Attempted to register a nick, but `run_services` it not True."
+            )
         client = case.addClient(show_io=False)
         case.sendLine(client, "CAP LS 302")
         case.sendLine(client, "NICK " + username)

@@ -14,6 +14,8 @@ from irctest.numerics import (
 
 
 class WhoisTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+    run_services = True
+
     @cases.mark_specifications("RFC2812")
     def testWhoisUser(self):
         """Test basic WHOIS behavior"""

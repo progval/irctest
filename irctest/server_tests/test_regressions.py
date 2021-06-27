@@ -150,18 +150,16 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.addClient(2)
         self.sendLine(2, "NICK alice")
         self.sendLine(2, "USER u s e r")
-        replies = set(msg.command for msg in self.getMessages(2))
-        self.assertNotIn(ERR_NICKNAMEINUSE, replies)
-        self.assertIn(RPL_WELCOME, replies)
+        m = self.getRegistrationMessage(2)
+        self.assertMessageMatch(m, command=RPL_WELCOME)
         self.sendLine(2, "QUIT")
         self.assertDisconnected(2)
 
         self.addClient(3)
         self.sendLine(3, "NICK ALICE")
         self.sendLine(3, "USER u s e r")
-        replies = set(msg.command for msg in self.getMessages(3))
-        self.assertNotIn(ERR_NICKNAMEINUSE, replies)
-        self.assertIn(RPL_WELCOME, replies)
+        m = self.getRegistrationMessage(3)
+        self.assertMessageMatch(m, command=RPL_WELCOME)
 
     @cases.mark_specifications("RFC1459")
     def testNickReleaseUnregistered(self):

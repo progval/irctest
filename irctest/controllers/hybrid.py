@@ -56,6 +56,7 @@ class HybridController(BaseServerController, DirectoryBasedController):
         *,
         password: Optional[str],
         ssl: bool,
+        run_services: bool,
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
     ) -> None:
