@@ -12,7 +12,7 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         capabilities = self.getCapLs(2)
         assert "sasl" in capabilities
         self.sendLine(2, "AUTHENTICATE PLAIN")
-        m = self.getMessage(2, filter_pred=lambda m: m.command != "NOTICE")
+        m = self.getRegistrationMessage(2)
         self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
@@ -21,7 +21,7 @@ class MetadataTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(2, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
-        m = self.getMessage(2, filter_pred=lambda m: m.command != "NOTICE")
+        m = self.getRegistrationMessage(2)
         self.assertMessageMatch(
             m,
             command="900",
