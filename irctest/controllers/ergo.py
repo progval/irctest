@@ -206,6 +206,10 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             ["ergo", "run", "--conf", self._config_path, "--quiet"]
         )
 
+    def wait_for_services(self) -> None:
+        # Nothing to wait for, they start at the same time as Ergo.
+        pass
+
     def registerUser(
         self,
         case: BaseServerTestCase,

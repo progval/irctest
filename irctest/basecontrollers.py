@@ -7,11 +7,13 @@ import socket
 import subprocess
 import tempfile
 import time
-from typing import IO, Any, Callable, Dict, Optional, Set
+from typing import IO, Any, Callable, Dict, List, Optional, Set
 
 import irctest
 
 from . import authentication, tls
+from .client_mock import ClientMock
+from .irc_utils.message_parser import Message
 from .runner import NotImplementedByController
 
 
@@ -179,6 +181,7 @@ class BaseServerController(_BaseController):
     port_open = False
     port: int
     hostname: str
+    services_controller: BaseServicesController
 
     def run(
         self,
@@ -199,7 +202,10 @@ class BaseServerController(_BaseController):
         username: str,
         password: Optional[str] = None,
     ) -> None:
-        raise NotImplementedByController("account registration")
+        if self.services_controller:
+            self.services_controller.registerUser(case, username, password)
+        else:
+            raise NotImplementedByController("account registration")
 
     def wait_for_port(self) -> None:
         while not self.port_open:
@@ -223,4 +229,73 @@ class BaseServerController(_BaseController):
                 continue
 
     def wait_for_services(self) -> None:
-        pass
+        self.services_controller.wait_for_services()
+
+
+class BaseServicesController(_BaseController):
+    def __init__(
+        self,
+        test_config: TestCaseControllerConfig,
+        server_controller: BaseServerController,
+    ):
+        super().__init__(test_config)
+        self.test_config = test_config
+        self.server_controller = server_controller
+
+    def wait_for_services(self) -> None:
+        self.server_controller.wait_for_port()
+
+        c = ClientMock(name="chkNS", show_io=True)
+        c.connect(self.server_controller.hostname, self.server_controller.port)
+        c.sendLine("NICK chkNS")
+        c.sendLine("USER chk chk chk chk")
+        c.getMessages(synchronize=False)
+
+        msgs: List[Message] = []
+        while not msgs:
+            c.sendLine("PRIVMSG NickServ :HELP")
+            msgs = self.getNickServResponse(c)
+        if msgs[0].command == "401":
+            # NickServ not available yet
+            pass
+        elif msgs[0].command == "NOTICE":
+            # NickServ is available
+            assert "nickserv" in (msgs[0].prefix or "").lower(), msgs
+        else:
+            assert False, f"unexpected reply from NickServ: {msgs[0]}"
+
+        c.sendLine("QUIT")
+        c.getMessages()
+        c.disconnect()
+
+    def getNickServResponse(self, client: Any) -> List[Message]:
+        """Wrapper aroung getMessages() that waits longer, because NickServ
+        is queried asynchronously."""
+        msgs: List[Message] = []
+        while not msgs:
+            time.sleep(0.05)
+            msgs = client.getMessages()
+        return msgs
+
+    def registerUser(
+        self,
+        case: irctest.cases.BaseServerTestCase,  # type: ignore
+        username: str,
+        password: Optional[str] = None,
+    ) -> None:
+        if not case.run_services:
+            raise ValueError(
+                "Attempted to register a nick, but `run_services` it not True."
+            )
+        assert password
+        client = case.addClient(show_io=True)
+        case.sendLine(client, "NICK " + username)
+        case.sendLine(client, "USER r e g :user")
+        while case.getRegistrationMessage(client).command != "001":
+            pass
+        case.getMessages(client)
+        case.sendLine(client, f"PRIVMSG NickServ :REGISTER {password} foo@example.org")
+        msgs = self.getNickServResponse(case.clients[client])
+        assert "900" in {msg.command for msg in msgs}, msgs
+        case.sendLine(client, "QUIT")
+        case.assertDisconnected(client)
