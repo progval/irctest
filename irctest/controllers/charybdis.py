@@ -7,6 +7,8 @@ from irctest.basecontrollers import (
     DirectoryBasedController,
     NotImplementedByController,
 )
+from irctest.controllers.atheme_services import AthemeServices
+from irctest.irc_utils.junkdrawer import find_hostname_and_port
 
 TEMPLATE_CONFIG = """
 serverinfo {{
@@ -15,22 +17,47 @@ serverinfo {{
     description = "test server";
 {ssl_config}
 }};
+
+general {{
+    throttle_count = 100;  # We need to connect lots of clients quickly
+    sasl_service = "SaslServ";
+}};
+
+class "server" {{
+    ping_time = 5 minutes;
+    connectfreq = 5 minutes;
+}};
+
 listen {{
     defer_accept = yes;
 
     host = "{hostname}";
     port = {port};
 }};
+
 auth {{
     user = "*";
     flags = exceed_limit;
     {password_field}
 }};
+
 channel {{
     disable_local_channels = no;
     no_create_on_split = no;
     no_join_on_split = no;
     displayed_usercount = 0;
+}};
+
+connect "services.example.org" {{
+    host = "localhost";  # Used to validate incoming connection
+    port = 0;  # We don't want the servers to connect to services
+    send_password = "password";
+    accept_password = "password";
+    class = "server";
+    flags = topicburst;
+}};
+service {{
+    name = "services.example.org";
 }};
 """
 
@@ -44,7 +71,7 @@ TEMPLATE_SSL_CONFIG = """
 class CharybdisController(BaseServerController, DirectoryBasedController):
     software_name = "Charybdis"
     binary_name = "charybdis"
-    supported_sasl_mechanisms: Set[str] = set()
+    supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
 
     def create_config(self) -> None:
@@ -67,11 +94,11 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
             raise NotImplementedByController(
                 "Defining valid and invalid METADATA keys."
             )
-        if run_services:
-            raise NotImplementedByController("Registration services")
         assert self.proc is None
-        self.create_config()
         self.port = port
+        self.hostname = hostname
+        self.create_config()
+        (services_hostname, services_port) = find_hostname_and_port()
         password_field = 'password = "{}";'.format(password) if password else ""
         if ssl:
             self.gen_ssl()
@@ -85,6 +112,8 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
                 TEMPLATE_CONFIG.format(
                     hostname=hostname,
                     port=port,
+                    services_hostname=services_hostname,
+                    services_port=services_port,
                     password_field=password_field,
                     ssl_config=ssl_config,
                 )
@@ -101,6 +130,13 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
             ],
             # stderr=subprocess.DEVNULL,
         )
+
+        if run_services:
+            self.wait_for_port()
+            self.services_controller = AthemeServices(self.test_config, self)
+            self.services_controller.run(
+                protocol="charybdis", server_hostname=hostname, server_port=port
+            )
 
 
 def get_irctest_controller_class() -> Type[CharybdisController]:

@@ -54,7 +54,7 @@ TEMPLATE_CONFIG = """
 
 # Misc:
 <log method="file" type="*" level="debug" target="/tmp/ircd-{port}.log">
-<server name="irc.example.com" description="testnet" id="000" network="testnet">
+<server name="My.Little.Server" description="testnet" id="000" network="testnet">
 """
 
 TEMPLATE_SSL_CONFIG = """
@@ -128,9 +128,12 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         )
 
         if run_services:
+            self.wait_for_port()
             self.services_controller = AthemeServices(self.test_config, self)
             self.services_controller.run(
-                server_hostname=services_hostname, server_port=services_port
+                protocol="inspircd",
+                server_hostname=services_hostname,
+                server_port=services_port,
             )
 
 

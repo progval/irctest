@@ -28,6 +28,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        sudo apt-get install atheme-services
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
 
@@ -49,5 +50,6 @@ jobs:
     - name: Test with pytest
       run: |
         # testQuitErrors is very flaky
-        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.charybdis -k 'not Ergo and not deprecated and not strict and not testDoubleKickMessages and not testQuitErrors'
+        # AccountTagTestCase.testInvite fails because https://github.com/solanum-ircd/solanum/issues/166
+        PATH=~/.local/bin:$PATH pytest --controller=irctest.controllers.charybdis -k 'not Ergo and not deprecated and not strict and not testDoubleKickMessages and not testQuitErrors and not (AccountTagTestCase and testInvite)'
 
