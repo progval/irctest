@@ -63,9 +63,7 @@ TEMPLATE_SSL_CONFIG = """
 """
 
 
-class InspircdController(
-    AthemeServices, BaseServerController, DirectoryBasedController
-):
+class InspircdController(BaseServerController, DirectoryBasedController):
     software_name = "InspIRCd"
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
@@ -130,7 +128,8 @@ class InspircdController(
         )
 
         if run_services:
-            self.run_services(
+            self.services_controller = AthemeServices(self.test_config, self)
+            self.services_controller.run(
                 server_hostname=services_hostname, server_port=services_port
             )
 
