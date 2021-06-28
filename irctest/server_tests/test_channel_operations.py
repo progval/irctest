@@ -1219,7 +1219,13 @@ class RegisteredOnlySpeakMode(cases.BaseServerTestCase):
             replies[0], command="PRIVMSG", params=["#chan", "hi again from baz"]
         )
 
-        self.connectClient("evan", name="evan", account="evan", password="sesame")
+        self.connectClient(
+            "evan",
+            name="evan",
+            account="evan",
+            password="sesame",
+            capabilities=["sasl"],
+        )
         self.joinChannel("evan", "#chan")
         self.getMessages("baz")
         self.sendLine("evan", "PRIVMSG #chan :hi from evan")
