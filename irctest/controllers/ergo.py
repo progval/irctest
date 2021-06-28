@@ -58,7 +58,6 @@ BASE_CONFIG = {
         },
         "nick-reservation": {
             "enabled": True,
-            "additional-nick-limit": 2,
             "method": "strict",
         },
     },
