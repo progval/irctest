@@ -36,6 +36,7 @@ TEMPLATE_CONFIG = """
       target="services.example.org">
 
 # Protocol:
+<module name="botmode">
 <module name="cap">
 <module name="ircv3">
 <module name="ircv3_accounttag">
