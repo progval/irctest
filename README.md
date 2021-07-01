@@ -23,11 +23,11 @@ Install irctest and dependencies:
 ```
 git clone https://github.com/ProgVal/irctest.git
 cd irctest
-pip3 install --user -r requirements.txt pyxmpp2-scram
+pip3 install --user -r requirements.txt
 python3 setup.py install --user
 ```
 
-Add `~/.local/bin/` (and/or `~/.local/bin/` for Ergo)
+Add `~/.local/bin/` (and/or `~/go/bin/` for Ergo)
 to your `PATH` if it is not.
 
 ```
