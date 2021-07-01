@@ -25,6 +25,7 @@ ERGO_SELECTORS := \
 # testNoticeNonexistentChannel fails because of https://github.com/inspircd/inspircd/issues/1849
 # testDirectMessageEcho fails because of https://github.com/inspircd/inspircd/issues/1851
 # testKeyValidation fails because of https://github.com/inspircd/inspircd/issues/1850
+# testBotPrivateMessage and testBotChannelMessage fail because https://github.com/inspircd/inspircd/pull/1910 is not released yet
 INSPIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -32,6 +33,7 @@ INSPIRCD_SELECTORS := \
 	and not testNoticeNonexistentChannel \
 	and not testDirectMessageEcho \
 	and not testKeyValidation \
+	and not testBotPrivateMessage and not testBotChannelMessage \
 	$(EXTRA_SELECTORS)
 
 MAMMON_SELECTORS := \
