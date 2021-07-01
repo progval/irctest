@@ -2,9 +2,8 @@ from irctest import cases
 from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME
 
 
+@cases.mark_services
 class ConfusablesTestCase(cases.BaseServerTestCase):
-    run_services = True
-
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(

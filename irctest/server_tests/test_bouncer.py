@@ -4,9 +4,8 @@ from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME
 from irctest.patma import ANYSTR, StrRe
 
 
+@cases.mark_services
 class Bouncer(cases.BaseServerTestCase):
-    run_services = True
-
     @cases.mark_specifications("Ergo")
     def testBouncer(self):
         """Test basic bouncer functionality."""

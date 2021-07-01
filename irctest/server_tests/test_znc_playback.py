@@ -13,9 +13,8 @@ def extract_playback_privmsgs(messages):
     return result
 
 
+@cases.mark_services
 class ZncPlaybackTestCase(cases.BaseServerTestCase):
-    run_services = True
-
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(chathistory=True)
