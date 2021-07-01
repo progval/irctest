@@ -74,9 +74,13 @@ class TagsTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("message-tags")
     def testLineTooLong(self):
         self.connectClient("bar", capabilities=["message-tags"], skip_if_cap_nak=True)
+        self.connectClient(
+            "recver", capabilities=["message-tags"], skip_if_cap_nak=True
+        )
         self.joinChannel(1, "#xyz")
         monsterMessage = "@+clientOnlyTagExample=" + "a" * 4096 + " PRIVMSG #xyz hi!"
         self.sendLine(1, monsterMessage)
+        self.assertEqual(self.getMessages(2), [], "overflowing message was relayed")
         replies = self.getMessages(1)
         self.assertIn(ERR_INPUTTOOLONG, set(reply.command for reply in replies))
 

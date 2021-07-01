@@ -517,9 +517,15 @@ class BaseServerTestCase(
 
     def getRegistrationMessage(self, client: TClientName) -> Message:
         """Filter notices, do not send pings."""
-        return self.getMessage(
-            client, synchronize=False, filter_pred=lambda m: m.command != "NOTICE"
-        )
+        while True:
+            msg = self.getMessage(
+                client, synchronize=False, filter_pred=lambda m: m.command != "NOTICE"
+            )
+            if msg.command == "PING":
+                # Hi Unreal
+                self.sendLine(client, "PONG :" + msg.params[0])
+            else:
+                return msg
 
     def sendLine(self, client: TClientName, line: Union[str, bytes]) -> None:
         return self.clients[client].sendLine(line)
@@ -565,6 +571,9 @@ class BaseServerTestCase(
             result.append(m)
             if m.command == "001":
                 return result
+            elif m.command == "PING":
+                # Hi, Unreal
+                self.sendLine(client, "PONG :" + m.params[0])
 
     def requestCapabilities(
         self,

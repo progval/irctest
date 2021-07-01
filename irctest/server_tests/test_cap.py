@@ -125,6 +125,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         cap1 = "echo-message"
         cap2 = "server-time"
         self.addClient(1)
+        self.connectClient("sender")
         self.sendLine(1, "CAP LS 302")
         m = self.getRegistrationMessage(1)
         if not ({cap1, cap2} <= set(m.params[2].split())):
@@ -146,7 +147,10 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         enabled_caps = set(cap_list.params[2].split())
         enabled_caps.discard("cap-notify")  # implicitly added by some impls
         self.assertEqual(enabled_caps, {cap1, cap2})
-        self.assertIn("time", cap_list.tags, cap_list)
+
+        self.sendLine(2, "PRIVMSG bar :hi")
+        m = self.getMessage(1)
+        self.assertIn("time", m.tags, m)
 
         # remove the server-time cap
         self.sendLine(1, f"CAP REQ :-{cap2}")

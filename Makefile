@@ -60,6 +60,16 @@ SOPEL_SELECTORS := \
 	not testPlainNotAvailable \
 	$(EXTRA_SELECTORS)
 
+# testNoticeNonexistentChannel fails: https://bugs.unrealircd.org/view.php?id=5949
+# test_regressions::testTagCap fails: https://bugs.unrealircd.org/view.php?id=5948
+# test_messages::testLineTooLong fails: https://bugs.unrealircd.org/view.php?id=5947
+UNREAL_SELECTORS := \
+	not Ergo \
+	and not testNoticeNonexistentChannel \
+	and not (test_regressions and testTagCap) \
+	and not (test_messages and testLineTooLong) \
+	$(EXTRA_SELECTORS)
+
 .PHONY: all flakes ergo charybdis
 
 all: flakes ergo inspircd limnoria sopel solanum

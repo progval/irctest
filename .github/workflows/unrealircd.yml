@@ -1,0 +1,55 @@
+name: irctest with UnrealIRCd
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cache
+          $GITHUB_WORKSPACE/unrealircd
+        key: ${{ runner.os }}-unrealircd
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get install atheme-services
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+
+    - name: Checkout UnrealIRCd
+      uses: actions/checkout@v2
+      with:
+        repository: unrealircd/unrealircd
+        ref: unreal52
+        path: unrealircd
+
+    - name: Build UnrealIRCd
+      run: |
+        cd $GITHUB_WORKSPACE/unrealircd/
+        cp $GITHUB_WORKSPACE/unreal_config.settings config.settings
+        CFLAGS=-O0 ./Config -quick
+        make -j 4
+        echo "\n\n\n\n\n\n" | make pem
+        make install
+
+    - name: Test with pytest
+      run: |
+        PATH=~/.local/unrealircd/bin:$PATH make unreal
+
+
