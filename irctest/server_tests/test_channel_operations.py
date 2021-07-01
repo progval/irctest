@@ -1180,9 +1180,8 @@ class ModeratedMode(cases.BaseServerTestCase):
         )
 
 
+@cases.mark_services
 class RegisteredOnlySpeakMode(cases.BaseServerTestCase):
-    run_services = True
-
     @cases.mark_specifications("Ergo")
     def testRegisteredOnlySpeakMode(self):
         self.controller.registerUser(self, "evan", "sesame")

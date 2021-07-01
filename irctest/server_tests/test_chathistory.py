@@ -33,9 +33,8 @@ def validate_chathistory_batch(msgs):
     return result
 
 
+@cases.mark_services
 class ChathistoryTestCase(cases.BaseServerTestCase):
-    run_services = True
-
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(chathistory=True)

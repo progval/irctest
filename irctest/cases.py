@@ -57,6 +57,7 @@ CHANNEL_JOIN_FAIL_NUMERICS = frozenset(
 
 # typevar for decorators
 TCallable = TypeVar("TCallable", bound=Callable)
+TClass = TypeVar("TClass", bound=Type)
 
 # typevar for the client name used by tests (usually int or str)
 TClientName = TypeVar("TClientName", bound=Union[Hashable, int])
@@ -714,6 +715,11 @@ class OptionalityHelper(Generic[TController]):
             return f(self)
 
         return newf
+
+
+def mark_services(cls: TClass) -> TClass:
+    cls.run_services = True
+    return pytest.mark.services(cls)  # type: ignore
 
 
 def mark_specifications(

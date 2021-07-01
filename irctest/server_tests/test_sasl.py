@@ -4,16 +4,14 @@ from irctest import cases
 from irctest.patma import ANYSTR
 
 
+@cases.mark_services
 class RegistrationTestCase(cases.BaseServerTestCase):
-    run_services = True
-
     def testRegistration(self):
         self.controller.registerUser(self, "testuser", "mypassword")
 
 
+@cases.mark_services
 class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    run_services = True
-
     @cases.mark_specifications("IRCv3")
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     def testPlain(self):

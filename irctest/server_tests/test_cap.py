@@ -146,7 +146,7 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         enabled_caps = set(cap_list.params[2].split())
         enabled_caps.discard("cap-notify")  # implicitly added by some impls
         self.assertEqual(enabled_caps, {cap1, cap2})
-        self.assertIn("time", cap_list.tags)
+        self.assertIn("time", cap_list.tags, cap_list)
 
         # remove the server-time cap
         self.sendLine(1, f"CAP REQ :-{cap2}")
