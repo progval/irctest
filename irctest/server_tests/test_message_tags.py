@@ -122,8 +122,8 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.getMessages("alice")
         self.getMessages("bob")
 
-        # this is right at the limit of 4094 bytes of tag data,
-        # 4096 bytes of tag section (including the starting '@' and the final ' ')
+        # this is right at the limit of 4094 bytes of server tag data,
+        # 4096 bytes of client tag data (including the starting '@' and the final ' ')
         max_tagmsg = "@foo=bar;+baz=%s TAGMSG #test" % ("a" * 4081,)
         self.assertEqual(max_tagmsg.index("TAGMSG"), 4096)
         self.sendLine("alice", max_tagmsg)
