@@ -282,7 +282,14 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         )
         self.getMessages(2)
 
-        self.sendLine(1, "@label=12345;+draft/reply=123;+draft/react=l😃l TAGMSG bar")
+        # Need to get a valid msgid because Unreal validates them
+        self.sendLine(1, "PRIVMSG bar :hi")
+        msgid = self.getMessage(1).tags["msgid"]
+        assert msgid == self.getMessage(2).tags["msgid"]
+
+        self.sendLine(
+            1, f"@label=12345;+draft/reply={msgid};+draft/react=l😃l TAGMSG bar"
+        )
         m = self.getMessage(1)
         m2 = self.getMessage(2)
 
@@ -290,7 +297,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.assertMessageMatch(
             m2,
             command="TAGMSG",
-            tags={"+draft/reply": "123", "+draft/react": "l😃l", **ANYDICT},
+            tags={"+draft/reply": msgid, "+draft/react": "l😃l", **ANYDICT},
         )
         self.assertNotIn(
             "label",
@@ -308,7 +315,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             command="TAGMSG",
             tags={
                 "label": "12345",
-                "+draft/reply": "123",
+                "+draft/reply": msgid,
                 "+draft/react": "l😃l",
                 **ANYDICT,
             },
@@ -338,7 +345,14 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.getMessages(2)
         self.getMessages(1)
 
-        self.sendLine(1, "@label=12345;+draft/reply=123;+draft/react=l😃l TAGMSG #test")
+        # Need to get a valid msgid because Unreal validates them
+        self.sendLine(1, "PRIVMSG #test :hi")
+        msgid = self.getMessage(1).tags["msgid"]
+        assert msgid == self.getMessage(2).tags["msgid"]
+
+        self.sendLine(
+            1, f"@label=12345;+draft/reply={msgid};+draft/react=l😃l TAGMSG #test"
+        )
         ms = self.getMessage(1)
         mt = self.getMessage(2)
 
@@ -361,7 +375,9 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         # ensure sender correctly receives msg
         self.assertMessageMatch(
-            ms, command="TAGMSG", tags={"label": "12345", **ANYDICT}
+            ms,
+            command="TAGMSG",
+            tags={"label": "12345", "+draft/reply": msgid, **ANYDICT},
         )
 
     @cases.mark_capabilities(

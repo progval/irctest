@@ -183,6 +183,8 @@ class BaseServerController(_BaseController):
     port: int
     hostname: str
     services_controller: BaseServicesController
+    extban_mute_char: Optional[str] = None
+    """Character used for the 'mute' extban"""
 
     def run(
         self,

@@ -2,6 +2,8 @@
 <http://ircv3.net/specs/extensions/echo-message-3.2.html>
 """
 
+import pytest
+
 from irctest import cases
 from irctest.basecontrollers import NotImplementedByController
 from irctest.irc_utils.junkdrawer import random_name
@@ -97,6 +99,7 @@ def _testEchoMessage(command, solo, server_time):
 
 
 class EchoMessageTestCase(cases.BaseServerTestCase):
+    @pytest.mark.arbitrary_client_tags
     @cases.mark_capabilities(
         "batch", "labeled-response", "echo-message", "message-tags"
     )

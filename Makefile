@@ -63,16 +63,22 @@ SOPEL_SELECTORS := \
 # testNoticeNonexistentChannel fails: https://bugs.unrealircd.org/view.php?id=5949
 # test_regressions::testTagCap fails: https://bugs.unrealircd.org/view.php?id=5948
 # test_messages::testLineTooLong fails: https://bugs.unrealircd.org/view.php?id=5947
-UNREAL_SELECTORS := \
+# testCapRemovalByClient and testNakWhole fail pending https://github.com/unrealircd/unrealircd/pull/148
+# Tests marked with arbitrary_client_tags can't pass because Unreal whitelists tags it relays
+UNREALIRCD_SELECTORS := \
 	not Ergo \
+	and not deprecated \
+	and not strict \
 	and not testNoticeNonexistentChannel \
 	and not (test_regressions and testTagCap) \
 	and not (test_messages and testLineTooLong) \
+	and not (test_cap and (testCapRemovalByClient or testNakWhole)) \
+	and not arbitrary_client_tags \
 	$(EXTRA_SELECTORS)
 
-.PHONY: all flakes ergo charybdis
+.PHONY: all flakes charybdis ergo inspircd mammon limnoria sopel solanum unrealircd
 
-all: flakes ergo inspircd limnoria sopel solanum
+all: flakes charybdis ergo inspircd mammon limnoria sopel solanum unrealircd
 
 flakes:
 	pyflakes3 irctest
@@ -97,3 +103,6 @@ solanum:
 
 sopel:
 	$(PYTEST) $(PYTEST_ARGS) --controller=irctest.controllers.sopel -k '$(SOPEL_SELECTORS)'
+
+unrealircd:
+	$(PYTEST) $(PYTEST_ARGS) --controller=irctest.controllers.unrealircd -k '$(UNREALIRCD_SELECTORS)'

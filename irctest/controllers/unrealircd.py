@@ -78,14 +78,17 @@ set {{
     default-server "irc.example.org";
     help-channel "#Help";
     cloak-keys {{ "aaaA1"; "bbbB2"; "cccC3"; }}
-        anti-flood {{
-            // Prevent throttling, especially test_buffering.py which
-            // triggers anti-flood with its very long lines
-            unknown-users {{
-                lag-penalty 1;
-                lag-penalty-bytes 10000;
-            }}
+    options {{
+        identd-check;  // Disable it, so it doesn't prefix idents with a tilde
+    }}
+    anti-flood {{
+        // Prevent throttling, especially test_buffering.py which
+        // triggers anti-flood with its very long lines
+        unknown-users {{
+            lag-penalty 1;
+            lag-penalty-bytes 10000;
         }}
+    }}
 }}
 
 tld {{
@@ -101,6 +104,8 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
     software_name = "InspIRCd"
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
+
+    extban_mute_char = "q"
 
     def create_config(self) -> None:
         super().create_config()
@@ -170,7 +175,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         )
 
         if run_services:
-            assert False
+            raise NotImplementedByController("Registration services")
 
 
 def get_irctest_controller_class() -> Type[UnrealircdController]:

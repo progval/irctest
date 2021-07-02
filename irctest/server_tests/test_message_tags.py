@@ -2,6 +2,8 @@
 https://ircv3.net/specs/extensions/message-tags.html
 """
 
+import pytest
+
 from irctest import cases
 from irctest.irc_utils.message_parser import parse_message
 from irctest.numerics import ERR_INPUTTOOLONG
@@ -9,6 +11,7 @@ from irctest.patma import ANYDICT, ANYSTR, StrRe
 
 
 class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+    @pytest.mark.arbitrary_client_tags
     @cases.mark_capabilities("message-tags")
     def testBasic(self):
         def getAllMessages():
@@ -107,6 +110,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             self.assertNotIn("cat", msg.tags)
         self.assertEqual(alice_msg.tags["msgid"], bob_msg.tags["msgid"])
 
+    @pytest.mark.arbitrary_client_tags
     @cases.mark_capabilities("message-tags")
     @cases.mark_specifications("ircdocs")
     def testLengthLimits(self):
