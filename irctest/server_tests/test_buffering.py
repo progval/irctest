@@ -10,31 +10,31 @@ from irctest.patma import ANYSTR
 
 
 def _sendWhole(self, line):
-    print("sending", repr(line.encode()))
+    print("(repr) 1 -> S", repr(line.encode()))
     self.clients[1].conn.sendall(line.encode())
 
 
 def _sendCharPerChar(self, line):
-    print("sending", repr(line.encode()))
+    print("(repr) 1 -> S", repr(line.encode()))
     for char in line:
         self.clients[1].conn.sendall(char.encode())
 
 
 def _sendBytePerByte(self, line):
-    print("sending", repr(line.encode()))
+    print("(repr) 1 -> S", repr(line.encode()))
     for byte in line.encode():
         self.clients[1].conn.sendall(bytes([byte]))
 
 
 def _testNoTags(sender_function, colon):
     def f(self):
-        self.connectClient("foo")
-        self.connectClient("bar")
+        self.connectClient("nick1")
+        self.connectClient("nick2")
 
         overhead = self.get_overhead(1, 2, colon=colon)
         print(f"overhead is {overhead}")
 
-        line = f"PRIVMSG bar {colon}"
+        line = f"PRIVMSG nick2 {colon}"
         remaining_size = 512 - len(line) - len("\r\n")
         emoji_size = len("😃".encode())
         payloads = [
@@ -68,7 +68,7 @@ def _testNoTags(sender_function, colon):
                 continue
 
             received_line = self._getLine(2)
-            print("received", repr(received_line))
+            print("(repr) S -> 2:", repr(received_line))
             try:
                 decoded_line = received_line.decode()
             except UnicodeDecodeError:
@@ -82,7 +82,9 @@ def _testNoTags(sender_function, colon):
                 payload_intact = False
             else:
                 msg = message_parser.parse_message(decoded_line)
-                self.assertMessageMatch(msg, command="PRIVMSG", params=["bar", ANYSTR])
+                self.assertMessageMatch(
+                    msg, command="PRIVMSG", params=["nick2", ANYSTR]
+                )
                 payload_intact = msg.params[1] == payload
             if not payload_intact:
                 # truncated
@@ -102,9 +104,9 @@ class BufferingTestCase(cases.BaseServerTestCase):
     # show_io = False
 
     def get_overhead(self, client1, client2, colon):
-        self.sendLine(client1, f"PRIVMSG bar {colon}a\r\n")
+        self.sendLine(client1, f"PRIVMSG nick2 {colon}a\r\n")
         line = self._getLine(client2)
-        return len(line) - len(f"PRIVMSG bar {colon}a\r\n")
+        return len(line) - len(f"PRIVMSG nick2 {colon}a\r\n")
 
     def _getLine(self, client) -> bytes:
         line = b""
