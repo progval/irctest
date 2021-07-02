@@ -1513,11 +1513,12 @@ class MuteExtban(cases.BaseServerTestCase):
         """
         clients = ("chanop", "bar")
 
+        self.connectClient("chanop", name="chanop")
+
         isupport = self.server_support
         token = isupport.get("EXTBAN", "")
         prefix, comma, types = token.partition(",")
 
-        self.connectClient("chanop", name="chanop")
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
         self.sendLine("chanop", f"MODE #chan +b {prefix}{self.char()}:BAR!*@*")
