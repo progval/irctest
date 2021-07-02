@@ -42,10 +42,9 @@ jobs:
     - name: Build UnrealIRCd
       run: |
         cd $GITHUB_WORKSPACE/unrealircd/
-        cp $GITHUB_WORKSPACE/unreal_config.settings config.settings
+        cp $GITHUB_WORKSPACE/unreal/* .
         CFLAGS=-O0 ./Config -quick
         make -j 4
-        echo "\n\n\n\n\n\n" | make pem
         make install
 
     - name: Test with pytest
