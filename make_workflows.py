@@ -93,7 +93,8 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
                 {"cron": "51 8 * * 6"},
                 {"cron": "51 8 * * 0"},
                 {"cron": "51 17 * * *"},
-            ]
+            ],
+            "workflow_dispatch": None,
         }
 
     workflow = {
