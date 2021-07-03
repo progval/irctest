@@ -1,0 +1,87 @@
+# Input used by make_workflows.py to generate .github/workflows/
+
+software:
+    #############################
+    # Charybdis family:
+    charybdis:
+        name: Charybdis
+        repository: charybdis-ircd/charybdis
+        ref: charybdis-4.1.2
+        path: charybdis
+        build_script: |
+            cd $GITHUB_WORKSPACE/charybdis/
+            ./autogen.sh
+            ./configure --prefix=$HOME/.local/
+            make -j 4
+            make install
+
+    solanum:
+        name: Solanum
+        repository: solanum-ircd/solanum
+        ref: e370888264da666a1bd9faac86cd5f2aa06084f4
+        path: solanum
+        build_script: |
+            cd $GITHUB_WORKSPACE/solanum/
+            ./autogen.sh
+            ./configure --prefix=$HOME/.local/
+            make -j 4
+            make install
+
+    #############################
+    # Other servers:
+    ergo:
+        name: Ergo
+        repository: ergochat/ergo
+        ref: irctest_stable
+        path: ergo
+        prefix: ~/go
+        pre_deps:
+            - uses: actions/setup-go@v2
+              with:
+                  go-version: '~1.16'
+            - run: go version
+        build_script: |
+            cd $GITHUB_WORKSPACE/ergo/
+            make build
+            make install
+
+    inspircd:
+        name: InspIRCd
+        repository: inspircd/inspircd
+        ref: v3.8.1
+        path: inspircd
+        prefix: ~/.local/inspircd
+        build_script: |
+            cd $GITHUB_WORKSPACE/inspircd/
+            patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
+            ./configure --prefix=$HOME/.local/inspircd --development
+            make -j 4
+            make install
+
+    unrealircd:
+        name: UnrealIRCd
+        repository: unrealircd/unrealircd
+        ref: unreal52
+        path: unrealircd
+        prefix: ~/.local/unrealircd
+        build_script: |
+            cd $GITHUB_WORKSPACE/unrealircd/
+            cp $GITHUB_WORKSPACE/unreal/* .
+            CFLAGS=-O0 ./Config -quick
+            make -j 4
+            make install
+
+    #############################
+    # Clients:
+
+    limnoria:
+        name: Limnoria
+        install_steps:
+            - name: Install dependencies
+              run: pip install limnoria==2021.01.15 cryptography
+
+    sopel:
+        name: Sopel
+        install_steps:
+            - name: Install dependencies
+              run: pip install sopel==7.0.7

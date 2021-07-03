@@ -82,8 +82,11 @@ All tests should be tagged with
 
 We run automated tests on all commits and pull requests, to check that tests
 accept existing implementations.
+Scripts to run the tests are defined in `workflows.yml`, and the
+`make_workflows.py` script reads this configuration to generate files
+in `.github/workflows/` that are used by the CI.
 
-If an implementation cannot pass a test, that test should be excluded using
-the `-k` argument of pytest, in both `README.md` and `.github/workflows/`.
+If an implementation cannot pass a test, that test should be excluded via
+a definition in the Makefile.
 If it is a bug, please open a bug report to the affected software if possible,
 and link to the bug report in a comment.
