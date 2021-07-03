@@ -244,8 +244,12 @@ class BaseServicesController(_BaseController):
         super().__init__(test_config)
         self.test_config = test_config
         self.server_controller = server_controller
+        self.services_up = False
 
     def wait_for_services(self) -> None:
+        if self.services_up:
+            # Don't check again if they are already available
+            return
         self.server_controller.wait_for_port()
 
         c = ClientMock(name="chkNS", show_io=True)
@@ -285,6 +289,7 @@ class BaseServicesController(_BaseController):
         c.sendLine("QUIT")
         c.getMessages()
         c.disconnect()
+        self.services_up = True
 
     def getNickServResponse(self, client: Any) -> List[Message]:
         """Wrapper aroung getMessages() that waits longer, because NickServ
