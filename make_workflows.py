@@ -33,7 +33,7 @@ def generate_workflow(config, software_id):
     software_config = config["software"][software_id]
     path = software_config["path"]
     name = software_config["name"]
-    prefix = software_config["prefix"]
+    prefix = software_config.get("prefix", "~/.local")
     workflow = {
         "name": "irctest with {name}",
         "on": {"push": None, "pull_request": None},
@@ -47,6 +47,7 @@ def generate_workflow(config, software_id):
                         "uses": "actions/setup-python@v2",
                         "with": {"python-version": 3.7},
                     },
+                    *software_config.get("pre_deps", []),
                     {
                         "name": "Cache dependencies",
                         "uses": "actions/cache@v2",
