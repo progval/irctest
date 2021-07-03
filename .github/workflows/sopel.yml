@@ -27,6 +27,6 @@ jobs:
     - name: Test with pytest
       run: PATH=~/.local/bin:$PATH make sopel
 name: irctest with Sopel
-'on':
+on:
   pull_request: null
   push: null

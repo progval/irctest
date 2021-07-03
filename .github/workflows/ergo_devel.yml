@@ -40,7 +40,7 @@ jobs:
     - name: Test with pytest
       run: PATH=~/go/bin:$PATH make ergo
 name: irctest with Ergo
-'on':
+on:
   schedule:
   - '51 8 * * 6'
   - '51 8 * * 0'

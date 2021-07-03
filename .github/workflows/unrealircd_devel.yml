@@ -38,7 +38,7 @@ jobs:
     - name: Test with pytest
       run: PATH=~/.local/unrealircd/bin:$PATH make unrealircd
 name: irctest with UnrealIRCd
-'on':
+on:
   schedule:
   - '51 8 * * 6'
   - '51 8 * * 0'

@@ -38,7 +38,7 @@ jobs:
     - name: Test with pytest
       run: PATH=~/.local/inspircd/bin:$PATH make inspircd
 name: irctest with InspIRCd
-'on':
+on:
   schedule:
   - '51 8 * * 6'
   - '51 8 * * 0'
