@@ -36,7 +36,7 @@ jobs:
         make -j 4
         make install
     - name: Test with pytest
-      run: PATH=~/.local/inspircd/bin:$PATH make inspircd
+      run: PATH=~/.local/inspircd/bin:$PATH PYTEST_ARGS="-m 'not services'" make inspircd
 name: irctest with InspIRCd (devel)
 'on':
   schedule:

@@ -97,6 +97,10 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
             "workflow_dispatch": None,
         }
 
+    env = software_config.get("env", {}).get(version_flavor.value, "")
+    if env:
+        env += " "
+
     workflow = {
         "name": f"irctest with {name} ({version_flavor.value})",
         "on": on,
@@ -135,7 +139,7 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
                     *install_steps,
                     {
                         "name": "Test with pytest",
-                        "run": f"PATH={prefix}/bin:$PATH make {software_id}",
+                        "run": f"PATH={prefix}/bin:$PATH {env}make {software_id}",
                     },
                 ],
             }
