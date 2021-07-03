@@ -27,21 +27,11 @@ def script_representer(dumper, data: script):
     return dumper.represent_scalar("tag:yaml.org,2002:str", data.data, style="|")
 
 
-class cronline(str):
-    pass
-
-
-def cronline_representer(dumper, data: cronline):
-    """Forces cron lines to be quoted, because GitHub needs it for some reason."""
-    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="'")
-
-
 class Dumper(yaml.Dumper):
     pass
 
 
 Dumper.add_representer(script, script_representer)
-Dumper.add_representer(cronline, cronline_representer)
 
 
 class VersionFlavor(enum.Enum):
@@ -100,9 +90,9 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
         # to fix bugs it detects)
         on = {
             "schedule": [
-                {"cron": cronline("51 8 * * 6")},
-                {"cron": cronline("51 8 * * 0")},
-                {"cron": cronline("51 17 * * *")},
+                {"cron": "51 8 * * 6"},
+                {"cron": "51 8 * * 0"},
+                {"cron": "51 17 * * *"},
             ]
         }
 

@@ -42,6 +42,6 @@ jobs:
 name: irctest with Ergo
 on:
   schedule:
-  - cron: '51 8 * * 6'
-  - cron: '51 8 * * 0'
-  - cron: '51 17 * * *'
+  - cron: 51 8 * * 6
+  - cron: 51 8 * * 0
+  - cron: 51 17 * * *
