@@ -119,13 +119,36 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "NICK foo")
         self.sendLine(1, "USER username * * :Realname")
         self.sendLine(2, "USER username * * :Realname")
-        m1 = self.getRegistrationMessage(1)
-        m2 = self.getRegistrationMessage(2)
+
+        try:
+            m1 = self.getRegistrationMessage(1)
+        except (ConnectionClosed, ConnectionResetError):
+            # Unreal closes the connection, see
+            # https://bugs.unrealircd.org/view.php?id=5950
+            command1 = None
+        else:
+            command1 = m1.command
+
+        try:
+            m2 = self.getRegistrationMessage(2)
+        except (ConnectionClosed, ConnectionResetError):
+            # ditto
+            command2 = None
+        else:
+            command2 = m2.command
+
         self.assertNotEqual(
-            (m1.command, m2.command),
+            (command1, command2),
             ("001", "001"),
             "Two concurrently registering requesting the same nickname "
             "both got 001.",
+        )
+
+        self.assertIn(
+            "001",
+            (command1, command2),
+            "Two concurrently registering requesting the same nickname "
+            "neither got 001.",
         )
 
     @cases.mark_specifications("IRCv3")

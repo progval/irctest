@@ -26,7 +26,7 @@ from irctest.numerics import (
     RPL_TOPIC,
     RPL_TOPICTIME,
 )
-from irctest.patma import ANYSTR, StrRe
+from irctest.patma import ANYLIST, ANYSTR, StrRe
 
 MODERN_CAPS = [
     "server-time",
@@ -1296,16 +1296,13 @@ class OpModerated(cases.BaseServerTestCase):
 class MuteExtban(cases.BaseServerTestCase):
     """https://defs.ircdocs.horse/defs/isupport.html#extban
 
-    These tests assume that if the server advertizes the 'm' extban,
-    then it supports mute.
+    It magically guesses what char the IRCd uses for mutes."""
 
-    This is not true of Charybdis, which introduced a conflicting 'm'
-    exban for matching hostmasks in 2015
-    (e2a9fa9cab3720215d8081e940109416e8214a29).
-
-    But Unreal was already using 'm' for muting since 2008
-    (f474e7e6dc2d36f96150ebe33b23b4ea76814415) and it is the most popular
-    definition so we're going with that one."""
+    def char(self):
+        if self.controller.extban_mute_char is None:
+            raise runner.ExtbanNotSupported("", "mute")
+        else:
+            return self.controller.extban_mute_char
 
     @cases.mark_specifications("Ergo")
     def testISupport(self):
@@ -1313,7 +1310,7 @@ class MuteExtban(cases.BaseServerTestCase):
         isupport = self.server_support
         token = isupport["EXTBAN"]
         prefix, comma, types = token.partition(",")
-        self.assertIn("m", types, "Missing 'm' in ISUPPORT EXTBAN")
+        self.assertIn(self.char, types, f"Missing '{self.char()}' in ISUPPORT EXTBAN")
         self.assertEqual(prefix, "")
         self.assertEqual(comma, ",")
 
@@ -1325,15 +1322,15 @@ class MuteExtban(cases.BaseServerTestCase):
         isupport = self.server_support
         token = isupport.get("EXTBAN", "")
         prefix, comma, types = token.partition(",")
-        if "m" not in types:
-            raise runner.ExtbanNotSupported("m", "mute")
+        if self.char() not in types:
+            raise runner.ExtbanNotSupported(self.char(), "mute")
 
         clients = ("chanop", "bar")
 
         # Mute "bar"
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
-        self.sendLine("chanop", "MODE #chan +b m:bar!*@*")
+        self.sendLine("chanop", f"MODE #chan +b {prefix}{self.char()}:bar!*@*")
         replies = {msg.command for msg in self.getMessages("chanop")}
         self.assertIn("MODE", replies)
         self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
@@ -1343,6 +1340,21 @@ class MuteExtban(cases.BaseServerTestCase):
 
         for client in clients:
             self.getMessages(client)
+
+        # "bar" sees the MODE too
+        self.sendLine("bar", "MODE #chan +b")
+        self.assertMessageMatch(
+            self.getMessage("bar"),
+            command="367",
+            params=[
+                "bar",
+                "#chan",
+                f"{prefix}{self.char()}:bar!*@*",
+                "chanop",
+                *ANYLIST,
+            ],
+        )
+        self.getMessages("bar")
 
         # "bar" talks: rejected
         self.sendLine("bar", "PRIVMSG #chan :hi from bar")
@@ -1354,7 +1366,7 @@ class MuteExtban(cases.BaseServerTestCase):
 
         # remove mute on "bar" with -b
         self.getMessages("chanop")
-        self.sendLine("chanop", "MODE #chan -b m:bar!*@*")
+        self.sendLine("chanop", f"MODE #chan -b {prefix}{self.char()}:bar!*@*")
         replies = {msg.command for msg in self.getMessages("chanop")}
         self.assertIn("MODE", replies)
         self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
@@ -1378,15 +1390,15 @@ class MuteExtban(cases.BaseServerTestCase):
         isupport = self.server_support
         token = isupport.get("EXTBAN", "")
         prefix, comma, types = token.partition(",")
-        if "m" not in types:
-            raise runner.ExtbanNotSupported("m", "mute")
+        if self.char() not in types:
+            raise runner.ExtbanNotSupported(self.char(), "mute")
 
         clients = ("chanop", "qux")
 
         # Mute "qux"
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
-        self.sendLine("chanop", "MODE #chan +b m:qux!*@*")
+        self.sendLine("chanop", f"MODE #chan +b {prefix}{self.char()}:qux!*@*")
         replies = {msg.command for msg in self.getMessages("chanop")}
         self.assertIn("MODE", replies)
         self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
@@ -1437,17 +1449,17 @@ class MuteExtban(cases.BaseServerTestCase):
         isupport = self.server_support
         token = isupport.get("EXTBAN", "")
         prefix, comma, types = token.partition(",")
-        if "m" not in types:
-            raise runner.ExtbanNotSupported("m", "mute")
+        if self.char() not in types:
+            raise runner.ExtbanNotSupported(self.char(), "mute")
         if "e" not in self.server_support["CHANMODES"]:
-            raise runner.ChannelModeNotSupported("m", "mute")
+            raise runner.ChannelModeNotSupported(self.char(), "mute")
 
         clients = ("chanop", "qux")
 
         # Mute "qux"
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
-        self.sendLine("chanop", "MODE #chan +b m:qux!*@*")
+        self.sendLine("chanop", f"MODE #chan +b {prefix}{self.char()}:qux!*@*")
         replies = {msg.command for msg in self.getMessages("chanop")}
         self.assertIn("MODE", replies)
         self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
@@ -1472,10 +1484,12 @@ class MuteExtban(cases.BaseServerTestCase):
             self.getMessages(client)
 
         # +e grants an exemption to +b
-        self.sendLine("chanop", "MODE #chan +e m:*!~evan@*")
+        self.sendLine("chanop", f"MODE #chan +e {prefix}{self.char()}:*!~evan@*")
         replies = {msg.command for msg in self.getMessages("chanop")}
         self.assertIn("MODE", replies)
         self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
+
+        self.getMessages("qux")
 
         # so "qux" can now talk
         self.sendLine("qux", "PRIVMSG #chan :thanks for mute-excepting me")
@@ -1500,9 +1514,14 @@ class MuteExtban(cases.BaseServerTestCase):
         clients = ("chanop", "bar")
 
         self.connectClient("chanop", name="chanop")
+
+        isupport = self.server_support
+        token = isupport.get("EXTBAN", "")
+        prefix, comma, types = token.partition(",")
+
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
-        self.sendLine("chanop", "MODE #chan +b m:BAR!*@*")
+        self.sendLine("chanop", f"MODE #chan +b {prefix}{self.char()}:BAR!*@*")
         replies = {msg.command for msg in self.getMessages("chanop")}
         self.assertIn("MODE", replies)
         self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
@@ -1521,7 +1540,7 @@ class MuteExtban(cases.BaseServerTestCase):
         self.assertEqual(self.getMessages("chanop"), [])
 
         # remove mute with -b
-        self.sendLine("chanop", "MODE #chan -b m:bar!*@*")
+        self.sendLine("chanop", f"MODE #chan -b {prefix}{self.char()}:bar!*@*")
         replies = {msg.command for msg in self.getMessages("chanop")}
         self.assertIn("MODE", replies)
         self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)

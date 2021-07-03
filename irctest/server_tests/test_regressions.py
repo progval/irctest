@@ -109,8 +109,13 @@ class RegressionsTestCase(cases.BaseServerTestCase):
 
         self.sendLine(1, "NICK valid")
         replies = {"NOTICE"}
-        while replies <= {"NOTICE"}:
-            replies = set(msg.command for msg in self.getMessages(1, synchronize=False))
+        while replies <= {"NOTICE", "PING"}:
+            msgs = self.getMessages(1, synchronize=False)
+            for msg in msgs:
+                if msg.command == "PING":
+                    # Hi Unreal
+                    self.sendLine(1, "PONG :" + msg.params[0])
+            replies = set(msg.command for msg in msgs)
         self.assertNotIn(ERR_ERRONEUSNICKNAME, replies)
         self.assertIn(RPL_WELCOME, replies)
 

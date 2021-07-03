@@ -68,6 +68,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
     software_name = "InspIRCd"
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
+    extban_mute_char = "m"
 
     def create_config(self) -> None:
         super().create_config()

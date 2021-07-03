@@ -33,11 +33,16 @@ class BotModeTestCase(cases.BaseServerTestCase):
         self.sendLine("bot", f"MODE botnick +{self._mode_char}")
 
         # Check echoed mode
-        self.assertMessageMatch(
-            self.getMessage("bot"),
-            command="MODE",
-            params=["botnick", StrRe(r"\+?" + self._mode_char)],
-        )
+        while True:
+            msg = self.getMessage("bot")
+            if msg.command != "NOTICE":
+                # Unreal sends the BOTMOTD here
+                self.assertMessageMatch(
+                    msg,
+                    command="MODE",
+                    params=["botnick", StrRe(r"\+?" + self._mode_char)],
+                )
+                break
 
     def testBotMode(self):
         self._initBot()

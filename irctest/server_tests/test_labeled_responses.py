@@ -7,8 +7,10 @@ so there may be many false positives.
 
 import re
 
+import pytest
+
 from irctest import cases
-from irctest.patma import ANYDICT, StrRe
+from irctest.patma import ANYDICT, AnyOptStr, NotStrRe, RemainingKeys, StrRe
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
@@ -89,6 +91,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         self.assertMessageMatch(m, command="PRIVMSG", tags={"label": "12345"})
 
+    @pytest.mark.react_tag
     @cases.mark_capabilities("echo-message", "batch", "labeled-response")
     def testLabeledPrivmsgResponsesToChannel(self):
         self.connectClient(
@@ -190,6 +193,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         self.assertMessageMatch(m, command="NOTICE", tags={"label": "12345"})
 
+    @pytest.mark.react_tag
     @cases.mark_capabilities("echo-message", "batch", "labeled-response")
     def testLabeledNoticeResponsesToChannel(self):
         self.connectClient(
@@ -265,6 +269,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ).format(number_of_labels),
         )
 
+    @pytest.mark.react_tag
     @cases.mark_capabilities(
         "echo-message", "batch", "labeled-response", "message-tags"
     )
@@ -282,7 +287,14 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         )
         self.getMessages(2)
 
-        self.sendLine(1, "@label=12345;+draft/reply=123;+draft/react=l😃l TAGMSG bar")
+        # Need to get a valid msgid because Unreal validates them
+        self.sendLine(1, "PRIVMSG bar :hi")
+        msgid = self.getMessage(1).tags["msgid"]
+        assert msgid == self.getMessage(2).tags["msgid"]
+
+        self.sendLine(
+            1, f"@label=12345;+draft/reply={msgid};+draft/react=l😃l TAGMSG bar"
+        )
         m = self.getMessage(1)
         m2 = self.getMessage(2)
 
@@ -290,7 +302,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.assertMessageMatch(
             m2,
             command="TAGMSG",
-            tags={"+draft/reply": "123", "+draft/react": "l😃l", **ANYDICT},
+            tags={
+                "+draft/reply": msgid,
+                "+draft/react": "l😃l",
+                RemainingKeys(NotStrRe("label")): AnyOptStr(),
+            },
         )
         self.assertNotIn(
             "label",
@@ -308,12 +324,13 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             command="TAGMSG",
             tags={
                 "label": "12345",
-                "+draft/reply": "123",
+                "+draft/reply": msgid,
                 "+draft/react": "l😃l",
                 **ANYDICT,
             },
         )
 
+    @pytest.mark.react_tag
     @cases.mark_capabilities(
         "echo-message", "batch", "labeled-response", "message-tags"
     )
@@ -338,7 +355,14 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.getMessages(2)
         self.getMessages(1)
 
-        self.sendLine(1, "@label=12345;+draft/reply=123;+draft/react=l😃l TAGMSG #test")
+        # Need to get a valid msgid because Unreal validates them
+        self.sendLine(1, "PRIVMSG #test :hi")
+        msgid = self.getMessage(1).tags["msgid"]
+        assert msgid == self.getMessage(2).tags["msgid"]
+
+        self.sendLine(
+            1, f"@label=12345;+draft/reply={msgid};+draft/react=l😃l TAGMSG #test"
+        )
         ms = self.getMessage(1)
         mt = self.getMessage(2)
 
@@ -346,6 +370,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.assertMessageMatch(
             mt,
             command="TAGMSG",
+            tags={
+                "+draft/reply": msgid,
+                "+draft/react": "l😃l",
+                RemainingKeys(NotStrRe("label")): AnyOptStr(),
+            },
             fail_msg="No TAGMSG received by the target after sending one out",
         )
         self.assertNotIn(
@@ -361,9 +390,12 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         # ensure sender correctly receives msg
         self.assertMessageMatch(
-            ms, command="TAGMSG", tags={"label": "12345", **ANYDICT}
+            ms,
+            command="TAGMSG",
+            tags={"label": "12345", "+draft/reply": msgid, **ANYDICT},
         )
 
+    @pytest.mark.react_tag
     @cases.mark_capabilities(
         "echo-message", "batch", "labeled-response", "message-tags"
     )

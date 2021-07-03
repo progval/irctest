@@ -36,6 +36,14 @@ class StrRe(Operator):
 
 
 @dataclasses.dataclass(frozen=True)
+class NotStrRe(Operator):
+    regexp: str
+
+    def __repr__(self) -> str:
+        return f"NotStrRe(r'{self.regexp}')"
+
+
+@dataclasses.dataclass(frozen=True)
 class RemainingKeys(Operator):
     """Used in a dict pattern to match all remaining keys.
     May only be present once."""
@@ -54,6 +62,15 @@ ANYDICT = {RemainingKeys(ANYSTR): AnyOptStr()}
 `match_dict(got_tags, {"label": "foo", **ANYDICT})`"""
 
 
+class _AnyListRemainder:
+    def __repr__(self) -> str:
+        return "*ANYLIST"
+
+
+ANYLIST = [_AnyListRemainder()]
+"""Matches any list remainder"""
+
+
 def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bool:
     if isinstance(expected, AnyOptStr):
         return True
@@ -61,6 +78,9 @@ def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bo
         return True
     elif isinstance(expected, StrRe):
         if got is None or not re.match(expected.regexp, got):
+            return False
+    elif isinstance(expected, NotStrRe):
+        if got is None or re.match(expected.regexp, got):
             return False
     elif isinstance(expected, Operator):
         raise NotImplementedError(f"Unsupported operator: {expected}")
@@ -78,6 +98,9 @@ def match_list(
     The ANYSTR operator can be used on the 'expected' side as a wildcard,
     matching any *single* value; and StrRe("<regexp>") can be used to match regular
     expressions"""
+    if expected[-1] is ANYLIST[0]:
+        expected = expected[0:-1]
+        got = got[0 : len(expected)]  # Ignore remaining
     if len(got) != len(expected):
         return False
     return all(

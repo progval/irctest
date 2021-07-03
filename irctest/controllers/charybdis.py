@@ -73,6 +73,7 @@ class CharybdisController(BaseServerController, DirectoryBasedController):
     binary_name = "charybdis"
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
+    extban_mute_char = None
 
     def create_config(self) -> None:
         super().create_config()
