@@ -67,6 +67,7 @@ SOPEL_SELECTORS := \
 # test_account_tag::testInvite fails: https://bugs.unrealircd.org/view.php?id=5951
 # Tests marked with arbitrary_client_tags can't pass because Unreal whitelists which tags it relays
 # Tests marked with react_tag can't pass because Unreal blocks +draft/react https://github.com/unrealircd/unrealircd/pull/149
+# test_monitor::testNickChange fails: https://github.com/pirc-pl/unrealircd-modules/issues/16
 UNREALIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -76,6 +77,7 @@ UNREALIRCD_SELECTORS := \
 	and not (test_messages and testLineTooLong) \
 	and not (test_cap and (testCapRemovalByClient or testNakWhole)) \
 	and not (test_account_tag and testInvite) \
+	and not (test_monitor and testNickChange) \
 	and not arbitrary_client_tags \
 	and not react_tag \
 	$(EXTRA_SELECTORS)

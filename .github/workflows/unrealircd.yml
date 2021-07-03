@@ -46,6 +46,7 @@ jobs:
         CFLAGS=-O0 ./Config -quick
         make -j 4
         make install
+        ./unrealircd module install third/monitor
 
     - name: Test with pytest
       run: |

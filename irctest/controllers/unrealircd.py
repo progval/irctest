@@ -12,6 +12,7 @@ from irctest.irc_utils.junkdrawer import find_hostname_and_port
 
 TEMPLATE_CONFIG = """
 include "modules.default.conf";
+loadmodule "third/monitor";
 
 me {{
     name "My.Little.Server";
