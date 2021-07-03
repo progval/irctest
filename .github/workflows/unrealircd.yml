@@ -49,6 +49,6 @@ jobs:
 
     - name: Test with pytest
       run: |
-        PATH=~/.local/unrealircd/bin:$PATH make unreal
+        PATH=~/.local/unrealircd/bin:$PATH make unrealircd
 
 
