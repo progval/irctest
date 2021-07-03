@@ -4,7 +4,7 @@ import pytest
 
 from irctest import cases
 from irctest.irc_utils.message_parser import parse_message
-from irctest.patma import ANYDICT, ANYSTR, StrRe
+from irctest.patma import ANYDICT, ANYSTR, AnyOptStr, NotStrRe, RemainingKeys, StrRe
 
 # fmt: off
 MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
@@ -129,6 +129,27 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
             "PRIVMSG #chan hello2",
             "PRIVMSG #chan2 hello",
             ":foo!baz@qux PRIVMSG #chan hello",
+        ]
+    ),
+    (
+        # the specification:
+        dict(
+            tags={"tag1": "bar", RemainingKeys(NotStrRe("tag2")): AnyOptStr()},
+            command="PRIVMSG",
+            params=["#chan", "hello"],
+        ),
+        # matches:
+        [
+            "@tag1=bar PRIVMSG #chan :hello",
+            "@tag1=bar :foo!baz@qux PRIVMSG #chan :hello",
+            "@tag1=bar;tag3= PRIVMSG #chan :hello",
+        ],
+        # and does not match:
+        [
+            "PRIVMG #chan :hello",
+            "@tag1=value1 PRIVMSG #chan :hello",
+            "@tag1=bar;tag2= PRIVMSG #chan :hello",
+            "@tag1=bar;tag2=baz PRIVMSG #chan :hello",
         ]
     ),
 ]

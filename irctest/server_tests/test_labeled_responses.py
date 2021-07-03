@@ -8,7 +8,7 @@ so there may be many false positives.
 import re
 
 from irctest import cases
-from irctest.patma import ANYDICT, StrRe
+from irctest.patma import ANYDICT, AnyOptStr, NotStrRe, RemainingKeys, StrRe
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
@@ -297,7 +297,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.assertMessageMatch(
             m2,
             command="TAGMSG",
-            tags={"+draft/reply": msgid, "+draft/react": "l😃l", **ANYDICT},
+            tags={
+                "+draft/reply": msgid,
+                "+draft/react": "l😃l",
+                RemainingKeys(NotStrRe("label")): AnyOptStr(),
+            },
         )
         self.assertNotIn(
             "label",
@@ -360,6 +364,11 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         self.assertMessageMatch(
             mt,
             command="TAGMSG",
+            tags={
+                "+draft/reply": msgid,
+                "+draft/react": "l😃l",
+                RemainingKeys(NotStrRe("label")): AnyOptStr(),
+            },
             fail_msg="No TAGMSG received by the target after sending one out",
         )
         self.assertNotIn(

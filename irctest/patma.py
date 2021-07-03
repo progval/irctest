@@ -36,6 +36,14 @@ class StrRe(Operator):
 
 
 @dataclasses.dataclass(frozen=True)
+class NotStrRe(Operator):
+    regexp: str
+
+    def __repr__(self) -> str:
+        return f"NotStrRe(r'{self.regexp}')"
+
+
+@dataclasses.dataclass(frozen=True)
 class RemainingKeys(Operator):
     """Used in a dict pattern to match all remaining keys.
     May only be present once."""
@@ -70,6 +78,9 @@ def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bo
         return True
     elif isinstance(expected, StrRe):
         if got is None or not re.match(expected.regexp, got):
+            return False
+    elif isinstance(expected, NotStrRe):
+        if got is None or re.match(expected.regexp, got):
             return False
     elif isinstance(expected, Operator):
         raise NotImplementedError(f"Unsupported operator: {expected}")
