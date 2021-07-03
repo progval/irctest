@@ -34,3 +34,8 @@ jobs:
     - name: Lint
       run: |
         pre-commit run -a
+
+    - name: Check generated workflows are in sync
+      run: |
+        python make_workflows.py
+        git diff --exit-code
