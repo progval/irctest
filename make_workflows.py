@@ -100,9 +100,9 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
         # to fix bugs it detects)
         on = {
             "schedule": [
-                cronline("51 8 * * 6"),
-                cronline("51 8 * * 0"),
-                cronline("51 17 * * *"),
+                {"cron": cronline("51 8 * * 6")},
+                {"cron": cronline("51 8 * * 0")},
+                {"cron": cronline("51 17 * * *")},
             ]
         }
 
