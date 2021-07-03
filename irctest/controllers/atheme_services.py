@@ -58,7 +58,7 @@ class AthemeServices(BaseServicesController, DirectoryBasedController):
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
 
-        assert protocol in ("inspircd", "charybdis")
+        assert protocol in ("inspircd", "charybdis", "unreal4")
 
         with self.open_file("services.conf") as fd:
             fd.write(

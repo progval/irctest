@@ -7,6 +7,7 @@ from irctest.basecontrollers import (
     DirectoryBasedController,
     NotImplementedByController,
 )
+from irctest.controllers.atheme_services import AthemeServices
 from irctest.irc_utils.junkdrawer import find_hostname_and_port
 
 TEMPLATE_CONFIG = """
@@ -63,7 +64,7 @@ listen {{
 
 link services.example.org {{
     incoming {{
-        mask localhost;
+        mask *;
     }}
     password "password";
     class servers;
@@ -73,6 +74,7 @@ ulines {{
 }}
 
 set {{
+    sasl-server services.example.org;
     kline-address "example@example.org";
     network-name "ExampleNET";
     default-server "irc.example.org";
@@ -175,7 +177,13 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         )
 
         if run_services:
-            raise NotImplementedByController("Registration services")
+            self.wait_for_port()
+            self.services_controller = AthemeServices(self.test_config, self)
+            self.services_controller.run(
+                protocol="unreal4",
+                server_hostname=services_hostname,
+                server_port=services_port,
+            )
 
 
 def get_irctest_controller_class() -> Type[UnrealircdController]:
