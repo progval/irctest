@@ -1,0 +1,15 @@
+# Input used by make_workflows.py to generate .github/workflows/
+
+software:
+    unrealircd:
+        name: UnrealIRCd
+        repository: unrealircd/unrealircd
+        ref: unreal52
+        path: unrealircd
+        prefix: ~/.local/unrealircd
+        build_script: |
+            cd $GITHUB_WORKSPACE/unrealircd/
+            cp $GITHUB_WORKSPACE/unreal/* .
+            CFLAGS=-O0 ./Config -quick
+            make -j 4
+            make install
