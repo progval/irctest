@@ -64,7 +64,6 @@ SOPEL_SELECTORS := \
 # test_regressions::testTagCap fails: https://bugs.unrealircd.org/view.php?id=5948
 # test_messages::testLineTooLong fails: https://bugs.unrealircd.org/view.php?id=5947
 # testCapRemovalByClient and testNakWhole fail pending https://github.com/unrealircd/unrealircd/pull/148
-# test_account_tag::testInvite fails: https://bugs.unrealircd.org/view.php?id=5951
 # Tests marked with arbitrary_client_tags can't pass because Unreal whitelists which tags it relays
 # Tests marked with react_tag can't pass because Unreal blocks +draft/react https://github.com/unrealircd/unrealircd/pull/149
 UNREALIRCD_SELECTORS := \

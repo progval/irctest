@@ -23,7 +23,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Install dependencies
-      run: pip install limnoria==2021.01.15 cryptography
+      run: pip install limnoria==2021.06.15 cryptography
     - name: Test with pytest
       run: PATH=~/.local/bin:$PATH make limnoria
 name: irctest with Limnoria (stable)
