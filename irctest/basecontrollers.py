@@ -252,7 +252,10 @@ class BaseServicesController(_BaseController):
         c.connect(self.server_controller.hostname, self.server_controller.port)
         c.sendLine("NICK chkNS")
         c.sendLine("USER chk chk chk chk")
-        c.getMessages(synchronize=False)
+        for msg in c.getMessages(synchronize=False):
+            if msg.command == "PING":
+                # Hi Unreal
+                c.sendLine("PONG :" + msg.params[0])
         c.getMessages()
 
         timeout = time.time() + 5
