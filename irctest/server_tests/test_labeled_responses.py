@@ -7,6 +7,8 @@ so there may be many false positives.
 
 import re
 
+import pytest
+
 from irctest import cases
 from irctest.patma import ANYDICT, AnyOptStr, NotStrRe, RemainingKeys, StrRe
 
@@ -89,6 +91,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         self.assertMessageMatch(m, command="PRIVMSG", tags={"label": "12345"})
 
+    @pytest.mark.react_tag
     @cases.mark_capabilities("echo-message", "batch", "labeled-response")
     def testLabeledPrivmsgResponsesToChannel(self):
         self.connectClient(
@@ -190,6 +193,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
 
         self.assertMessageMatch(m, command="NOTICE", tags={"label": "12345"})
 
+    @pytest.mark.react_tag
     @cases.mark_capabilities("echo-message", "batch", "labeled-response")
     def testLabeledNoticeResponsesToChannel(self):
         self.connectClient(
@@ -265,6 +269,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             ).format(number_of_labels),
         )
 
+    @pytest.mark.react_tag
     @cases.mark_capabilities(
         "echo-message", "batch", "labeled-response", "message-tags"
     )
@@ -325,6 +330,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             },
         )
 
+    @pytest.mark.react_tag
     @cases.mark_capabilities(
         "echo-message", "batch", "labeled-response", "message-tags"
     )
@@ -389,6 +395,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             tags={"label": "12345", "+draft/reply": msgid, **ANYDICT},
         )
 
+    @pytest.mark.react_tag
     @cases.mark_capabilities(
         "echo-message", "batch", "labeled-response", "message-tags"
     )
