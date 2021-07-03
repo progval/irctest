@@ -137,6 +137,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
     _port_wait_interval = 0.01
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = True
+    extban_mute_char = "m"
 
     def create_config(self) -> None:
         super().create_config()
