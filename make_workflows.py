@@ -27,11 +27,21 @@ def script_representer(dumper, data: script):
     return dumper.represent_scalar("tag:yaml.org,2002:str", data.data, style="|")
 
 
+class cronline(str):
+    pass
+
+
+def cronline_representer(dumper, data: cronline):
+    """Forces cron lines to be quoted, because GitHub needs it for some reason."""
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="'")
+
+
 class Dumper(yaml.Dumper):
     pass
 
 
 Dumper.add_representer(script, script_representer)
+Dumper.add_representer(cronline, cronline_representer)
 
 
 class VersionFlavor(enum.Enum):
@@ -88,7 +98,13 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
         # Run every saturday and sunday 8:51 UTC, and every day at 17:51
         # (minute choosen at random, hours and days is so that I'm available
         # to fix bugs it detects)
-        on = {"schedule": ["51 8 * * 6", "51 8 * * 0", "51 17 * * *"]}
+        on = {
+            "schedule": [
+                cronline("51 8 * * 6"),
+                cronline("51 8 * * 0"),
+                cronline("51 17 * * *"),
+            ]
+        }
 
     workflow = {
         "name": f"irctest with {name}",

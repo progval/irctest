@@ -29,6 +29,6 @@ jobs:
 name: irctest with Sopel
 'on':
   schedule:
-  - 51 8 * * 6
-  - 51 8 * * 0
-  - 51 17 * * *
+  - '51 8 * * 6'
+  - '51 8 * * 0'
+  - '51 17 * * *'
