@@ -97,7 +97,7 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
         }
 
     workflow = {
-        "name": f"irctest with {name}",
+        "name": f"irctest with {name} ({version_flavor.value})",
         "on": on,
         "jobs": {
             "build": {

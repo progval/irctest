@@ -37,7 +37,7 @@ jobs:
         make install
     - name: Test with pytest
       run: PATH=~/.local/inspircd/bin:$PATH make inspircd
-name: irctest with InspIRCd
+name: irctest with InspIRCd (devel)
 'on':
   schedule:
   - cron: 51 8 * * 6

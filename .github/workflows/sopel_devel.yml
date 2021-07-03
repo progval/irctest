@@ -26,7 +26,7 @@ jobs:
       run: pip install git+https://github.com/sopel-irc/sopel.git
     - name: Test with pytest
       run: PATH=~/.local/bin:$PATH make sopel
-name: irctest with Sopel
+name: irctest with Sopel (devel)
 'on':
   schedule:
   - cron: 51 8 * * 6

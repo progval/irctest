@@ -26,7 +26,7 @@ jobs:
       run: pip install limnoria==2021.01.15 cryptography
     - name: Test with pytest
       run: PATH=~/.local/bin:$PATH make limnoria
-name: irctest with Limnoria
+name: irctest with Limnoria (stable)
 'on':
   pull_request: null
   push: null

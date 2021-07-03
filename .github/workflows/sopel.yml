@@ -26,7 +26,7 @@ jobs:
       run: pip install sopel==7.0.7
     - name: Test with pytest
       run: PATH=~/.local/bin:$PATH make sopel
-name: irctest with Sopel
+name: irctest with Sopel (stable)
 'on':
   pull_request: null
   push: null

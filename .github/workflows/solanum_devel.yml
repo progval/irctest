@@ -37,7 +37,7 @@ jobs:
         make install
     - name: Test with pytest
       run: PATH=~/.local/bin:$PATH make solanum
-name: irctest with Solanum
+name: irctest with Solanum (devel)
 'on':
   schedule:
   - cron: 51 8 * * 6
