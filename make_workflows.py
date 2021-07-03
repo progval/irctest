@@ -2,6 +2,10 @@
 This script reads the compact workflows.yml file, and and generates files in
 .github/workflows/ suitable for the limited expressivity of GitHub's workflow
 definition language.
+
+The point is that we had/have a lot of duplications between files in
+.github/workflows/, so we use this script to make it easier to update them
+and keep them in sync.
 """
 
 import pathlib
@@ -35,7 +39,7 @@ def generate_workflow(config, software_id):
     name = software_config["name"]
     prefix = software_config.get("prefix", "~/.local")
     workflow = {
-        "name": "irctest with {name}",
+        "name": f"irctest with {name}",
         "on": {"push": None, "pull_request": None},
         "jobs": {
             "build": {

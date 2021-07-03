@@ -39,7 +39,7 @@ jobs:
         make install
     - name: Test with pytest
       run: PATH=~/go/bin:$PATH make ergo
-name: irctest with {name}
+name: irctest with Ergo
 'on':
   pull_request: null
   push: null

@@ -37,7 +37,7 @@ jobs:
         make install
     - name: Test with pytest
       run: PATH=~/.local/bin:$PATH make charybdis
-name: irctest with {name}
+name: irctest with Charybdis
 'on':
   pull_request: null
   push: null
