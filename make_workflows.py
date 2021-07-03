@@ -35,9 +35,30 @@ Dumper.add_representer(script, script_representer)
 
 def generate_workflow(config, software_id):
     software_config = config["software"][software_id]
-    path = software_config["path"]
     name = software_config["name"]
     prefix = software_config.get("prefix", "~/.local")
+
+    if "install_steps" in software_config:
+        path = "placeholder"  # TODO: remove this
+        install_steps = software_config["install_steps"]
+    else:
+        path = software_config["path"]
+        install_steps = [
+            {
+                "name": f"Checkout {name}",
+                "uses": "actions/checkout@v2",
+                "with": {
+                    "repository": software_config["repository"],
+                    "ref": software_config["ref"],
+                    "path": path,
+                },
+            },
+            {
+                "name": f"Build {name}",
+                "run": script(software_config["build_script"]),
+            },
+        ]
+
     workflow = {
         "name": f"irctest with {name}",
         "on": {"push": None, "pull_request": None},
@@ -66,21 +87,14 @@ def generate_workflow(config, software_id):
                             "sudo apt-get install atheme-services",
                             "python -m pip install --upgrade pip",
                             "pip install pytest -r requirements.txt",
+                            *(
+                                software_config["extra_deps"]
+                                if "extra_deps" in software_config
+                                else []
+                            ),
                         ),
                     },
-                    {
-                        "name": f"Checkout {name}",
-                        "uses": "actions/checkout@v2",
-                        "with": {
-                            "repository": software_config["repository"],
-                            "ref": software_config["ref"],
-                            "path": path,
-                        },
-                    },
-                    {
-                        "name": f"Build {name}",
-                        "run": script(software_config["build_script"]),
-                    },
+                    *install_steps,
                     {
                         "name": "Test with pytest",
                         "run": f"PATH={prefix}/bin:$PATH make {software_id}",

@@ -1,6 +1,8 @@
 # Input used by make_workflows.py to generate .github/workflows/
 
 software:
+    #############################
+    # Charybdis family:
     charybdis:
         name: Charybdis
         repository: charybdis-ircd/charybdis
@@ -25,6 +27,8 @@ software:
             make -j 4
             make install
 
+    #############################
+    # Other servers:
     ergo:
         name: Ergo
         repository: ergochat/ergo
@@ -66,3 +70,18 @@ software:
             CFLAGS=-O0 ./Config -quick
             make -j 4
             make install
+
+    #############################
+    # Clients:
+
+    limnoria:
+        name: Limnoria
+        install_steps:
+            - name: Install dependencies
+              run: pip install limnoria==2021.01.15 cryptography
+
+    sopel:
+        name: Sopel
+        install_steps:
+            - name: Install dependencies
+              run: pip install sopel==7.0.7
