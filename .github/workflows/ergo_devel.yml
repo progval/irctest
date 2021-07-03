@@ -10,34 +10,38 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ~1.16
+    - run: go version
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-unrealircd
+        key: ${{ runner.os }}-ergo
         path: |-
           ~/.cache
-          $GITHUB_WORKSPACE/unrealircd
+          $GITHUB_WORKSPACE/ergo
     - name: Install dependencies
       run: |-
         sudo apt-get install atheme-services
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
-    - name: Checkout UnrealIRCd
+    - name: Checkout Ergo
       uses: actions/checkout@v2
       with:
-        path: unrealircd
-        ref: 94993a03ca8d3c193c0295c33af39270c3f9d27d
-        repository: unrealircd/unrealircd
-    - name: Build UnrealIRCd
+        path: ergo
+        ref: master
+        repository: ergochat/ergo
+    - name: Build Ergo
       run: |
-        cd $GITHUB_WORKSPACE/unrealircd/
-        cp $GITHUB_WORKSPACE/unreal/* .
-        CFLAGS=-O0 ./Config -quick
-        make -j 4
+        cd $GITHUB_WORKSPACE/ergo/
+        make build
         make install
     - name: Test with pytest
-      run: PATH=~/.local/unrealircd/bin:$PATH make unrealircd
-name: irctest with UnrealIRCd
+      run: PATH=~/go/bin:$PATH make ergo
+name: irctest with Ergo
 'on':
-  pull_request: null
-  push: null
+  schedule:
+  - 51 8 * * 6
+  - 51 8 * * 0
+  - 51 17 * * *

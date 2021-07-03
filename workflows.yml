@@ -1,12 +1,19 @@
 # Input used by make_workflows.py to generate .github/workflows/
 
+# See VersionFlavor in the script to see how stabl/release/devel/devel_release
+# are defined.
+
 software:
     #############################
     # Charybdis family:
     charybdis:
         name: Charybdis
         repository: charybdis-ircd/charybdis
-        ref: charybdis-4.1.2
+        refs:
+            stable: charybdis-4.1.2
+            release: null
+            devel: null
+            devel_release: null
         path: charybdis
         build_script: |
             cd $GITHUB_WORKSPACE/charybdis/
@@ -18,7 +25,13 @@ software:
     solanum:
         name: Solanum
         repository: solanum-ircd/solanum
-        ref: e370888264da666a1bd9faac86cd5f2aa06084f4
+        refs:
+            # Actually Solanum doesn't have releases; so we just bump this
+            # commit hash from time to time
+            stable: e370888264da666a1bd9faac86cd5f2aa06084f4
+            release: null
+            devel: main
+            devel_release: null
         path: solanum
         build_script: |
             cd $GITHUB_WORKSPACE/solanum/
@@ -32,7 +45,11 @@ software:
     ergo:
         name: Ergo
         repository: ergochat/ergo
-        ref: irctest_stable
+        refs:
+            stable: irctest_stable
+            release: stable
+            devel: master
+            devel_release: null
         path: ergo
         prefix: ~/go
         pre_deps:
@@ -48,7 +65,11 @@ software:
     inspircd:
         name: InspIRCd
         repository: inspircd/inspircd
-        ref: v3.8.1
+        refs:
+            stable: v3.8.1
+            release: null
+            devel: master
+            devel_release: insp3
         path: inspircd
         prefix: ~/.local/inspircd
         build_script: |
@@ -61,7 +82,11 @@ software:
     unrealircd:
         name: UnrealIRCd
         repository: unrealircd/unrealircd
-        ref: unreal52
+        refs:
+            stable: 94993a03ca8d3c193c0295c33af39270c3f9d27d  # 5.2.1-rc1
+            release: null
+            devel: unreal52
+            devel_release: null
         path: unrealircd
         prefix: ~/.local/unrealircd
         build_script: |
@@ -77,11 +102,27 @@ software:
     limnoria:
         name: Limnoria
         install_steps:
-            - name: Install dependencies
-              run: pip install limnoria==2021.01.15 cryptography
+            stable:
+                - name: Install dependencies
+                  run: pip install limnoria==2021.01.15 cryptography
+            release:
+                - name: Install dependencies
+                  run: pip install limnoria cryptography
+            devel:
+                - name: Install dependencies
+                  run: pip install git+https://github.com/ProgVal/Limnoria.git@testing cryptography
+            devel_release: null
 
     sopel:
         name: Sopel
         install_steps:
-            - name: Install dependencies
-              run: pip install sopel==7.0.7
+            stable:
+                - name: Install dependencies
+                  run: pip install sopel==7.0.7
+            release:
+                - name: Install dependencies
+                  run: pip install sopel
+            devel:
+                - name: Install dependencies
+                  run: pip install git+https://github.com/sopel-irc/sopel.git
+            devel_release: null
