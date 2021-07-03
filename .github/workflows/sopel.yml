@@ -23,7 +23,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Install dependencies
-      run: pip install sopel==7.0.7
+      run: pip install sopel==7.1.1
     - name: Test with pytest
       run: PATH=~/.local/bin:$PATH make sopel
 name: irctest with Sopel (stable)
