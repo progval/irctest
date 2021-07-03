@@ -21,6 +21,7 @@ have no side effect.
 Install irctest and dependencies:
 
 ```
+cd ~
 git clone https://github.com/ProgVal/irctest.git
 cd irctest
 pip3 install --user -r requirements.txt
@@ -63,9 +64,11 @@ This excludes:
 * tests that check for a strict interpretation of a specification, when
   the specification is ambiguous.
 
-## Run tests
+## Running tests
 
-To run (server) tests on Ergo:
+### Servers
+
+#### Ergo:
 
 ```
 cd /tmp/
@@ -76,7 +79,7 @@ cd ~/irctest
 pytest --controller irctest.controllers.ergo -k 'not deprecated'
 ```
 
-To run (server) tests on Solanum:
+#### Solanum:
 
 ```
 cd /tmp/
@@ -89,7 +92,7 @@ make install
 pytest --controller irctest.controllers.solanum -k 'not Ergo and not deprecated and not strict'
 ```
 
-To run (server) tests on Charybdis::
+#### Charybdis:
 
 ```
 cd /tmp/
@@ -103,7 +106,7 @@ cd ~/irctest
 pytest --controller irctest.controllers.charybdis -k 'not Ergo and not deprecated and not strict'
 ```
 
-To run (server) tests on InspIRCd:
+#### InspIRCd:
 
 ```
 cd /tmp/
@@ -111,7 +114,7 @@ git clone https://github.com/inspircd/inspircd.git
 cd inspircd
 
 # optional, makes tests run considerably faster
-patch src/inspircd.cpp < ../irctest/inspircd_mainloop.patch
+patch src/inspircd.cpp < ~/irctest/inspircd_mainloop.patch
 
 ./configure --prefix=$HOME/.local/ --development
 make -j 4
@@ -120,7 +123,7 @@ cd ~/irctest
 pytest --controller irctest.controllers.inspircd -k 'not Ergo and not deprecated and not strict'
 ```
 
-To run (server) tests on Mammon:
+#### Mammon:
 
 ```
 pip3 install --user git+https://github.com/mammon-ircd/mammon.git
@@ -128,7 +131,22 @@ cd ~/irctest
 pytest --controller irctest.controllers.mammon -k 'not Ergo and not deprecated and not strict'
 ```
 
-To run (client) tests on Limnoria:
+#### UnrealIRCd:
+
+```
+cd /tmp/
+git clone https://github.com/unrealircd/unrealircd.git
+cd unrealircd
+./Config  # This will ask a few questions, answer them.
+make -j 4
+make install
+cd ~/irctest
+pytest --controller irctest.controllers.unreal -k 'not Ergo and not deprecated and not strict'
+```
+
+### Clients
+
+#### Limnoria:
 
 ```
 pip3 install --user limnoria pyxmpp2-scram
@@ -136,7 +154,7 @@ cd ~/irctest
 pytest --controller  irctest.controllers.limnoria
 ```
 
-To run (client) tests on Sopel:
+#### Sopel:
 
 ```
 pip3 install --user sopel
