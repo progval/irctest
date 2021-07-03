@@ -38,6 +38,6 @@ jobs:
     - name: Test with pytest
       run: PATH=~/.local/inspircd/bin:$PATH make inspircd
 name: irctest with InspIRCd
-on:
+'on':
   pull_request: null
   push: null

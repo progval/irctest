@@ -38,6 +38,6 @@ jobs:
     - name: Test with pytest
       run: PATH=~/.local/unrealircd/bin:$PATH make unrealircd
 name: irctest with UnrealIRCd
-on:
+'on':
   pull_request: null
   push: null

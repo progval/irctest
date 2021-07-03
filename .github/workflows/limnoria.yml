@@ -27,6 +27,6 @@ jobs:
     - name: Test with pytest
       run: PATH=~/.local/bin:$PATH make limnoria
 name: irctest with Limnoria
-on:
+'on':
   pull_request: null
   push: null

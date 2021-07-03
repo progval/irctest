@@ -38,6 +38,6 @@ jobs:
     - name: Test with pytest
       run: PATH=~/.local/bin:$PATH make solanum
 name: irctest with Solanum
-on:
+'on':
   pull_request: null
   push: null
