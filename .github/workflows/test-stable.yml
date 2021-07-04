@@ -6,13 +6,13 @@ jobs:
     if: success() || failure()
     name: Publish Unit Tests Results
     needs:
-    - test-charybdis-stable
-    - test-solanum-stable
-    - test-ergo-stable
-    - test-inspircd-stable
-    - test-unrealircd-stable
-    - test-limnoria-stable
-    - test-sopel-stable
+    - test-charybdis
+    - test-solanum
+    - test-ergo
+    - test-inspircd
+    - test-unrealircd
+    - test-limnoria
+    - test-sopel
     runs-on: ubuntu-latest
     steps:
     - name: Download Artifacts
@@ -23,7 +23,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v1
       with:
         files: artifacts/**/*.xml
-  test-charybdis-stable:
+  test-charybdis:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -64,7 +64,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-ergo-stable:
+  test-ergo:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -107,7 +107,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-inspircd-stable:
+  test-inspircd:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -149,7 +149,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-limnoria-stable:
+  test-limnoria:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -179,7 +179,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-solanum-stable:
+  test-solanum:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -220,7 +220,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-sopel-stable:
+  test-sopel:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -250,7 +250,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-unrealircd-stable:
+  test-unrealircd:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2

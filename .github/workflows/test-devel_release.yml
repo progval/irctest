@@ -6,7 +6,7 @@ jobs:
     if: success() || failure()
     name: Publish Unit Tests Results
     needs:
-    - test-inspircd-devel_release
+    - test-inspircd
     runs-on: ubuntu-latest
     steps:
     - name: Download Artifacts
@@ -17,7 +17,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v1
       with:
         files: artifacts/**/*.xml
-  test-inspircd-devel_release:
+  test-inspircd:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2

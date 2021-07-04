@@ -6,12 +6,12 @@ jobs:
     if: success() || failure()
     name: Publish Unit Tests Results
     needs:
-    - test-solanum-devel
-    - test-ergo-devel
-    - test-inspircd-devel
-    - test-unrealircd-devel
-    - test-limnoria-devel
-    - test-sopel-devel
+    - test-solanum
+    - test-ergo
+    - test-inspircd
+    - test-unrealircd
+    - test-limnoria
+    - test-sopel
     runs-on: ubuntu-latest
     steps:
     - name: Download Artifacts
@@ -22,7 +22,7 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v1
       with:
         files: artifacts/**/*.xml
-  test-ergo-devel:
+  test-ergo:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -65,7 +65,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-inspircd-devel:
+  test-inspircd:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -107,7 +107,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-limnoria-devel:
+  test-limnoria:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -137,7 +137,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-solanum-devel:
+  test-solanum:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -178,7 +178,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-sopel-devel:
+  test-sopel:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -208,7 +208,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  test-unrealircd-devel:
+  test-unrealircd:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2

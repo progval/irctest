@@ -164,7 +164,7 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
             version_flavor=version_flavor,
         )
         if job is not None:
-            jobs[f"test-{software_id}-{version_flavor.value}"] = job
+            jobs[f"test-{software_id}"] = job
 
     jobs["publish-test-results"] = {
         "name": "Publish Unit Tests Results",
