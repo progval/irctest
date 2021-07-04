@@ -61,6 +61,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         )
         self.getMessages(bar)
 
+        self.sendLine(bar, "PRIVMSG #nonexistent_channel :Is this thing on?")
+        self.getMessages(bar)
+
         qux = random_name("qux")
         real_chname = random_name("#real_channel")
         self.connectClient(qux, name=qux)
