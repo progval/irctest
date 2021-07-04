@@ -50,8 +50,7 @@ class VersionFlavor(enum.Enum):
     release series, it uses that branch instead"""
 
 
-def generate_workflow(config: dict, software_id: str, version_flavor: VersionFlavor):
-    software_config = config["software"][software_id]
+def get_build_job(*, software_config, software_id, version_flavor):
     name = software_config["name"]
     prefix = software_config.get("prefix", "~/.local")
 
@@ -59,11 +58,11 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
         path = "placeholder"  # TODO: remove this
         install_steps = software_config["install_steps"][version_flavor.value]
         if install_steps is None:
-            return
+            return None
     else:
         ref = software_config["refs"][version_flavor.value]
         if ref is None:
-            return
+            return None
         path = software_config["path"]
         install_steps = [
             {
@@ -81,6 +80,65 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
             },
         ]
 
+    env = software_config.get("env", {}).get(version_flavor.value, "")
+    if env:
+        env += " "
+
+    return {
+        "runs-on": "ubuntu-latest",
+        "steps": [
+            {"uses": "actions/checkout@v2"},
+            {
+                "name": "Set up Python 3.7",  # for irctest itself
+                "uses": "actions/setup-python@v2",
+                "with": {"python-version": 3.7},
+            },
+            *software_config.get("pre_deps", []),
+            {
+                "name": "Cache dependencies",
+                "uses": "actions/cache@v2",
+                "with": {
+                    "path": script("~/.cache", f"$GITHUB_WORKSPACE/{path}"),
+                    "key": "${{ runner.os }}-" + software_id,
+                },
+            },
+            {
+                "name": "Install dependencies",
+                "run": script(
+                    "sudo apt-get install atheme-services",
+                    "python -m pip install --upgrade pip",
+                    "pip install pytest -r requirements.txt",
+                    *(
+                        software_config["extra_deps"]
+                        if "extra_deps" in software_config
+                        else []
+                    ),
+                ),
+            },
+            *install_steps,
+            {
+                "name": "Test with pytest",
+                "run": (
+                    f"PYTEST_ARGS='--junit-xml pytest.xml' "
+                    f"PATH={prefix}/bin:$PATH "
+                    f"{env}make {software_id}"
+                ),
+            },
+            {
+                "name": "Publish results",
+                "if": "always()",
+                "uses": "actions/upload-artifact@v2",
+                "with": {
+                    "name": f"pytest results {name} ({version_flavor.value})",
+                    "path": "pytest.xml",
+                },
+            },
+        ],
+    }
+
+
+def generate_workflow(config: dict, version_flavor: VersionFlavor):
+
     on: dict
     if version_flavor == VersionFlavor.STABLE:
         on = {"push": None, "pull_request": None}
@@ -97,61 +155,45 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
             "workflow_dispatch": None,
         }
 
-    env = software_config.get("env", {}).get(version_flavor.value, "")
-    if env:
-        env += " "
+    jobs = {}
+    for software_id in config["software"]:
+        software_config = config["software"][software_id]
+        job = get_build_job(
+            software_config=software_config,
+            software_id=software_id,
+            version_flavor=version_flavor,
+        )
+        if job is not None:
+            jobs[f"test-{software_id}"] = job
 
-    workflow = {
-        "name": f"irctest with {name} ({version_flavor.value})",
-        "on": on,
-        "jobs": {
-            "build": {
-                "runs-on": "ubuntu-latest",
-                "steps": [
-                    {"uses": "actions/checkout@v2"},
-                    {
-                        "name": "Set up Python 3.7",  # for irctest itself
-                        "uses": "actions/setup-python@v2",
-                        "with": {"python-version": 3.7},
-                    },
-                    *software_config.get("pre_deps", []),
-                    {
-                        "name": "Cache dependencies",
-                        "uses": "actions/cache@v2",
-                        "with": {
-                            "path": script("~/.cache", f"$GITHUB_WORKSPACE/{path}"),
-                            "key": "${{ runner.os }}-" + software_id,
-                        },
-                    },
-                    {
-                        "name": "Install dependencies",
-                        "run": script(
-                            "sudo apt-get install atheme-services",
-                            "python -m pip install --upgrade pip",
-                            "pip install pytest -r requirements.txt",
-                            *(
-                                software_config["extra_deps"]
-                                if "extra_deps" in software_config
-                                else []
-                            ),
-                        ),
-                    },
-                    *install_steps,
-                    {
-                        "name": "Test with pytest",
-                        "run": f"PATH={prefix}/bin:$PATH {env}make {software_id}",
-                    },
-                ],
-            }
-        },
+    jobs["publish-test-results"] = {
+        "name": "Publish Unit Tests Results",
+        "needs": list(jobs),  # Depend on all other jobs
+        "runs-on": "ubuntu-latest",
+        # the build-and-test job might be skipped, we don't need to run
+        # this job then
+        "if": "success() || failure()",
+        "steps": [
+            {
+                "name": "Download Artifacts",
+                "uses": "actions/download-artifact@v2",
+                "with": {"path": "artifacts"},
+            },
+            {
+                "name": "Publish Unit Test Results",
+                "uses": "EnricoMi/publish-unit-test-result-action@v1",
+                "with": {"files": "artifacts/**/*.xml"},
+            },
+        ],
     }
 
-    if version_flavor == VersionFlavor.STABLE:
-        workflow_filename = GH_WORKFLOW_DIR / f"{software_id}.yml"
-    else:
-        workflow_filename = (
-            GH_WORKFLOW_DIR / f"{software_id}_{version_flavor.value}.yml"
-        )
+    workflow = {
+        "name": f"irctest with {version_flavor.value} versions",
+        "on": on,
+        "jobs": jobs,
+    }
+
+    workflow_filename = GH_WORKFLOW_DIR / f"test-{version_flavor.value}.yml"
 
     with open(workflow_filename, "wt") as fd:
         fd.write("# This file was auto-generated by make_workflows.py.\n")
@@ -163,12 +205,9 @@ def main():
     with open(DEFINITION_PATH) as fd:
         config = yaml.load(fd, Loader=yaml.Loader)
 
-    for software_id in config["software"]:
-        generate_workflow(config, software_id, version_flavor=VersionFlavor.STABLE)
-        generate_workflow(config, software_id, version_flavor=VersionFlavor.DEVEL)
-        generate_workflow(
-            config, software_id, version_flavor=VersionFlavor.DEVEL_RELEASE
-        )
+    generate_workflow(config, version_flavor=VersionFlavor.STABLE)
+    generate_workflow(config, version_flavor=VersionFlavor.DEVEL)
+    generate_workflow(config, version_flavor=VersionFlavor.DEVEL_RELEASE)
 
 
 if __name__ == "__main__":
