@@ -1310,7 +1310,7 @@ class MuteExtban(cases.BaseServerTestCase):
         isupport = self.server_support
         token = isupport["EXTBAN"]
         prefix, comma, types = token.partition(",")
-        self.assertIn(self.char, types, f"Missing '{self.char()}' in ISUPPORT EXTBAN")
+        self.assertIn(self.char(), types, f"Missing '{self.char()}' in ISUPPORT EXTBAN")
         self.assertEqual(prefix, "")
         self.assertEqual(comma, ",")
 
@@ -1350,7 +1350,7 @@ class MuteExtban(cases.BaseServerTestCase):
                 "bar",
                 "#chan",
                 f"{prefix}{self.char()}:bar!*@*",
-                "chanop",
+                StrRe("chanop(!.*)?"),
                 *ANYLIST,
             ],
         )
