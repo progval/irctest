@@ -10,11 +10,18 @@ from irctest.irc_utils.junkdrawer import random_name
 from irctest.patma import ANYDICT
 
 
-def _testEchoMessage(command, solo, server_time):
-    """Generates test functions"""
-
+class EchoMessageTestCase(cases.BaseServerTestCase):
+    @pytest.mark.parametrize(
+        "command,solo,server_time",
+        [
+            ("PRIVMSG", False, False),
+            ("PRIVMSG", True, True),
+            ("PRIVMSG", False, True),
+            ("NOTICE", False, True),
+        ],
+    )
     @cases.mark_capabilities("echo-message")
-    def f(self):
+    def testEchoMessage(self, command, solo, server_time):
         """<http://ircv3.net/specs/extensions/echo-message-3.2.html>"""
         self.addClient()
         self.sendLine(1, "CAP LS 302")
@@ -95,10 +102,6 @@ def _testEchoMessage(command, solo, server_time):
                     extra_format=(m2,),
                 )
 
-    return f
-
-
-class EchoMessageTestCase(cases.BaseServerTestCase):
     @pytest.mark.arbitrary_client_tags
     @cases.mark_capabilities(
         "batch", "labeled-response", "echo-message", "message-tags"
@@ -144,8 +147,3 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
 
         # Either both messages have a msgid, or neither does
         self.assertEqual(delivery.tags.get("msgid"), echo.tags.get("msgid"))
-
-    testEchoMessagePrivmsgNoServerTime = _testEchoMessage("PRIVMSG", False, False)
-    testEchoMessagePrivmsgSolo = _testEchoMessage("PRIVMSG", True, True)
-    testEchoMessagePrivmsg = _testEchoMessage("PRIVMSG", False, True)
-    testEchoMessageNotice = _testEchoMessage("NOTICE", False, True)

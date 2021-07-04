@@ -3,6 +3,8 @@ correctly. Also checks truncation"""
 
 import socket
 
+import pytest
+
 from irctest import cases
 from irctest.irc_utils import message_parser
 from irctest.numerics import ERR_INPUTTOOLONG
@@ -26,8 +28,19 @@ def _sendBytePerByte(self, line):
         self.clients[1].conn.sendall(bytes([byte]))
 
 
-def _testNoTags(sender_function, colon):
-    def f(self):
+class BufferingTestCase(cases.BaseServerTestCase):
+    @pytest.mark.parametrize(
+        "sender_function,colon",
+        [
+            pytest.param(_sendWhole, "", id="whole-no colon"),
+            pytest.param(_sendCharPerChar, "", id="charperchar-no colon"),
+            pytest.param(_sendBytePerByte, "", id="byteperbyte-no colon"),
+            pytest.param(_sendWhole, ":", id="whole-colon"),
+            pytest.param(_sendCharPerChar, ":", id="charperchar-colon"),
+            pytest.param(_sendBytePerByte, ":", id="byteperbyte-colon"),
+        ],
+    )
+    def testNoTags(self, sender_function, colon):
         self.connectClient("nick1")
         self.connectClient("nick2")
 
@@ -97,12 +110,6 @@ def _testNoTags(sender_function, colon):
                     f"but got {payload!r}",
                 )
 
-    return f
-
-
-class BufferingTestCase(cases.BaseServerTestCase):
-    # show_io = False
-
     def get_overhead(self, client1, client2, colon):
         self.sendLine(client1, f"PRIVMSG nick2 {colon}a\r\n")
         line = self._getLine(client2)
@@ -118,10 +125,3 @@ class BufferingTestCase(cases.BaseServerTestCase):
             line += data
             if not data or data.endswith(b"\r\n"):
                 return line
-
-    testNoTagsWholeNoColon = _testNoTags(_sendWhole, colon="")
-    testNoTagsCharPerCharNoColon = _testNoTags(_sendCharPerChar, colon="")
-    testNoTagsBytePerByteNoColon = _testNoTags(_sendBytePerByte, colon="")
-    testNoTagsWholeColon = _testNoTags(_sendWhole, colon=":")
-    testNoTagsCharPerCharColon = _testNoTags(_sendCharPerChar, colon=":")
-    testNoTagsBytePerByteColon = _testNoTags(_sendBytePerByte, colon=":")

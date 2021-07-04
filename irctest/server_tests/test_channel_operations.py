@@ -6,6 +6,8 @@ Section 3.2 of RFC 2812
 import math
 import time
 
+import pytest
+
 from irctest import cases, client_mock, runner
 from irctest.irc_utils import ambiguities
 from irctest.irc_utils.junkdrawer import ircv3_timestamp_to_unixtime
@@ -708,11 +710,18 @@ class JoinTestCase(cases.BaseServerTestCase):
         )
 
 
-def _testChannelsEquivalent(casemapping, name1, name2):
-    """Generates test functions"""
-
+class TestChannelCaseSensitivity(cases.BaseServerTestCase):
+    @pytest.mark.parametrize(
+        "casemapping,name1,name2",
+        [
+            ("ascii", "#Foo", "#foo"),
+            ("rfc1459", "#Foo", "#foo"),
+            ("rfc1459", "#F]|oo{", "#f}\\oo["),
+            ("rfc1459", "#F}o\\o[", "#f]o|o{"),
+        ],
+    )
     @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
-    def f(self):
+    def testChannelsEquivalent(self, casemapping, name1, name2):
         self.connectClient("foo")
         self.connectClient("bar")
         if self.server_support["CASEMAPPING"] != casemapping:
@@ -729,15 +738,15 @@ def _testChannelsEquivalent(casemapping, name1, name2):
                 "Channel names {} and {} are not equivalent.".format(name1, name2)
             )
 
-    f.__name__ = "testEquivalence__{}__{}".format(name1, name2)
-    return f
-
-
-def _testChannelsNotEquivalent(casemapping, name1, name2):
-    """Generates test functions"""
-
+    @pytest.mark.parametrize(
+        "casemapping,name1,name2",
+        [
+            ("ascii", "#Foo", "#fooa"),
+            ("rfc1459", "#Foo", "#fooa"),
+        ],
+    )
     @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
-    def f(self):
+    def testChannelsNotEquivalent(self, casemapping, name1, name2):
         self.connectClient("foo")
         self.connectClient("bar")
         if self.server_support["CASEMAPPING"] != casemapping:
@@ -757,21 +766,6 @@ def _testChannelsNotEquivalent(casemapping, name1, name2):
             raise AssertionError(
                 "Channel names {} and {} are equivalent.".format(name1, name2)
             )
-
-    f.__name__ = "testEquivalence__{}__{}".format(name1, name2)
-    return f
-
-
-class testChannelCaseSensitivity(cases.BaseServerTestCase):
-    testAsciiSimpleEquivalent = _testChannelsEquivalent("ascii", "#Foo", "#foo")
-    testAsciiSimpleNotEquivalent = _testChannelsNotEquivalent("ascii", "#Foo", "#fooa")
-
-    testRfcSimpleEquivalent = _testChannelsEquivalent("rfc1459", "#Foo", "#foo")
-    testRfcSimpleNotEquivalent = _testChannelsNotEquivalent("rfc1459", "#Foo", "#fooa")
-    testRfcFancyEquivalent = _testChannelsEquivalent("rfc1459", "#F]|oo{", "#f}\\oo[")
-    testRfcFancyNotEquivalent = _testChannelsEquivalent(
-        "rfc1459", "#F}o\\o[", "#f]o|o{"
-    )
 
 
 class InviteTestCase(cases.BaseServerTestCase):
