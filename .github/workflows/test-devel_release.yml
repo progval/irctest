@@ -2,7 +2,22 @@
 # Do not edit it manually, modifications will be lost.
 
 jobs:
-  build-and-test:
+  publish-test-results:
+    if: success() || failure()
+    name: Publish Unit Tests Results
+    needs:
+    - test-inspircd-devel_release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: artifacts
+    - name: Publish Unit Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      with:
+        files: artifacts/**/*.xml
+  test-inspircd-devel_release:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -44,21 +59,7 @@ jobs:
       with:
         name: pytest results {name} ({version_flavor.value})
         path: pytest.xml
-  publish-test-results:
-    if: success() || failure()
-    name: Publish Unit Tests Results
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-    - name: Download Artifacts
-      uses: actions/download-artifact@v2
-      with:
-        path: artifacts
-    - name: Publish Unit Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v1
-      with:
-        files: artifacts/**/*.xml
-name: irctest with InspIRCd (devel_release)
+name: irctest with devel_release versions
 'on':
   schedule:
   - cron: 51 8 * * 6
