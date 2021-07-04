@@ -1,6 +1,8 @@
 import secrets
 import time
 
+import pytest
+
 from irctest import cases
 from irctest.irc_utils.junkdrawer import random_name
 from irctest.patma import ANYSTR
@@ -28,7 +30,8 @@ def validate_chathistory_batch(msgs):
             and batch_tag is not None
             and msg.tags.get("batch") == batch_tag
         ):
-            result.append(msg.to_history_message())
+            if not msg.prefix.startswith("HistServ!"):  # FIXME: ergo-specific
+                result.append(msg.to_history_message())
     assert batch_tag == closed_batch_tag
     return result
 
@@ -39,7 +42,6 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(chathistory=True)
 
-    @cases.mark_specifications("Ergo")
     def testInvalidTargets(self):
         bar, pw = random_name("bar"), random_name("pw")
         self.controller.registerUser(self, bar, pw)
@@ -53,10 +55,13 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "server-time",
                 "sasl",
                 CHATHISTORY_CAP,
-                EVENT_PLAYBACK_CAP,
             ],
             password=pw,
+            skip_if_cap_nak=True,
         )
+        self.getMessages(bar)
+
+        self.sendLine(bar, "PRIVMSG #nonexistent_channel :Is this thing on?")
         self.getMessages(bar)
 
         qux = random_name("qux")
@@ -81,7 +86,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             params=["CHATHISTORY", "INVALID_TARGET", "LATEST", ANYSTR, ANYSTR],
         )
 
-    @cases.mark_specifications("Ergo")
+    @pytest.mark.private_chathistory
     def testMessagesToSelf(self):
         bar, pw = random_name("bar"), random_name("pw")
         self.controller.registerUser(self, bar, pw)
@@ -94,8 +99,10 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "message-tags",
                 "sasl",
                 "server-time",
+                CHATHISTORY_CAP,
             ],
             password=pw,
+            skip_if_cap_nak=True,
         )
         self.getMessages(bar)
 
@@ -151,8 +158,38 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(set(msg.msgid for msg in echo_messages)), num_messages)
         self.assertEqual(len(set(msg.time for msg in echo_messages)), num_messages)
 
-    @cases.mark_specifications("Ergo")
     def testChathistory(self):
+        self.connectClient(
+            "bar",
+            capabilities=[
+                "message-tags",
+                "server-time",
+                "echo-message",
+                "batch",
+                "labeled-response",
+                "sasl",
+                CHATHISTORY_CAP,
+            ],
+            skip_if_cap_nak=True,
+        )
+        chname = "#chan" + secrets.token_hex(12)
+        self.joinChannel(1, chname)
+        self.getMessages(1)
+        self.getMessages(1)
+
+        NUM_MESSAGES = 10
+        echo_messages = []
+        for i in range(NUM_MESSAGES):
+            self.sendLine(1, "PRIVMSG %s :this is message %d" % (chname, i))
+            echo_messages.extend(
+                msg.to_history_message() for msg in self.getMessages(1)
+            )
+            time.sleep(0.002)
+
+        self.validate_echo_messages(NUM_MESSAGES, echo_messages)
+        self.validate_chathistory(echo_messages, 1, chname)
+
+    def testChathistoryEventPlayback(self):
         self.connectClient(
             "bar",
             capabilities=[
@@ -165,8 +202,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 CHATHISTORY_CAP,
                 EVENT_PLAYBACK_CAP,
             ],
+            skip_if_cap_nak=True,
         )
-        chname = "#" + secrets.token_hex(12)
+        chname = "#chan" + secrets.token_hex(12)
         self.joinChannel(1, chname)
         self.getMessages(1)
 
@@ -182,10 +220,10 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
         self.validate_chathistory(echo_messages, 1, chname)
 
-    @cases.mark_specifications("Ergo")
+    @pytest.mark.private_chathistory
     def testChathistoryDMs(self):
-        c1 = secrets.token_hex(12)
-        c2 = secrets.token_hex(12)
+        c1 = "foo" + secrets.token_hex(12)
+        c2 = "bar" + secrets.token_hex(12)
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(
@@ -198,9 +236,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "labeled-response",
                 "sasl",
                 CHATHISTORY_CAP,
-                EVENT_PLAYBACK_CAP,
             ],
             password="sesame1",
+            skip_if_cap_nak=True,
         )
         self.connectClient(
             c2,
@@ -212,7 +250,6 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "labeled-response",
                 "sasl",
                 CHATHISTORY_CAP,
-                EVENT_PLAYBACK_CAP,
             ],
             password="sesame2",
         )
@@ -238,7 +275,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.validate_chathistory(echo_messages, 1, c2)
         self.validate_chathistory(echo_messages, 2, c1)
 
-        c3 = secrets.token_hex(12)
+        c3 = "baz" + secrets.token_hex(12)
         self.connectClient(
             c3,
             capabilities=[
@@ -248,8 +285,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "batch",
                 "labeled-response",
                 CHATHISTORY_CAP,
-                EVENT_PLAYBACK_CAP,
             ],
+            skip_if_cap_nak=True,
         )
         self.sendLine(
             1, "PRIVMSG %s :this is a message in a separate conversation" % (c3,)
@@ -305,9 +342,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "labeled-response",
                 "sasl",
                 CHATHISTORY_CAP,
-                EVENT_PLAYBACK_CAP,
             ],
             password="sesame3",
+            skip_if_cap_nak=True,
         )
         self.getMessages(c3)
         self.sendLine(c3, "CHATHISTORY LATEST %s * 10" % (c1,))
@@ -495,11 +532,11 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         result = validate_chathistory_batch(self.getMessages(user))
         self.assertIn(echo_messages[7], result)
 
-    @cases.mark_specifications("Ergo")
+    @pytest.mark.arbitrary_client_tags
     def testChathistoryTagmsg(self):
-        c1 = secrets.token_hex(12)
-        c2 = secrets.token_hex(12)
-        chname = "#" + secrets.token_hex(12)
+        c1 = "foo" + secrets.token_hex(12)
+        c2 = "bar" + secrets.token_hex(12)
+        chname = "#chan" + secrets.token_hex(12)
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(
@@ -515,6 +552,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 EVENT_PLAYBACK_CAP,
             ],
             password="sesame1",
+            skip_if_cap_nak=True,
         )
         self.connectClient(
             c2,
@@ -591,11 +629,12 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         ]
         self.assertEqual(len(history_tagmsgs), 0)
 
-    @cases.mark_specifications("Ergo")
+    @pytest.mark.arbitrary_client_tags
+    @pytest.mark.private_chathistory
     def testChathistoryDMClientOnlyTags(self):
         # regression test for Ergo #1411
-        c1 = secrets.token_hex(12)
-        c2 = secrets.token_hex(12)
+        c1 = "foo" + secrets.token_hex(12)
+        c2 = "bar" + secrets.token_hex(12)
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(
@@ -608,9 +647,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "labeled-response",
                 "sasl",
                 CHATHISTORY_CAP,
-                EVENT_PLAYBACK_CAP,
             ],
             password="sesame1",
+            skip_if_cap_nak=True,
         )
         self.connectClient(
             c2,

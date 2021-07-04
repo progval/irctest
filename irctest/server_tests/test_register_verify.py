@@ -13,10 +13,10 @@ class TestRegisterBeforeConnect(cases.BaseServerTestCase):
             )
         )
 
-    @cases.mark_specifications("Ergo")
     def testBeforeConnect(self):
         self.addClient("bar")
         self.sendLine("bar", "CAP LS 302")
+        self.requestCapabilities("bar", [REGISTER_CAP_NAME], skip_if_cap_nak=True)
         caps = self.getCapLs("bar")
         self.assertIn(REGISTER_CAP_NAME, caps)
         self.assertIn("before-connect", caps[REGISTER_CAP_NAME])
@@ -36,10 +36,10 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
             )
         )
 
-    @cases.mark_specifications("Ergo")
     def testBeforeConnect(self):
         self.addClient("bar")
         self.sendLine("bar", "CAP LS 302")
+        self.requestCapabilities("bar", [REGISTER_CAP_NAME], skip_if_cap_nak=True)
         caps = self.getCapLs("bar")
         self.assertIn(REGISTER_CAP_NAME, caps)
         self.assertEqual(caps[REGISTER_CAP_NAME], None)
@@ -70,10 +70,12 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
             )
         )
 
-    @cases.mark_specifications("Ergo")
     def testBeforeConnect(self):
         self.addClient("bar")
         self.sendLine("bar", "CAP LS 302")
+        self.requestCapabilities(
+            "bar", capabilities=[REGISTER_CAP_NAME], skip_if_cap_nak=True
+        )
         caps = self.getCapLs("bar")
         self.assertIn(REGISTER_CAP_NAME, caps)
         self.assertEqual(
@@ -88,9 +90,10 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
             fail_response, params=["REGISTER", "INVALID_EMAIL", ANYSTR, ANYSTR]
         )
 
-    @cases.mark_specifications("Ergo")
     def testAfterConnect(self):
-        self.connectClient("bar", name="bar")
+        self.connectClient(
+            "bar", name="bar", capabilities=[REGISTER_CAP_NAME], skip_if_cap_nak=True
+        )
         self.sendLine("bar", "REGISTER * shivarampassphrase")
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
@@ -108,10 +111,11 @@ class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
             )
         )
 
-    @cases.mark_specifications("Ergo")
     def testBeforeConnect(self):
         # have an anonymous client take the 'root' username:
-        self.connectClient("root", name="root")
+        self.connectClient(
+            "root", name="root", capabilities=[REGISTER_CAP_NAME], skip_if_cap_nak=True
+        )
 
         # cannot register it out from under the anonymous nick holder:
         self.addClient("bar")

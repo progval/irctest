@@ -91,6 +91,7 @@ set {{
             lag-penalty-bytes 10000;
         }}
     }}
+    modes-on-join "+H 100:1d";  // Enables CHATHISTORY
 }}
 
 tld {{
