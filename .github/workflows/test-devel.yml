@@ -63,7 +63,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results {name} ({version_flavor.value})
+        name: pytest results Ergo (devel)
         path: pytest.xml
   test-inspircd:
     runs-on: ubuntu-latest
@@ -105,7 +105,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results {name} ({version_flavor.value})
+        name: pytest results InspIRCd (devel)
         path: pytest.xml
   test-limnoria:
     runs-on: ubuntu-latest
@@ -135,7 +135,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results {name} ({version_flavor.value})
+        name: pytest results Limnoria (devel)
         path: pytest.xml
   test-solanum:
     runs-on: ubuntu-latest
@@ -176,7 +176,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results {name} ({version_flavor.value})
+        name: pytest results Solanum (devel)
         path: pytest.xml
   test-sopel:
     runs-on: ubuntu-latest
@@ -206,7 +206,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results {name} ({version_flavor.value})
+        name: pytest results Sopel (devel)
         path: pytest.xml
   test-unrealircd:
     runs-on: ubuntu-latest
@@ -248,7 +248,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results {name} ({version_flavor.value})
+        name: pytest results UnrealIRCd (devel)
         path: pytest.xml
 name: irctest with devel versions
 'on':

@@ -129,7 +129,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "if": "always()",
                 "uses": "actions/upload-artifact@v2",
                 "with": {
-                    "name": "pytest results {name} ({version_flavor.value})",
+                    "name": f"pytest results {name} ({version_flavor.value})",
                     "path": "pytest.xml",
                 },
             },

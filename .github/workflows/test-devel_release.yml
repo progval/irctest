@@ -57,7 +57,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results {name} ({version_flavor.value})
+        name: pytest results InspIRCd (devel_release)
         path: pytest.xml
 name: irctest with devel_release versions
 'on':
