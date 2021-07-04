@@ -2,7 +2,7 @@
 # Do not edit it manually, modifications will be lost.
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -38,7 +38,27 @@ jobs:
         make build
         make install
     - name: Test with pytest
-      run: PATH=~/go/bin:$PATH make ergo
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/go/bin:$PATH make ergo
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results {name} ({version_flavor.value})
+        path: pytest.xml
+  publish-test-results:
+    if: success() || failure()
+    name: Publish Unit Tests Results
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: artifacts
+    - name: Publish Unit Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      with:
+        files: artifacts/**/*.xml
 name: irctest with Ergo (stable)
 'on':
   pull_request: null

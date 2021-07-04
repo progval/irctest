@@ -105,7 +105,7 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
         "name": f"irctest with {name} ({version_flavor.value})",
         "on": on,
         "jobs": {
-            "build": {
+            "build-and-test": {
                 "runs-on": "ubuntu-latest",
                 "steps": [
                     {"uses": "actions/checkout@v2"},
@@ -139,10 +139,43 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
                     *install_steps,
                     {
                         "name": "Test with pytest",
-                        "run": f"PATH={prefix}/bin:$PATH {env}make {software_id}",
+                        "run": (
+                            f"PYTEST_ARGS='--junit-xml pytest.xml' "
+                            f"PATH={prefix}/bin:$PATH "
+                            f"{env}make {software_id}"
+                        ),
+                    },
+                    {
+                        "name": "Publish results",
+                        "if": "always()",
+                        "uses": "actions/upload-artifact@v2",
+                        "with": {
+                            "name": "pytest results {name} ({version_flavor.value})",
+                            "path": "pytest.xml",
+                        },
                     },
                 ],
-            }
+            },
+            "publish-test-results": {
+                "name": "Publish Unit Tests Results",
+                "needs": "build-and-test",
+                "runs-on": "ubuntu-latest",
+                # the build-and-test job might be skipped, we don't need to run
+                # this job then
+                "if": "success() || failure()",
+                "steps": [
+                    {
+                        "name": "Download Artifacts",
+                        "uses": "actions/download-artifact@v2",
+                        "with": {"path": "artifacts"},
+                    },
+                    {
+                        "name": "Publish Unit Test Results",
+                        "uses": "EnricoMi/publish-unit-test-result-action@v1",
+                        "with": {"files": "artifacts/**/*.xml"},
+                    },
+                ],
+            },
         },
     }
 
