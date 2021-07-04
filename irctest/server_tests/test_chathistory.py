@@ -10,6 +10,8 @@ from irctest.patma import ANYSTR
 CHATHISTORY_CAP = "draft/chathistory"
 EVENT_PLAYBACK_CAP = "draft/event-playback"
 
+# Keep this in sync with validate_chathistory()
+SUBCOMMANDS = ["LATEST", "BEFORE", "AFTER", "BETWEEN", "AROUND"]
 
 MYSQL_PASSWORD = ""
 
@@ -158,7 +160,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(set(msg.msgid for msg in echo_messages)), num_messages)
         self.assertEqual(len(set(msg.time for msg in echo_messages)), num_messages)
 
-    def testChathistory(self):
+    @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
+    def testChathistory(self, subcommand):
         self.connectClient(
             "bar",
             capabilities=[
@@ -187,9 +190,10 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             time.sleep(0.002)
 
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
-        self.validate_chathistory(echo_messages, 1, chname)
+        self.validate_chathistory(subcommand, echo_messages, 1, chname)
 
-    def testChathistoryEventPlayback(self):
+    @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
+    def testChathistoryEventPlayback(self, subcommand):
         self.connectClient(
             "bar",
             capabilities=[
@@ -218,10 +222,11 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             time.sleep(0.002)
 
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
-        self.validate_chathistory(echo_messages, 1, chname)
+        self.validate_chathistory(subcommand, echo_messages, 1, chname)
 
+    @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
     @pytest.mark.private_chathistory
-    def testChathistoryDMs(self):
+    def testChathistoryDMs(self, subcommand):
         c1 = "foo" + secrets.token_hex(12)
         c2 = "bar" + secrets.token_hex(12)
         self.controller.registerUser(self, c1, "sesame1")
@@ -272,8 +277,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             time.sleep(0.002)
 
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
-        self.validate_chathistory(echo_messages, 1, c2)
-        self.validate_chathistory(echo_messages, 2, c1)
+        self.validate_chathistory(subcommand, echo_messages, 1, c2)
+        self.validate_chathistory(subcommand, echo_messages, 2, c1)
 
         c3 = "baz" + secrets.token_hex(12)
         self.connectClient(
@@ -321,9 +326,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertEqual(results, new_convo)
 
         # additional messages with c3 should not show up in the c1-c2 history:
-        self.validate_chathistory(echo_messages, 1, c2)
-        self.validate_chathistory(echo_messages, 2, c1)
-        self.validate_chathistory(echo_messages, 2, c1.upper())
+        self.validate_chathistory(subcommand, echo_messages, 1, c2)
+        self.validate_chathistory(subcommand, echo_messages, 2, c1)
+        self.validate_chathistory(subcommand, echo_messages, 2, c1.upper())
 
         # regression test for #833
         self.sendLine(3, "QUIT")
@@ -356,9 +361,13 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         # should get nothing
         self.assertEqual(results, [])
 
-    def validate_chathistory(self, echo_messages, user, chname):
-        INCLUSIVE_LIMIT = len(echo_messages) * 2
+    def validate_chathistory(self, subcommand, echo_messages, user, chname):
+        # Keep this list of subcommands in sync with the SUBCOMMANDS global
+        method = getattr(self, f"_validate_chathistory_{subcommand}")
+        method(echo_messages, user, chname)
 
+    def _validate_chathistory_LATEST(self, echo_messages, user, chname):
+        INCLUSIVE_LIMIT = len(echo_messages) * 2
         self.sendLine(user, "CHATHISTORY LATEST %s * %d" % (chname, INCLUSIVE_LIMIT))
         result = validate_chathistory_batch(self.getMessages(user))
         self.assertEqual(echo_messages, result)
@@ -387,6 +396,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         result = validate_chathistory_batch(self.getMessages(user))
         self.assertEqual(echo_messages[5:], result)
 
+    def _validate_chathistory_BEFORE(self, echo_messages, user, chname):
+        INCLUSIVE_LIMIT = len(echo_messages) * 2
         self.sendLine(
             user,
             "CHATHISTORY BEFORE %s msgid=%s %d"
@@ -411,6 +422,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         result = validate_chathistory_batch(self.getMessages(user))
         self.assertEqual(echo_messages[4:6], result)
 
+    def _validate_chathistory_AFTER(self, echo_messages, user, chname):
+        INCLUSIVE_LIMIT = len(echo_messages) * 2
         self.sendLine(
             user,
             "CHATHISTORY AFTER %s msgid=%s %d"
@@ -434,6 +447,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         result = validate_chathistory_batch(self.getMessages(user))
         self.assertEqual(echo_messages[4:7], result)
 
+    def _validate_chathistory_BETWEEN(self, echo_messages, user, chname):
+        INCLUSIVE_LIMIT = len(echo_messages) * 2
         # BETWEEN forwards and backwards
         self.sendLine(
             user,
@@ -509,7 +524,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         result = validate_chathistory_batch(self.getMessages(user))
         self.assertEqual(echo_messages[-4:-1], result)
 
-        # AROUND
+    def _validate_chathistory_AROUND(self, echo_messages, user, chname):
         self.sendLine(
             user,
             "CHATHISTORY AROUND %s msgid=%s %d" % (chname, echo_messages[7].msgid, 1),
@@ -682,3 +697,10 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         validate_msg(echo)
         relay = self.getMessage(2)
         validate_msg(relay)
+
+
+assert {f"_validate_chathistory_{cmd}" for cmd in SUBCOMMANDS} == {
+    meth_name
+    for meth_name in dir(ChathistoryTestCase)
+    if meth_name.startswith("_validate_chathistory_")
+}, "ChathistoryTestCase.validate_chathistory and SUBCOMMANDS are out of sync"
