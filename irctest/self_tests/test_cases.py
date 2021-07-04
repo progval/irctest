@@ -157,18 +157,29 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
 
 
 class IrcTestCaseTestCase(cases._IrcTestCase):
-    def test_message_matching(self):
-        for (spec, positive_matches, negative_matches) in MESSAGE_SPECS:
-            with self.subTest(spec):
-                for msg in positive_matches:
-                    with self.subTest(msg):
-                        assert not self.messageDiffers(parse_message(msg), **spec), msg
-                        assert self.messageEqual(parse_message(msg), **spec), msg
-                        self.assertMessageMatch(parse_message(msg), **spec), msg
+    @pytest.mark.parametrize(
+        "spec,msg",
+        [
+            pytest.param(spec, msg, id=f"{spec}-{msg}")
+            for (spec, positive_matches, _) in MESSAGE_SPECS
+            for msg in positive_matches
+        ],
+    )
+    def test_message_matching_positive(self, spec, msg):
+        assert not self.messageDiffers(parse_message(msg), **spec), msg
+        assert self.messageEqual(parse_message(msg), **spec), msg
+        self.assertMessageMatch(parse_message(msg), **spec), msg
 
-                for msg in negative_matches:
-                    with self.subTest(msg):
-                        assert self.messageDiffers(parse_message(msg), **spec), msg
-                        assert not self.messageEqual(parse_message(msg), **spec), msg
-                        with pytest.raises(AssertionError):
-                            self.assertMessageMatch(parse_message(msg), **spec), msg
+    @pytest.mark.parametrize(
+        "spec,msg",
+        [
+            pytest.param(spec, msg, id=f"{spec}-{msg}")
+            for (spec, _, negative_matches) in MESSAGE_SPECS
+            for msg in negative_matches
+        ],
+    )
+    def test_message_matching_negative(self, spec, msg):
+        assert self.messageDiffers(parse_message(msg), **spec), msg
+        assert not self.messageEqual(parse_message(msg), **spec), msg
+        with pytest.raises(AssertionError):
+            self.assertMessageMatch(parse_message(msg), **spec), msg
