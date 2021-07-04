@@ -63,9 +63,6 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         )
         self.getMessages(bar)
 
-        self.sendLine(bar, "PRIVMSG #nonexistent_channel :Is this thing on?")
-        self.getMessages(bar)
-
         qux = random_name("qux")
         real_chname = random_name("#real_channel")
         self.connectClient(qux, name=qux)
@@ -74,16 +71,19 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
         # test a nonexistent channel
         self.sendLine(bar, "CHATHISTORY LATEST #nonexistent_channel * 10")
+        msgs = self.getMessages(bar)
+        msgs = [msg for msg in msgs if msg.command != "MODE"]  # :NickServ MODE +r
         self.assertMessageMatch(
-            self.getMessages(bar)[0],
+            msgs[0],
             command="FAIL",
             params=["CHATHISTORY", "INVALID_TARGET", "LATEST", ANYSTR, ANYSTR],
         )
 
         # as should a real channel to which one is not joined:
         self.sendLine(bar, "CHATHISTORY LATEST %s * 10" % (real_chname,))
+        msgs = self.getMessages(bar)
         self.assertMessageMatch(
-            self.getMessages(bar)[0],
+            msgs[0],
             command="FAIL",
             params=["CHATHISTORY", "INVALID_TARGET", "LATEST", ANYSTR, ANYSTR],
         )
