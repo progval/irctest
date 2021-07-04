@@ -149,6 +149,8 @@ class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertEqual(enabled_caps, {cap1, cap2})
 
         self.sendLine(2, "PRIVMSG bar :hi")
+        self.getMessages(2)  # Synchronize
+
         m = self.getMessage(1)
         self.assertIn("time", m.tags, m)
 
