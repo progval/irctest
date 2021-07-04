@@ -50,6 +50,60 @@ class VersionFlavor(enum.Enum):
     release series, it uses that branch instead"""
 
 
+def get_build_jobs(*, software_config, software_id, path, prefix, env, install_steps):
+    return {
+        "runs-on": "ubuntu-latest",
+        "steps": [
+            {"uses": "actions/checkout@v2"},
+            {
+                "name": "Set up Python 3.7",  # for irctest itself
+                "uses": "actions/setup-python@v2",
+                "with": {"python-version": 3.7},
+            },
+            *software_config.get("pre_deps", []),
+            {
+                "name": "Cache dependencies",
+                "uses": "actions/cache@v2",
+                "with": {
+                    "path": script("~/.cache", f"$GITHUB_WORKSPACE/{path}"),
+                    "key": "${{ runner.os }}-" + software_id,
+                },
+            },
+            {
+                "name": "Install dependencies",
+                "run": script(
+                    "sudo apt-get install atheme-services",
+                    "python -m pip install --upgrade pip",
+                    "pip install pytest -r requirements.txt",
+                    *(
+                        software_config["extra_deps"]
+                        if "extra_deps" in software_config
+                        else []
+                    ),
+                ),
+            },
+            *install_steps,
+            {
+                "name": "Test with pytest",
+                "run": (
+                    f"PYTEST_ARGS='--junit-xml pytest.xml' "
+                    f"PATH={prefix}/bin:$PATH "
+                    f"{env}make {software_id}"
+                ),
+            },
+            {
+                "name": "Publish results",
+                "if": "always()",
+                "uses": "actions/upload-artifact@v2",
+                "with": {
+                    "name": "pytest results {name} ({version_flavor.value})",
+                    "path": "pytest.xml",
+                },
+            },
+        ],
+    }
+
+
 def generate_workflow(config: dict, software_id: str, version_flavor: VersionFlavor):
     software_config = config["software"][software_id]
     name = software_config["name"]
@@ -105,57 +159,14 @@ def generate_workflow(config: dict, software_id: str, version_flavor: VersionFla
         "name": f"irctest with {name} ({version_flavor.value})",
         "on": on,
         "jobs": {
-            "build-and-test": {
-                "runs-on": "ubuntu-latest",
-                "steps": [
-                    {"uses": "actions/checkout@v2"},
-                    {
-                        "name": "Set up Python 3.7",  # for irctest itself
-                        "uses": "actions/setup-python@v2",
-                        "with": {"python-version": 3.7},
-                    },
-                    *software_config.get("pre_deps", []),
-                    {
-                        "name": "Cache dependencies",
-                        "uses": "actions/cache@v2",
-                        "with": {
-                            "path": script("~/.cache", f"$GITHUB_WORKSPACE/{path}"),
-                            "key": "${{ runner.os }}-" + software_id,
-                        },
-                    },
-                    {
-                        "name": "Install dependencies",
-                        "run": script(
-                            "sudo apt-get install atheme-services",
-                            "python -m pip install --upgrade pip",
-                            "pip install pytest -r requirements.txt",
-                            *(
-                                software_config["extra_deps"]
-                                if "extra_deps" in software_config
-                                else []
-                            ),
-                        ),
-                    },
-                    *install_steps,
-                    {
-                        "name": "Test with pytest",
-                        "run": (
-                            f"PYTEST_ARGS='--junit-xml pytest.xml' "
-                            f"PATH={prefix}/bin:$PATH "
-                            f"{env}make {software_id}"
-                        ),
-                    },
-                    {
-                        "name": "Publish results",
-                        "if": "always()",
-                        "uses": "actions/upload-artifact@v2",
-                        "with": {
-                            "name": "pytest results {name} ({version_flavor.value})",
-                            "path": "pytest.xml",
-                        },
-                    },
-                ],
-            },
+            "build-and-test": get_build_jobs(
+                software_config=software_config,
+                software_id=software_id,
+                path=path,
+                install_steps=install_steps,
+                prefix=prefix,
+                env=env,
+            ),
             "publish-test-results": {
                 "name": "Publish Unit Tests Results",
                 "needs": "build-and-test",
