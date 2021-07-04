@@ -62,7 +62,7 @@ def pytest_collection_modifyitems(session, config, items):
     # First, check if we should run server tests or client tests
     server_tests = client_tests = False
     if _IrcTestCase.controllerClass is None:
-        return
+        pass
     elif issubclass(_IrcTestCase.controllerClass, BaseServerController):
         server_tests = True
     elif issubclass(_IrcTestCase.controllerClass, BaseClientController):
