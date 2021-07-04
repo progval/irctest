@@ -70,7 +70,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             self.getMessages(bar)[0],
             command="FAIL",
-            params=["CHATHISTORY", "INVALID_TARGET", ANYSTR, ANYSTR],
+            params=["CHATHISTORY", "INVALID_TARGET", "LATEST", ANYSTR, ANYSTR],
         )
 
         # as should a real channel to which one is not joined:
@@ -78,7 +78,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             self.getMessages(bar)[0],
             command="FAIL",
-            params=["CHATHISTORY", "INVALID_TARGET", ANYSTR, ANYSTR],
+            params=["CHATHISTORY", "INVALID_TARGET", "LATEST", ANYSTR, ANYSTR],
         )
 
     @cases.mark_specifications("Ergo")
