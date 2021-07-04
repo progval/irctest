@@ -49,11 +49,13 @@ LIMNORIA_SELECTORS := \
 	(foo or not foo) \
 	$(EXTRA_SELECTORS)
 
+# testQuitErrors is too flaky for CI
 SOLANUM_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	and not testDoubleKickMessages \
+	and not testQuitErrors \
 	$(EXTRA_SELECTORS)
 
 SOPEL_SELECTORS := \
