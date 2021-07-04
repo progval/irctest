@@ -67,7 +67,8 @@ SOPEL_SELECTORS := \
 # Tests marked with arbitrary_client_tags can't pass because Unreal whitelists which tags it relays
 # Tests marked with react_tag can't pass because Unreal blocks +draft/react https://github.com/unrealircd/unrealircd/pull/149
 # Tests marked with private_chathistory can't pass because Unreal does not implement CHATHISTORY for DMs
-# testChathistory fails: https://bugs.unrealircd.org/view.php?id=5952 and https://bugs.unrealircd.org/view.php?id=5953
+# testChathistory[BETWEEN] fails: https://bugs.unrealircd.org/view.php?id=5952
+# testChathistory[AROUND] fails: https://bugs.unrealircd.org/view.php?id=5953
 UNREALIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -80,7 +81,7 @@ UNREALIRCD_SELECTORS := \
 	and not arbitrary_client_tags \
 	and not react_tag \
 	and not private_chathistory \
-	and not testChathistory \
+	and not (testChathistory and (between or around)) \
 	$(EXTRA_SELECTORS)
 
 .PHONY: all flakes charybdis ergo inspircd mammon limnoria sopel solanum unrealircd
