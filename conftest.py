@@ -1,5 +1,4 @@
 import importlib
-import unittest
 
 import _pytest.unittest
 import pytest
@@ -77,14 +76,13 @@ def pytest_collection_modifyitems(session, config, items):
 
     # Iterate over each of the test functions (they are pytest "Nodes")
     for item in items:
-        # we only use unittest-style test function here
-        assert isinstance(item, _pytest.unittest.TestCaseFunction)
+        assert isinstance(item, _pytest.python.Function)
 
         # unittest-style test functions have the node of UnitTest class as parent
-        assert isinstance(item.parent, _pytest.unittest.UnitTestCase)
+        assert isinstance(item.parent, _pytest.python.Instance)
 
         # and that node references the UnitTest class
-        assert issubclass(item.parent.cls, unittest.TestCase)
+        assert issubclass(item.parent.cls, _IrcTestCase)
 
         # and in this project, TestCase classes all inherit either from
         # BaseClientController or BaseServerController.
