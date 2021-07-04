@@ -1,10 +1,7 @@
 # irctest
 
 This project aims at testing interoperability of software using the
-IRC protocol, by running them against test suites and making different
-software communicate with each other.
-
-It is very young and does not contain a lot of test cases yet.
+IRC protocol, by running them against common test suites.
 
 ## The big picture
 
