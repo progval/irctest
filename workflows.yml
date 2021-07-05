@@ -72,7 +72,7 @@ software:
             devel_release: insp3
         env:
             # Atheme does not support Insp4 yet, so it fails to connect
-            devel: "PYTEST_ARGS=\"-m 'not services'\""
+            devel: "PYTEST_ARGS=\"$PYTEST_ARGS -m 'not services'\""
         path: inspircd
         prefix: ~/.local/inspircd
         build_script: |

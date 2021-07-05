@@ -99,8 +99,8 @@ jobs:
         make -j 4 INSPIRCD_DEBUG=3
         make install
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/inspircd/bin:$PATH PYTEST_ARGS="-m
-        'not services'" make inspircd
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/inspircd/bin:$PATH PYTEST_ARGS="$PYTEST_ARGS
+        -m 'not services'" make inspircd
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
