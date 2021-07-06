@@ -37,7 +37,7 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-ergo
+        key: ${{ runner.os }}-ergo-devel
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/ergo
@@ -73,13 +73,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      with:
-        key: ${{ runner.os }}-inspircd
-        path: |-
-          ~/.cache
-          $GITHUB_WORKSPACE/inspircd
     - name: Install dependencies
       run: |-
         sudo apt-get install atheme-services
@@ -118,7 +111,7 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-limnoria
+        key: ${{ runner.os }}-limnoria-devel
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/placeholder
@@ -148,7 +141,7 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-solanum
+        key: ${{ runner.os }}-solanum-devel
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/solanum
@@ -189,7 +182,7 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-sopel
+        key: ${{ runner.os }}-sopel-devel
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/placeholder
@@ -219,7 +212,7 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-unrealircd
+        key: ${{ runner.os }}-unrealircd-devel
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/unrealircd

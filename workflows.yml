@@ -75,6 +75,7 @@ software:
             devel: "PYTEST_ARGS=\"$PYTEST_ARGS -m 'not services'\""
         path: inspircd
         prefix: ~/.local/inspircd
+        cache: false  # incremental compilation is frequently broken
         build_script: |
             cd $GITHUB_WORKSPACE/inspircd/
             patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch

@@ -84,6 +84,23 @@ def get_build_job(*, software_config, software_id, version_flavor):
     if env:
         env += " "
 
+    if software_config.get("cache", True):
+        cache = [
+            {
+                "name": "Cache dependencies",
+                "uses": "actions/cache@v2",
+                "with": {
+                    "path": script("~/.cache", f"$GITHUB_WORKSPACE/{path}"),
+                    "key": "${{ runner.os }}-"
+                    + software_id
+                    + "-"
+                    + version_flavor.value,
+                },
+            }
+        ]
+    else:
+        cache = []
+
     return {
         "runs-on": "ubuntu-latest",
         "steps": [
@@ -94,14 +111,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "with": {"python-version": 3.7},
             },
             *software_config.get("pre_deps", []),
-            {
-                "name": "Cache dependencies",
-                "uses": "actions/cache@v2",
-                "with": {
-                    "path": script("~/.cache", f"$GITHUB_WORKSPACE/{path}"),
-                    "key": "${{ runner.os }}-" + software_id,
-                },
-            },
+            *cache,
             {
                 "name": "Install dependencies",
                 "run": script(
