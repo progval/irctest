@@ -152,7 +152,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
             *downloads,
             {
                 "name": "Unpack artefacts",
-                "run": "cd ~; tar -xf artefacts-*.tar.gz",
+                "run": "cd ~; tar -xvf artefacts-*.tar.gz",
             },
             {
                 "name": "look at downloads",
@@ -233,7 +233,7 @@ def upload_steps(software_id):
     return [
         {
             "name": "Make artefact tarball",
-            "run": "cd ~; tar -czf artefacts-{software_id}.tar.gz .local/ go/",
+            "run": "cd ~; tar -cvzf artefacts-{software_id}.tar.gz .local/ go/",
         },
         {
             "name": "Upload build artefacts",

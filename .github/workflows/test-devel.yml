@@ -20,7 +20,7 @@ jobs:
         make -C build -j 4
         make -C build install
     - name: Make artefact tarball
-      run: cd ~; tar -czf artefacts-{software_id}.tar.gz .local/ go/
+      run: cd ~; tar -cvzf artefacts-{software_id}.tar.gz .local/ go/
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
       with:
@@ -47,7 +47,7 @@ jobs:
     - name: Install dependencies
       run: pip install git+https://github.com/ProgVal/Limnoria.git@testing cryptography
     - name: Make artefact tarball
-      run: cd ~; tar -czf artefacts-{software_id}.tar.gz .local/ go/
+      run: cd ~; tar -cvzf artefacts-{software_id}.tar.gz .local/ go/
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
       with:
@@ -74,7 +74,7 @@ jobs:
     - name: Install dependencies
       run: pip install git+https://github.com/sopel-irc/sopel.git
     - name: Make artefact tarball
-      run: cd ~; tar -czf artefacts-{software_id}.tar.gz .local/ go/
+      run: cd ~; tar -cvzf artefacts-{software_id}.tar.gz .local/ go/
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
       with:
@@ -113,7 +113,7 @@ jobs:
         name: installed-limnoria
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xf artefacts-*.tar.gz
+      run: cd ~; tar -xvf artefacts-*.tar.gz
     - name: look at downloads
       run: |-
         ls -la ~
@@ -150,7 +150,7 @@ jobs:
         name: installed-sopel
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xf artefacts-*.tar.gz
+      run: cd ~; tar -xvf artefacts-*.tar.gz
     - name: look at downloads
       run: |-
         ls -la ~
