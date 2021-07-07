@@ -202,6 +202,7 @@ def get_build_job_anope():
     return {
         "runs-on": "ubuntu-latest",
         "steps": [
+            {"uses": "actions/checkout@v2"},
             {
                 "name": "Checkout Anope",
                 "uses": "actions/checkout@v2",
