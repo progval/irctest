@@ -20,17 +20,55 @@ jobs:
         make -C build -j 4
         make -C build install
     - name: Make artefact tarball
-      run: cd ~; tar -cvzf artefacts-anope.tar.gz .local/ go/
+      run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
       with:
         name: installed-anope
         path: ~/artefacts-*.tar.gz
         retention-days: 1
+  build-inspircd:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir .local/ go/
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Checkout InspIRCd
+      uses: actions/checkout@v2
+      with:
+        path: inspircd
+        ref: insp3
+        repository: inspircd/inspircd
+    - name: Build InspIRCd
+      run: |
+        cd $GITHUB_WORKSPACE/inspircd/
+        patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
+        ./configure --prefix=$HOME/.local/inspircd --development
+        make -j 4
+        make install
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-inspircd.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: installed-inspircd
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
   publish-test-results:
     if: success() || failure()
     name: Publish Unit Tests Results
     needs:
+    - test-charybdis
+    - test-solanum
+    - test-ergo
+    - test-inspircd
+    - test-inspircd-anope
+    - test-unrealircd
+    - test-unrealircd-anope
     - test-limnoria
     - test-sopel
     runs-on: ubuntu-latest
@@ -43,9 +81,9 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v1
       with:
         files: artifacts/**/*.xml
-  test-limnoria:
+  test-charybdis:
     needs:
-    - build-limnoria
+    - build-charybdis
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -56,10 +94,150 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed-limnoria
+        name: installed-charybdis
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xvf artefacts-*.tar.gz
+      run: cd ~; tar -xf artefacts-*.tar.gz
+    - name: look at downloads
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        charybdis
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results charybdis (devel_release)
+        path: pytest.xml
+  test-ergo:
+    needs:
+    - build-ergo
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-ergo
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; tar -xf artefacts-*.tar.gz
+    - name: look at downloads
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/go/bin:$PATH
+        make ergo
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results ergo (devel_release)
+        path: pytest.xml
+  test-inspircd:
+    needs:
+    - build-inspircd
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-inspircd
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; tar -xf artefacts-*.tar.gz
+    - name: look at downloads
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH
+        make inspircd
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results inspircd (devel_release)
+        path: pytest.xml
+  test-inspircd-anope:
+    needs:
+    - build-inspircd
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-inspircd
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; tar -xf artefacts-*.tar.gz
+    - name: look at downloads
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH
+        make anope
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results anope (devel_release)
+        path: pytest.xml
+  test-limnoria:
+    needs: []
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: look at downloads
       run: |-
         ls -la ~
@@ -80,9 +258,9 @@ jobs:
       with:
         name: pytest results limnoria (devel_release)
         path: pytest.xml
-  test-sopel:
+  test-solanum:
     needs:
-    - build-sopel
+    - build-solanum
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -93,10 +271,39 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed-sopel
+        name: installed-solanum
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xvf artefacts-*.tar.gz
+      run: cd ~; tar -xf artefacts-*.tar.gz
+    - name: look at downloads
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        solanum
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results solanum (devel_release)
+        path: pytest.xml
+  test-sopel:
+    needs: []
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: look at downloads
       run: |-
         ls -la ~
@@ -116,6 +323,80 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest results sopel (devel_release)
+        path: pytest.xml
+  test-unrealircd:
+    needs:
+    - build-unrealircd
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-unrealircd
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; tar -xf artefacts-*.tar.gz
+    - name: look at downloads
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
+        make unrealircd
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results unrealircd (devel_release)
+        path: pytest.xml
+  test-unrealircd-anope:
+    needs:
+    - build-unrealircd
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-unrealircd
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; tar -xf artefacts-*.tar.gz
+    - name: look at downloads
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
+        make anope
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results anope (devel_release)
         path: pytest.xml
 name: irctest with devel_release versions
 'on':

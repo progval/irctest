@@ -50,9 +50,8 @@ class VersionFlavor(enum.Enum):
     release series, it uses that branch instead"""
 
 
-def get_build_job(*, software_config, software_id, version_flavor):
+def get_install_steps(*, software_config, software_id, version_flavor):
     name = software_config["name"]
-
     if "install_steps" in software_config:
         path = "placeholder"  # TODO: remove this
         install_steps = software_config["install_steps"][version_flavor.value]
@@ -79,6 +78,17 @@ def get_build_job(*, software_config, software_id, version_flavor):
             },
         ]
 
+    return install_steps
+
+
+def get_build_job(*, software_config, software_id, version_flavor):
+    if not software_config["separate_build_job"]:
+        return None
+    if "install_steps" in software_config:
+        path = "placeholder"  # TODO: remove this
+    else:
+        path = software_config["path"]
+
     if software_config.get("cache", True):
         cache = [
             {
@@ -95,6 +105,14 @@ def get_build_job(*, software_config, software_id, version_flavor):
         ]
     else:
         cache = []
+
+    install_steps = get_install_steps(
+        software_config=software_config,
+        software_id=software_id,
+        version_flavor=version_flavor,
+    )
+    if install_steps is None:
+        return None
 
     return {
         "runs-on": "ubuntu-latest",
@@ -121,15 +139,8 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
     env = ""
     needs = []
     downloads = []
+    install_steps = []
     for software_id in test_config.get("software", []):
-        needs.append(f"build-{software_id}")
-        downloads.append(
-            {
-                "name": "Download build artefacts",
-                "uses": "actions/download-artifact@v2",
-                "with": {"name": f"installed-{software_id}", "path": "~"},
-            }
-        )
         if software_id == "anope":
             # TODO: don't hardcode anope here
             continue
@@ -138,6 +149,36 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
         env += software_config.get("env", {}).get(version_flavor.value, "") + " "
         if "prefix" in software_config:
             env += f"PATH={software_config['prefix']}/bin:$PATH "
+
+        if software_config["separate_build_job"]:
+            needs.append(f"build-{software_id}")
+            downloads.append(
+                {
+                    "name": "Download build artefacts",
+                    "uses": "actions/download-artifact@v2",
+                    "with": {"name": f"installed-{software_id}", "path": "~"},
+                }
+            )
+        else:
+            install_steps.extend(
+                get_install_steps(
+                    software_config=software_config,
+                    software_id=software_id,
+                    version_flavor=version_flavor,
+                )
+                or []
+            )
+
+    if downloads:
+        unpack = [
+            {
+                "name": "Unpack artefacts",
+                "run": "cd ~; tar -xf artefacts-*.tar.gz",
+            },
+        ]
+    else:
+        # All the software is built in the same job, nothing to unpack
+        unpack = []
 
     return {
         "runs-on": "ubuntu-latest",
@@ -150,10 +191,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
                 "with": {"python-version": 3.7},
             },
             *downloads,
-            {
-                "name": "Unpack artefacts",
-                "run": "cd ~; tar -xvf artefacts-*.tar.gz",
-            },
+            *unpack,
             {
                 "name": "look at downloads",
                 "run": script(
@@ -233,7 +271,7 @@ def upload_steps(software_id):
     return [
         {
             "name": "Make artefact tarball",
-            "run": f"cd ~; tar -cvzf artefacts-{software_id}.tar.gz .local/ go/",
+            "run": f"cd ~; tar -czf artefacts-{software_id}.tar.gz .local/ go/",
         },
         {
             "name": "Upload build artefacts",
