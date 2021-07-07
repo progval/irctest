@@ -351,7 +351,7 @@ jobs:
   test-inspircd-anope:
     needs:
     - build-inspircd-anope
-    - - installed-anope
+    - installed-anope
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -467,7 +467,7 @@ jobs:
   test-unrealircd-anope:
     needs:
     - build-unrealircd-anope
-    - - installed-anope
+    - installed-anope
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2

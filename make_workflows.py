@@ -138,7 +138,7 @@ def get_test_job(*, software_config, software_id, version_flavor):
         env += " "
 
     if software_config.get("build_anope", False):
-        needs.append(["installed-anope"])
+        needs.append("installed-anope")
 
     return {
         "runs-on": "ubuntu-latest",
