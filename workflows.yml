@@ -155,10 +155,16 @@ tests:
     inspircd:
         software: [inspircd]
 
+    inspircd-atheme:
+        software: [inspircd]
+
     inspircd-anope:
         software: [inspircd, anope]
 
     unrealircd:
+        software: [unrealircd]
+
+    unrealircd-atheme:
         software: [unrealircd]
 
     unrealircd-anope:

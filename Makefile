@@ -111,7 +111,14 @@ ergo:
 inspircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.inspircd \
+		-m 'not services' \
+		-k '$(INSPIRCD_SELECTORS)'
+
+inspircd-atheme:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.inspircd \
 		--services-controller=irctest.controllers.atheme_services \
+		-m 'services' \
 		-k '$(INSPIRCD_SELECTORS)'
 
 inspircd-anope:
@@ -145,7 +152,14 @@ sopel:
 unrealircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.unrealircd \
+		-m 'not services' \
+		-k '$(UNREALIRCD_SELECTORS)'
+
+unrealircd-atheme:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.unrealircd \
 		--services-controller=irctest.controllers.atheme_services \
+		-m 'services' \
 		-k '$(UNREALIRCD_SELECTORS)'
 
 unrealircd-anope:
