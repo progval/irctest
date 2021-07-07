@@ -233,10 +233,7 @@ def upload_steps(software_id):
     return [
         {
             "name": "Make artefact tarball",
-            "run": script(
-                "cd ~",
-                "tar -czf artefacts-{software_id}.tar.gz .local/ go/",
-            ),
+            "run": "cd ~; tar -czf artefacts-{software_id}.tar.gz .local/ go/",
         },
         {
             "name": "Upload build artefacts",

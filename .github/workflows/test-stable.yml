@@ -20,9 +20,7 @@ jobs:
         make -C build -j 4
         make -C build install
     - name: Make artefact tarball
-      run: |-
-        cd ~
-        tar -czf artefacts-{software_id}.tar.gz .local/ go/
+      run: cd ~; tar -czf artefacts-{software_id}.tar.gz .local/ go/
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
       with:
@@ -44,9 +42,7 @@ jobs:
     - name: Install dependencies
       run: pip install limnoria==2021.06.15 cryptography
     - name: Make artefact tarball
-      run: |-
-        cd ~
-        tar -czf artefacts-{software_id}.tar.gz .local/ go/
+      run: cd ~; tar -czf artefacts-{software_id}.tar.gz .local/ go/
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
       with:
@@ -68,9 +64,7 @@ jobs:
     - name: Install dependencies
       run: pip install sopel==7.1.1
     - name: Make artefact tarball
-      run: |-
-        cd ~
-        tar -czf artefacts-{software_id}.tar.gz .local/ go/
+      run: cd ~; tar -czf artefacts-{software_id}.tar.gz .local/ go/
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
       with:
