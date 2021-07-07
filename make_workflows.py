@@ -99,8 +99,8 @@ def get_build_job(*, software_config, software_id, version_flavor):
                     "cd $GITHUB_WORKSPACE/anope/",
                     "cp $GITHUB_WORKSPACE/data/anope/* .",
                     "CFLAGS=-O0 ./Config -quick",
-                    "make -j 4",
-                    "make install",
+                    "make -C build -j 4",
+                    "make -C build install",
                 ),
             }
         )

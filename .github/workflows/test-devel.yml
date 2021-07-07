@@ -139,8 +139,8 @@ jobs:
         cd $GITHUB_WORKSPACE/anope/
         cp $GITHUB_WORKSPACE/data/anope/* .
         CFLAGS=-O0 ./Config -quick
-        make -j 4
-        make install
+        make -C build -j 4
+        make -C build install
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/inspircd/bin:$PATH make
         inspircd-anope
@@ -337,8 +337,8 @@ jobs:
         cd $GITHUB_WORKSPACE/anope/
         cp $GITHUB_WORKSPACE/data/anope/* .
         CFLAGS=-O0 ./Config -quick
-        make -j 4
-        make install
+        make -C build -j 4
+        make -C build install
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/unrealircd/bin:$PATH
         make unrealircd-anope
