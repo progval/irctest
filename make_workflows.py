@@ -235,6 +235,10 @@ def get_build_job_anope():
         "steps": [
             {"uses": "actions/checkout@v2"},
             {
+                "name": "Create directories",
+                "run": "cd ~/; mkdir -p .local/ go/",
+            },
+            {
                 "name": "Checkout Anope",
                 "uses": "actions/checkout@v2",
                 "with": {
