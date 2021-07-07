@@ -121,7 +121,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/go/bin:$PATH
         make ergo
     - if: always()
       name: Publish results
@@ -150,7 +150,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH
         make inspircd
     - if: always()
       name: Publish results
@@ -184,7 +184,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH
         make anope
     - if: always()
       name: Publish results
@@ -300,7 +300,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
         make unrealircd
     - if: always()
       name: Publish results
@@ -334,7 +334,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
         make anope
     - if: always()
       name: Publish results
