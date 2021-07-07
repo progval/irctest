@@ -141,6 +141,46 @@ cd ~/irctest
 pytest --controller irctest.controllers.unreal -k 'not Ergo and not deprecated and not strict'
 ```
 
+
+### Servers with services
+
+Besides Ergo (that has built-in services), most server controllers can optionally run
+service packages.
+
+#### Atheme:
+
+You can install it with
+
+```
+sudo apt install atheme-services
+```
+
+and add this to the `pytest` call:
+
+```
+--services-controller irctest.controllers.atheme_services
+```
+
+#### Anope:
+
+Build with:
+
+```
+cd /tmp/
+git clone https://github.com/anope/anope.git
+cd anope
+./Config  # This will ask a few questions, answer them.
+make -C build -j 4
+make -C build install
+```
+
+and add this to the `pytest` call:
+
+```
+--services-controller irctest.controllers.anope_services
+```
+
+
 ### Clients
 
 #### Limnoria:
