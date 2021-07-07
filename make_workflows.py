@@ -223,7 +223,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
                 "if": "always()",
                 "uses": "actions/upload-artifact@v2",
                 "with": {
-                    "name": f"pytest results {software_id} ({version_flavor.value})",
+                    "name": f"pytest results {test_id} ({version_flavor.value})",
                     "path": "pytest.xml",
                 },
             },

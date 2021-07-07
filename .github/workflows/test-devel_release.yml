@@ -209,7 +209,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results anope (devel_release)
+        name: pytest results inspircd-anope (devel_release)
         path: pytest.xml
   test-inspircd-atheme:
     needs:
@@ -241,7 +241,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd (devel_release)
+        name: pytest results inspircd-atheme (devel_release)
         path: pytest.xml
   test-limnoria:
     needs: []
@@ -391,7 +391,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results anope (devel_release)
+        name: pytest results unrealircd-anope (devel_release)
         path: pytest.xml
   test-unrealircd-atheme:
     needs:
@@ -423,7 +423,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results unrealircd (devel_release)
+        name: pytest results unrealircd-atheme (devel_release)
         path: pytest.xml
 name: irctest with devel_release versions
 'on':
