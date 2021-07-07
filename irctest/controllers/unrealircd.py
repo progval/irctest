@@ -173,7 +173,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 "-f",
                 os.path.join(self.directory, "unrealircd.conf"),
             ],
-            stdout=subprocess.DEVNULL,
+            # stdout=subprocess.DEVNULL,
         )
 
         if run_services:
