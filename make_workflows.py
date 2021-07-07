@@ -136,6 +136,9 @@ def get_build_job(*, software_config, software_id, version_flavor):
 
 
 def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
+    if version_flavor.value in test_config.get("exclude_versions", []):
+        return None
+
     env = ""
     needs = []
     downloads = []

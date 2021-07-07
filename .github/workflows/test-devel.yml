@@ -147,7 +147,6 @@ jobs:
     - test-ergo
     - test-inspircd
     - test-inspircd-anope
-    - test-inspircd-atheme
     - test-limnoria
     - test-solanum
     - test-sopel
@@ -272,38 +271,6 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest results inspircd-anope (devel)
-        path: pytest.xml
-  test-inspircd-atheme:
-    needs:
-    - build-inspircd
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-inspircd
-        path: '~'
-    - name: Unpack artefacts
-      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH PYTEST_ARGS="$PYTEST_ARGS
-        -m 'not services'" PATH=~/.local/inspircd/bin:$PATH make inspircd-atheme
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest results inspircd-atheme (devel)
         path: pytest.xml
   test-limnoria:
     needs: []

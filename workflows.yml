@@ -154,9 +154,7 @@ tests:
 
     inspircd-atheme:
         software: [inspircd]
-        env:
-            # Atheme does not support Insp4 yet, so it fails to connect
-            devel: "PYTEST_ARGS=\"$PYTEST_ARGS -m 'not services'\""
+        exclude_versions: [devel] # Atheme does not support Insp4 yet, so it fails to connect
 
     inspircd-anope:
         software: [inspircd, anope]
