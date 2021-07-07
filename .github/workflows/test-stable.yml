@@ -19,6 +19,16 @@ jobs:
         CFLAGS=-O0 ./Config -quick
         make -C build -j 4
         make -C build install
+    - name: Make artefact tarball
+      run: |-
+        cd ~
+        tar -czf artefacts-{software_id}.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: installed-anope
+        path: artefacts-*.tar.gz
+        retention-days: 1
   build-limnoria:
     runs-on: ubuntu-latest
     steps:
@@ -31,13 +41,15 @@ jobs:
           $GITHUB_WORKSPACE/placeholder
     - name: Install dependencies
       run: pip install limnoria==2021.06.15 cryptography
+    - name: Make artefact tarball
+      run: |-
+        cd ~
+        tar -czf artefacts-{software_id}.tar.gz .local/ go/
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
       with:
         name: installed-limnoria
-        path: |-
-          ~/.local
-          ~/go
+        path: artefacts-*.tar.gz
         retention-days: 1
   build-sopel:
     runs-on: ubuntu-latest
@@ -51,13 +63,15 @@ jobs:
           $GITHUB_WORKSPACE/placeholder
     - name: Install dependencies
       run: pip install sopel==7.1.1
+    - name: Make artefact tarball
+      run: |-
+        cd ~
+        tar -czf artefacts-{software_id}.tar.gz .local/ go/
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
       with:
         name: installed-sopel
-        path: |-
-          ~/.local
-          ~/go
+        path: artefacts-*.tar.gz
         retention-days: 1
   publish-test-results:
     if: success() || failure()
@@ -90,6 +104,8 @@ jobs:
       with:
         name: installed-limnoria
         path: '~'
+    - name: unpack artefacts
+      run: tar -xf artefacts-*.tar.gz
     - name: look at downloads
       run: |-
         ls -la ~
@@ -125,6 +141,8 @@ jobs:
       with:
         name: installed-sopel
         path: '~'
+    - name: unpack artefacts
+      run: tar -xf artefacts-*.tar.gz
     - name: look at downloads
       run: |-
         ls -la ~

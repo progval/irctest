@@ -108,20 +108,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
             *software_config.get("pre_deps", []),
             *cache,
             *install_steps,
-            {
-                "name": "Upload build artefacts",
-                "uses": "actions/upload-artifact@v2",
-                "with": {
-                    "name": f"installed-{software_id}",
-                    "path": script(
-                        "~/.local",
-                        "~/go",
-                    ),
-                    # We only need it for the next step of the workflow, so let's
-                    # just delete it ASAP to avoid wasting resources
-                    "retention-days": 1,
-                },
-            },
+            *upload_steps(software_id),
         ],
     }
 
@@ -159,6 +146,10 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
                 "with": {"python-version": 3.7},
             },
             *downloads,
+            {
+                "name": "unpack artefacts",
+                "run": "tar -xf artefacts-*.tar.gz",
+            },
             {
                 "name": "look at downloads",
                 "run": script(
@@ -228,8 +219,33 @@ def get_build_job_anope():
                     "make -C build install",
                 ),
             },
+            *upload_steps("anope"),
         ],
     }
+
+
+def upload_steps(software_id):
+    """Make a tarball (to preserve permissions) and upload"""
+    return [
+        {
+            "name": "Make artefact tarball",
+            "run": script(
+                "cd ~",
+                "tar -czf artefacts-{software_id}.tar.gz .local/ go/",
+            ),
+        },
+        {
+            "name": "Upload build artefacts",
+            "uses": "actions/upload-artifact@v2",
+            "with": {
+                "name": f"installed-{software_id}",
+                "path": "artefacts-*.tar.gz",
+                # We only need it for the next step of the workflow, so let's
+                # just delete it ASAP to avoid wasting resources
+                "retention-days": 1,
+            },
+        },
+    ]
 
 
 def generate_workflow(config: dict, version_flavor: VersionFlavor):
