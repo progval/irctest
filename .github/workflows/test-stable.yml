@@ -157,13 +157,13 @@ jobs:
         sudo apt-get install atheme-services
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
-    - name: Checkout InspIRCd with Anope
+    - name: Checkout InspIRCd
       uses: actions/checkout@v2
       with:
         path: inspircd
         ref: v3.10.0
         repository: inspircd/inspircd
-    - name: Build InspIRCd with Anope
+    - name: Build InspIRCd
       run: |
         cd $GITHUB_WORKSPACE/inspircd/
         patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
@@ -190,7 +190,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results InspIRCd with Anope (stable)
+        name: pytest results InspIRCd (stable)
         path: pytest.xml
   test-limnoria:
     runs-on: ubuntu-latest

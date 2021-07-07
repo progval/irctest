@@ -7,6 +7,10 @@ PYTEST_ARGS ?=
 # Will be appended at the end of the -k argument to pytest
 EXTRA_SELECTORS ?=
 
+# testPlainLarge fails because it doesn't handle split AUTHENTICATE (reported on IRC)
+ANOPE_SELECTORS := \
+	and not testPlainLarge
+
 # testQuitErrors is very flaky
 # AccountTagTestCase.testInvite fails because https://github.com/solanum-ircd/solanum/issues/166
 CHARYBDIS_SELECTORS := \
@@ -115,7 +119,7 @@ inspircd-anope:
 		--controller=irctest.controllers.inspircd \
 		--services-controller=irctest.controllers.anope_services \
 		-m 'services' \
-		-k '$(INSPIRCD_SELECTORS)'
+		-k '$(INSPIRCD_SELECTORS) $(ANOPE_SELECTORS)'
 
 limnoria:
 	$(PYTEST) $(PYTEST_ARGS) \
@@ -149,4 +153,4 @@ unrealircd-anope:
 		--controller=irctest.controllers.unrealircd \
 		--services-controller=irctest.controllers.anope_services \
 		-m 'services' \
-		-k '$(UNREALIRCD_SELECTORS)'
+		-k '$(UNREALIRCD_SELECTORS) $(ANOPE_SELECTORS)'

@@ -84,7 +84,7 @@ software:
             make install
 
     inspircd-anope:
-        name: InspIRCd with Anope
+        name: InspIRCd
         repository: inspircd/inspircd
         refs: *inspircd_refs
         path: inspircd
