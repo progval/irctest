@@ -28,6 +28,7 @@ jobs:
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/charybdis
+    - uses: actions/checkout@v2
     - name: Checkout Charybdis
       uses: actions/checkout@v2
       with:
@@ -61,6 +62,7 @@ jobs:
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/ergo
+    - uses: actions/checkout@v2
     - name: Checkout Ergo
       uses: actions/checkout@v2
       with:
@@ -81,6 +83,7 @@ jobs:
   build-inspircd:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Checkout InspIRCd
       uses: actions/checkout@v2
       with:
@@ -128,6 +131,7 @@ jobs:
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/solanum
+    - uses: actions/checkout@v2
     - name: Checkout Solanum
       uses: actions/checkout@v2
       with:
@@ -175,6 +179,7 @@ jobs:
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/unrealircd
+    - uses: actions/checkout@v2
     - name: Checkout UnrealIRCd
       uses: actions/checkout@v2
       with:

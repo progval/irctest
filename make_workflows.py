@@ -64,6 +64,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
             return None
         path = software_config["path"]
         install_steps = [
+            {"uses": "actions/checkout@v2"},
             {
                 "name": f"Checkout {name}",
                 "uses": "actions/checkout@v2",
