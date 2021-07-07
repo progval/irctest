@@ -79,13 +79,6 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
         assert protocol in ("inspircd3", "charybdis", "unreal4")
 
         with self.open_file("conf/services.conf") as fd:
-            print(
-                TEMPLATE_CONFIG.format(
-                    protocol=protocol,
-                    server_hostname=server_hostname,
-                    server_port=server_port,
-                )
-            )
             fd.write(
                 TEMPLATE_CONFIG.format(
                     protocol=protocol,

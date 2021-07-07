@@ -79,6 +79,19 @@ jobs:
         ./configure --prefix=$HOME/.local/inspircd --development
         make -j 4
         make install
+    - name: Checkout Anope
+      uses: actions/checkout@v2
+      with:
+        path: anope
+        ref: 2.0.9
+        repository: anope/anope
+    - name: Build Anope
+      run: |-
+        cd $GITHUB_WORKSPACE/anope/
+        cp $GITHUB_WORKSPACE/data/anope/* .
+        CFLAGS=-O0 ./Config -quick
+        make -j 4
+        make install
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/inspircd/bin:$PATH make
         inspircd-anope

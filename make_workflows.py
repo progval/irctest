@@ -80,6 +80,31 @@ def get_build_job(*, software_config, software_id, version_flavor):
             },
         ]
 
+    if software_config.get("build_anope", False):
+        install_steps.append(
+            {
+                "name": "Checkout Anope",
+                "uses": "actions/checkout@v2",
+                "with": {
+                    "repository": "anope/anope",
+                    "ref": "2.0.9",
+                    "path": "anope",
+                },
+            }
+        )
+        install_steps.append(
+            {
+                "name": "Build Anope",
+                "run": script(
+                    "cd $GITHUB_WORKSPACE/anope/",
+                    "cp $GITHUB_WORKSPACE/data/anope/* .",
+                    "CFLAGS=-O0 ./Config -quick",
+                    "make -j 4",
+                    "make install",
+                ),
+            }
+        )
+
     env = software_config.get("env", {}).get(version_flavor.value, "")
     if env:
         env += " "

@@ -65,7 +65,7 @@ software:
     inspircd:
         name: InspIRCd
         repository: inspircd/inspircd
-        refs:
+        refs: &inspircd_refs
             stable: v3.10.0
             release: null
             devel: master
@@ -76,7 +76,7 @@ software:
         path: inspircd
         prefix: ~/.local/inspircd
         cache: false  # incremental compilation is frequently broken
-        build_script: |
+        build_script: &inspircd_build_script |
             cd $GITHUB_WORKSPACE/inspircd/
             patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
             ./configure --prefix=$HOME/.local/inspircd --development
@@ -86,34 +86,26 @@ software:
     inspircd-anope:
         name: InspIRCd with Anope
         repository: inspircd/inspircd
-        refs:
-            stable: v3.10.0
-            release: null
-            devel: master
-            devel_release: insp3
+        refs: *inspircd_refs
         path: inspircd
         prefix: ~/.local/inspircd
         cache: false  # incremental compilation is frequently broken
-        build_script: |
-            cd $GITHUB_WORKSPACE/inspircd/
-            patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
-            ./configure --prefix=$HOME/.local/inspircd --development
-            make -j 4
-            make install
+        build_anope: true
+        build_script: *inspircd_build_script
 
     unrealircd:
         name: UnrealIRCd
         repository: unrealircd/unrealircd
-        refs:
+        refs: &unrealircd_refs
             stable: 94993a03ca8d3c193c0295c33af39270c3f9d27d  # 5.2.1-rc1
             release: null
             devel: unreal52
             devel_release: null
         path: unrealircd
         prefix: ~/.local/unrealircd
-        build_script: |
+        build_script: &unrealircd_build_script |
             cd $GITHUB_WORKSPACE/unrealircd/
-            cp $GITHUB_WORKSPACE/unreal/* .
+            cp $GITHUB_WORKSPACE/data/unreal/* .
             CFLAGS=-O0 ./Config -quick
             make -j 4
             make install
@@ -121,19 +113,11 @@ software:
     unrealircd-anope:
         name: UnrealIRCd
         repository: unrealircd/unrealircd
-        refs:
-            stable: 94993a03ca8d3c193c0295c33af39270c3f9d27d  # 5.2.1-rc1
-            release: null
-            devel: unreal52
-            devel_release: null
+        refs: *unrealircd_refs
         path: unrealircd
         prefix: ~/.local/unrealircd
-        build_script: |
-            cd $GITHUB_WORKSPACE/unrealircd/
-            cp $GITHUB_WORKSPACE/unreal/* .
-            CFLAGS=-O0 ./Config -quick
-            make -j 4
-            make install
+        build_anope: true
+        build_script: *unrealircd_build_script
 
     #############################
     # Clients:
