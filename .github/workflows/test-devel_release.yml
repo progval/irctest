@@ -99,7 +99,7 @@ jobs:
         name: installed-charybdis
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xf artefacts-*.tar.gz
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -131,7 +131,7 @@ jobs:
         name: installed-ergo
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xf artefacts-*.tar.gz
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -163,7 +163,7 @@ jobs:
         name: installed-inspircd
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xf artefacts-*.tar.gz
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -201,7 +201,7 @@ jobs:
         name: installed-anope
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xf artefacts-*.tar.gz
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -257,7 +257,7 @@ jobs:
         name: installed-solanum
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xf artefacts-*.tar.gz
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -313,7 +313,7 @@ jobs:
         name: installed-unrealircd
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xf artefacts-*.tar.gz
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -351,7 +351,7 @@ jobs:
         name: installed-anope
         path: '~'
     - name: Unpack artefacts
-      run: cd ~; tar -xf artefacts-*.tar.gz
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies

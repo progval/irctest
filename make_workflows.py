@@ -174,7 +174,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
         unpack = [
             {
                 "name": "Unpack artefacts",
-                "run": "cd ~; tar -xf artefacts-*.tar.gz",
+                "run": r"cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;",
             },
         ]
     else:
