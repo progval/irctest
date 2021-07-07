@@ -19,6 +19,8 @@ TEMPLATE_CONFIG = """
     timeout="10"  # So tests don't hang too long
     {password_field}>
 
+<options casemapping="ascii">
+
 # Services:
 <bind address="{services_hostname}" port="{services_port}" type="servers">
 <link name="services.example.org"
