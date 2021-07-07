@@ -131,9 +131,8 @@ def get_build_job(*, software_config, software_id, version_flavor):
 
 
 def get_test_job(*, software_config, software_id, version_flavor):
-    name = software_config["name"]
     prefix = software_config.get("prefix", "~/.local")
-    needs = [f"installed-{software_id}"]  # Built ~/.local
+    needs = [f"build-{software_id}"]  # Built ~/.local
     env = software_config.get("env", {}).get(version_flavor.value, "")
     if env:
         env += " "
@@ -171,7 +170,7 @@ def get_test_job(*, software_config, software_id, version_flavor):
                 "if": "always()",
                 "uses": "actions/upload-artifact@v2",
                 "with": {
-                    "name": f"pytest results {name} ({version_flavor.value})",
+                    "name": f"pytest results {software_id} ({version_flavor.value})",
                     "path": "pytest.xml",
                 },
             },

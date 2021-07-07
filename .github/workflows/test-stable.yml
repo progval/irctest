@@ -315,7 +315,7 @@ jobs:
         files: artifacts/**/*.xml
   test-charybdis:
     needs:
-    - installed-charybdis
+    - build-charybdis
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -334,11 +334,11 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results Charybdis (stable)
+        name: pytest results charybdis (stable)
         path: pytest.xml
   test-ergo:
     needs:
-    - installed-ergo
+    - build-ergo
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -357,11 +357,11 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results Ergo (stable)
+        name: pytest results ergo (stable)
         path: pytest.xml
   test-inspircd:
     needs:
-    - installed-inspircd
+    - build-inspircd
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -380,11 +380,11 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results InspIRCd (stable)
+        name: pytest results inspircd (stable)
         path: pytest.xml
   test-inspircd-anope:
     needs:
-    - installed-inspircd-anope
+    - build-inspircd-anope
     - - installed-anope
     runs-on: ubuntu-latest
     steps:
@@ -404,11 +404,11 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results InspIRCd (stable)
+        name: pytest results inspircd-anope (stable)
         path: pytest.xml
   test-limnoria:
     needs:
-    - installed-limnoria
+    - build-limnoria
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -427,11 +427,11 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results Limnoria (stable)
+        name: pytest results limnoria (stable)
         path: pytest.xml
   test-solanum:
     needs:
-    - installed-solanum
+    - build-solanum
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -450,11 +450,11 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results Solanum (stable)
+        name: pytest results solanum (stable)
         path: pytest.xml
   test-sopel:
     needs:
-    - installed-sopel
+    - build-sopel
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -473,11 +473,11 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results Sopel (stable)
+        name: pytest results sopel (stable)
         path: pytest.xml
   test-unrealircd:
     needs:
-    - installed-unrealircd
+    - build-unrealircd
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -496,11 +496,11 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results UnrealIRCd (stable)
+        name: pytest results unrealircd (stable)
         path: pytest.xml
   test-unrealircd-anope:
     needs:
-    - installed-unrealircd-anope
+    - build-unrealircd-anope
     - - installed-anope
     runs-on: ubuntu-latest
     steps:
@@ -520,7 +520,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results UnrealIRCd (stable)
+        name: pytest results unrealircd-anope (stable)
         path: pytest.xml
 name: irctest with stable versions
 'on':
