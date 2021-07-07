@@ -69,7 +69,11 @@ class _BaseController:
         """Terminates the controlled process, waits for it to exit, and
         eventually kills it."""
         assert self.proc
-        self.proc.kill()
+        self.proc.terminate()
+        try:
+            self.proc.wait(5)
+        except subprocess.TimeoutExpired:
+            self.proc.kill()
         self.proc = None
 
     def kill(self) -> None:
@@ -93,6 +97,13 @@ class DirectoryBasedController(_BaseController):
         super().kill()
         if self.directory:
             shutil.rmtree(self.directory)
+
+    def terminate(self) -> None:
+        """Stops the process gracefully, and does not clean its config."""
+        assert self.proc
+        self.proc.terminate()
+        self.proc.wait()
+        self.proc = None
 
     def open_file(self, name: str, mode: str = "a") -> IO:
         """Open a file in the configuration directory."""
@@ -171,7 +182,7 @@ class BaseServerController(_BaseController):
     port_open = False
     port: int
     hostname: str
-    services_controller: Optional[BaseServicesController] = None
+    services_controller: BaseServicesController
     extban_mute_char: Optional[str] = None
     """Character used for the 'mute' extban"""
 
@@ -194,7 +205,7 @@ class BaseServerController(_BaseController):
         username: str,
         password: Optional[str] = None,
     ) -> None:
-        if self.services_controller is not None:
+        if self.services_controller:
             self.services_controller.registerUser(case, username, password)
         else:
             raise NotImplementedByController("account registration")
@@ -221,15 +232,7 @@ class BaseServerController(_BaseController):
                 continue
 
     def wait_for_services(self) -> None:
-        assert self.services_controller is not None
         self.services_controller.wait_for_services()
-
-    def kill(self) -> None:
-        """Calls `kill_proc` and cleans the configuration."""
-        if self.services_controller is not None:
-            self.services_controller.kill()
-            self.services_controller = None
-        super().kill()
 
 
 class BaseServicesController(_BaseController):
