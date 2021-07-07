@@ -43,7 +43,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: installed-inspircd
-        path: ~/.local
+        path: |-
+          ~/.local
+          ~/go
         retention-days: 1
   publish-test-results:
     if: success() || failure()

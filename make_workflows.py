@@ -113,7 +113,10 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "uses": "actions/upload-artifact@v2",
                 "with": {
                     "name": f"installed-{software_id}",
-                    "path": "~/.local",
+                    "path": script(
+                        "~/.local",
+                        "~/go",
+                    ),
                     # We only need it for the next step of the workflow, so let's
                     # just delete it ASAP to avoid wasting resources
                     "retention-days": 1,

@@ -52,7 +52,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: installed-ergo
-        path: ~/.local
+        path: |-
+          ~/.local
+          ~/go
         retention-days: 1
   build-inspircd:
     runs-on: ubuntu-latest
@@ -79,7 +81,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: installed-inspircd
-        path: ~/.local
+        path: |-
+          ~/.local
+          ~/go
         retention-days: 1
   build-limnoria:
     runs-on: ubuntu-latest
@@ -97,7 +101,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: installed-limnoria
-        path: ~/.local
+        path: |-
+          ~/.local
+          ~/go
         retention-days: 1
   build-solanum:
     runs-on: ubuntu-latest
@@ -131,7 +137,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: installed-solanum
-        path: ~/.local
+        path: |-
+          ~/.local
+          ~/go
         retention-days: 1
   build-sopel:
     runs-on: ubuntu-latest
@@ -149,7 +157,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: installed-sopel
-        path: ~/.local
+        path: |-
+          ~/.local
+          ~/go
         retention-days: 1
   build-unrealircd:
     runs-on: ubuntu-latest
@@ -183,7 +193,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: installed-unrealircd
-        path: ~/.local
+        path: |-
+          ~/.local
+          ~/go
         retention-days: 1
   publish-test-results:
     if: success() || failure()
