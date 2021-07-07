@@ -151,8 +151,8 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
             },
             *downloads,
             {
-                "name": "unpack artefacts",
-                "run": "tar -xf artefacts-*.tar.gz",
+                "name": "Unpack artefacts",
+                "run": "cd ~; tar -xf artefacts-*.tar.gz",
             },
             {
                 "name": "look at downloads",

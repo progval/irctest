@@ -102,8 +102,8 @@ jobs:
       with:
         name: installed-limnoria
         path: '~'
-    - name: unpack artefacts
-      run: tar -xf artefacts-*.tar.gz
+    - name: Unpack artefacts
+      run: cd ~; tar -xf artefacts-*.tar.gz
     - name: look at downloads
       run: |-
         ls -la ~
@@ -139,8 +139,8 @@ jobs:
       with:
         name: installed-sopel
         path: '~'
-    - name: unpack artefacts
-      run: tar -xf artefacts-*.tar.gz
+    - name: Unpack artefacts
+      run: cd ~; tar -xf artefacts-*.tar.gz
     - name: look at downloads
       run: |-
         ls -la ~
