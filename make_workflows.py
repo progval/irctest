@@ -143,9 +143,10 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
     for software_id in test_config.get("software", []):
         if software_id == "anope":
             # TODO: don't hardcode anope here
-            continue
+            software_config = {"separate_build_job": True}
+        else:
+            software_config = config["software"][software_id]
 
-        software_config = config["software"][software_id]
         env += software_config.get("env", {}).get(version_flavor.value, "") + " "
         if "prefix" in software_config:
             env += f"PATH={software_config['prefix']}/bin:$PATH "

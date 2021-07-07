@@ -298,6 +298,7 @@ jobs:
   test-inspircd-anope:
     needs:
     - build-inspircd
+    - build-anope
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -310,6 +311,11 @@ jobs:
       with:
         name: installed-inspircd
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-anope
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; tar -xf artefacts-*.tar.gz
     - name: Install Atheme
@@ -320,7 +326,7 @@ jobs:
         pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH PYTEST_ARGS="$PYTEST_ARGS
-        -m 'not services'" PATH=~/.local/inspircd/bin:$PATH make anope
+        -m 'not services'" PATH=~/.local/inspircd/bin:$PATH  make anope
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
@@ -446,6 +452,7 @@ jobs:
   test-unrealircd-anope:
     needs:
     - build-unrealircd
+    - build-anope
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -458,6 +465,11 @@ jobs:
       with:
         name: installed-unrealircd
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-anope
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; tar -xf artefacts-*.tar.gz
     - name: Install Atheme
@@ -467,8 +479,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
-        make anope
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH  make
+        anope
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
