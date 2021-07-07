@@ -28,10 +28,6 @@ jobs:
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/charybdis
-    - name: Install dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
     - name: Checkout Charybdis
       uses: actions/checkout@v2
       with:
@@ -65,10 +61,6 @@ jobs:
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/ergo
-    - name: Install dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
     - name: Checkout Ergo
       uses: actions/checkout@v2
       with:
@@ -89,10 +81,6 @@ jobs:
   build-inspircd:
     runs-on: ubuntu-latest
     steps:
-    - name: Install dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
     - name: Checkout InspIRCd
       uses: actions/checkout@v2
       with:
@@ -123,10 +111,6 @@ jobs:
           ~/.cache
           $GITHUB_WORKSPACE/placeholder
     - name: Install dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Install dependencies
       run: pip install limnoria==2021.06.15 cryptography
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
@@ -144,10 +128,6 @@ jobs:
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/solanum
-    - name: Install dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
     - name: Checkout Solanum
       uses: actions/checkout@v2
       with:
@@ -178,10 +158,6 @@ jobs:
           ~/.cache
           $GITHUB_WORKSPACE/placeholder
     - name: Install dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Install dependencies
       run: pip install sopel==7.1.1
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
@@ -199,10 +175,6 @@ jobs:
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/unrealircd
-    - name: Install dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
     - name: Checkout UnrealIRCd
       uses: actions/checkout@v2
       with:
@@ -261,6 +233,10 @@ jobs:
         name: installed-charybdis
     - name: Install Atheme
       run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         charybdis
@@ -286,6 +262,10 @@ jobs:
         name: installed-ergo
     - name: Install Atheme
       run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
         make ergo
@@ -311,6 +291,10 @@ jobs:
         name: installed-inspircd
     - name: Install Atheme
       run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
         make inspircd
@@ -341,6 +325,10 @@ jobs:
         name: installed-anope
     - name: Install Atheme
       run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
         make anope
@@ -366,6 +354,10 @@ jobs:
         name: installed-limnoria
     - name: Install Atheme
       run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         limnoria
@@ -391,6 +383,10 @@ jobs:
         name: installed-solanum
     - name: Install Atheme
       run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         solanum
@@ -416,6 +412,10 @@ jobs:
         name: installed-sopel
     - name: Install Atheme
       run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         sopel
@@ -441,6 +441,10 @@ jobs:
         name: installed-unrealircd
     - name: Install Atheme
       run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
         make unrealircd
@@ -471,6 +475,10 @@ jobs:
         name: installed-anope
     - name: Install Atheme
       run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
         make anope

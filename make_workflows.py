@@ -101,18 +101,6 @@ def get_build_job(*, software_config, software_id, version_flavor):
         "steps": [
             *software_config.get("pre_deps", []),
             *cache,
-            {
-                "name": "Install dependencies",
-                "run": script(
-                    "python -m pip install --upgrade pip",
-                    "pip install pytest -r requirements.txt",
-                    *(
-                        software_config["extra_deps"]
-                        if "extra_deps" in software_config
-                        else []
-                    ),
-                ),
-            },
             *install_steps,
             {
                 "name": "Upload build artefacts",
@@ -167,6 +155,18 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
             {
                 "name": "Install Atheme",
                 "run": "sudo apt-get install atheme-services",
+            },
+            {
+                "name": "Install irctest dependencies",
+                "run": script(
+                    "python -m pip install --upgrade pip",
+                    "pip install pytest -r requirements.txt",
+                    *(
+                        software_config["extra_deps"]
+                        if "extra_deps" in software_config
+                        else []
+                    ),
+                ),
             },
             {
                 "name": "Test with pytest",
