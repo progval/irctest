@@ -67,46 +67,6 @@ jobs:
         name: installed-charybdis
         path: ~/artefacts-*.tar.gz
         retention-days: 1
-  build-ergo:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/setup-go@v2
-      with:
-        go-version: ~1.16
-    - run: go version
-    - name: Create directories
-      run: cd ~/; mkdir -p .local/ go/
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      with:
-        key: ${{ runner.os }}-ergo-stable
-        path: |-
-          ~/.cache
-          $GITHUB_WORKSPACE/ergo
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Checkout Ergo
-      uses: actions/checkout@v2
-      with:
-        path: ergo
-        ref: irctest_stable
-        repository: ergochat/ergo
-    - name: Build Ergo
-      run: |
-        cd $GITHUB_WORKSPACE/ergo/
-        make build
-        make install
-    - name: Make artefact tarball
-      run: cd ~; tar -czf artefacts-ergo.tar.gz .local/ go/
-    - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: installed-ergo
-        path: ~/artefacts-*.tar.gz
-        retention-days: 1
   build-inspircd:
     runs-on: ubuntu-latest
     steps:
@@ -274,8 +234,7 @@ jobs:
         name: pytest results charybdis (stable)
         path: pytest.xml
   test-ergo:
-    needs:
-    - build-ergo
+    needs: []
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -283,13 +242,17 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
+    - name: Checkout Ergo
+      uses: actions/checkout@v2
       with:
-        name: installed-ergo
-        path: '~'
-    - name: Unpack artefacts
-      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+        path: ergo
+        ref: irctest_stable
+        repository: ergochat/ergo
+    - name: Build Ergo
+      run: |
+        cd $GITHUB_WORKSPACE/ergo/
+        make build
+        make install
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies

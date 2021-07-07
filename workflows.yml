@@ -59,7 +59,7 @@ software:
               with:
                   go-version: '~1.16'
             - run: go version
-        separate_build_job: true
+        separate_build_job: false
         build_script: |
             cd $GITHUB_WORKSPACE/ergo/
             make build
