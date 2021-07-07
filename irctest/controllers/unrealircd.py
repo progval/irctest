@@ -169,8 +169,6 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         self.proc = subprocess.Popen(
             [
                 "strace",
-                "-e",
-                "file",
                 "-f",
                 "unrealircd",
                 "-t",
