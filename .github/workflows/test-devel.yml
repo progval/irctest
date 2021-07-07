@@ -165,7 +165,10 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/unrealircd/
         cp $GITHUB_WORKSPACE/data/unreal/* .
-        CFLAGS=-O0 ./Config -quick
+        # Need to use a specific -march, because GitHub has inconsistent
+        # architectures across workers, which result in random SIGILL with some
+        # worker combinations
+        CFLAGS="-O0 -march=i686" CXXFLAGS="$CFLAGS" ./Config -quick
         make -j 4
         make install
     - name: Make artefact tarball

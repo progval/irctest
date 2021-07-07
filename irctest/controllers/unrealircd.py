@@ -168,8 +168,6 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
             )
         self.proc = subprocess.Popen(
             [
-                "strace",
-                "-f",
                 "unrealircd",
                 "-t",
                 "-F",  # BOOT_NOFORK
