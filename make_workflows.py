@@ -152,14 +152,6 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
         "runs-on": "ubuntu-latest",
         "needs": needs,
         "steps": [
-            {
-                "name": "Install Atheme",
-                "run": script(
-                    "ls -la ~",
-                    "ls -la ~/.local",
-                    "ls -la ~/.local/bin",
-                ),
-            },
             {"uses": "actions/checkout@v2"},
             {
                 "name": "Set up Python 3.7",
@@ -167,6 +159,14 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
                 "with": {"python-version": 3.7},
             },
             *downloads,
+            {
+                "name": "look at downloads",
+                "run": script(
+                    "ls -la ~",
+                    "ls -la ~/.local",
+                    "ls -la ~/.local/bin",
+                ),
+            },
             {
                 "name": "Install Atheme",
                 "run": "sudo apt-get install atheme-services",

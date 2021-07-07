@@ -3,7 +3,7 @@
 # See VersionFlavor in the script to see how stabl/release/devel/devel_release
 # are defined.
 
-software:
+disabled-software:
     #############################
     # Charybdis family:
     charybdis:
@@ -100,6 +100,7 @@ software:
             make -j 4
             make install
 
+software:
     #############################
     # Clients:
 
@@ -131,7 +132,7 @@ software:
                   run: pip install git+https://github.com/sopel-irc/sopel.git
             devel_release: null
 
-tests:
+disabled-tests:
     charybdis:
         software: [charybdis]
 
@@ -153,6 +154,7 @@ tests:
     unrealircd-anope:
         software: [unrealircd, anope]
 
+tests:
     limnoria:
         software: [limnoria]
 

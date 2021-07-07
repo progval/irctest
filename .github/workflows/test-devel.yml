@@ -19,73 +19,6 @@ jobs:
         CFLAGS=-O0 ./Config -quick
         make -C build -j 4
         make -C build install
-  build-ergo:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/setup-go@v2
-      with:
-        go-version: ~1.16
-    - run: go version
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      with:
-        key: ${{ runner.os }}-ergo-devel
-        path: |-
-          ~/.cache
-          $GITHUB_WORKSPACE/ergo
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Checkout Ergo
-      uses: actions/checkout@v2
-      with:
-        path: ergo
-        ref: master
-        repository: ergochat/ergo
-    - name: Build Ergo
-      run: |
-        cd $GITHUB_WORKSPACE/ergo/
-        make build
-        make install
-    - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: installed-ergo
-        path: |-
-          ~/.local
-          ~/go
-        retention-days: 1
-  build-inspircd:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Checkout InspIRCd
-      uses: actions/checkout@v2
-      with:
-        path: inspircd
-        ref: master
-        repository: inspircd/inspircd
-    - name: Build InspIRCd
-      run: |
-        cd $GITHUB_WORKSPACE/inspircd/
-        patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
-        ./configure --prefix=$HOME/.local/inspircd --development
-        make -j 4
-        make install
-    - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: installed-inspircd
-        path: |-
-          ~/.local
-          ~/go
-        retention-days: 1
   build-limnoria:
     runs-on: ubuntu-latest
     steps:
@@ -102,42 +35,6 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: installed-limnoria
-        path: |-
-          ~/.local
-          ~/go
-        retention-days: 1
-  build-solanum:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      with:
-        key: ${{ runner.os }}-solanum-devel
-        path: |-
-          ~/.cache
-          $GITHUB_WORKSPACE/solanum
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Checkout Solanum
-      uses: actions/checkout@v2
-      with:
-        path: solanum
-        ref: main
-        repository: solanum-ircd/solanum
-    - name: Build Solanum
-      run: |
-        cd $GITHUB_WORKSPACE/solanum/
-        ./autogen.sh
-        ./configure --prefix=$HOME/.local/
-        make -j 4
-        make install
-    - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: installed-solanum
         path: |-
           ~/.local
           ~/go
@@ -162,53 +59,10 @@ jobs:
           ~/.local
           ~/go
         retention-days: 1
-  build-unrealircd:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      with:
-        key: ${{ runner.os }}-unrealircd-devel
-        path: |-
-          ~/.cache
-          $GITHUB_WORKSPACE/unrealircd
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Checkout UnrealIRCd
-      uses: actions/checkout@v2
-      with:
-        path: unrealircd
-        ref: unreal52
-        repository: unrealircd/unrealircd
-    - name: Build UnrealIRCd
-      run: |
-        cd $GITHUB_WORKSPACE/unrealircd/
-        cp $GITHUB_WORKSPACE/data/unreal/* .
-        CFLAGS=-O0 ./Config -quick
-        make -j 4
-        make install
-    - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: installed-unrealircd
-        path: |-
-          ~/.local
-          ~/go
-        retention-days: 1
   publish-test-results:
     if: success() || failure()
     name: Publish Unit Tests Results
     needs:
-    - test-charybdis
-    - test-solanum
-    - test-ergo
-    - test-inspircd
-    - test-inspircd-anope
-    - test-unrealircd
-    - test-unrealircd-anope
     - test-limnoria
     - test-sopel
     runs-on: ubuntu-latest
@@ -221,162 +75,11 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v1
       with:
         files: artifacts/**/*.xml
-  test-charybdis:
-    needs:
-    - build-charybdis
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install Atheme
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-charybdis
-        path: '~'
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
-        charybdis
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest results charybdis (devel)
-        path: pytest.xml
-  test-ergo:
-    needs:
-    - build-ergo
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install Atheme
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-ergo
-        path: '~'
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/go/bin:$PATH
-        make ergo
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest results ergo (devel)
-        path: pytest.xml
-  test-inspircd:
-    needs:
-    - build-inspircd
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install Atheme
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-inspircd
-        path: '~'
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH PYTEST_ARGS="$PYTEST_ARGS
-        -m 'not services'" PATH=~/.local/inspircd/bin:$PATH make inspircd
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest results inspircd (devel)
-        path: pytest.xml
-  test-inspircd-anope:
-    needs:
-    - build-inspircd
-    - build-anope
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install Atheme
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-inspircd
-        path: '~'
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-anope
-        path: '~'
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH PYTEST_ARGS="$PYTEST_ARGS
-        -m 'not services'" PATH=~/.local/inspircd/bin:$PATH make anope
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest results anope (devel)
-        path: pytest.xml
   test-limnoria:
     needs:
     - build-limnoria
     runs-on: ubuntu-latest
     steps:
-    - name: Install Atheme
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -387,6 +90,11 @@ jobs:
       with:
         name: installed-limnoria
         path: '~'
+    - name: look at downloads
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -402,51 +110,11 @@ jobs:
       with:
         name: pytest results limnoria (devel)
         path: pytest.xml
-  test-solanum:
-    needs:
-    - build-solanum
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install Atheme
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-solanum
-        path: '~'
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
-        solanum
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest results solanum (devel)
-        path: pytest.xml
   test-sopel:
     needs:
     - build-sopel
     runs-on: ubuntu-latest
     steps:
-    - name: Install Atheme
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -457,6 +125,11 @@ jobs:
       with:
         name: installed-sopel
         path: '~'
+    - name: look at downloads
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -471,82 +144,6 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest results sopel (devel)
-        path: pytest.xml
-  test-unrealircd:
-    needs:
-    - build-unrealircd
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install Atheme
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-unrealircd
-        path: '~'
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
-        make unrealircd
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest results unrealircd (devel)
-        path: pytest.xml
-  test-unrealircd-anope:
-    needs:
-    - build-unrealircd
-    - build-anope
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install Atheme
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-unrealircd
-        path: '~'
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-anope
-        path: '~'
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
-        make anope
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest results anope (devel)
         path: pytest.xml
 name: irctest with devel versions
 'on':
