@@ -260,8 +260,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH PYTEST_ARGS="$PYTEST_ARGS
-        -m 'not services'" PATH=~/.local/inspircd/bin:$PATH make inspircd
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH
+        make inspircd
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
@@ -298,8 +298,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH PYTEST_ARGS="$PYTEST_ARGS
-        -m 'not services'" PATH=~/.local/inspircd/bin:$PATH  make inspircd-anope
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH  make
+        inspircd-anope
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
