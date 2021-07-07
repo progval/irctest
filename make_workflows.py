@@ -147,7 +147,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
         else:
             software_config = config["software"][software_id]
 
-        env += software_config.get("env", {}).get(version_flavor.value, "") + " "
+        env += test_config.get("env", {}).get(version_flavor.value, "") + " "
         if "prefix" in software_config:
             env += f"PATH={software_config['prefix']}/bin:$PATH "
 
