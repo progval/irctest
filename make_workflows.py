@@ -135,7 +135,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
     }
 
 
-def get_test_job(*, config, test_config, test_id, version_flavor):
+def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
     env = ""
     needs = []
     downloads = []
@@ -169,6 +169,11 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
                 )
                 or []
             )
+
+    if not set(needs) <= jobs:
+        # One of the dependencies does not exist for this flavor
+        assert version_flavor != VersionFlavor.STABLE, set(needs) - jobs
+        return None
 
     if downloads:
         unpack = [
@@ -304,6 +309,7 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         }
 
     jobs = {}
+    jobs["build-anope"] = get_build_job_anope()
 
     for software_id in config["software"]:
         software_config = config["software"][software_id]
@@ -322,14 +328,14 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
             test_config=test_config,
             test_id=test_id,
             version_flavor=version_flavor,
+            jobs=set(jobs),
         )
         if test_job is not None:
             jobs[f"test-{test_id}"] = test_job
 
-    jobs["build-anope"] = get_build_job_anope()
     jobs["publish-test-results"] = {
         "name": "Publish Unit Tests Results",
-        "needs": [f"test-{test_id}" for test_id in config["tests"]],
+        "needs": sorted({f"test-{test_id}" for test_id in config["tests"]} & set(jobs)),
         "runs-on": "ubuntu-latest",
         # the build-and-test job might be skipped, we don't need to run
         # this job then

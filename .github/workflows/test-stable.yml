@@ -183,16 +183,16 @@ jobs:
     name: Publish Unit Tests Results
     needs:
     - test-charybdis
-    - test-solanum
     - test-ergo
     - test-inspircd
-    - test-inspircd-atheme
     - test-inspircd-anope
-    - test-unrealircd
-    - test-unrealircd-atheme
-    - test-unrealircd-anope
+    - test-inspircd-atheme
     - test-limnoria
+    - test-solanum
     - test-sopel
+    - test-unrealircd
+    - test-unrealircd-anope
+    - test-unrealircd-atheme
     runs-on: ubuntu-latest
     steps:
     - name: Download Artifacts
