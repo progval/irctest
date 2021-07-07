@@ -9,7 +9,9 @@ jobs:
     - test-solanum
     - test-ergo
     - test-inspircd
+    - test-inspircd-anope
     - test-unrealircd
+    - test-unrealircd-anope
     - test-limnoria
     - test-sopel
     runs-on: ubuntu-latest
@@ -94,6 +96,54 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/inspircd/bin:$PATH PYTEST_ARGS="$PYTEST_ARGS
         -m 'not services'" make inspircd
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results InspIRCd (devel)
+        path: pytest.xml
+  test-inspircd-anope:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      run: |-
+        sudo apt-get install atheme-services
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Checkout InspIRCd
+      uses: actions/checkout@v2
+      with:
+        path: inspircd
+        ref: master
+        repository: inspircd/inspircd
+    - name: Build InspIRCd
+      run: |
+        cd $GITHUB_WORKSPACE/inspircd/
+        patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
+        ./configure --prefix=$HOME/.local/inspircd --development
+        make -j 4
+        make install
+    - name: Checkout Anope
+      uses: actions/checkout@v2
+      with:
+        path: anope
+        ref: 2.0.9
+        repository: anope/anope
+    - name: Build Anope
+      run: |-
+        cd $GITHUB_WORKSPACE/anope/
+        cp $GITHUB_WORKSPACE/data/anope/* .
+        CFLAGS=-O0 ./Config -quick
+        make -C build -j 4
+        make -C build install
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/inspircd/bin:$PATH make
+        inspircd-anope
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
@@ -230,13 +280,68 @@ jobs:
     - name: Build UnrealIRCd
       run: |
         cd $GITHUB_WORKSPACE/unrealircd/
-        cp $GITHUB_WORKSPACE/unreal/* .
+        cp $GITHUB_WORKSPACE/data/unreal/* .
         CFLAGS=-O0 ./Config -quick
         make -j 4
         make install
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/unrealircd/bin:$PATH
         make unrealircd
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results UnrealIRCd (devel)
+        path: pytest.xml
+  test-unrealircd-anope:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        key: ${{ runner.os }}-unrealircd-anope-devel
+        path: |-
+          ~/.cache
+          $GITHUB_WORKSPACE/unrealircd
+    - name: Install dependencies
+      run: |-
+        sudo apt-get install atheme-services
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Checkout UnrealIRCd
+      uses: actions/checkout@v2
+      with:
+        path: unrealircd
+        ref: unreal52
+        repository: unrealircd/unrealircd
+    - name: Build UnrealIRCd
+      run: |
+        cd $GITHUB_WORKSPACE/unrealircd/
+        cp $GITHUB_WORKSPACE/data/unreal/* .
+        CFLAGS=-O0 ./Config -quick
+        make -j 4
+        make install
+    - name: Checkout Anope
+      uses: actions/checkout@v2
+      with:
+        path: anope
+        ref: 2.0.9
+        repository: anope/anope
+    - name: Build Anope
+      run: |-
+        cd $GITHUB_WORKSPACE/anope/
+        cp $GITHUB_WORKSPACE/data/anope/* .
+        CFLAGS=-O0 ./Config -quick
+        make -C build -j 4
+        make -C build install
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/unrealircd/bin:$PATH
+        make unrealircd-anope
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
