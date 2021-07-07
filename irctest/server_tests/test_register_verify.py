@@ -1,7 +1,7 @@
 from irctest import cases
 from irctest.patma import ANYSTR
 
-REGISTER_CAP_NAME = "draft/register"
+REGISTER_CAP_NAME = "draft/account-registration"
 
 
 class TestRegisterBeforeConnect(cases.BaseServerTestCase):
@@ -21,7 +21,7 @@ class TestRegisterBeforeConnect(cases.BaseServerTestCase):
         self.assertIn(REGISTER_CAP_NAME, caps)
         self.assertIn("before-connect", caps[REGISTER_CAP_NAME])
         self.sendLine("bar", "NICK bar")
-        self.sendLine("bar", "REGISTER * shivarampassphrase")
+        self.sendLine("bar", "REGISTER * * shivarampassphrase")
         msgs = self.getMessages("bar")
         register_response = [msg for msg in msgs if msg.command == "REGISTER"][0]
         self.assertMessageMatch(register_response, params=["SUCCESS", ANYSTR, ANYSTR])
@@ -44,7 +44,7 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
         self.assertIn(REGISTER_CAP_NAME, caps)
         self.assertEqual(caps[REGISTER_CAP_NAME], None)
         self.sendLine("bar", "NICK bar")
-        self.sendLine("bar", "REGISTER * shivarampassphrase")
+        self.sendLine("bar", "REGISTER * * shivarampassphrase")
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
         self.assertMessageMatch(
@@ -83,7 +83,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
             {"before-connect", "email-required"},
         )
         self.sendLine("bar", "NICK bar")
-        self.sendLine("bar", "REGISTER * shivarampassphrase")
+        self.sendLine("bar", "REGISTER * * shivarampassphrase")
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
         self.assertMessageMatch(
@@ -94,7 +94,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
         self.connectClient(
             "bar", name="bar", capabilities=[REGISTER_CAP_NAME], skip_if_cap_nak=True
         )
-        self.sendLine("bar", "REGISTER * shivarampassphrase")
+        self.sendLine("bar", "REGISTER * * shivarampassphrase")
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
         self.assertMessageMatch(
@@ -120,7 +120,7 @@ class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
         # cannot register it out from under the anonymous nick holder:
         self.addClient("bar")
         self.sendLine("bar", "NICK root")
-        self.sendLine("bar", "REGISTER * shivarampassphrase")
+        self.sendLine("bar", "REGISTER * * shivarampassphrase")
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
         self.assertMessageMatch(
