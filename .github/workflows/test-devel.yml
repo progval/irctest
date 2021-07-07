@@ -168,6 +168,7 @@ jobs:
         # Need to use a specific -march, because GitHub has inconsistent
         # architectures across workers, which result in random SIGILL with some
         # worker combinations
+        sudo apt install libsodium-dev libargon2-dev
         CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
         make -j 4
         make install
