@@ -186,7 +186,7 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.acceptClient()
 
         # Kill the client
-        self.controller.terminate()
+        self.controller.kill()
 
         # Run the client, still configured to connect to the insecure server
         self.controller.run(
