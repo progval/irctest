@@ -169,11 +169,12 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         self.proc = subprocess.Popen(
             [
                 "unrealircd",
+                "-t",
                 "-F",  # BOOT_NOFORK
                 "-f",
                 os.path.join(self.directory, "unrealircd.conf"),
             ],
-            stdout=subprocess.DEVNULL,
+            # stdout=subprocess.DEVNULL,
         )
 
         if run_services:

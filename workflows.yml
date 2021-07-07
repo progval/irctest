@@ -15,6 +15,7 @@ software:
             devel: null
             devel_release: null
         path: charybdis
+        separate_build_job: true
         build_script: |
             cd $GITHUB_WORKSPACE/charybdis/
             ./autogen.sh
@@ -33,6 +34,7 @@ software:
             devel: main
             devel_release: null
         path: solanum
+        separate_build_job: true
         build_script: |
             cd $GITHUB_WORKSPACE/solanum/
             ./autogen.sh
@@ -57,6 +59,7 @@ software:
               with:
                   go-version: '~1.16'
             - run: go version
+        separate_build_job: false
         build_script: |
             cd $GITHUB_WORKSPACE/ergo/
             make build
@@ -76,22 +79,13 @@ software:
         path: inspircd
         prefix: ~/.local/inspircd
         cache: false  # incremental compilation is frequently broken
+        separate_build_job: true
         build_script: &inspircd_build_script |
             cd $GITHUB_WORKSPACE/inspircd/
             patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
             ./configure --prefix=$HOME/.local/inspircd --development
             make -j 4
             make install
-
-    inspircd-anope:
-        name: InspIRCd
-        repository: inspircd/inspircd
-        refs: *inspircd_refs
-        path: inspircd
-        prefix: ~/.local/inspircd
-        cache: false  # incremental compilation is frequently broken
-        build_anope: true
-        build_script: *inspircd_build_script
 
     unrealircd:
         name: UnrealIRCd
@@ -103,27 +97,24 @@ software:
             devel_release: null
         path: unrealircd
         prefix: ~/.local/unrealircd
+        separate_build_job: true
         build_script: &unrealircd_build_script |
             cd $GITHUB_WORKSPACE/unrealircd/
             cp $GITHUB_WORKSPACE/data/unreal/* .
-            CFLAGS=-O0 ./Config -quick
+            # Need to use a specific -march, because GitHub has inconsistent
+            # architectures across workers, which result in random SIGILL with some
+            # worker combinations
+            sudo apt install libsodium-dev libargon2-dev
+            CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
             make -j 4
             make install
-
-    unrealircd-anope:
-        name: UnrealIRCd
-        repository: unrealircd/unrealircd
-        refs: *unrealircd_refs
-        path: unrealircd
-        prefix: ~/.local/unrealircd
-        build_anope: true
-        build_script: *unrealircd_build_script
 
     #############################
     # Clients:
 
     limnoria:
         name: Limnoria
+        separate_build_job: false
         install_steps:
             stable:
                 - name: Install dependencies
@@ -138,6 +129,7 @@ software:
 
     sopel:
         name: Sopel
+        separate_build_job: false
         install_steps:
             stable:
                 - name: Install dependencies
@@ -149,3 +141,31 @@ software:
                 - name: Install dependencies
                   run: pip install git+https://github.com/sopel-irc/sopel.git
             devel_release: null
+
+tests:
+    charybdis:
+        software: [charybdis]
+
+    solanum:
+        software: [solanum]
+
+    ergo:
+        software: [ergo]
+
+    inspircd:
+        software: [inspircd]
+
+    inspircd-anope:
+        software: [inspircd, anope]
+
+    unrealircd:
+        software: [unrealircd]
+
+    unrealircd-anope:
+        software: [unrealircd, anope]
+
+    limnoria:
+        software: [limnoria]
+
+    sopel:
+        software: [sopel]

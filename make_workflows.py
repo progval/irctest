@@ -50,10 +50,8 @@ class VersionFlavor(enum.Enum):
     release series, it uses that branch instead"""
 
 
-def get_build_job(*, software_config, software_id, version_flavor):
+def get_install_steps(*, software_config, software_id, version_flavor):
     name = software_config["name"]
-    prefix = software_config.get("prefix", "~/.local")
-
     if "install_steps" in software_config:
         path = "placeholder"  # TODO: remove this
         install_steps = software_config["install_steps"][version_flavor.value]
@@ -74,40 +72,23 @@ def get_build_job(*, software_config, software_id, version_flavor):
                     "path": path,
                 },
             },
+            *software_config.get("pre_deps", []),
             {
                 "name": f"Build {name}",
                 "run": script(software_config["build_script"]),
             },
         ]
 
-    if software_config.get("build_anope", False):
-        install_steps.append(
-            {
-                "name": "Checkout Anope",
-                "uses": "actions/checkout@v2",
-                "with": {
-                    "repository": "anope/anope",
-                    "ref": "2.0.9",
-                    "path": "anope",
-                },
-            }
-        )
-        install_steps.append(
-            {
-                "name": "Build Anope",
-                "run": script(
-                    "cd $GITHUB_WORKSPACE/anope/",
-                    "cp $GITHUB_WORKSPACE/data/anope/* .",
-                    "CFLAGS=-O0 ./Config -quick",
-                    "make -C build -j 4",
-                    "make -C build install",
-                ),
-            }
-        )
+    return install_steps
 
-    env = software_config.get("env", {}).get(version_flavor.value, "")
-    if env:
-        env += " "
+
+def get_build_job(*, software_config, software_id, version_flavor):
+    if not software_config["separate_build_job"]:
+        return None
+    if "install_steps" in software_config:
+        path = "placeholder"  # TODO: remove this
+    else:
+        path = software_config["path"]
 
     if software_config.get("cache", True):
         cache = [
@@ -126,21 +107,100 @@ def get_build_job(*, software_config, software_id, version_flavor):
     else:
         cache = []
 
+    install_steps = get_install_steps(
+        software_config=software_config,
+        software_id=software_id,
+        version_flavor=version_flavor,
+    )
+    if install_steps is None:
+        return None
+
     return {
         "runs-on": "ubuntu-latest",
         "steps": [
+            {
+                "name": "Create directories",
+                "run": "cd ~/; mkdir -p .local/ go/",
+            },
+            *cache,
             {"uses": "actions/checkout@v2"},
             {
-                "name": "Set up Python 3.7",  # for irctest itself
+                "name": "Set up Python 3.7",
                 "uses": "actions/setup-python@v2",
                 "with": {"python-version": 3.7},
             },
-            *software_config.get("pre_deps", []),
-            *cache,
+            *install_steps,
+            *upload_steps(software_id),
+        ],
+    }
+
+
+def get_test_job(*, config, test_config, test_id, version_flavor):
+    env = ""
+    needs = []
+    downloads = []
+    install_steps = []
+    for software_id in test_config.get("software", []):
+        if software_id == "anope":
+            # TODO: don't hardcode anope here
+            software_config = {"separate_build_job": True}
+        else:
+            software_config = config["software"][software_id]
+
+        env += software_config.get("env", {}).get(version_flavor.value, "") + " "
+        if "prefix" in software_config:
+            env += f"PATH={software_config['prefix']}/bin:$PATH "
+
+        if software_config["separate_build_job"]:
+            needs.append(f"build-{software_id}")
+            downloads.append(
+                {
+                    "name": "Download build artefacts",
+                    "uses": "actions/download-artifact@v2",
+                    "with": {"name": f"installed-{software_id}", "path": "~"},
+                }
+            )
+        else:
+            install_steps.extend(
+                get_install_steps(
+                    software_config=software_config,
+                    software_id=software_id,
+                    version_flavor=version_flavor,
+                )
+                or []
+            )
+
+    if downloads:
+        unpack = [
             {
-                "name": "Install dependencies",
+                "name": "Unpack artefacts",
+                "run": r"cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;",
+            },
+        ]
+    else:
+        # All the software is built in the same job, nothing to unpack
+        unpack = []
+
+    return {
+        "runs-on": "ubuntu-latest",
+        "needs": needs,
+        "steps": [
+            {"uses": "actions/checkout@v2"},
+            {
+                "name": "Set up Python 3.7",
+                "uses": "actions/setup-python@v2",
+                "with": {"python-version": 3.7},
+            },
+            *downloads,
+            *unpack,
+            *install_steps,
+            {
+                "name": "Install Atheme",
+                "run": "sudo apt-get install atheme-services",
+            },
+            {
+                "name": "Install irctest dependencies",
                 "run": script(
-                    "sudo apt-get install atheme-services",
                     "python -m pip install --upgrade pip",
                     "pip install pytest -r requirements.txt",
                     *(
@@ -150,13 +210,12 @@ def get_build_job(*, software_config, software_id, version_flavor):
                     ),
                 ),
             },
-            *install_steps,
             {
                 "name": "Test with pytest",
                 "run": (
                     f"PYTEST_ARGS='--junit-xml pytest.xml' "
-                    f"PATH={prefix}/bin:$PATH "
-                    f"{env}make {software_id}"
+                    f"PATH=$HOME/.local/bin:$PATH "
+                    f"{env}make {test_id}"
                 ),
             },
             {
@@ -164,12 +223,66 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "if": "always()",
                 "uses": "actions/upload-artifact@v2",
                 "with": {
-                    "name": f"pytest results {name} ({version_flavor.value})",
+                    "name": f"pytest results {software_id} ({version_flavor.value})",
                     "path": "pytest.xml",
                 },
             },
         ],
     }
+
+
+def get_build_job_anope():
+    return {
+        "runs-on": "ubuntu-latest",
+        "steps": [
+            {"uses": "actions/checkout@v2"},
+            {
+                "name": "Create directories",
+                "run": "cd ~/; mkdir -p .local/ go/",
+            },
+            {
+                "name": "Checkout Anope",
+                "uses": "actions/checkout@v2",
+                "with": {
+                    "repository": "anope/anope",
+                    "ref": "2.0.9",
+                    "path": "anope",
+                },
+            },
+            {
+                "name": "Build Anope",
+                "run": script(
+                    "cd $GITHUB_WORKSPACE/anope/",
+                    "cp $GITHUB_WORKSPACE/data/anope/* .",
+                    "CFLAGS=-O0 ./Config -quick",
+                    "make -C build -j 4",
+                    "make -C build install",
+                ),
+            },
+            *upload_steps("anope"),
+        ],
+    }
+
+
+def upload_steps(software_id):
+    """Make a tarball (to preserve permissions) and upload"""
+    return [
+        {
+            "name": "Make artefact tarball",
+            "run": f"cd ~; tar -czf artefacts-{software_id}.tar.gz .local/ go/",
+        },
+        {
+            "name": "Upload build artefacts",
+            "uses": "actions/upload-artifact@v2",
+            "with": {
+                "name": f"installed-{software_id}",
+                "path": "~/artefacts-*.tar.gz",
+                # We only need it for the next step of the workflow, so let's
+                # just delete it ASAP to avoid wasting resources
+                "retention-days": 1,
+            },
+        },
+    ]
 
 
 def generate_workflow(config: dict, version_flavor: VersionFlavor):
@@ -191,19 +304,32 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         }
 
     jobs = {}
+
     for software_id in config["software"]:
         software_config = config["software"][software_id]
-        job = get_build_job(
+        build_job = get_build_job(
             software_config=software_config,
             software_id=software_id,
             version_flavor=version_flavor,
         )
-        if job is not None:
-            jobs[f"test-{software_id}"] = job
+        if build_job is not None:
+            jobs[f"build-{software_id}"] = build_job
 
+    for test_id in config["tests"]:
+        test_config = config["tests"][test_id]
+        test_job = get_test_job(
+            config=config,
+            test_config=test_config,
+            test_id=test_id,
+            version_flavor=version_flavor,
+        )
+        if test_job is not None:
+            jobs[f"test-{test_id}"] = test_job
+
+    jobs["build-anope"] = get_build_job_anope()
     jobs["publish-test-results"] = {
         "name": "Publish Unit Tests Results",
-        "needs": list(jobs),  # Depend on all other jobs
+        "needs": [f"test-{test_id}" for test_id in config["tests"]],
         "runs-on": "ubuntu-latest",
         # the build-and-test job might be skipped, we don't need to run
         # this job then
