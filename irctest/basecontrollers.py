@@ -7,7 +7,7 @@ import socket
 import subprocess
 import tempfile
 import time
-from typing import IO, Any, Callable, Dict, List, Optional, Set
+from typing import IO, Any, Callable, Dict, List, Optional, Set, Type
 
 import irctest
 
@@ -182,7 +182,8 @@ class BaseServerController(_BaseController):
     port_open = False
     port: int
     hostname: str
-    services_controller: BaseServicesController
+    services_controller: Optional[BaseServicesController] = None
+    services_controller_class: Type[BaseServicesController]
     extban_mute_char: Optional[str] = None
     """Character used for the 'mute' extban"""
 
@@ -205,7 +206,7 @@ class BaseServerController(_BaseController):
         username: str,
         password: Optional[str] = None,
     ) -> None:
-        if self.services_controller:
+        if self.services_controller is not None:
             self.services_controller.registerUser(case, username, password)
         else:
             raise NotImplementedByController("account registration")
@@ -232,7 +233,18 @@ class BaseServerController(_BaseController):
                 continue
 
     def wait_for_services(self) -> None:
+        assert self.services_controller
         self.services_controller.wait_for_services()
+
+    def terminate(self) -> None:
+        if self.services_controller is not None:
+            self.services_controller.terminate()  # type: ignore
+        super().terminate()  # type: ignore
+
+    def kill(self) -> None:
+        if self.services_controller is not None:
+            self.services_controller.kill()  # type: ignore
+        super().kill()
 
 
 class BaseServicesController(_BaseController):
@@ -245,6 +257,9 @@ class BaseServicesController(_BaseController):
         self.test_config = test_config
         self.server_controller = server_controller
         self.services_up = False
+
+    def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
+        raise NotImplementedError("BaseServerController.run()")
 
     def wait_for_services(self) -> None:
         if self.services_up:

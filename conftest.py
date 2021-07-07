@@ -13,6 +13,9 @@ def pytest_addoption(parser):
         "--controller", help="Which module to use to run the tested software."
     )
     parser.addoption(
+        "--services-controller", help="Which module to use to run a services package."
+    )
+    parser.addoption(
         "--openssl-bin", type=str, default="openssl", help="The openssl binary to use"
     )
 
@@ -20,6 +23,7 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     """Called by pytest, after it parsed the command-line."""
     module_name = config.getoption("controller")
+    services_module_name = config.getoption("services_controller")
 
     if module_name is None:
         print("Missing --controller option, errors may occur.")
@@ -35,6 +39,9 @@ def pytest_configure(config):
     controller_class = module.get_irctest_controller_class()
     if issubclass(controller_class, BaseClientController):
         from irctest import client_tests as module
+
+        if services_module_name is not None:
+            pytest.exit("You may not use --services-controller for client tests.")
     elif issubclass(controller_class, BaseServerController):
         from irctest import server_tests as module
     else:
@@ -45,6 +52,16 @@ def pytest_configure(config):
             ),
             1,
         )
+
+    if services_module_name is not None:
+        try:
+            services_module = importlib.import_module(services_module_name)
+        except ImportError:
+            pytest.exit("Cannot import module {}".format(services_module_name), 1)
+        controller_class.services_controller_class = (
+            services_module.get_irctest_controller_class()
+        )
+
     _IrcTestCase.controllerClass = controller_class
     _IrcTestCase.controllerClass.openssl_bin = config.getoption("openssl_bin")
     _IrcTestCase.show_io = True  # TODO

@@ -94,25 +94,45 @@ flakes:
 	pyflakes3 irctest
 
 charybdis:
-	$(PYTEST) $(PYTEST_ARGS) --controller=irctest.controllers.charybdis -k '$(CHARYBDIS_SELECTORS)'
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.charybdis \
+		--services-controller=irctest.controllers.atheme_services \
+		-k '$(CHARYBDIS_SELECTORS)'
 
 ergo:
-	$(PYTEST) $(PYTEST_ARGS) --controller irctest.controllers.ergo -k "$(ERGO_SELECTORS)"
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller irctest.controllers.ergo \
+		-k "$(ERGO_SELECTORS)"
 
 inspircd:
-	$(PYTEST) $(PYTEST_ARGS) --controller=irctest.controllers.inspircd -k '$(INSPIRCD_SELECTORS)'
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.inspircd \
+		--services-controller=irctest.controllers.atheme_services \
+		-k '$(INSPIRCD_SELECTORS)'
 
 limnoria:
-	$(PYTEST) $(PYTEST_ARGS) --controller=irctest.controllers.limnoria -k '$(LIMNORIA_SELECTORS)'
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.limnoria \
+		-k '$(LIMNORIA_SELECTORS)'
 
 mammon:
-	$(PYTEST) $(PYTEST_ARGS) --controller=irctest.controllers.mammon -k '$(MAMMON_SELECTORS)'
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.mammon \
+		-k '$(MAMMON_SELECTORS)'
 
 solanum:
-	$(PYTEST) $(PYTEST_ARGS) --controller=irctest.controllers.solanum -k '$(SOLANUM_SELECTORS)'
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.solanum \
+		--services-controller=irctest.controllers.atheme_services \
+		-k '$(SOLANUM_SELECTORS)'
 
 sopel:
-	$(PYTEST) $(PYTEST_ARGS) --controller=irctest.controllers.sopel -k '$(SOPEL_SELECTORS)'
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.sopel \
+		-k '$(SOPEL_SELECTORS)'
 
 unrealircd:
-	$(PYTEST) $(PYTEST_ARGS) --controller=irctest.controllers.unrealircd -k '$(UNREALIRCD_SELECTORS)'
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.unrealircd \
+		--services-controller=irctest.controllers.atheme_services \
+		-k '$(UNREALIRCD_SELECTORS)'
