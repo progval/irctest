@@ -72,6 +72,7 @@ def get_install_steps(*, software_config, software_id, version_flavor):
                     "path": path,
                 },
             },
+            *software_config.get("pre_deps", []),
             {
                 "name": f"Build {name}",
                 "run": script(software_config["build_script"]),
@@ -117,7 +118,6 @@ def get_build_job(*, software_config, software_id, version_flavor):
     return {
         "runs-on": "ubuntu-latest",
         "steps": [
-            *software_config.get("pre_deps", []),
             {
                 "name": "Create directories",
                 "run": "cd ~/; mkdir -p .local/ go/",

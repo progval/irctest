@@ -210,6 +210,10 @@ jobs:
         path: ergo
         ref: master
         repository: ergochat/ergo
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ~1.16
+    - run: go version
     - name: Build Ergo
       run: |
         cd $GITHUB_WORKSPACE/ergo/
