@@ -104,7 +104,7 @@ software:
             # Need to use a specific -march, because GitHub has inconsistent
             # architectures across workers, which result in random SIGILL with some
             # worker combinations
-            CFLAGS="-O0 -march=athlon64" CXXFLAGS="$CFLAGS" ./Config -quick
+            CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
             make -j 4
             make install
 
