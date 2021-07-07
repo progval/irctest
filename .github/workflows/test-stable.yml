@@ -32,6 +32,8 @@ jobs:
   build-limnoria:
     runs-on: ubuntu-latest
     steps:
+    - name: Create directories
+      run: cd ~/; mkdir .local/ go/
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
@@ -54,6 +56,8 @@ jobs:
   build-sopel:
     runs-on: ubuntu-latest
     steps:
+    - name: Create directories
+      run: cd ~/; mkdir .local/ go/
     - name: Cache dependencies
       uses: actions/cache@v2
       with:

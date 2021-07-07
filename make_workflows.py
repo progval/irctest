@@ -106,6 +106,10 @@ def get_build_job(*, software_config, software_id, version_flavor):
         "runs-on": "ubuntu-latest",
         "steps": [
             *software_config.get("pre_deps", []),
+            {
+                "name": "Create directories",
+                "run": "cd ~/; mkdir .local/ go/",
+            },
             *cache,
             *install_steps,
             *upload_steps(software_id),
