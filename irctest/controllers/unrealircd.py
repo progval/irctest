@@ -169,6 +169,8 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         self.proc = subprocess.Popen(
             [
                 "unrealircd",
+                "-t",
+                "-x",
                 "-F",  # BOOT_NOFORK
                 "-f",
                 os.path.join(self.directory, "unrealircd.conf"),
