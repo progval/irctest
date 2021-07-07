@@ -35,7 +35,7 @@ jobs:
         go-version: ~1.16
     - run: go version
     - name: Create directories
-      run: cd ~/; mkdir .local/ go/
+      run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Create directories
-      run: cd ~/; mkdir .local/ go/
+      run: cd ~/; mkdir -p .local/ go/
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Create directories
-      run: cd ~/; mkdir .local/ go/
+      run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Create directories
-      run: cd ~/; mkdir .local/ go/
+      run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
@@ -214,11 +214,6 @@ jobs:
         path: '~'
     - name: Unpack artefacts
       run: cd ~; tar -xf artefacts-*.tar.gz
-    - name: look at downloads
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -251,11 +246,6 @@ jobs:
         path: '~'
     - name: Unpack artefacts
       run: cd ~; tar -xf artefacts-*.tar.gz
-    - name: look at downloads
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -288,11 +278,6 @@ jobs:
         path: '~'
     - name: Unpack artefacts
       run: cd ~; tar -xf artefacts-*.tar.gz
-    - name: look at downloads
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -325,11 +310,6 @@ jobs:
         path: '~'
     - name: Unpack artefacts
       run: cd ~; tar -xf artefacts-*.tar.gz
-    - name: look at downloads
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -354,11 +334,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
-    - name: look at downloads
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -391,11 +366,6 @@ jobs:
         path: '~'
     - name: Unpack artefacts
       run: cd ~; tar -xf artefacts-*.tar.gz
-    - name: look at downloads
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -420,11 +390,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
-    - name: look at downloads
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -457,11 +422,6 @@ jobs:
         path: '~'
     - name: Unpack artefacts
       run: cd ~; tar -xf artefacts-*.tar.gz
-    - name: look at downloads
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -494,11 +454,6 @@ jobs:
         path: '~'
     - name: Unpack artefacts
       run: cd ~; tar -xf artefacts-*.tar.gz
-    - name: look at downloads
-      run: |-
-        ls -la ~
-        ls -la ~/.local
-        ls -la ~/.local/bin
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies

@@ -120,7 +120,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
             *software_config.get("pre_deps", []),
             {
                 "name": "Create directories",
-                "run": "cd ~/; mkdir .local/ go/",
+                "run": "cd ~/; mkdir -p .local/ go/",
             },
             *cache,
             {"uses": "actions/checkout@v2"},
@@ -192,14 +192,6 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
             },
             *downloads,
             *unpack,
-            {
-                "name": "look at downloads",
-                "run": script(
-                    "ls -la ~",
-                    "ls -la ~/.local",
-                    "ls -la ~/.local/bin",
-                ),
-            },
             {
                 "name": "Install Atheme",
                 "run": "sudo apt-get install atheme-services",
