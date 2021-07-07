@@ -27,7 +27,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: installed-anope
-        path: artefacts-*.tar.gz
+        path: ~/artefacts-*.tar.gz
         retention-days: 1
   publish-test-results:
     if: success() || failure()

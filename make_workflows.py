@@ -243,7 +243,7 @@ def upload_steps(software_id):
             "uses": "actions/upload-artifact@v2",
             "with": {
                 "name": f"installed-{software_id}",
-                "path": "artefacts-*.tar.gz",
+                "path": "~/artefacts-*.tar.gz",
                 # We only need it for the next step of the workflow, so let's
                 # just delete it ASAP to avoid wasting resources
                 "retention-days": 1,
