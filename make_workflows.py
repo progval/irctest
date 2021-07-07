@@ -64,12 +64,6 @@ def get_build_job(*, software_config, software_id, version_flavor):
             return None
         path = software_config["path"]
         install_steps = [
-            {"uses": "actions/checkout@v2"},
-            {
-                "name": "Set up Python 3.7",
-                "uses": "actions/setup-python@v2",
-                "with": {"python-version": 3.7},
-            },
             {
                 "name": f"Checkout {name}",
                 "uses": "actions/checkout@v2",
@@ -111,6 +105,12 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "run": "cd ~/; mkdir .local/ go/",
             },
             *cache,
+            {"uses": "actions/checkout@v2"},
+            {
+                "name": "Set up Python 3.7",
+                "uses": "actions/setup-python@v2",
+                "with": {"python-version": 3.7},
+            },
             *install_steps,
             *upload_steps(software_id),
         ],

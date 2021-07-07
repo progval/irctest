@@ -39,6 +39,11 @@ jobs:
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/placeholder
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: Install dependencies
       run: pip install git+https://github.com/ProgVal/Limnoria.git@testing cryptography
     - name: Make artefact tarball
@@ -61,6 +66,11 @@ jobs:
         path: |-
           ~/.cache
           $GITHUB_WORKSPACE/placeholder
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: Install dependencies
       run: pip install git+https://github.com/sopel-irc/sopel.git
     - name: Make artefact tarball
