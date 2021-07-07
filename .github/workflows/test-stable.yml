@@ -364,7 +364,7 @@ jobs:
         pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH  make
-        anope
+        inspircd-anope
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
@@ -518,7 +518,7 @@ jobs:
         pip install pytest -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH  make
-        anope
+        unrealircd-anope
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
