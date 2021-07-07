@@ -66,6 +66,11 @@ def get_build_job(*, software_config, software_id, version_flavor):
         install_steps = [
             {"uses": "actions/checkout@v2"},
             {
+                "name": "Set up Python 3.7",
+                "uses": "actions/setup-python@v2",
+                "with": {"python-version": 3.7},
+            },
+            {
                 "name": f"Checkout {name}",
                 "uses": "actions/checkout@v2",
                 "with": {
@@ -148,7 +153,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
         "steps": [
             {"uses": "actions/checkout@v2"},
             {
-                "name": "Set up Python 3.7",  # for irctest itself
+                "name": "Set up Python 3.7",
                 "uses": "actions/setup-python@v2",
                 "with": {"python-version": 3.7},
             },

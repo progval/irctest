@@ -29,6 +29,10 @@ jobs:
           ~/.cache
           $GITHUB_WORKSPACE/charybdis
     - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: Checkout Charybdis
       uses: actions/checkout@v2
       with:
@@ -63,6 +67,10 @@ jobs:
           ~/.cache
           $GITHUB_WORKSPACE/ergo
     - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: Checkout Ergo
       uses: actions/checkout@v2
       with:
@@ -84,6 +92,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: Checkout InspIRCd
       uses: actions/checkout@v2
       with:
@@ -132,6 +144,10 @@ jobs:
           ~/.cache
           $GITHUB_WORKSPACE/solanum
     - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: Checkout Solanum
       uses: actions/checkout@v2
       with:
@@ -180,6 +196,10 @@ jobs:
           ~/.cache
           $GITHUB_WORKSPACE/unrealircd
     - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: Checkout UnrealIRCd
       uses: actions/checkout@v2
       with:
