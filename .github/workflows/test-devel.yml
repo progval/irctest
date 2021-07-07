@@ -226,6 +226,11 @@ jobs:
     - build-charybdis
     runs-on: ubuntu-latest
     steps:
+    - name: Install Atheme
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -235,6 +240,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: installed-charybdis
+        path: '~'
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -255,6 +261,11 @@ jobs:
     - build-ergo
     runs-on: ubuntu-latest
     steps:
+    - name: Install Atheme
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -264,6 +275,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: installed-ergo
+        path: '~'
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -284,6 +296,11 @@ jobs:
     - build-inspircd
     runs-on: ubuntu-latest
     steps:
+    - name: Install Atheme
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -293,6 +310,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: installed-inspircd
+        path: '~'
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -314,6 +332,11 @@ jobs:
     - build-anope
     runs-on: ubuntu-latest
     steps:
+    - name: Install Atheme
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -323,10 +346,12 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: installed-inspircd
+        path: '~'
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
         name: installed-anope
+        path: '~'
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -347,6 +372,11 @@ jobs:
     - build-limnoria
     runs-on: ubuntu-latest
     steps:
+    - name: Install Atheme
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -356,6 +386,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: installed-limnoria
+        path: '~'
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -376,6 +407,11 @@ jobs:
     - build-solanum
     runs-on: ubuntu-latest
     steps:
+    - name: Install Atheme
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -385,6 +421,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: installed-solanum
+        path: '~'
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -405,6 +442,11 @@ jobs:
     - build-sopel
     runs-on: ubuntu-latest
     steps:
+    - name: Install Atheme
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -414,6 +456,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: installed-sopel
+        path: '~'
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -434,6 +477,11 @@ jobs:
     - build-unrealircd
     runs-on: ubuntu-latest
     steps:
+    - name: Install Atheme
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -443,6 +491,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: installed-unrealircd
+        path: '~'
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -464,6 +513,11 @@ jobs:
     - build-anope
     runs-on: ubuntu-latest
     steps:
+    - name: Install Atheme
+      run: |-
+        ls -la ~
+        ls -la ~/.local
+        ls -la ~/.local/bin
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -473,10 +527,12 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: installed-unrealircd
+        path: '~'
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
         name: installed-anope
+        path: '~'
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies

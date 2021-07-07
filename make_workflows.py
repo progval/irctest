@@ -136,9 +136,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
             {
                 "name": "Download build artefacts",
                 "uses": "actions/download-artifact@v2",
-                "with": {
-                    "name": f"installed-{software_id}",
-                },
+                "with": {"name": f"installed-{software_id}", "path": "~"},
             }
         )
         if software_id == "anope":
@@ -154,6 +152,14 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
         "runs-on": "ubuntu-latest",
         "needs": needs,
         "steps": [
+            {
+                "name": "Install Atheme",
+                "run": script(
+                    "ls -la ~",
+                    "ls -la ~/.local",
+                    "ls -la ~/.local/bin",
+                ),
+            },
             {"uses": "actions/checkout@v2"},
             {
                 "name": "Set up Python 3.7",
