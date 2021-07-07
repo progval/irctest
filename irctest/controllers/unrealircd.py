@@ -170,7 +170,6 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
             [
                 "unrealircd",
                 "-t",
-                "-x",
                 "-F",  # BOOT_NOFORK
                 "-f",
                 os.path.join(self.directory, "unrealircd.conf"),
