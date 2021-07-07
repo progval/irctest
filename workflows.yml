@@ -83,16 +83,6 @@ software:
             make -j 4
             make install
 
-    inspircd-anope:
-        name: InspIRCd
-        repository: inspircd/inspircd
-        refs: *inspircd_refs
-        path: inspircd
-        prefix: ~/.local/inspircd
-        cache: false  # incremental compilation is frequently broken
-        build_anope: true
-        build_script: *inspircd_build_script
-
     unrealircd:
         name: UnrealIRCd
         repository: unrealircd/unrealircd
@@ -109,15 +99,6 @@ software:
             CFLAGS=-O0 ./Config -quick
             make -j 4
             make install
-
-    unrealircd-anope:
-        name: UnrealIRCd
-        repository: unrealircd/unrealircd
-        refs: *unrealircd_refs
-        path: unrealircd
-        prefix: ~/.local/unrealircd
-        build_anope: true
-        build_script: *unrealircd_build_script
 
     #############################
     # Clients:
@@ -149,3 +130,31 @@ software:
                 - name: Install dependencies
                   run: pip install git+https://github.com/sopel-irc/sopel.git
             devel_release: null
+
+tests:
+    charybdis:
+        software: [charybdis]
+
+    solanum:
+        software: [solanum]
+
+    ergo:
+        software: [ergo]
+
+    inspircd:
+        software: [inspircd]
+
+    inspircd-anope:
+        software: [inspircd, anope]
+
+    unrealircd:
+        software: [unrealircd]
+
+    unrealircd-anope:
+        software: [unrealircd, anope]
+
+    limnoria:
+        software: [limnoria]
+
+    sopel:
+        software: [sopel]

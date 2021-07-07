@@ -104,7 +104,6 @@ def get_build_job(*, software_config, software_id, version_flavor):
             {
                 "name": "Install dependencies",
                 "run": script(
-                    "sudo apt-get install atheme-services",
                     "python -m pip install --upgrade pip",
                     "pip install pytest -r requirements.txt",
                     *(
@@ -130,15 +129,29 @@ def get_build_job(*, software_config, software_id, version_flavor):
     }
 
 
-def get_test_job(*, software_config, software_id, version_flavor):
-    prefix = software_config.get("prefix", "~/.local")
-    needs = [f"build-{software_id}"]  # Built ~/.local
-    env = software_config.get("env", {}).get(version_flavor.value, "")
-    if env:
-        env += " "
+def get_test_job(*, config, test_config, test_id, version_flavor):
+    env = ""
+    needs = []
+    downloads = []
+    for software_id in test_config.get("software", []):
+        needs.append(f"build-{software_id}")
+        downloads.append(
+            {
+                "name": "Download build artefacts",
+                "uses": "actions/download-artifact@v2",
+                "with": {
+                    "name": f"installed-{software_id}",
+                },
+            }
+        )
+        if software_id == "anope":
+            # TODO: don't hardcode anope here
+            continue
 
-    if software_config.get("build_anope", False):
-        needs.append("installed-anope")
+        software_config = config["software"][software_id]
+        env += software_config.get("env", {}).get(version_flavor.value, "") + " "
+        if "prefix" in software_config:
+            env += "PATH={software_config['prefix']}/bin:$PATH "
 
     return {
         "runs-on": "ubuntu-latest",
@@ -150,18 +163,16 @@ def get_test_job(*, software_config, software_id, version_flavor):
                 "uses": "actions/setup-python@v2",
                 "with": {"python-version": 3.7},
             },
+            *downloads,
             {
-                "name": "Download build artefacts",
-                "uses": "actions/download-artifact@v2",
-                "with": {
-                    "name": f"installed {software_id}",
-                },
+                "name": "Install Atheme",
+                "run": "sudo apt-get install atheme-services",
             },
             {
                 "name": "Test with pytest",
                 "run": (
                     f"PYTEST_ARGS='--junit-xml pytest.xml' "
-                    f"PATH={prefix}/bin:$HOME/.local/bin:$PATH "
+                    f"PATH=$HOME/.local/bin:$PATH "
                     f"{env}make {software_id}"
                 ),
             },
@@ -234,18 +245,22 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         )
         if build_job is not None:
             jobs[f"build-{software_id}"] = build_job
+
+    for test_id in config["tests"]:
+        test_config = config["tests"][test_id]
         test_job = get_test_job(
-            software_config=software_config,
-            software_id=software_id,
+            config=config,
+            test_config=test_config,
+            test_id=test_id,
             version_flavor=version_flavor,
         )
         if test_job is not None:
-            jobs[f"test-{software_id}"] = test_job
+            jobs[f"test-{test_id}"] = test_job
 
     jobs["build-anope"] = get_build_job_anope()
     jobs["publish-test-results"] = {
         "name": "Publish Unit Tests Results",
-        "needs": [f"test-{software_id}" for software_id in config["software"]],
+        "needs": [f"test-{test_id}" for test_id in config["tests"]],
         "runs-on": "ubuntu-latest",
         # the build-and-test job might be skipped, we don't need to run
         # this job then

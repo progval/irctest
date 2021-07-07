@@ -23,7 +23,6 @@ jobs:
     steps:
     - name: Install dependencies
       run: |-
-        sudo apt-get install atheme-services
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Checkout InspIRCd
@@ -43,33 +42,6 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: installed-inspircd
-        path: ~/.local
-        retention-days: 1
-  build-inspircd-anope:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install dependencies
-      run: |-
-        sudo apt-get install atheme-services
-        python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
-    - name: Checkout InspIRCd
-      uses: actions/checkout@v2
-      with:
-        path: inspircd
-        ref: insp3
-        repository: inspircd/inspircd
-    - name: Build InspIRCd
-      run: |
-        cd $GITHUB_WORKSPACE/inspircd/
-        patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
-        ./configure --prefix=$HOME/.local/inspircd --development
-        make -j 4
-        make install
-    - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: installed-inspircd-anope
         path: ~/.local
         retention-days: 1
   publish-test-results:
@@ -108,10 +80,12 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed charybdis
+        name: installed-charybdis
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/bin:$HOME/.local/bin:$PATH
-        make charybdis
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        charybdis
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
@@ -131,9 +105,11 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed ergo
+        name: installed-ergo
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/go/bin:$HOME/.local/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
         make ergo
     - if: always()
       name: Publish results
@@ -154,9 +130,11 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed inspircd
+        name: installed-inspircd
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/inspircd/bin:$HOME/.local/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
         make inspircd
     - if: always()
       name: Publish results
@@ -166,8 +144,8 @@ jobs:
         path: pytest.xml
   test-inspircd-anope:
     needs:
-    - build-inspircd-anope
-    - installed-anope
+    - build-inspircd
+    - build-anope
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -178,15 +156,21 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed inspircd-anope
+        name: installed-inspircd
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-anope
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/inspircd/bin:$HOME/.local/bin:$PATH
-        make inspircd-anope
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
+        make anope
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd-anope (devel_release)
+        name: pytest results anope (devel_release)
         path: pytest.xml
   test-limnoria:
     needs:
@@ -201,10 +185,12 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed limnoria
+        name: installed-limnoria
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/bin:$HOME/.local/bin:$PATH
-        make limnoria
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        limnoria
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
@@ -224,10 +210,12 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed solanum
+        name: installed-solanum
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/bin:$HOME/.local/bin:$PATH
-        make solanum
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        solanum
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
@@ -247,10 +235,12 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed sopel
+        name: installed-sopel
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/bin:$HOME/.local/bin:$PATH
-        make sopel
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        sopel
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
@@ -270,9 +260,11 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed unrealircd
+        name: installed-unrealircd
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/unrealircd/bin:$HOME/.local/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
         make unrealircd
     - if: always()
       name: Publish results
@@ -282,8 +274,8 @@ jobs:
         path: pytest.xml
   test-unrealircd-anope:
     needs:
-    - build-unrealircd-anope
-    - installed-anope
+    - build-unrealircd
+    - build-anope
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -294,15 +286,21 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v2
       with:
-        name: installed unrealircd-anope
+        name: installed-unrealircd
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-anope
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/unrealircd/bin:$HOME/.local/bin:$PATH
-        make unrealircd-anope
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH={software_config['prefix']}/bin:$PATH
+        make anope
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results unrealircd-anope (devel_release)
+        name: pytest results anope (devel_release)
         path: pytest.xml
 name: irctest with devel_release versions
 'on':
