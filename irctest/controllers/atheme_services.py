@@ -1,6 +1,6 @@
 import os
 import subprocess
-from typing import Optional
+from typing import Optional, Type
 
 import irctest
 from irctest.basecontrollers import BaseServicesController, DirectoryBasedController
@@ -52,12 +52,15 @@ saslserv {{
 """
 
 
-class AthemeServices(BaseServicesController, DirectoryBasedController):
+class AthemeController(BaseServicesController, DirectoryBasedController):
     """Mixin for server controllers that rely on Atheme"""
 
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
 
+        if protocol == "inspircd3":
+            # That's the name used by Anope
+            protocol = "inspircd"
         assert protocol in ("inspircd", "charybdis", "unreal4")
 
         with self.open_file("services.conf") as fd:
@@ -100,3 +103,7 @@ class AthemeServices(BaseServicesController, DirectoryBasedController):
             raise irctest.runner.NotImplementedByController("Passwords over 288 bytes")
 
         super().registerUser(case, username, password)
+
+
+def get_irctest_controller_class() -> Type[AthemeController]:
+    return AthemeController

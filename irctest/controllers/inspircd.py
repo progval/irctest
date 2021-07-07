@@ -7,7 +7,6 @@ from irctest.basecontrollers import (
     DirectoryBasedController,
     NotImplementedByController,
 )
-from irctest.controllers.atheme_services import AthemeServices
 from irctest.irc_utils.junkdrawer import find_hostname_and_port
 
 TEMPLATE_CONFIG = """
@@ -131,9 +130,11 @@ class InspircdController(BaseServerController, DirectoryBasedController):
 
         if run_services:
             self.wait_for_port()
-            self.services_controller = AthemeServices(self.test_config, self)
+            self.services_controller = self.services_controller_class(
+                self.test_config, self
+            )
             self.services_controller.run(
-                protocol="inspircd",
+                protocol="inspircd3",
                 server_hostname=services_hostname,
                 server_port=services_port,
             )
