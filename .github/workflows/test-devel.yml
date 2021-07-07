@@ -336,6 +336,8 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
+    - name: Install dependencies
+      run: pip install git+https://github.com/ProgVal/Limnoria.git@testing cryptography
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -392,6 +394,8 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
+    - name: Install dependencies
+      run: pip install git+https://github.com/sopel-irc/sopel.git
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies

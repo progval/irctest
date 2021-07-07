@@ -192,6 +192,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor):
             },
             *downloads,
             *unpack,
+            *install_steps,
             {
                 "name": "Install Atheme",
                 "run": "sudo apt-get install atheme-services",

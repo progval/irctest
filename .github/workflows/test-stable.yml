@@ -374,6 +374,8 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
+    - name: Install dependencies
+      run: pip install limnoria==2021.06.15 cryptography
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -430,6 +432,8 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
+    - name: Install dependencies
+      run: pip install sopel==7.1.1
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
