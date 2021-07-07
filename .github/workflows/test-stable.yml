@@ -10,7 +10,9 @@ jobs:
     - test-solanum
     - test-ergo
     - test-inspircd
+    - test-inspircd-anope
     - test-unrealircd
+    - test-unrealircd-anope
     - test-limnoria
     - test-sopel
     runs-on: ubuntu-latest
@@ -141,6 +143,41 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest results InspIRCd (stable)
+        path: pytest.xml
+  test-inspircd-anope:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      run: |-
+        sudo apt-get install atheme-services
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Checkout InspIRCd with Anope
+      uses: actions/checkout@v2
+      with:
+        path: inspircd
+        ref: v3.10.0
+        repository: inspircd/inspircd
+    - name: Build InspIRCd with Anope
+      run: |
+        cd $GITHUB_WORKSPACE/inspircd/
+        patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
+        ./configure --prefix=$HOME/.local/inspircd --development
+        make -j 4
+        make install
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/inspircd/bin:$PATH make
+        inspircd-anope
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results InspIRCd with Anope (stable)
         path: pytest.xml
   test-limnoria:
     runs-on: ubuntu-latest
@@ -279,6 +316,48 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/unrealircd/bin:$PATH
         make unrealircd
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results UnrealIRCd (stable)
+        path: pytest.xml
+  test-unrealircd-anope:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        key: ${{ runner.os }}-unrealircd-anope-stable
+        path: |-
+          ~/.cache
+          $GITHUB_WORKSPACE/unrealircd
+    - name: Install dependencies
+      run: |-
+        sudo apt-get install atheme-services
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Checkout UnrealIRCd
+      uses: actions/checkout@v2
+      with:
+        path: unrealircd
+        ref: 94993a03ca8d3c193c0295c33af39270c3f9d27d
+        repository: unrealircd/unrealircd
+    - name: Build UnrealIRCd
+      run: |
+        cd $GITHUB_WORKSPACE/unrealircd/
+        cp $GITHUB_WORKSPACE/unreal/* .
+        CFLAGS=-O0 ./Config -quick
+        make -j 4
+        make install
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=~/.local/unrealircd/bin:$PATH
+        make unrealircd-anope
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2

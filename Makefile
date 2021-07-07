@@ -110,6 +110,13 @@ inspircd:
 		--services-controller=irctest.controllers.atheme_services \
 		-k '$(INSPIRCD_SELECTORS)'
 
+inspircd-anope:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.inspircd \
+		--services-controller=irctest.controllers.anope_services \
+		-m 'services' \
+		-k '$(INSPIRCD_SELECTORS)'
+
 limnoria:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.limnoria \
@@ -135,4 +142,11 @@ unrealircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.unrealircd \
 		--services-controller=irctest.controllers.atheme_services \
+		-k '$(UNREALIRCD_SELECTORS)'
+
+unrealircd-anope:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.unrealircd \
+		--services-controller=irctest.controllers.anope_services \
+		-m 'services' \
 		-k '$(UNREALIRCD_SELECTORS)'

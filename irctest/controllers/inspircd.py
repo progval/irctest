@@ -30,6 +30,7 @@ TEMPLATE_CONFIG = """
     >
 <module name="spanningtree">
 <module name="services_account">
+<module name="hidechans">  # Anope errors when missing
 <module name="svshold">  # Atheme raises a warning when missing
 <sasl requiressl="no"
       target="services.example.org">
