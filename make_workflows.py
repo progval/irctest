@@ -164,14 +164,15 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
                 }
             )
         else:
-            install_steps.extend(
-                get_install_steps(
-                    software_config=software_config,
-                    software_id=software_id,
-                    version_flavor=version_flavor,
-                )
-                or []
+            new_install_steps = get_install_steps(
+                software_config=software_config,
+                software_id=software_id,
+                version_flavor=version_flavor,
             )
+            if new_install_steps is None:
+                # This flavor does not need to be built
+                return None
+            install_steps.extend(new_install_steps)
 
     if not set(needs) <= jobs:
         # One of the dependencies does not exist for this flavor
