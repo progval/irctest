@@ -11,8 +11,8 @@ InspIRCd more responsive.
 
 diff --git a/src/inspircd.cpp b/src/inspircd.cpp
 index 5760e631b..1da0285fb 100644
---- a/src/inspircd.cpp
-+++ b/src/inspircd.cpp
+--- src/inspircd.cpp
++++ src/inspircd.cpp
 @@ -680,7 +680,7 @@ void InspIRCd::Run()
 		 * timing using this event, so we dont have to
 		 * time this exactly).

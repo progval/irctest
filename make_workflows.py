@@ -261,7 +261,7 @@ def get_build_job_anope():
                 "name": "Build Anope",
                 "run": script(
                     "cd $GITHUB_WORKSPACE/anope/",
-                    "cp $GITHUB_WORKSPACE/data/anope/* .",
+                    "cp $GITHUB_WORKSPACE/patches/anope/* .",
                     "CFLAGS=-O0 ./Config -quick",
                     "make -C build -j 4",
                     "make -C build install",

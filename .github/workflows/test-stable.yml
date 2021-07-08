@@ -17,7 +17,7 @@ jobs:
     - name: Build Anope
       run: |-
         cd $GITHUB_WORKSPACE/anope/
-        cp $GITHUB_WORKSPACE/data/anope/* .
+        cp $GITHUB_WORKSPACE/patches/anope/* .
         CFLAGS=-O0 ./Config -quick
         make -C build -j 4
         make -C build install
@@ -86,7 +86,8 @@ jobs:
     - name: Build InspIRCd
       run: |
         cd $GITHUB_WORKSPACE/inspircd/
-        patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
+        patch -p0 < $GITHUB_WORKSPACE/patches/inspircd/inspircd_mainloop.patch
+        patch -p0 < $GITHUB_WORKSPACE/patches/inspircd/inspircd_gch.patch
         ./configure --prefix=$HOME/.local/inspircd --development
         make -j 4
         make install
@@ -162,7 +163,7 @@ jobs:
     - name: Build UnrealIRCd
       run: |
         cd $GITHUB_WORKSPACE/unrealircd/
-        cp $GITHUB_WORKSPACE/data/unreal/* .
+        cp $GITHUB_WORKSPACE/patches/unreal/* .
         # Need to use a specific -march, because GitHub has inconsistent
         # architectures across workers, which result in random SIGILL with some
         # worker combinations

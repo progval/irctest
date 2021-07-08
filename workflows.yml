@@ -79,7 +79,8 @@ software:
         separate_build_job: true
         build_script: &inspircd_build_script |
             cd $GITHUB_WORKSPACE/inspircd/
-            patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
+            patch -p0 < $GITHUB_WORKSPACE/patches/inspircd/inspircd_mainloop.patch
+            patch -p0 < $GITHUB_WORKSPACE/patches/inspircd/inspircd_gch.patch
             ./configure --prefix=$HOME/.local/inspircd --development
             make -j 4
             make install
@@ -97,7 +98,7 @@ software:
         separate_build_job: true
         build_script: &unrealircd_build_script |
             cd $GITHUB_WORKSPACE/unrealircd/
-            cp $GITHUB_WORKSPACE/data/unreal/* .
+            cp $GITHUB_WORKSPACE/patches/unreal/* .
             # Need to use a specific -march, because GitHub has inconsistent
             # architectures across workers, which result in random SIGILL with some
             # worker combinations
