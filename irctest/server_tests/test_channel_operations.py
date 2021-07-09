@@ -609,8 +609,9 @@ class JoinTestCase(cases.BaseServerTestCase):
         # should return ERR_NOSUCHCHANNEL
         self.assertMessageMatch(m, command="403")
 
+    @pytest.mark.parametrize("multiple_targets", [True, False])
     @cases.mark_specifications("RFC2812")
-    def testDoubleKickMessages(self):
+    def testDoubleKickMessages(self, multiple_targets):
         """“The server MUST NOT send KICK messages with multiple channels or
         users to clients.  This is necessarily to maintain backward
         compatibility with old client software.”
@@ -636,7 +637,10 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.getMessages(3)
         self.getMessages(4)
 
-        self.sendLine(1, "KICK #chan,#chan bar,baz :bye")
+        if multiple_targets:
+            self.sendLine(1, "KICK #chan,#chan bar,baz :bye")
+        else:
+            self.sendLine(1, "KICK #chan bar,baz :bye")
         try:
             m = self.getMessage(1)
             if m.command == "482":
