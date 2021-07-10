@@ -1,30 +1,54 @@
-import os
-import subprocess
-from typing import Optional, Set, Type
+from typing import Set, Type
 
-from irctest.basecontrollers import (
-    BaseServerController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
+from .base_hybrid import BaseHybridController
 
 TEMPLATE_CONFIG = """
 serverinfo {{
     name = "My.Little.Server";
     sid = "42X";
     description = "test server";
+
+    # Hybrid defaults to 9
+    max_nick_length = 20;
 {ssl_config}
 }};
+
+general {{
+    throttle_count = 100;  # We need to connect lots of clients quickly
+    sasl_service = "SaslServ";
+
+    # Allow PART/QUIT reasons quickly
+    anti_spam_exit_message_time = 0;
+
+    # Allow all commands quickly
+    pace_wait_simple = 0;
+    pace_wait = 0;
+}};
+
 listen {{
+    defer_accept = yes;
+
     host = "{hostname}";
     port = {port};
 }};
-general {{
-    disable_auth = yes;
-    anti_nick_flood = no;
-    max_nick_changes = 256;
-    throttle_count = 512;
+
+class {{
+    name = "server";
+    ping_time = 5 minutes;
+    connectfreq = 5 minutes;
 }};
+connect {{
+    name = "services.example.org";
+    host = "localhost";  # Used to validate incoming connection
+    port = 0;  # We don't need servers to connect to services
+    send_password = "password";
+    accept_password = "password";
+    class = "server";
+}};
+service {{
+    name = "services.example.org";
+}};
+
 auth {{
     user = "*";
     flags = exceed_limit;
@@ -32,71 +56,15 @@ auth {{
 }};
 """
 
-TEMPLATE_SSL_CONFIG = """
-    rsa_private_key_file = "{key_path}";
-    ssl_certificate_file = "{pem_path}";
-    ssl_dh_param_file = "{dh_path}";
-"""
 
-
-class HybridController(BaseServerController, DirectoryBasedController):
+class HybridController(BaseHybridController):
     software_name = "Hybrid"
-    supports_sts = False
+    binary_name = "ircd"
+    services_protocol = "hybrid"
+
     supported_sasl_mechanisms: Set[str] = set()
 
-    def create_config(self) -> None:
-        super().create_config()
-        with self.open_file("server.conf"):
-            pass
-
-    def run(
-        self,
-        hostname: str,
-        port: int,
-        *,
-        password: Optional[str],
-        ssl: bool,
-        run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-    ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
-        assert self.proc is None
-        self.create_config()
-        self.port = port
-        password_field = 'password = "{}";'.format(password) if password else ""
-        if ssl:
-            self.gen_ssl()
-            ssl_config = TEMPLATE_SSL_CONFIG.format(
-                key_path=self.key_path, pem_path=self.pem_path, dh_path=self.dh_path
-            )
-        else:
-            ssl_config = ""
-        with self.open_file("server.conf") as fd:
-            fd.write(
-                TEMPLATE_CONFIG.format(
-                    hostname=hostname,
-                    port=port,
-                    password_field=password_field,
-                    ssl_config=ssl_config,
-                )
-            )
-        assert self.directory
-        self.proc = subprocess.Popen(
-            [
-                "ircd",
-                "-foreground",
-                "-configfile",
-                os.path.join(self.directory, "server.conf"),
-                "-pidfile",
-                os.path.join(self.directory, "server.pid"),
-            ],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+    template_config = TEMPLATE_CONFIG
 
 
 def get_irctest_controller_class() -> Type[HybridController]:

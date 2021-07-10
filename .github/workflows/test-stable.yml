@@ -67,6 +67,43 @@ jobs:
         name: installed-charybdis
         path: ~/artefacts-*.tar.gz
         retention-days: 1
+  build-hybrid:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir -p .local/ go/
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        key: ${{ runner.os }}-hybrid-stable
+        path: |-
+          ~/.cache
+          $GITHUB_WORKSPACE/ircd-hybrid
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Checkout Hybrid
+      uses: actions/checkout@v2
+      with:
+        path: ircd-hybrid
+        ref: 8.2.38
+        repository: ircd-hybrid/ircd-hybrid
+    - name: Build Hybrid
+      run: |
+        cd $GITHUB_WORKSPACE/ircd-hybrid/
+        ./configure --prefix=$HOME/.local/
+        make -j 4
+        make install
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-hybrid.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: installed-hybrid
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
   build-inspircd:
     runs-on: ubuntu-latest
     steps:
@@ -184,6 +221,7 @@ jobs:
     needs:
     - test-charybdis
     - test-ergo
+    - test-hybrid
     - test-inspircd
     - test-inspircd-anope
     - test-inspircd-atheme
@@ -273,6 +311,38 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest results ergo (stable)
+        path: pytest.xml
+  test-hybrid:
+    needs:
+    - build-hybrid
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-hybrid
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        hybrid
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results hybrid (stable)
         path: pytest.xml
   test-inspircd:
     needs:

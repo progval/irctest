@@ -26,6 +26,11 @@ ERGO_SELECTORS := \
 	not deprecated \
 	$(EXTRA_SELECTORS)
 
+HYBRID_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	$(EXTRA_SELECTORS)
+
 # testNoticeNonexistentChannel fails because of https://github.com/inspircd/inspircd/issues/1849
 # testDirectMessageEcho fails because of https://github.com/inspircd/inspircd/issues/1851
 # testKeyValidation fails because of https://github.com/inspircd/inspircd/issues/1850
@@ -107,6 +112,12 @@ ergo:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ergo \
 		-k "$(ERGO_SELECTORS)"
+
+hybrid:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller irctest.controllers.hybrid \
+		-m 'not services' \
+		-k "$(HYBRID_SELECTORS)"
 
 inspircd:
 	$(PYTEST) $(PYTEST_ARGS) \

@@ -5,7 +5,7 @@
 
 software:
     #############################
-    # Charybdis family:
+    # Hybrid family:
     charybdis:
         name: Charybdis
         repository: charybdis-ircd/charybdis
@@ -19,6 +19,22 @@ software:
         build_script: |
             cd $GITHUB_WORKSPACE/charybdis/
             ./autogen.sh
+            ./configure --prefix=$HOME/.local/
+            make -j 4
+            make install
+
+    hybrid:
+        name: Hybrid
+        repository: ircd-hybrid/ircd-hybrid
+        refs:
+            stable: "8.2.38"
+            release: null
+            devel: "8.2.x"
+            devel_release: null
+        path: ircd-hybrid
+        separate_build_job: true
+        build_script: |
+            cd $GITHUB_WORKSPACE/ircd-hybrid/
             ./configure --prefix=$HOME/.local/
             make -j 4
             make install
@@ -142,6 +158,9 @@ software:
 tests:
     charybdis:
         software: [charybdis]
+
+    hybrid:
+        software: [hybrid]
 
     solanum:
         software: [solanum]
