@@ -116,7 +116,7 @@ ergo:
 hybrid:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.hybrid \
-		--services-controller=irctest.controllers.anope_services \
+		-m 'not services' \
 		-k "$(HYBRID_SELECTORS)"
 
 inspircd:

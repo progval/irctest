@@ -315,7 +315,6 @@ jobs:
   test-hybrid:
     needs:
     - build-hybrid
-    - build-anope
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -328,11 +327,6 @@ jobs:
       with:
         name: installed-hybrid
         path: '~'
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-anope
-        path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install Atheme
@@ -342,7 +336,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         hybrid
     - if: always()
       name: Publish results

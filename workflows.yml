@@ -160,7 +160,7 @@ tests:
         software: [charybdis]
 
     hybrid:
-        software: [hybrid, anope]
+        software: [hybrid]
 
     solanum:
         software: [solanum]

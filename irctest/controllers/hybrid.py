@@ -44,7 +44,6 @@ connect {{
     send_password = "password";
     accept_password = "password";
     class = "server";
-    flags = topicburst;
 }};
 service {{
     name = "services.example.org";
