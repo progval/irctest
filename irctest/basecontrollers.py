@@ -224,7 +224,7 @@ class BaseServerController(_BaseController):
                 # test_lusers.py (eg. this happens with Charybdis 3.5.0)
                 c.send(b"QUIT :chkport\r\n")
                 data = b""
-                while b"chkport" not in data:
+                while b"chkport" not in data and b"ERROR" not in data:
                     data += c.recv(1024)
 
                 c.close()

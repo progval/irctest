@@ -71,7 +71,9 @@ class BotModeTestCase(cases.BaseServerTestCase):
     def testBotPrivateMessage(self):
         self._initBot()
 
-        self.connectClient("usernick", "user", capabilities=["message-tags"])
+        self.connectClient(
+            "usernick", "user", capabilities=["message-tags"], skip_if_cap_nak=True
+        )
 
         self.sendLine("bot", "PRIVMSG usernick :beep boop")
         self.getMessages("bot")  # Synchronizes
@@ -86,7 +88,9 @@ class BotModeTestCase(cases.BaseServerTestCase):
     def testBotChannelMessage(self):
         self._initBot()
 
-        self.connectClient("usernick", "user", capabilities=["message-tags"])
+        self.connectClient(
+            "usernick", "user", capabilities=["message-tags"], skip_if_cap_nak=True
+        )
 
         self.sendLine("bot", "JOIN #chan")
         self.sendLine("user", "JOIN #chan")
@@ -106,7 +110,9 @@ class BotModeTestCase(cases.BaseServerTestCase):
     def testBotWhox(self):
         self._initBot()
 
-        self.connectClient("usernick", "user", capabilities=["message-tags"])
+        self.connectClient(
+            "usernick", "user", capabilities=["message-tags"], skip_if_cap_nak=True
+        )
 
         self.sendLine("bot", "JOIN #chan")
         self.sendLine("user", "JOIN #chan")

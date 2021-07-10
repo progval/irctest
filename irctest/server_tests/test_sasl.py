@@ -1,6 +1,6 @@
 import base64
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.patma import ANYSTR
 
 
@@ -145,6 +145,9 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         """“If authentication fails, a 904 or 905 numeric will be sent”
         -- <http://ircv3.net/specs/extensions/sasl-3.1.html#the-authenticate-command>
         """
+        if not self.controller.supported_sasl_mechanisms:
+            raise runner.CapabilityNotSupported("sasl")
+
         self.controller.registerUser(self, "jilles", "sesame")
         self.addClient()
         self.sendLine(1, "CAP LS 302")

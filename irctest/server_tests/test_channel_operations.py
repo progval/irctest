@@ -248,6 +248,10 @@ class JoinTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.getMessages(2)
 
+        # Despite `anti_spam_exit_message_time = 0`, hybrid does not immediately
+        # allow custom PART reasons.
+        time.sleep(1)
+
         self.sendLine(1, "PART #chan :bye everyone")
         # both the PART'ing client and the other channel member should receive
         # a PART line:
@@ -275,6 +279,10 @@ class JoinTestCase(cases.BaseServerTestCase):
         # skip the rest of the JOIN burst:
         self.getMessages(1)
         self.getMessages(2)
+
+        # Despite `anti_spam_exit_message_time = 0`, hybrid does not immediately
+        # allow custom PART reasons.
+        time.sleep(1)
 
         self.sendLine(1, "PART #chan :bye everyone")
         # both the PART'ing client and the other channel member should receive
@@ -816,6 +824,11 @@ class ChannelQuitTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
 
         self.getMessages(1)
+
+        # Despite `anti_spam_exit_message_time = 0`, hybrid does not immediately
+        # allow custom PART reasons.
+        time.sleep(1)
+
         self.sendLine(2, "QUIT :qux out")
         self.getMessages(2)
         m = self.getMessage(1)
