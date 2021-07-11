@@ -408,17 +408,25 @@ class JoinTestCase(cases.BaseServerTestCase):
         # explicit TOPIC should receive RPL_NOTOPIC
         self.assertIn(RPL_NOTOPIC, [m.command for m in messages])
 
-        self.sendLine(1, "TOPIC #test :new topic")
         self.getMessages(1)
-        # client 2 should get the new TOPIC line
+
+        self.sendLine(1, "TOPIC #test :new topic")
+        # client 1 should get the new TOPIC line echoed
+        self.assertMessageMatch(
+            self.getMessage(1), command="TOPIC", params=["#test", "new topic"]
+        )
+        # client 2 should get the new TOPIC line too
         self.assertMessageMatch(
             self.getMessage(2), command="TOPIC", params=["#test", "new topic"]
         )
 
         # unset the topic:
         self.sendLine(1, "TOPIC #test :")
-        self.getMessages(1)
-        # client 2 should get the new TOPIC line, which is empty
+        # client 1 should get the new TOPIC line echoed, which has the empty arg
+        self.assertMessageMatch(
+            self.getMessage(1), command="TOPIC", params=["#test", ""]
+        )
+        # client 2 should get the new TOPIC line to
         self.assertMessageMatch(
             self.getMessage(2), command="TOPIC", params=["#test", ""]
         )
