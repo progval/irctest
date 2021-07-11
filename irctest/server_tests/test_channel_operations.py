@@ -418,6 +418,11 @@ class JoinTestCase(cases.BaseServerTestCase):
         # unset the topic:
         self.sendLine(1, "TOPIC #test :")
         self.getMessages(1)
+        # client 2 should get the new TOPIC line, which is empty
+        self.assertMessageMatch(
+            self.getMessage(2), command="TOPIC", params=["#test", ""]
+        )
+
         self.connectClient("qux")
         self.sendLine(3, "join #test")
         messages = self.getMessages(3)
