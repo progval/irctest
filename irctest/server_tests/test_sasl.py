@@ -1,6 +1,7 @@
 import base64
 
-from irctest import cases, runner
+from irctest import cases, runner, scram
+from irctest.numerics import ERR_SASLFAIL
 from irctest.patma import ANYSTR
 
 
@@ -274,3 +275,110 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     # TODO: add a test for when the length of the authstring is 800.
     # I don't know how to do it, because it would make the registration
     # message's length too big for it to be valid.
+
+    @cases.mark_specifications("IRCv3")
+    @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
+    def testScramSha256Success(self):
+        self.controller.registerUser(self, "Scramtest", "sesame")
+
+        self.addClient()
+        self.sendLine(1, "CAP LS 302")
+        capabilities = self.getCapLs(1)
+        self.assertIn(
+            "sasl",
+            capabilities,
+            fail_msg="Does not have SASL as the controller claims.",
+        )
+        if capabilities["sasl"] is not None:
+            self.assertIn(
+                "SCRAM-SHA-256",
+                capabilities["sasl"],
+                fail_msg="Does not have SCRAM-SHA-256 mechanism as the "
+                "controller claims",
+            )
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
+
+        self.sendLine(1, "AUTHENTICATE SCRAM-SHA-256")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE SCRAM-SHA-256”, expected "
+            "“AUTHENTICATE +” as a response, but got: {msg}",
+        )
+
+        authenticator = scram.SCRAMClientAuthenticator("SHA-256", False)
+        first_message = authenticator.start(
+            {
+                "username": "Scramtest",
+                "password": "sesame",
+            }
+        )
+        self.sendLine(
+            1, "AUTHENTICATE " + base64.b64encode(first_message).decode("ascii")
+        )
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(m, command="AUTHENTICATE")
+        second_message = authenticator.challenge(base64.b64decode(m.params[0]))
+        self.sendLine(
+            1, "AUTHENTICATE " + base64.b64encode(second_message).decode("ascii")
+        )
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(m, command="AUTHENTICATE")
+        # test the server's attempt to authenticate to us:
+        result = authenticator.finish(base64.b64decode(m.params[0]))
+        self.assertEqual(result["username"], "Scramtest")
+        self.sendLine(1, "AUTHENTICATE +")
+        self.confirmSuccessfulAuth()
+
+    @cases.mark_specifications("IRCv3")
+    @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
+    def testScramSha256Failure(self):
+        self.controller.registerUser(self, "Scramtest", "sesame")
+
+        self.addClient()
+        self.sendLine(1, "CAP LS 302")
+        capabilities = self.getCapLs(1)
+        self.assertIn(
+            "sasl",
+            capabilities,
+            fail_msg="Does not have SASL as the controller claims.",
+        )
+        if capabilities["sasl"] is not None:
+            self.assertIn(
+                "SCRAM-SHA-256",
+                capabilities["sasl"],
+                fail_msg="Does not have SCRAM-SHA-256 mechanism as the "
+                "controller claims",
+            )
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
+
+        self.sendLine(1, "AUTHENTICATE SCRAM-SHA-256")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE SCRAM-SHA-256”, expected "
+            "“AUTHENTICATE +” as a response, but got: {msg}",
+        )
+
+        authenticator = scram.SCRAMClientAuthenticator("SHA-256", False)
+        first_message = authenticator.start(
+            {
+                "username": "Scramtest",
+                "password": "millet",
+            }
+        )
+        self.sendLine(
+            1, "AUTHENTICATE " + base64.b64encode(first_message).decode("ascii")
+        )
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(m, command="AUTHENTICATE")
+        second_message = authenticator.challenge(base64.b64decode(m.params[0]))
+        self.sendLine(
+            1, "AUTHENTICATE " + base64.b64encode(second_message).decode("ascii")
+        )
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(m, command=ERR_SASLFAIL)
