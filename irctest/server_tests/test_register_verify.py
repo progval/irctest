@@ -15,8 +15,8 @@ class TestRegisterBeforeConnect(cases.BaseServerTestCase):
 
     def testBeforeConnect(self):
         self.addClient("bar")
-        self.sendLine("bar", "CAP LS 302")
         self.requestCapabilities("bar", [REGISTER_CAP_NAME], skip_if_cap_nak=True)
+        self.sendLine("bar", "CAP LS 302")
         caps = self.getCapLs("bar")
         self.assertIn(REGISTER_CAP_NAME, caps)
         self.assertIn("before-connect", caps[REGISTER_CAP_NAME])
@@ -38,8 +38,8 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
 
     def testBeforeConnect(self):
         self.addClient("bar")
-        self.sendLine("bar", "CAP LS 302")
         self.requestCapabilities("bar", [REGISTER_CAP_NAME], skip_if_cap_nak=True)
+        self.sendLine("bar", "CAP LS 302")
         caps = self.getCapLs("bar")
         self.assertIn(REGISTER_CAP_NAME, caps)
         self.assertEqual(caps[REGISTER_CAP_NAME], None)
@@ -72,10 +72,10 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
 
     def testBeforeConnect(self):
         self.addClient("bar")
-        self.sendLine("bar", "CAP LS 302")
         self.requestCapabilities(
             "bar", capabilities=[REGISTER_CAP_NAME], skip_if_cap_nak=True
         )
+        self.sendLine("bar", "CAP LS 302")
         caps = self.getCapLs("bar")
         self.assertIn(REGISTER_CAP_NAME, caps)
         self.assertEqual(
