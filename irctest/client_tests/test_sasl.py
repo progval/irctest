@@ -8,12 +8,7 @@ try:
 except ImportError:
     ecdsa = None
 
-try:
-    import pyxmpp2_scram as scram
-except ImportError:
-    scram = None
-
-from irctest import authentication, cases
+from irctest import authentication, cases, scram
 from irctest.irc_utils.message_parser import Message
 
 ECDSA_KEY = """
@@ -182,7 +177,6 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         m = self.negotiateCapabilities(["sasl"], False)
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
-    @pytest.mark.skipif(scram is None, reason="pyxmpp2-scram is not available")
     @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
     def testScram(self):
         """Test SCRAM-SHA-256 authentication."""
