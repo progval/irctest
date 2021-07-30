@@ -29,11 +29,11 @@ import re
 import logging
 import hashlib
 import hmac
+import secrets
 
 from binascii import a2b_base64
 from base64 import standard_b64encode
 
-from .core import default_nonce_factory
 from .exceptions import BadChallengeException, \
         ExtraChallengeException, ServerScramError, BadSuccessException, \
         NotAuthorizedException
@@ -79,6 +79,11 @@ CLIENT_FINAL_MESSAGE_RE = re.compile(
 
 SERVER_FINAL_MESSAGE_RE = re.compile(
         br"^(?:e=(?P<error>[^,]+)|v=(?P<verifier>[a-zA-Z0-9/+=]+)(?:,.*)?)$")
+
+
+def default_nonce_factory():
+    return secrets.token_urlsafe().encode('ascii')
+
 
 class SCRAMOperations(object):
     """Functions used during SCRAM authentication and defined in the RFC.
