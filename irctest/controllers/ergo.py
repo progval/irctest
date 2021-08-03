@@ -37,6 +37,7 @@ BASE_CONFIG = {
             "ban-message": "Try again later",
             "exempted": ["localhost"],
         },
+        "lookup-hostnames": False,
         "enforce-utf8": True,
         "relaymsg": {"enabled": True, "separators": "/", "available-to-chanops": True},
         "compatibility": {
