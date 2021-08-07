@@ -194,19 +194,25 @@ class InviteTestCase(cases.BaseServerTestCase):
             "“INVITE bar #chan” but got this instead: {msg}",
         )
 
-    @pytest.mark.parametrize(
-        "opped,invite_only", [(True, True), (True, False), (False, False)]
-    )
+    @pytest.mark.parametrize("invite_only", [True, False])
     @cases.mark_specifications("Modern")
-    def testInviteModern(self, opped, invite_only):
-        self._testInvite(opped=opped, invite_only=invite_only, modern=True)
+    def testInviteModern(self, invite_only):
+        self._testInvite(opped=True, invite_only=invite_only, modern=True)
 
-    @pytest.mark.parametrize(
-        "opped,invite_only", [(True, True), (True, False), (False, False)]
-    )
+    @pytest.mark.parametrize("invite_only", [True, False])
     @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True)
-    def testInviteRfc(self, opped, invite_only):
-        self._testInvite(opped=opped, invite_only=invite_only, modern=False)
+    def testInviteRfc(self, invite_only):
+        self._testInvite(opped=True, invite_only=invite_only, modern=False)
+
+    @cases.mark_specifications("Modern", strict=True)
+    def testInviteUnoppedModern(self):
+        """Tests invites from unopped users on not-invite-only chans."""
+        self._testInvite(opped=False, invite_only=False, modern=True)
+
+    @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True, strict=True)
+    def testInviteUnoppedRfc(self, opped, invite_only):
+        """Tests invites from unopped users on not-invite-only chans."""
+        self._testInvite(opped=False, invite_only=False, modern=False)
 
     @cases.mark_specifications("RFC2812", "Modern")
     def testInviteNoNotificationForOtherMembers(self):

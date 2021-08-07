@@ -35,8 +35,10 @@ ERGO_SELECTORS := \
 	not deprecated \
 	$(EXTRA_SELECTORS)
 
+# testInviteUnoppedModern is the only strict test that Hybrid fails
 HYBRID_SELECTORS := \
 	not Ergo \
+	and not testInviteUnoppedModern \
 	and not deprecated \
 	$(EXTRA_SELECTORS)
 
