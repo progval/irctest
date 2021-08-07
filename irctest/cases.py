@@ -144,6 +144,7 @@ class _IrcTestCase(Generic[TController]):
         nick: Optional[str] = None,
         fail_msg: Optional[str] = None,
         extra_format: Tuple = (),
+        prefix: Union[None, str, patma.Operator] = None,
         **kwargs: Any,
     ) -> Optional[str]:
         """Returns an error message if the message doesn't match the given arguments,
@@ -160,6 +161,14 @@ class _IrcTestCase(Generic[TController]):
                     param=key,
                     msg=msg,
                 )
+
+        if prefix and not patma.match_string(msg.prefix, prefix):
+            fail_msg = (
+                fail_msg or "expected prefix to match {expects}, got {got}: {msg}"
+            )
+            return fail_msg.format(
+                *extra_format, got=msg.prefix, expects=prefix, msg=msg
+            )
 
         if params and not patma.match_list(list(msg.params), params):
             fail_msg = (
