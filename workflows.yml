@@ -210,6 +210,9 @@ tests:
     inspircd-anope:
         software: [inspircd, anope]
 
+    plexus4:
+        software: [plexus4, anope]
+
     unrealircd:
         software: [unrealircd]
 

@@ -266,6 +266,7 @@ jobs:
     - test-inspircd-anope
     - test-inspircd-atheme
     - test-limnoria
+    - test-plexus4
     - test-solanum
     - test-sopel
     - test-unrealircd
@@ -511,6 +512,44 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest results limnoria (stable)
+        path: pytest.xml
+  test-plexus4:
+    needs:
+    - build-plexus4
+    - build-anope
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-plexus4
+        path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-anope
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
+        plexus4
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results plexus4 (stable)
         path: pytest.xml
   test-solanum:
     needs:
