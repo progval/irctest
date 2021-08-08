@@ -38,6 +38,7 @@ def validate_chathistory_batch(msgs):
     return result
 
 
+@cases.mark_specifications("IRCv3")
 @cases.mark_services
 class ChathistoryTestCase(cases.BaseServerTestCase):
     @staticmethod

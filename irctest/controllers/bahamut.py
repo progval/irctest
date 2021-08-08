@@ -23,7 +23,7 @@ options {{
     services_name   services.example.org;
 
     // if you need to link more than 1 server, uncomment the following line
-    # servtype        hub;
+    servtype        hub;
 }};
 
 /* where to listen for connections */
@@ -64,7 +64,7 @@ class {{
 /* our services */
 connect {{
     name        services.example.org;
-    host        *@*;
+    host        *@127.0.0.1;  # unfortunately, masks aren't allowed here
     apasswd     password;
     cpasswd     password;
     class       services;
@@ -72,10 +72,11 @@ connect {{
 """
 
 
-class UnrealircdController(BaseServerController, DirectoryBasedController):
+class BahamutController(BaseServerController, DirectoryBasedController):
     software_name = "Bahamut"
-    supported_sasl_mechanisms = {"PLAIN"}
+    supported_sasl_mechanisms: Set[str] = set()
     supports_sts = False
+    nickserv = "NickServ@services.example.org"
 
     def create_config(self) -> None:
         super().create_config()
@@ -150,5 +151,5 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
             )
 
 
-def get_irctest_controller_class() -> Type[UnrealircdController]:
-    return UnrealircdController
+def get_irctest_controller_class() -> Type[BahamutController]:
+    return BahamutController
