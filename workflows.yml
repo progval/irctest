@@ -156,6 +156,24 @@ software:
             make -j 4
             make install
 
+    ircu2:
+        name: ircu2
+        repository: undernetirc/ircu2
+        refs:
+            stable: "u2.10.12.19 "
+            release: null
+            devel: "u2_10_12_branch"
+            devel_release: null
+        path: ircu2
+        separate_build_job: false
+        build_script: |
+            cd $GITHUB_WORKSPACE/ircu2
+            # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
+            # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
+            ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
+            make -j 4
+            make install
+
     unrealircd:
         name: UnrealIRCd
         repository: unrealircd/unrealircd
@@ -254,6 +272,7 @@ tests:
 
     unrealircd-anope:
         software: [unrealircd, anope]
+
 
     limnoria:
         software: [limnoria]
