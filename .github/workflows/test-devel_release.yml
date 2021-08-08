@@ -11,7 +11,7 @@ jobs:
     - name: Cache Anope
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-anope-2.0.9
+        key: 2-${{ runner.os }}-anope-2.0.9
         path: '~/.cache
 
           $GITHUB_WORKSPACE/anope

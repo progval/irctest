@@ -11,7 +11,7 @@ jobs:
     - name: Cache Anope
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-anope-2.0.9
+        key: 2-${{ runner.os }}-anope-2.0.9
         path: '~/.cache
 
           $GITHUB_WORKSPACE/anope
@@ -46,7 +46,7 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-charybdis-stable
+        key: 2-${{ runner.os }}-charybdis-stable
         path: '~/.cache
 
           $GITHUB_WORKSPACE/charybdis
@@ -86,7 +86,7 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-hybrid-stable
+        key: 2-${{ runner.os }}-hybrid-stable
         path: '~/.cache
 
           $GITHUB_WORKSPACE/ircd-hybrid
@@ -156,7 +156,7 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-plexus4-stable
+        key: 2-${{ runner.os }}-plexus4-stable
         path: '~/.cache
 
           $GITHUB_WORKSPACE/placeholder
@@ -198,7 +198,7 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-solanum-stable
+        key: 2-${{ runner.os }}-solanum-stable
         path: '~/.cache
 
           $GITHUB_WORKSPACE/solanum
@@ -238,7 +238,7 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: ${{ runner.os }}-unrealircd-stable
+        key: 2-${{ runner.os }}-unrealircd-stable
         path: '~/.cache
 
           $GITHUB_WORKSPACE/unrealircd

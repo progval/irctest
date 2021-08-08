@@ -97,7 +97,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "uses": "actions/cache@v2",
                 "with": {
                     "path": f"~/.cache\n$GITHUB_WORKSPACE/{path}\n",
-                    "key": "${{ runner.os }}-"
+                    "key": "2-${{ runner.os }}-"
                     + software_id
                     + "-"
                     + version_flavor.value,
@@ -254,7 +254,7 @@ def get_build_job_anope():
                 "uses": "actions/cache@v2",
                 "with": {
                     "path": "~/.cache\n$GITHUB_WORKSPACE/anope\n",
-                    "key": "${{ runner.os }}-anope-2.0.9",
+                    "key": "2-${{ runner.os }}-anope-2.0.9",
                 },
             },
             {
