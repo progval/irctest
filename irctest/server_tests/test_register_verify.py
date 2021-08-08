@@ -4,6 +4,7 @@ from irctest.patma import ANYSTR
 REGISTER_CAP_NAME = "draft/account-registration"
 
 
+@cases.mark_specifications("IRCv3")
 class TestRegisterBeforeConnect(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
@@ -27,6 +28,7 @@ class TestRegisterBeforeConnect(cases.BaseServerTestCase):
         self.assertMessageMatch(register_response, params=["SUCCESS", ANYSTR, ANYSTR])
 
 
+@cases.mark_specifications("IRCv3")
 class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
@@ -53,6 +55,7 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
         )
 
 
+@cases.mark_specifications("IRCv3")
 class TestRegisterEmailVerified(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
@@ -102,6 +105,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
         )
 
 
+@cases.mark_specifications("IRCv3")
 class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:

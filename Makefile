@@ -11,6 +11,12 @@ EXTRA_SELECTORS ?=
 ANOPE_SELECTORS := \
 	and not testPlainLarge
 
+BAHAMUT_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	$(EXTRA_SELECTORS)
+
 # testQuitErrors is very flaky
 # AccountTagTestCase.testInvite fails because https://github.com/solanum-ircd/solanum/issues/166
 CHARYBDIS_SELECTORS := \
@@ -93,12 +99,32 @@ UNREALIRCD_SELECTORS := \
 	and not (testChathistory and (between or around)) \
 	$(EXTRA_SELECTORS)
 
-.PHONY: all flakes charybdis ergo inspircd mammon limnoria sopel solanum unrealircd
+.PHONY: all flakes bahamut charybdis ergo inspircd mammon limnoria sopel solanum unrealircd
 
-all: flakes charybdis ergo inspircd mammon limnoria sopel solanum unrealircd
+all: flakes bahamut charybdis ergo inspircd mammon limnoria sopel solanum unrealircd
 
 flakes:
 	find irctest/ -name "*.py" -not -path "irctest/scram/*" -print0 | xargs -0 pyflakes3
+
+bahamut:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.bahamut \
+		-m 'not services' \
+		-k '$(BAHAMUT_SELECTORS)'
+
+bahamut-atheme:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.bahamut \
+		--services-controller=irctest.controllers.atheme_services \
+		-m 'services' \
+		-k '$(BAHAMUT_SELECTORS)'
+
+bahamut-anope:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.bahamut \
+		--services-controller=irctest.controllers.anope_services \
+		-m 'services' \
+		-k '$(BAHAMUT_SELECTORS) $(ANOPE_SELECTORS)'
 
 charybdis:
 	$(PYTEST) $(PYTEST_ARGS) \

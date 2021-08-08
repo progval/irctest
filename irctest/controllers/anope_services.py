@@ -76,7 +76,14 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
 
-        assert protocol in ("inspircd3", "charybdis", "hybrid", "plexus", "unreal4")
+        assert protocol in (
+            "bahamut",
+            "inspircd3",
+            "charybdis",
+            "hybrid",
+            "plexus",
+            "unreal4",
+        )
 
         with self.open_file("conf/services.conf") as fd:
             fd.write(
