@@ -155,6 +155,35 @@ software:
             ./configure --prefix=$HOME/.local/inspircd --development
             make -j 4
             make install
+    irc2:
+        name: irc2
+        separate_build_job: false
+        install_steps:
+            stable:
+                - name: Get source code
+                  run: |-
+                      curl http://ftp.irc.org/ftp/irc/server/irc2.11.2p3.tgz | tar -zx
+                - name: Configure
+                  run: |-
+                      cd $GITHUB_WORKSPACE/irc2.11.2p3
+                      ./configure --prefix=$HOME/.local/
+                      cd x86*
+                      echo "#define CMDLINE_CONFIG/" >> config.h
+                      echo "#define DEFAULT_SPLIT_USERS 0" >> config.h
+                      echo "#define DEFAULT_SPLIT_SERVERS 0" >> config.h
+                      #echo "#undef LIST_ALIS_NOTE" >> config.h
+                      # TODO: find a better way to make it not fork...
+                      echo "#define fork() (0)" >> config.h
+                - name: Compile and install
+                  run: |-
+                      cd $GITHUB_WORKSPACE/irc2.11.2p3/x86*
+                      make -j 4 all
+                      make install
+                      mkdir -p $HOME/.local/bin
+                      cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
+            release: null
+            devel: null
+            devel_release: null
 
     ircu2:
         name: ircu2
@@ -263,6 +292,9 @@ tests:
 
     plexus4:
         software: [plexus4, anope]
+
+    irc2:
+        software: [irc2]
 
     unrealircd:
         software: [unrealircd]

@@ -334,6 +334,7 @@ jobs:
     - test-inspircd
     - test-inspircd-anope
     - test-inspircd-atheme
+    - test-irc2
     - test-limnoria
     - test-plexus4
     - test-solanum
@@ -657,6 +658,60 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest results inspircd-atheme (stable)
+        path: pytest.xml
+  test-irc2:
+    needs: []
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Get source code
+      run: curl http://ftp.irc.org/ftp/irc/server/irc2.11.2p3.tgz | tar -zx
+    - name: Configure
+      run: 'cd $GITHUB_WORKSPACE/irc2.11.2p3
+
+        ./configure --prefix=$HOME/.local/
+
+        cd x86*
+
+        echo "#define CMDLINE_CONFIG/" >> config.h
+
+        echo "#define DEFAULT_SPLIT_USERS 0" >> config.h
+
+        echo "#define DEFAULT_SPLIT_SERVERS 0" >> config.h
+
+        #echo "#undef LIST_ALIS_NOTE" >> config.h
+
+        # TODO: find a better way to make it not fork...
+
+        echo "#define fork() (0)" >> config.h'
+    - name: Compile and install
+      run: 'cd $GITHUB_WORKSPACE/irc2.11.2p3/x86*
+
+        make -j 4 all
+
+        make install
+
+        mkdir -p $HOME/.local/bin
+
+        cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd'
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        irc2
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results irc2 (stable)
         path: pytest.xml
   test-limnoria:
     needs: []
