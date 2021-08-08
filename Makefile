@@ -98,7 +98,7 @@ UNREALIRCD_SELECTORS := \
 all: flakes charybdis ergo inspircd mammon limnoria sopel solanum unrealircd
 
 flakes:
-	pyflakes3 irctest
+	find irctest/ -name "*.py" -not -path "irctest/scram/*" -print0 | xargs -0 pyflakes3
 
 charybdis:
 	$(PYTEST) $(PYTEST_ARGS) \

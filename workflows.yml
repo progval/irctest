@@ -163,13 +163,13 @@ software:
         install_steps:
             stable:
                 - name: Install dependencies
-                  run: pip install limnoria==2021.06.15 cryptography
+                  run: pip install limnoria==2021.06.15 cryptography pyxmpp2-scram
             release:
                 - name: Install dependencies
-                  run: pip install limnoria cryptography
+                  run: pip install limnoria cryptography pyxmpp2-scram
             devel:
                 - name: Install dependencies
-                  run: pip install git+https://github.com/ProgVal/Limnoria.git@testing cryptography
+                  run: pip install git+https://github.com/ProgVal/Limnoria.git@testing cryptography pyxmpp2-scram
             devel_release: null
 
     sopel:

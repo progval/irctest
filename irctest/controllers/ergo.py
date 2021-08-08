@@ -136,7 +136,7 @@ def hash_password(password: Union[str, bytes]) -> str:
 class ErgoController(BaseServerController, DirectoryBasedController):
     software_name = "Ergo"
     _port_wait_interval = 0.01
-    supported_sasl_mechanisms = {"PLAIN"}
+    supported_sasl_mechanisms = {"PLAIN", "SCRAM-SHA-256"}
     supports_sts = True
     extban_mute_char = "m"
 
