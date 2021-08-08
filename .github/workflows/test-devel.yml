@@ -353,6 +353,7 @@ jobs:
         python-version: 3.7
     - name: Install dependencies
       run: pip install git+https://github.com/ProgVal/Limnoria.git@testing cryptography
+        pyxmpp2-scram
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
