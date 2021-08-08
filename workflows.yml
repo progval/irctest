@@ -92,6 +92,30 @@ software:
 
     #############################
     # Other servers:
+    bahamut:
+        name: Bahamut
+        repository: DALnet/Bahamut
+        refs:
+            stable: "v2.2.0"
+            release: null
+            devel: "master"
+            devel_release: null
+        path: Bahamut
+        separate_build_job: true
+        build_script: |
+            cd $GITHUB_WORKSPACE/Bahamut/
+            patch src/s_user.c < $GITHUB_WORKSPACE/bahamut_localhost.patch
+            libtoolize --force
+            aclocal
+            autoheader
+            automake --force-missing --add-missing || true
+            autoreconf
+            ./configure --prefix=$HOME/.local/
+            make -j 4
+            make install
+            mkdir -p $HOME/.local/bin/
+            cp $HOME/.local/ircd $HOME/.local/bin/ircd
+
     ergo:
         name: Ergo
         repository: ergochat/ergo
@@ -188,6 +212,15 @@ software:
             devel_release: null
 
 tests:
+    bahamut:
+        software: [bahamut]
+
+    bahamut-atheme:
+        software: [bahamut]
+
+    bahamut-anope:
+        software: [bahamut, anope]
+
     charybdis:
         software: [charybdis]
 
