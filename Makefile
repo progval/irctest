@@ -147,6 +147,12 @@ mammon:
 		--controller=irctest.controllers.mammon \
 		-k '$(MAMMON_SELECTORS)'
 
+plexus4:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller irctest.controllers.plexus4 \
+		-m 'not services' \
+		-k "$(HYBRID_SELECTORS)"
+
 solanum:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.solanum \

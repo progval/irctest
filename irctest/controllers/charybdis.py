@@ -25,6 +25,7 @@ listen {{
 
     host = "{hostname}";
     port = {port};
+    port = {services_port};
 }};
 
 auth {{

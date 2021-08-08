@@ -39,6 +39,38 @@ software:
             make -j 4
             make install
 
+    plexus4:
+        name: Plexus4
+        path: plexus4
+        separate_build_job: true
+        install_steps:
+            stable:
+                - name: clone
+                  run: |-
+                      curl https://gitlab.com/rizon/plexus4/-/archive/20200510_0-610/plexus4-20200510_0-610.tar.gz | tar -zx
+                      mv plexus4* plexus4
+                - name: build
+                  run: |-
+                      cd $GITHUB_WORKSPACE/plexus4
+                      ./autogen.sh
+                      ./configure --prefix=$HOME/.local/
+                      make -j 4
+                      make install
+            release: null
+            devel:
+                - name: clone
+                  run: |-
+                      curl https://gitlab.com/rizon/plexus4/-/archive/master/plexus4-master.tar.gz | tar -zx
+                      mv plexus4* plexus4
+                - name: build
+                  run: |-
+                      cd $GITHUB_WORKSPACE/plexus4
+                      ./autogen.sh
+                      ./configure --prefix=$HOME/.local/
+                      make -j 4
+                      make install
+            devel_release: null
+
     solanum:
         name: Solanum
         repository: solanum-ircd/solanum
@@ -177,6 +209,9 @@ tests:
 
     inspircd-anope:
         software: [inspircd, anope]
+
+    plexus4:
+        software: [plexus4, anope]
 
     unrealircd:
         software: [unrealircd]
