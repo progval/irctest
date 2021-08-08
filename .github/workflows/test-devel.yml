@@ -97,6 +97,44 @@ jobs:
         name: installed-inspircd
         path: ~/artefacts-*.tar.gz
         retention-days: 1
+  build-plexus4:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir -p .local/ go/
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        key: ${{ runner.os }}-plexus4-devel
+        path: |-
+          ~/.cache
+          $GITHUB_WORKSPACE/plexus4
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Checkout Plexus4
+      uses: actions/checkout@v2
+      with:
+        path: plexus4
+        ref: master
+        repository: https://gitlab.com/rizon/plexus4.git
+    - name: Build Plexus4
+      run: |
+        cd $GITHUB_WORKSPACE/plexus4
+        ./autogen.sh
+        ./configure --prefix=$HOME/.local/
+        make -j 4
+        make install
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-plexus4.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: installed-plexus4
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
   build-solanum:
     runs-on: ubuntu-latest
     steps:

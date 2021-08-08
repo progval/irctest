@@ -39,6 +39,23 @@ software:
             make -j 4
             make install
 
+    plexus4:
+        name: Plexus4
+        repository: https://gitlab.com/rizon/plexus4.git
+        refs:
+            stable: "20200510_0-610"
+            release: null
+            devel: "master"
+            devel_release: null
+        path: plexus4
+        separate_build_job: true
+        build_script: |
+            cd $GITHUB_WORKSPACE/plexus4
+            ./autogen.sh
+            ./configure --prefix=$HOME/.local/
+            make -j 4
+            make install
+
     solanum:
         name: Solanum
         repository: solanum-ircd/solanum
