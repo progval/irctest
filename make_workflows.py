@@ -250,6 +250,14 @@ def get_build_job_anope():
                 "run": "cd ~/; mkdir -p .local/ go/",
             },
             {
+                "name": "Cache Anope",
+                "uses": "actions/cache@v2",
+                "with": {
+                    "path": script("~/.cache", "$GITHUB_WORKSPACE/anope"),
+                    "key": "${{ runner.os }}-anope-2.0.9",
+                },
+            },
+            {
                 "name": "Checkout Anope",
                 "uses": "actions/checkout@v2",
                 "with": {
