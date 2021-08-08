@@ -195,12 +195,14 @@ ircu2:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.ircu2 \
 		-m 'not services and not IRCv3' \
+		-n 10 \
 		-k '$(IRCU2_SELECTORS)'
 
 irc2:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.irc2 \
 		-m 'not services and not IRCv3' \
+		-n 10 \
 		-k '$(IRC2_SELECTORS)'
 
 limnoria:
