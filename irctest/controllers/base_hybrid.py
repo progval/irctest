@@ -93,5 +93,5 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
             self.services_controller.run(
                 protocol=self.services_protocol,
                 server_hostname=hostname,
-                server_port=port,
+                server_port=services_port,
             )

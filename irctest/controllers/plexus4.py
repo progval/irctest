@@ -17,6 +17,9 @@ general {{
     throttle_count = 100;  # We need to connect lots of clients quickly
     sasl_service = "SaslServ";
 
+    # Allow connections quickly
+    throttle_num = 100;
+
     # Allow PART/QUIT reasons quickly
     anti_spam_exit_message_time = 0;
 
@@ -30,6 +33,8 @@ listen {{
 
     host = "{hostname}";
     port = {port};
+
+    flags = server;
     port = {services_port};
 }};
 
@@ -58,15 +63,15 @@ auth {{
 """
 
 
-class HybridController(BaseHybridController):
+class Plexus4Controller(BaseHybridController):
     software_name = "Hybrid"
     binary_name = "ircd"
-    services_protocol = "hybrid"
+    services_protocol = "plexus"
 
     supported_sasl_mechanisms: Set[str] = set()
 
     template_config = TEMPLATE_CONFIG
 
 
-def get_irctest_controller_class() -> Type[HybridController]:
-    return HybridController
+def get_irctest_controller_class() -> Type[Plexus4Controller]:
+    return Plexus4Controller
