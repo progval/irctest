@@ -52,6 +52,20 @@ INSPIRCD_SELECTORS := \
 	and not testNamesInvalidChannel and not testNamesNonexistingChannel \
 	$(EXTRA_SELECTORS)
 
+# buffering tests fail because ircu2 discards the whole buffer on long lines (TODO: refine how we exclude these tests)
+# testQuit and testQuitErrors fail because ircu2 does not send ERROR or QUIT
+# lusers tests fail because they depend on Modern behavior, not just RFC2812 (TODO: update lusers tests to accept RFC2812-compliant implementations)
+# statusmsg tests fail because STATUSMSG is present in ISUPPORT, but it not actually supported as PRIVMSG target
+IRCU2_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	and not buffering \
+	and not testQuit \
+	and not lusers \
+	and not statusmsg \
+	$(EXTRA_SELECTORS)
+
 MAMMON_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -168,6 +182,12 @@ inspircd-anope:
 		--services-controller=irctest.controllers.anope_services \
 		-m 'services' \
 		-k '$(INSPIRCD_SELECTORS) $(ANOPE_SELECTORS)'
+
+ircu2:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.ircu2 \
+		-m 'not services and not IRCv3' \
+		-k '$(IRCU2_SELECTORS)'
 
 limnoria:
 	$(PYTEST) $(PYTEST_ARGS) \

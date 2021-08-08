@@ -79,6 +79,7 @@ class LusersTestCase(cases.BaseServerTestCase):
         if RPL_LUSERCHANNELS in by_numeric:
             result.Channels = int(by_numeric[RPL_LUSERCHANNELS].params[1])
 
+        # FIXME: RPL_LOCALUSERS and RPL_GLOBALUSERS are only in Modern, not in RFC2812
         localusers = by_numeric[RPL_LOCALUSERS]
         globalusers = by_numeric[RPL_GLOBALUSERS]
         if len(localusers.params) == 4:
