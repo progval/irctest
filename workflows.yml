@@ -47,7 +47,8 @@ software:
             stable:
                 - name: clone
                   run: |-
-                      git clone https://gitlab.com/rizon/plexus4.git@20200510_0-610
+                      curl https://gitlab.com/rizon/plexus4/-/archive/20200510_0-610/plexus4-20200510_0-610.tar.gz | tar -zx
+                      mv plexus4* plexus4
                 - name: build
                   run: |-
                       cd $GITHUB_WORKSPACE/plexus4
@@ -59,7 +60,8 @@ software:
             devel:
                 - name: clone
                   run: |-
-                      git clone https://gitlab.com/rizon/plexus4.git@master
+                      curl https://gitlab.com/rizon/plexus4/-/archive/master/plexus4-master.tar.gz | tar -zx
+                      mv plexus4* plexus4
                 - name: build
                   run: |-
                       cd $GITHUB_WORKSPACE/plexus4

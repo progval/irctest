@@ -115,7 +115,10 @@ jobs:
       with:
         python-version: 3.7
     - name: clone
-      run: git clone https://gitlab.com/rizon/plexus4.git@master
+      run: 'curl https://gitlab.com/rizon/plexus4/-/archive/master/plexus4-master.tar.gz
+        | tar -zx
+
+        mv plexus4* plexus4'
     - name: build
       run: 'cd $GITHUB_WORKSPACE/plexus4
 
