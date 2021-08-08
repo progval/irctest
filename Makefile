@@ -218,7 +218,7 @@ ergo:
 hybrid:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.hybrid \
-		-m 'not services' \
+		--services-controller=irctest.controllers.anope_services \
 		-k "$(HYBRID_SELECTORS)"
 
 inspircd:
@@ -275,6 +275,7 @@ mammon:
 plexus4:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.plexus4 \
+		--services-controller=irctest.controllers.anope_services \
 		-m 'not services' \
 		-k "$(PLEXUS4_SELECTORS)"
 

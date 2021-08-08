@@ -314,7 +314,7 @@ tests:
         software: [charybdis]
 
     hybrid:
-        software: [hybrid]
+        software: [hybrid, anope]
 
     solanum:
         software: [solanum]
