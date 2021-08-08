@@ -12,9 +12,11 @@ jobs:
       uses: actions/cache@v2
       with:
         key: ${{ runner.os }}-anope-2.0.9
-        path: |-
-          ~/.cache
+        path: '~/.cache
+
           $GITHUB_WORKSPACE/anope
+
+          '
     - name: Checkout Anope
       uses: actions/checkout@v2
       with:
@@ -45,9 +47,11 @@ jobs:
       uses: actions/cache@v2
       with:
         key: ${{ runner.os }}-charybdis-stable
-        path: |-
-          ~/.cache
+        path: '~/.cache
+
           $GITHUB_WORKSPACE/charybdis
+
+          '
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -83,9 +87,11 @@ jobs:
       uses: actions/cache@v2
       with:
         key: ${{ runner.os }}-hybrid-stable
-        path: |-
-          ~/.cache
+        path: '~/.cache
+
           $GITHUB_WORKSPACE/ircd-hybrid
+
+          '
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -151,9 +157,11 @@ jobs:
       uses: actions/cache@v2
       with:
         key: ${{ runner.os }}-plexus4-stable
-        path: |-
-          ~/.cache
+        path: '~/.cache
+
           $GITHUB_WORKSPACE/placeholder
+
+          '
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -191,9 +199,11 @@ jobs:
       uses: actions/cache@v2
       with:
         key: ${{ runner.os }}-solanum-stable
-        path: |-
-          ~/.cache
+        path: '~/.cache
+
           $GITHUB_WORKSPACE/solanum
+
+          '
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
@@ -229,9 +239,11 @@ jobs:
       uses: actions/cache@v2
       with:
         key: ${{ runner.os }}-unrealircd-stable
-        path: |-
-          ~/.cache
+        path: '~/.cache
+
           $GITHUB_WORKSPACE/unrealircd
+
+          '
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
