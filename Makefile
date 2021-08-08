@@ -66,6 +66,17 @@ IRCU2_SELECTORS := \
 	and not statusmsg \
 	$(EXTRA_SELECTORS)
 
+# same justification as ircu2
+SNIRCD_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	and not buffering \
+	and not testQuit \
+	and not lusers \
+	and not statusmsg \
+	$(EXTRA_SELECTORS)
+
 # testListEmpty and testListOne fails because irc2 deprecated LIST
 IRC2_SELECTORS := \
 	not Ergo \
@@ -197,6 +208,13 @@ ircu2:
 		-m 'not services and not IRCv3' \
 		-n 10 \
 		-k '$(IRCU2_SELECTORS)'
+
+snircd:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.snircd \
+		-m 'not services and not IRCv3' \
+		-n 10 \
+		-k '$(SNIRCD_SELECTORS)'
 
 irc2:
 	$(PYTEST) $(PYTEST_ARGS) \

@@ -189,7 +189,7 @@ software:
         name: ircu2
         repository: undernetirc/ircu2
         refs:
-            stable: "u2.10.12.19 "
+            stable: "u2.10.12.19"
             release: null
             devel: "u2_10_12_branch"
             devel_release: null
@@ -197,6 +197,24 @@ software:
         separate_build_job: false
         build_script: |
             cd $GITHUB_WORKSPACE/ircu2
+            # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
+            # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
+            ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
+            make -j 4
+            make install
+
+    snircd:
+        name: snircd
+        repository: quakenet/snircd
+        refs:
+            stable: "u2.10.12.10+snircd(1.3.4a)"
+            release: null
+            devel: null  # no update in master since 2013...
+            devel_release: null
+        path: snircd
+        separate_build_job: false
+        build_script: |
+            cd $GITHUB_WORKSPACE/snircd
             # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
             # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
             ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
@@ -292,6 +310,9 @@ tests:
 
     plexus4:
         software: [plexus4, anope]
+
+    snircd:
+        software: [snircd]
 
     irc2:
         software: [irc2]

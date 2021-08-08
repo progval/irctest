@@ -35,11 +35,14 @@ Client {{
 
 features {{
     "PPATH" = "{pidfile}";
+
+    # don't block notices by default, wtf
+    "AUTOCHANMODES_LIST" = "+tnC";
 }};
 """
 
 
-class Ircu2Controller(BaseServerController, DirectoryBasedController):
+class SnircdController(BaseServerController, DirectoryBasedController):
     supports_sts = False
     extban_mute_char = None
 
@@ -96,5 +99,5 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
         )
 
 
-def get_irctest_controller_class() -> Type[Ircu2Controller]:
-    return Ircu2Controller
+def get_irctest_controller_class() -> Type[SnircdController]:
+    return SnircdController

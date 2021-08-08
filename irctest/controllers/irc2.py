@@ -30,7 +30,6 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
     binary_name: str
     services_protocol: str
 
-    supports_cap = False
     supports_sts = False
     extban_mute_char = None
 
