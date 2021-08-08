@@ -66,6 +66,14 @@ IRCU2_SELECTORS := \
 	and not statusmsg \
 	$(EXTRA_SELECTORS)
 
+# testListEmpty and testListOne fails because irc2 deprecated LIST
+IRC2_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	and not testListEmpty and not testListOne \
+	$(EXTRA_SELECTORS)
+
 MAMMON_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -116,9 +124,9 @@ UNREALIRCD_SELECTORS := \
 	and not (testChathistory and (between or around)) \
 	$(EXTRA_SELECTORS)
 
-.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 mammon limnoria sopel solanum unrealircd
+.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 irc2 mammon limnoria sopel solanum unrealircd
 
-all: flakes bahamut charybdis ergo inspircd ircu2 mammon limnoria sopel solanum unrealircd
+all: flakes bahamut charybdis ergo inspircd ircu2 irc2 mammon limnoria sopel solanum unrealircd
 
 flakes:
 	find irctest/ -name "*.py" -not -path "irctest/scram/*" -print0 | xargs -0 pyflakes3
@@ -188,6 +196,12 @@ ircu2:
 		--controller=irctest.controllers.ircu2 \
 		-m 'not services and not IRCv3' \
 		-k '$(IRCU2_SELECTORS)'
+
+irc2:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.irc2 \
+		-m 'not services and not IRCv3' \
+		-k '$(IRC2_SELECTORS)'
 
 limnoria:
 	$(PYTEST) $(PYTEST_ARGS) \

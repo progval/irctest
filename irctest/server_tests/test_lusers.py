@@ -18,7 +18,7 @@ from irctest.numerics import (
 # 3 numbers, delimited by spaces, possibly negative (eek)
 LUSERCLIENT_REGEX = re.compile(r"^.*( [-0-9]* ).*( [-0-9]* ).*( [-0-9]* ).*$")
 # 2 numbers
-LUSERME_REGEX = re.compile(r"^.*( [-0-9]* ).*( [-0-9]* ).*$")
+LUSERME_REGEX = re.compile(r"^.*?( [-0-9]* ).*( [-0-9]* ).*$")
 
 
 @dataclass
