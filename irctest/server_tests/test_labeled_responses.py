@@ -14,13 +14,6 @@ from irctest.patma import ANYDICT, AnyOptStr, NotStrRe, RemainingKeys, StrRe
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    def connectClient(self, nick, *, capabilities, **kwargs):
-        if self.controller.software_name == "InspIRCd":
-            # InspIRCd only sends labels if 'batch' is enabled
-            if "batch" not in capabilities:
-                capabilities.append("batch")
-        return super().connectClient(nick, capabilities=capabilities, **kwargs)
-
     @cases.mark_capabilities("echo-message", "batch", "labeled-response")
     def testLabeledPrivmsgResponsesToMultipleClients(self):
         self.connectClient(
@@ -480,7 +473,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     @cases.mark_capabilities("labeled-response")
     def testNoBatchForSingleMessage(self):
         self.connectClient(
-            "bar", capabilities=["labeled-response"], skip_if_cap_nak=True
+            "bar", capabilities=["batch", "labeled-response"], skip_if_cap_nak=True
         )
         self.getMessages(1)
 
@@ -494,7 +487,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
     @cases.mark_capabilities("labeled-response")
     def testEmptyBatchForNoResponse(self):
         self.connectClient(
-            "bar", capabilities=["labeled-response"], skip_if_cap_nak=True
+            "bar", capabilities=["batch", "labeled-response"], skip_if_cap_nak=True
         )
         self.getMessages(1)
 
