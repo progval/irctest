@@ -113,6 +113,7 @@ bahamut:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.bahamut \
 		-m 'not services' \
+		-n 10 \
 		-k '$(BAHAMUT_SELECTORS)'
 
 bahamut-atheme:
@@ -120,6 +121,7 @@ bahamut-atheme:
 		--controller=irctest.controllers.bahamut \
 		--services-controller=irctest.controllers.atheme_services \
 		-m 'services' \
+		-n 10 \
 		-k '$(BAHAMUT_SELECTORS)'
 
 bahamut-anope:
@@ -127,6 +129,7 @@ bahamut-anope:
 		--controller=irctest.controllers.bahamut \
 		--services-controller=irctest.controllers.anope_services \
 		-m 'services' \
+		-n 10 \
 		-k '$(BAHAMUT_SELECTORS) $(ANOPE_SELECTORS)'
 
 charybdis:

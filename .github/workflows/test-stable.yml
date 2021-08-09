@@ -373,7 +373,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         bahamut
@@ -411,7 +411,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
         bahamut-anope
@@ -443,7 +443,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         bahamut-atheme
@@ -475,7 +475,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         charybdis
@@ -514,7 +514,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/go/bin:$PATH
         make ergo
@@ -546,7 +546,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         hybrid
@@ -578,7 +578,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH
         make inspircd
@@ -616,7 +616,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH  make
         inspircd-anope
@@ -648,7 +648,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH
         make inspircd-atheme
@@ -674,7 +674,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         limnoria
@@ -712,7 +712,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
         plexus4
@@ -744,7 +744,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         solanum
@@ -770,7 +770,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         sopel
@@ -802,7 +802,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
         make unrealircd
@@ -840,7 +840,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH  make
         unrealircd-anope
@@ -872,7 +872,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
         make unrealircd-atheme
