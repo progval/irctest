@@ -11,10 +11,10 @@ jobs:
     - name: Cache Anope
       uses: actions/cache@v2
       with:
-        key: 2-${{ runner.os }}-anope-2.0.9
+        key: 3-${{ runner.os }}-anope-2.0.9
         path: '~/.cache
 
-          $GITHUB_WORKSPACE/anope
+          ${{ github.workspace }}/anope
 
           '
     - name: Checkout Anope
@@ -46,10 +46,10 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: 2-${{ runner.os }}-hybrid-devel
+        key: 3-${{ runner.os }}-hybrid-devel
         path: '~/.cache
 
-          $GITHUB_WORKSPACE/ircd-hybrid
+          ${ github.workspace }/ircd-hybrid
 
           '
     - uses: actions/checkout@v2
@@ -116,10 +116,10 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: 2-${{ runner.os }}-plexus4-devel
+        key: 3-${{ runner.os }}-plexus4-devel
         path: '~/.cache
 
-          $GITHUB_WORKSPACE/placeholder
+          ${ github.workspace }/placeholder
 
           '
     - uses: actions/checkout@v2
@@ -158,10 +158,10 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: 2-${{ runner.os }}-solanum-devel
+        key: 3-${{ runner.os }}-solanum-devel
         path: '~/.cache
 
-          $GITHUB_WORKSPACE/solanum
+          ${ github.workspace }/solanum
 
           '
     - uses: actions/checkout@v2
@@ -198,10 +198,10 @@ jobs:
     - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: 2-${{ runner.os }}-unrealircd-devel
+        key: 3-${{ runner.os }}-unrealircd-devel
         path: '~/.cache
 
-          $GITHUB_WORKSPACE/unrealircd
+          ${ github.workspace }/unrealircd
 
           '
     - uses: actions/checkout@v2
