@@ -8,6 +8,15 @@ jobs:
     - uses: actions/checkout@v2
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
+    - name: Cache Anope
+      uses: actions/cache@v2
+      with:
+        key: 3-${{ runner.os }}-anope-2.0.9
+        path: '~/.cache
+
+          ${{ github.workspace }}/anope
+
+          '
     - name: Checkout Anope
       uses: actions/checkout@v2
       with:

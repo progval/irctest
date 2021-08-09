@@ -96,8 +96,8 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "name": "Cache dependencies",
                 "uses": "actions/cache@v2",
                 "with": {
-                    "path": script("~/.cache", f"$GITHUB_WORKSPACE/{path}"),
-                    "key": "${{ runner.os }}-"
+                    "path": f"~/.cache\n${{ github.workspace }}/{path}\n",
+                    "key": "3-${{ runner.os }}-"
                     + software_id
                     + "-"
                     + version_flavor.value,
@@ -248,6 +248,14 @@ def get_build_job_anope():
             {
                 "name": "Create directories",
                 "run": "cd ~/; mkdir -p .local/ go/",
+            },
+            {
+                "name": "Cache Anope",
+                "uses": "actions/cache@v2",
+                "with": {
+                    "path": "~/.cache\n${{ github.workspace }}/anope\n",
+                    "key": "3-${{ runner.os }}-anope-2.0.9",
+                },
             },
             {
                 "name": "Checkout Anope",
