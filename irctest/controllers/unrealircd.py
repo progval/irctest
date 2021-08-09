@@ -103,7 +103,7 @@ tld {{
 
 
 class UnrealircdController(BaseServerController, DirectoryBasedController):
-    software_name = "InspIRCd"
+    software_name = "UnrealIRCd"
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
 
