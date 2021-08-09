@@ -44,7 +44,7 @@ allow {{
 class {{
     name        users;      # Class name
     maxusers    100;        # Maximum connections
-    pingfreq    90;         # Check idle connections every N seconds
+    pingfreq    1000;       # Check idle connections every N seconds
     maxsendq    100000;     # 100KB send buffer limit
 }};
 

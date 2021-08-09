@@ -11,10 +11,13 @@ EXTRA_SELECTORS ?=
 ANOPE_SELECTORS := \
 	and not testPlainLarge
 
+# buffering tests cannot pass because of issues with UTF-8 handling: https://github.com/DALnet/bahamut/issues/196
 BAHAMUT_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
+	and not IRCv3 \
+	and not buffering \
 	$(EXTRA_SELECTORS)
 
 # testQuitErrors is very flaky

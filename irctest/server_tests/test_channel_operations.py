@@ -897,15 +897,29 @@ class KeyTestCase(cases.BaseServerTestCase):
         reply = self.getMessages(2)
         self.assertMessageMatch(reply[0], command="JOIN", params=["#chan"])
 
-    @cases.mark_specifications("RFC2812")
+    @cases.mark_specifications("RFC2812", "Modern")
     def testKeyValidation(self):
         """
           key        =  1*23( %x01-05 / %x07-08 / %x0C / %x0E-1F / %x21-7F )
                   ; any 7-bit US_ASCII character,
                   ; except NUL, CR, LF, FF, h/v TABs, and " "
-        <https://tools.ietf.org/html/rfc2812#page-8>
+        -- https://tools.ietf.org/html/rfc2812#page-8
+
+        "Servers may validate the value (eg. to forbid spaces, as they make it harder
+        to use the key in `JOIN` messages). If the value is invalid, they SHOULD
+        return [`ERR_INVALIDMODEPARAM`](#errinvalidmodeparam-696).
+        However, clients MUST be able to handle any of the following:
+
+        * [`ERR_INVALIDMODEPARAM`](#errinvalidmodeparam-696)
+        * [`ERR_INVALIDKEY`](#errinvalidkey-525)
+        * `MODE` echoed with a different key (eg. truncated or stripped of invalid
+          characters)
+        * the key changed ignored, and no `MODE` echoed if no other mode change
+          was valid.
+        "
+        -- https://modern.ircdocs.horse/#key-channel-mode
+        -- https://github.com/ircdocs/modern-irc/pull/107
         """
-        # oragono issue #1021
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
         self.sendLine(1, "MODE #chan +k :passphrase with spaces")
@@ -925,6 +939,15 @@ class KeyTestCase(cases.BaseServerTestCase):
 
         if ERR_INVALIDMODEPARAM in {msg.command for msg in replies}:
             # First option: ERR_INVALIDMODEPARAM (eg. Ergo)
+            return
+
+        if not replies:
+            # MODE was ignored entirely
+            self.connectClient("foo")
+            self.sendLine(2, "JOIN #chan")
+            self.assertMessageMatch(
+                self.getMessage(2), command="JOIN", params=["#chan"]
+            )
             return
 
         # Second and third options: truncating the key (eg. UnrealIRCd)
