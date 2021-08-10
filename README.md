@@ -81,7 +81,7 @@ pytest --controller irctest.controllers.ergo -k 'not deprecated'
 ```
 cd /tmp/
 git clone https://github.com/solanum-ircd/solanum.git
-cd charybdis
+cd solanum
 ./autogen.sh
 ./configure --prefix=$HOME/.local/
 make -j 4
