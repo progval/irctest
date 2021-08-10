@@ -18,7 +18,7 @@ from irctest.numerics import (
 # 3 numbers, delimited by spaces, possibly negative (eek)
 LUSERCLIENT_REGEX = re.compile(r"^.*( [-0-9]* ).*( [-0-9]* ).*( [-0-9]* ).*$")
 # 2 numbers
-LUSERME_REGEX = re.compile(r"^.*( [-0-9]* ).*( [-0-9]* ).*$")
+LUSERME_REGEX = re.compile(r"^.*?( [-0-9]* ).*( [-0-9]* ).*$")
 
 
 @dataclass
@@ -79,6 +79,7 @@ class LusersTestCase(cases.BaseServerTestCase):
         if RPL_LUSERCHANNELS in by_numeric:
             result.Channels = int(by_numeric[RPL_LUSERCHANNELS].params[1])
 
+        # FIXME: RPL_LOCALUSERS and RPL_GLOBALUSERS are only in Modern, not in RFC2812
         localusers = by_numeric[RPL_LOCALUSERS]
         globalusers = by_numeric[RPL_GLOBALUSERS]
         if len(localusers.params) == 4:

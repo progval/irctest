@@ -2,6 +2,8 @@
 Regression tests for bugs in oragono.
 """
 
+import time
+
 from irctest import cases
 from irctest.numerics import ERR_ERRONEUSNICKNAME, ERR_NICKNAMEINUSE, RPL_WELCOME
 from irctest.patma import ANYDICT
@@ -102,6 +104,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "NICK *")
         self.sendLine(1, "USER u s e r")
         replies = {"NOTICE"}
+        time.sleep(2)  # give time to slow servers, like irc2 to reply
         while replies == {"NOTICE"}:
             replies = set(msg.command for msg in self.getMessages(1, synchronize=False))
         self.assertIn(ERR_ERRONEUSNICKNAME, replies)

@@ -16,6 +16,7 @@ from irctest.numerics import (
     ERR_BANNEDFROMCHAN,
     ERR_CANNOTSENDTOCHAN,
     ERR_CHANOPRIVSNEEDED,
+    ERR_INVALIDKEY,
     ERR_INVALIDMODEPARAM,
     ERR_INVITEONLYCHAN,
     ERR_NOSUCHCHANNEL,
@@ -918,7 +919,7 @@ class KeyTestCase(cases.BaseServerTestCase):
           was valid.
         "
         -- https://modern.ircdocs.horse/#key-channel-mode
-        -- https://github.com/ircdocs/modern-irc/pull/107
+        -- https://github.com/ircdocs/modern-irc/pull/111
         """
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
@@ -937,8 +938,9 @@ class KeyTestCase(cases.BaseServerTestCase):
             "(eg. ERR_INVALIDMODEPARAM or truncation): {msg}",
         )
 
-        if ERR_INVALIDMODEPARAM in {msg.command for msg in replies}:
-            # First option: ERR_INVALIDMODEPARAM (eg. Ergo)
+        if {ERR_INVALIDMODEPARAM, ERR_INVALIDKEY} & {msg.command for msg in replies}:
+            # First option: ERR_INVALIDMODEPARAM (eg. Ergo) or ERR_INVALIDKEY
+            # (eg. ircu2)
             return
 
         if not replies:
@@ -957,8 +959,8 @@ class KeyTestCase(cases.BaseServerTestCase):
             len(mode_commands),
             1,
             fail_msg="Sending an invalid key (with a space) triggered "
-            "neither ERR_UNKNOWNERROR, ERR_INVALIDMODEPARAM, or a MODE. "
-            "Only these: {}",
+            "neither ERR_UNKNOWNERROR, ERR_INVALIDMODEPARAM, ERR_INVALIDKEY, "
+            " or a MODE. Only these: {}",
             extra_format=(replies,),
         )
         self.assertLessEqual(

@@ -229,8 +229,16 @@ class BaseServerController(_BaseController):
                 # test_lusers.py (eg. this happens with Charybdis 3.5.0)
                 c.send(b"QUIT :chkport\r\n")
                 data = b""
-                while b"chkport" not in data and b"ERROR" not in data:
-                    data += c.recv(1024)
+                try:
+                    while b"chkport" not in data and b"ERROR" not in data:
+                        data += c.recv(4096)
+                        time.sleep(0.01)
+
+                        c.send(b" ")  # Triggers BrokenPipeError
+                except BrokenPipeError:
+                    # ircu2 cuts the connection without a message if registration
+                    # is not complete.
+                    pass
 
                 c.close()
                 self.port_open = True

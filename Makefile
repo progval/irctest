@@ -52,6 +52,39 @@ INSPIRCD_SELECTORS := \
 	and not testNamesInvalidChannel and not testNamesNonexistingChannel \
 	$(EXTRA_SELECTORS)
 
+# buffering tests fail because ircu2 discards the whole buffer on long lines (TODO: refine how we exclude these tests)
+# testQuit and testQuitErrors fail because ircu2 does not send ERROR or QUIT
+# lusers tests fail because they depend on Modern behavior, not just RFC2812 (TODO: update lusers tests to accept RFC2812-compliant implementations)
+# statusmsg tests fail because STATUSMSG is present in ISUPPORT, but it not actually supported as PRIVMSG target
+IRCU2_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	and not buffering \
+	and not testQuit \
+	and not lusers \
+	and not statusmsg \
+	$(EXTRA_SELECTORS)
+
+# same justification as ircu2
+SNIRCD_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	and not buffering \
+	and not testQuit \
+	and not lusers \
+	and not statusmsg \
+	$(EXTRA_SELECTORS)
+
+# testListEmpty and testListOne fails because irc2 deprecated LIST
+IRC2_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	and not testListEmpty and not testListOne \
+	$(EXTRA_SELECTORS)
+
 MAMMON_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -102,9 +135,9 @@ UNREALIRCD_SELECTORS := \
 	and not (testChathistory and (between or around)) \
 	$(EXTRA_SELECTORS)
 
-.PHONY: all flakes bahamut charybdis ergo inspircd mammon limnoria sopel solanum unrealircd
+.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon limnoria sopel solanum unrealircd
 
-all: flakes bahamut charybdis ergo inspircd mammon limnoria sopel solanum unrealircd
+all: flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon limnoria sopel solanum unrealircd
 
 flakes:
 	find irctest/ -name "*.py" -not -path "irctest/scram/*" -print0 | xargs -0 pyflakes3
@@ -168,6 +201,27 @@ inspircd-anope:
 		--services-controller=irctest.controllers.anope_services \
 		-m 'services' \
 		-k '$(INSPIRCD_SELECTORS) $(ANOPE_SELECTORS)'
+
+ircu2:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.ircu2 \
+		-m 'not services and not IRCv3' \
+		-n 10 \
+		-k '$(IRCU2_SELECTORS)'
+
+snircd:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.snircd \
+		-m 'not services and not IRCv3' \
+		-n 10 \
+		-k '$(SNIRCD_SELECTORS)'
+
+irc2:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.irc2 \
+		-m 'not services and not IRCv3' \
+		-n 10 \
+		-k '$(IRC2_SELECTORS)'
 
 limnoria:
 	$(PYTEST) $(PYTEST_ARGS) \

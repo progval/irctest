@@ -105,7 +105,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
         )
 
 
-@cases.mark_specifications("IRCv3")
+@cases.mark_specifications("IRCv3", "Ergo")
 class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
