@@ -215,7 +215,7 @@ jobs:
       with:
         python-version: 3.7
     - name: clone
-      run: 'curl https://gitlab.com/rizon/plexus4/-/archive/20200510_0-610/plexus4-20200510_0-610.tar.gz
+      run: 'curl https://gitlab.com/rizon/plexus4/-/archive/403a967e3677a2a8420b504f451e7557259e0790/plexus4-403a967e3677a2a8420b504f451e7557259e0790.tar.gz
         | tar -zx
 
         mv plexus4* plexus4'
