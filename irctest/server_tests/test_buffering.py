@@ -2,6 +2,7 @@
 correctly. Also checks truncation"""
 
 import socket
+import time
 
 import pytest
 
@@ -81,7 +82,7 @@ class BufferingTestCase(cases.BaseServerTestCase):
                 continue
 
             received_line = self._getLine(2)
-            print("(repr) S -> 2:", repr(received_line))
+            print("(repr) S -> 2", repr(received_line))
             try:
                 decoded_line = received_line.decode()
             except UnicodeDecodeError:
@@ -117,11 +118,13 @@ class BufferingTestCase(cases.BaseServerTestCase):
 
     def _getLine(self, client) -> bytes:
         line = b""
-        while True:
+        for _ in range(600):
             try:
                 data = self.clients[client].conn.recv(4096)
             except socket.timeout:
                 data = b""
             line += data
-            if not data or data.endswith(b"\r\n"):
+            if data.endswith(b"\r\n"):
                 return line
+            time.sleep(0.1)
+        return line

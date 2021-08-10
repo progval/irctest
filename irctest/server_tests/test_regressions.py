@@ -166,7 +166,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         m = self.getRegistrationMessage(3)
         self.assertMessageMatch(m, command=RPL_WELCOME)
 
-    @cases.mark_specifications("RFC1459")
+    @cases.mark_specifications("Ergo")
     def testNickReleaseUnregistered(self):
         self.addClient(1)
         self.sendLine(1, "NICK alice")

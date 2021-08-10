@@ -61,7 +61,7 @@ class AthemeController(BaseServicesController, DirectoryBasedController):
         if protocol == "inspircd3":
             # That's the name used by Anope
             protocol = "inspircd"
-        assert protocol in ("inspircd", "charybdis", "unreal4")
+        assert protocol in ("bahamut", "inspircd", "charybdis", "unreal4")
 
         with self.open_file("services.conf") as fd:
             fd.write(
@@ -86,7 +86,7 @@ class AthemeController(BaseServicesController, DirectoryBasedController):
                 "-D",
                 self.directory,
             ],
-            stdout=subprocess.DEVNULL,
+            # stdout=subprocess.DEVNULL,
             # stderr=subprocess.DEVNULL,
         )
 

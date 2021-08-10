@@ -39,6 +39,7 @@ from .numerics import (
     ERR_NEEDREGGEDNICK,
     ERR_NOSUCHCHANNEL,
     ERR_TOOMANYCHANNELS,
+    RPL_HELLO,
 )
 from .specifications import Capabilities, IsupportTokens, Specifications
 
@@ -558,7 +559,9 @@ class BaseServerTestCase(
         """Filter notices, do not send pings."""
         while True:
             msg = self.getMessage(
-                client, synchronize=False, filter_pred=lambda m: m.command != "NOTICE"
+                client,
+                synchronize=False,
+                filter_pred=lambda m: m.command not in ("NOTICE", RPL_HELLO),
             )
             if msg.command == "PING":
                 # Hi Unreal

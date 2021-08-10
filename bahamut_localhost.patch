@@ -1,0 +1,20 @@
+Allows connections from localhost
+
+diff --git a/src/s_user.c b/src/s_user.c
+index 317b00e..adfcfcf 100644
+--- a/src/s_user.c
++++ b/src/s_user.c
+@@ -594,13 +594,6 @@ register_user(aClient *cptr, aClient *sptr, char *nick, char *username,
+ 	    dots = 1;
+ 	}
+ 
+-	if (!dots) 
+-        {
+-            sendto_realops("Invalid hostname for %s, dumping user %s",
+-                           sptr->hostip, sptr->name);
+-            return exit_client(cptr, sptr, &me, "Invalid hostname");
+-        }
+-        
+         if (bad_dns) 
+         {
+             sendto_one(sptr, ":%s NOTICE %s :*** Notice -- You have a bad "

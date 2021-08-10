@@ -118,7 +118,12 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "NICK foo")
         self.sendLine(2, "NICK foo")
         self.sendLine(1, "USER username * * :Realname")
-        self.sendLine(2, "USER username * * :Realname")
+
+        try:
+            self.sendLine(2, "USER username * * :Realname")
+        except (ConnectionClosed, ConnectionResetError):
+            # Bahamut closes the connection here
+            pass
 
         try:
             m1 = self.getRegistrationMessage(1)

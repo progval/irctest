@@ -38,6 +38,53 @@ jobs:
         name: installed-anope
         path: ~/artefacts-*.tar.gz
         retention-days: 1
+  build-bahamut:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir -p .local/ go/
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        key: 3-${{ runner.os }}-bahamut-devel
+        path: '~/.cache
+
+          ${ github.workspace }/Bahamut
+
+          '
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Checkout Bahamut
+      uses: actions/checkout@v2
+      with:
+        path: Bahamut
+        ref: master
+        repository: DALnet/Bahamut
+    - name: Build Bahamut
+      run: |
+        cd $GITHUB_WORKSPACE/Bahamut/
+        patch src/s_user.c < $GITHUB_WORKSPACE/bahamut_localhost.patch
+        libtoolize --force
+        aclocal
+        autoheader
+        automake --force-missing --add-missing || true
+        autoreconf
+        ./configure --prefix=$HOME/.local/
+        make -j 4
+        make install
+        mkdir -p $HOME/.local/bin/
+        cp $HOME/.local/ircd $HOME/.local/bin/ircd
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-bahamut.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: installed-bahamut
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
   build-hybrid:
     runs-on: ubuntu-latest
     steps:
@@ -238,6 +285,9 @@ jobs:
     if: success() || failure()
     name: Publish Unit Tests Results
     needs:
+    - test-bahamut
+    - test-bahamut-anope
+    - test-bahamut-atheme
     - test-ergo
     - test-hybrid
     - test-inspircd
@@ -259,6 +309,108 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action@v1
       with:
         files: artifacts/**/*.xml
+  test-bahamut:
+    needs:
+    - build-bahamut
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-bahamut
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        bahamut
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results bahamut (devel)
+        path: pytest.xml
+  test-bahamut-anope:
+    needs:
+    - build-bahamut
+    - build-anope
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-bahamut
+        path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-anope
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
+        bahamut-anope
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results bahamut-anope (devel)
+        path: pytest.xml
+  test-bahamut-atheme:
+    needs:
+    - build-bahamut
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-bahamut
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        bahamut-atheme
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results bahamut-atheme (devel)
+        path: pytest.xml
   test-ergo:
     needs: []
     runs-on: ubuntu-latest
@@ -288,7 +440,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/go/bin:$PATH
         make ergo
@@ -320,7 +472,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         hybrid
@@ -352,7 +504,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH
         make inspircd
@@ -390,7 +542,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/bin:$PATH  make
         inspircd-anope
@@ -417,7 +569,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         limnoria
@@ -455,7 +607,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
         plexus4
@@ -487,7 +639,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         solanum
@@ -513,7 +665,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         sopel
@@ -545,7 +697,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
         make unrealircd
@@ -583,7 +735,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH  make
         unrealircd-anope
@@ -615,7 +767,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest -r requirements.txt
+        pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/bin:$PATH
         make unrealircd-atheme

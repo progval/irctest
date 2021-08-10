@@ -187,6 +187,7 @@ class BaseServerController(_BaseController):
     services_controller_class: Type[BaseServicesController]
     extban_mute_char: Optional[str] = None
     """Character used for the 'mute' extban"""
+    nickserv = "NickServ"
 
     def get_hostname_and_port(self) -> Tuple[str, int]:
         return find_hostname_and_port()
@@ -283,7 +284,7 @@ class BaseServicesController(_BaseController):
 
         timeout = time.time() + 5
         while True:
-            c.sendLine("PRIVMSG NickServ :HELP")
+            c.sendLine(f"PRIVMSG {self.server_controller.nickserv} :HELP")
             msgs = self.getNickServResponse(c)
             for msg in msgs:
                 if msg.command == "401":
@@ -336,7 +337,11 @@ class BaseServicesController(_BaseController):
         while case.getRegistrationMessage(client).command != "001":
             pass
         case.getMessages(client)
-        case.sendLine(client, f"PRIVMSG NickServ :REGISTER {password} foo@example.org")
+        case.sendLine(
+            client,
+            f"PRIVMSG {self.server_controller.nickserv} "
+            f":REGISTER {password} foo@example.org",
+        )
         msgs = self.getNickServResponse(case.clients[client])
         if self.server_controller.software_name == "inspircd":
             assert "900" in {msg.command for msg in msgs}, msgs
