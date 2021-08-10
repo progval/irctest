@@ -7,12 +7,13 @@ import socket
 import subprocess
 import tempfile
 import time
-from typing import IO, Any, Callable, Dict, List, Optional, Set, Type
+from typing import IO, Any, Callable, Dict, List, Optional, Set, Tuple, Type
 
 import irctest
 
 from . import authentication, tls
 from .client_mock import ClientMock
+from .irc_utils.junkdrawer import find_hostname_and_port
 from .irc_utils.message_parser import Message
 from .runner import NotImplementedByController
 
@@ -186,6 +187,9 @@ class BaseServerController(_BaseController):
     services_controller_class: Type[BaseServicesController]
     extban_mute_char: Optional[str] = None
     """Character used for the 'mute' extban"""
+
+    def get_hostname_and_port(self) -> Tuple[str, int]:
+        return find_hostname_and_port()
 
     def run(
         self,

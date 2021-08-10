@@ -30,7 +30,6 @@ from .authentication import Authentication
 from .basecontrollers import TestCaseControllerConfig
 from .exceptions import ConnectionClosed
 from .irc_utils import capabilities, message_parser
-from .irc_utils.junkdrawer import find_hostname_and_port
 from .irc_utils.message_parser import Message
 from .irc_utils.sasl import sasl_plain_blob
 from .numerics import (
@@ -504,7 +503,7 @@ class BaseServerTestCase(
     def setUp(self) -> None:
         super().setUp()
         self.server_support = None
-        (self.hostname, self.port) = find_hostname_and_port()
+        (self.hostname, self.port) = self.controller.get_hostname_and_port()
         self.controller.run(
             self.hostname,
             self.port,
