@@ -1,6 +1,8 @@
 import math
 import time
 
+import pytest
+
 from irctest import cases, runner
 from irctest.irc_utils.junkdrawer import ircv3_timestamp_to_unixtime
 from irctest.numerics import (
@@ -44,8 +46,9 @@ class KeyTestCase(cases.BaseServerTestCase):
         reply = self.getMessages(2)
         self.assertMessageMatch(reply[0], command="JOIN", params=["#chan"])
 
+    @pytest.mark.parametrize("key", ["passphrase with spaces", "long" * 100, ""])
     @cases.mark_specifications("RFC2812", "Modern")
-    def testKeyValidation(self):
+    def testKeyValidation(self, key):
         """
           key        =  1*23( %x01-05 / %x07-08 / %x0C / %x0E-1F / %x21-7F )
                   ; any 7-bit US_ASCII character,
@@ -69,7 +72,7 @@ class KeyTestCase(cases.BaseServerTestCase):
         """
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
-        self.sendLine(1, "MODE #chan +k :passphrase with spaces")
+        self.sendLine(1, f"MODE #chan +k :{key}")
 
         # The spec requires no space; but doesn't say what to do
         # if there is one.
@@ -79,7 +82,7 @@ class KeyTestCase(cases.BaseServerTestCase):
         self.assertNotIn(
             ERR_UNKNOWNERROR,
             {msg.command for msg in replies},
-            fail_msg="Sending an invalid key (with a space) caused an "
+            fail_msg="Sending an invalid key caused an "
             "ERR_UNKNOWNERROR instead of being handled explicitly "
             "(eg. ERR_INVALIDMODEPARAM or truncation): {msg}",
         )
@@ -133,6 +136,9 @@ class KeyTestCase(cases.BaseServerTestCase):
             key = "passphrase"
         elif mode_command.params == ["#chan", "+k", "passphrasewithspaces"]:
             key = "passphrasewithspaces"
+        elif mode_command.params[2].startswith("longlonglong"):
+            key = mode_command.params[2]
+            assert mode_command.params == ["#chan", "+k", key]
         elif mode_command.params == ["#chan", "+k", "passphrase with spaces"]:
             raise self.failureException("Invalid key (with a space) was not rejected.")
 
