@@ -13,7 +13,7 @@ from irctest.numerics import (
     ERR_UNKNOWNERROR,
     RPL_NAMREPLY,
 )
-from irctest.patma import ANYLIST, StrRe
+from irctest.patma import ANYLIST, ANYSTR, StrRe
 
 MODERN_CAPS = [
     "server-time",
@@ -84,9 +84,20 @@ class KeyTestCase(cases.BaseServerTestCase):
             "(eg. ERR_INVALIDMODEPARAM or truncation): {msg}",
         )
 
-        if {ERR_INVALIDMODEPARAM, ERR_INVALIDKEY} & {msg.command for msg in replies}:
+        commands = {msg.command for msg in replies}
+        if {ERR_INVALIDMODEPARAM, ERR_INVALIDKEY} & commands:
             # First option: ERR_INVALIDMODEPARAM (eg. Ergo) or ERR_INVALIDKEY
             # (eg. ircu2)
+            if ERR_INVALIDMODEPARAM in commands:
+                command = [
+                    msg for msg in replies if msg.command == ERR_INVALIDMODEPARAM
+                ]
+                self.assertEqual(len(command), 1, command)
+                self.assertMessageMatch(
+                    command[0],
+                    command=ERR_INVALIDMODEPARAM,
+                    params=["bar", "#chan", "k", "*", ANYSTR],
+                )
             return
 
         if not replies:
