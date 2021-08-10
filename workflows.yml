@@ -323,6 +323,9 @@ tests:
     irc2:
         software: [irc2]
 
+    ircu2:
+        software: [ircu2]
+
     unrealircd:
         software: [unrealircd]
 

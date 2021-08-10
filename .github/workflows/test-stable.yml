@@ -335,6 +335,7 @@ jobs:
     - test-inspircd-anope
     - test-inspircd-atheme
     - test-irc2
+    - test-ircu2
     - test-limnoria
     - test-plexus4
     - test-solanum
@@ -712,6 +713,44 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest results irc2 (stable)
+        path: pytest.xml
+  test-ircu2:
+    needs: []
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Checkout ircu2
+      uses: actions/checkout@v2
+      with:
+        path: ircu2
+        ref: u2.10.12.19
+        repository: undernetirc/ircu2
+    - name: Build ircu2
+      run: |
+        cd $GITHUB_WORKSPACE/ircu2
+        # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
+        # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
+        ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
+        make -j 4
+        make install
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        ircu2
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results ircu2 (stable)
         path: pytest.xml
   test-limnoria:
     needs: []
