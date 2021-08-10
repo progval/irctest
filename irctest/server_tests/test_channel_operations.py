@@ -919,6 +919,7 @@ class KeyTestCase(cases.BaseServerTestCase):
           was valid.
         "
         -- https://modern.ircdocs.horse/#key-channel-mode
+        -- https://github.com/ircdocs/modern-irc/pull/111
         """
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
