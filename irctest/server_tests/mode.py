@@ -46,7 +46,11 @@ class KeyTestCase(cases.BaseServerTestCase):
         reply = self.getMessages(2)
         self.assertMessageMatch(reply[0], command="JOIN", params=["#chan"])
 
-    @pytest.mark.parametrize("key", ["passphrase with spaces", "long" * 100, ""])
+    @pytest.mark.parametrize(
+        "key",
+        ["passphrase with spaces", "long" * 100, ""],
+        ids=["spaces", "long", "empty"],
+    )
     @cases.mark_specifications("RFC2812", "Modern")
     def testKeyValidation(self, key):
         """
