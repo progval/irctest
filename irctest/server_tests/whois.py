@@ -1,16 +1,5 @@
-"""
-User commands as specified in Section 3.6 of RFC 2812:
-<https://tools.ietf.org/html/rfc2812#section-3.6>
-"""
-
 from irctest import cases
-from irctest.numerics import (
-    RPL_AWAY,
-    RPL_NOWAWAY,
-    RPL_UNAWAY,
-    RPL_WHOISCHANNELS,
-    RPL_WHOISUSER,
-)
+from irctest.numerics import RPL_WHOISCHANNELS, RPL_WHOISUSER
 
 
 @cases.mark_services
@@ -142,64 +131,3 @@ class WhoisTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         messages = self.getMessages(2)
         whoisaccount = [message for message in messages if message.command == "330"]
         self.assertEqual(len(whoisaccount), 0)
-
-
-class AwayTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("RFC2812")
-    def testAway(self):
-        self.connectClient("bar")
-        self.sendLine(1, "AWAY :I'm not here right now")
-        replies = self.getMessages(1)
-        self.assertIn(RPL_NOWAWAY, [msg.command for msg in replies])
-
-        self.connectClient("qux")
-        self.sendLine(2, "PRIVMSG bar :what's up")
-        self.assertMessageMatch(
-            self.getMessage(2),
-            command=RPL_AWAY,
-            params=["qux", "bar", "I'm not here right now"],
-        )
-
-        self.sendLine(1, "AWAY")
-        replies = self.getMessages(1)
-        self.assertIn(RPL_UNAWAY, [msg.command for msg in replies])
-
-        self.sendLine(2, "PRIVMSG bar :what's up")
-        replies = self.getMessages(2)
-        self.assertEqual(len(replies), 0)
-
-
-class TestNoCTCPMode(cases.BaseServerTestCase):
-    @cases.mark_specifications("Ergo")
-    def testNoCTCPMode(self):
-        self.connectClient("bar", "bar")
-        self.connectClient("qux", "qux")
-        # CTCP is not blocked by default:
-        self.sendLine("qux", "PRIVMSG bar :\x01VERSION\x01")
-        self.getMessages("qux")
-        relay = [msg for msg in self.getMessages("bar") if msg.command == "PRIVMSG"][0]
-        self.assertMessageMatch(
-            relay, command="PRIVMSG", params=["bar", "\x01VERSION\x01"]
-        )
-
-        # set the no-CTCP user mode on bar:
-        self.sendLine("bar", "MODE bar +T")
-        replies = self.getMessages("bar")
-        umode_line = [msg for msg in replies if msg.command == "MODE"][0]
-        self.assertMessageMatch(umode_line, command="MODE", params=["bar", "+T"])
-
-        # CTCP is now blocked:
-        self.sendLine("qux", "PRIVMSG bar :\x01VERSION\x01")
-        self.getMessages("qux")
-        self.assertEqual(self.getMessages("bar"), [])
-
-        # normal PRIVMSG go through:
-        self.sendLine("qux", "PRIVMSG bar :please just tell me your client version")
-        self.getMessages("qux")
-        relay = self.getMessages("bar")[0]
-        self.assertMessageMatch(
-            relay,
-            command="PRIVMSG",
-            nick="qux",
-            params=["bar", "please just tell me your client version"],
-        )
