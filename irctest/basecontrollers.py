@@ -227,7 +227,7 @@ class BaseServerController(_BaseController):
                 # Make sure the server properly processes the disconnect.
                 # Otherwise, it may still count it in LUSER and fail tests in
                 # test_lusers.py (eg. this happens with Charybdis 3.5.0)
-                c.send(b"QUIT :chkport\r\n")
+                c.sendall(b"QUIT :chkport\r\n")
                 data = b""
                 try:
                     while b"chkport" not in data and b"ERROR" not in data:
