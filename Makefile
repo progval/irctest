@@ -56,6 +56,7 @@ INSPIRCD_SELECTORS := \
 # testQuit and testQuitErrors fail because ircu2 does not send ERROR or QUIT
 # lusers tests fail because they depend on Modern behavior, not just RFC2812 (TODO: update lusers tests to accept RFC2812-compliant implementations)
 # statusmsg tests fail because STATUSMSG is present in ISUPPORT, but it not actually supported as PRIVMSG target
+# testKeyValidation[empty] fails because ircu2 returns ERR_NEEDMOREPARAMS on empty keys: https://github.com/UndernetIRC/ircu2/issues/13
 IRCU2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -64,6 +65,7 @@ IRCU2_SELECTORS := \
 	and not testQuit \
 	and not lusers \
 	and not statusmsg \
+	and not (testKeyValidation and empty) \
 	$(EXTRA_SELECTORS)
 
 # same justification as ircu2
