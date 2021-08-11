@@ -114,3 +114,39 @@ class LengthLimitTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(result, command=ERR_INPUTTOOLONG)
         # we should not be disconnected and should be able to join a channel
         self.joinChannel("bar", "#test_channel")
+
+
+class TestNoCTCPMode(cases.BaseServerTestCase):
+    @cases.mark_specifications("Ergo")
+    def testNoCTCPMode(self):
+        self.connectClient("bar", "bar")
+        self.connectClient("qux", "qux")
+        # CTCP is not blocked by default:
+        self.sendLine("qux", "PRIVMSG bar :\x01VERSION\x01")
+        self.getMessages("qux")
+        relay = [msg for msg in self.getMessages("bar") if msg.command == "PRIVMSG"][0]
+        self.assertMessageMatch(
+            relay, command="PRIVMSG", params=["bar", "\x01VERSION\x01"]
+        )
+
+        # set the no-CTCP user mode on bar:
+        self.sendLine("bar", "MODE bar +T")
+        replies = self.getMessages("bar")
+        umode_line = [msg for msg in replies if msg.command == "MODE"][0]
+        self.assertMessageMatch(umode_line, command="MODE", params=["bar", "+T"])
+
+        # CTCP is now blocked:
+        self.sendLine("qux", "PRIVMSG bar :\x01VERSION\x01")
+        self.getMessages("qux")
+        self.assertEqual(self.getMessages("bar"), [])
+
+        # normal PRIVMSG go through:
+        self.sendLine("qux", "PRIVMSG bar :please just tell me your client version")
+        self.getMessages("qux")
+        relay = self.getMessages("bar")[0]
+        self.assertMessageMatch(
+            relay,
+            command="PRIVMSG",
+            nick="qux",
+            params=["bar", "please just tell me your client version"],
+        )
