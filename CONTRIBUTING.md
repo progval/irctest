@@ -54,7 +54,7 @@ Linking to an external document saying "Here is how everyone does it" is.
 
 If reference documents / documentations are long or not trivial,
 **try to quote the specific part being tested**.
-See `irctest/server_tests/test_channel_operations.py` for example.
+See `irctest/server_tests/kick.py` for example.
 
 Tests for **pending/draft specifications are welcome**.
 
