@@ -22,12 +22,13 @@ BAHAMUT_SELECTORS := \
 
 # testQuitErrors is very flaky
 # AccountTagTestCase.testInvite fails because https://github.com/solanum-ircd/solanum/issues/166
+# testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
 CHARYBDIS_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not testDoubleKickMessages \
 	and not testQuitErrors \
+	and not testKickDefaultComment \
 	and not (AccountTagTestCase and testInvite) \
 	$(EXTRA_SELECTORS)
 
@@ -57,6 +58,7 @@ INSPIRCD_SELECTORS := \
 # lusers tests fail because they depend on Modern behavior, not just RFC2812 (TODO: update lusers tests to accept RFC2812-compliant implementations)
 # statusmsg tests fail because STATUSMSG is present in ISUPPORT, but it not actually supported as PRIVMSG target
 # testKeyValidation[empty] fails because ircu2 returns ERR_NEEDMOREPARAMS on empty keys: https://github.com/UndernetIRC/ircu2/issues/13
+# testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
 IRCU2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -66,6 +68,7 @@ IRCU2_SELECTORS := \
 	and not lusers \
 	and not statusmsg \
 	and not (testKeyValidation and empty) \
+	and not testKickDefaultComment \
 	$(EXTRA_SELECTORS)
 
 # same justification as ircu2
@@ -80,11 +83,13 @@ SNIRCD_SELECTORS := \
 	$(EXTRA_SELECTORS)
 
 # testListEmpty and testListOne fails because irc2 deprecated LIST
+# testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
 IRC2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	and not testListEmpty and not testListOne \
+	and not testKickDefaultComment \
 	$(EXTRA_SELECTORS)
 
 MAMMON_SELECTORS := \
@@ -101,12 +106,13 @@ LIMNORIA_SELECTORS := \
 	$(EXTRA_SELECTORS)
 
 # testQuitErrors is too flaky for CI
+# testKickDefaultComment fails because solanum uses the nick of the kickee rather than the kicker.
 SOLANUM_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not testDoubleKickMessages \
 	and not testQuitErrors \
+	and not testKickDefaultComment \
 	$(EXTRA_SELECTORS)
 
 SOPEL_SELECTORS := \

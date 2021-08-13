@@ -11,13 +11,17 @@ from irctest.patma import ANYSTR
 
 
 class KickTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     def testKickSendsMessages(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This
         includes […] KICK”
         -- <https://tools.ietf.org/html/rfc1459#section-4.2.1>
         and <https://tools.ietf.org/html/rfc2812#section-3.2.1>
+
+        " If a comment is given, this will be sent instead of the default message,
+        the nickname of the user targeted by the KICK."
+        -- https://github.com/ircdocs/modern-irc/pull/101
         """
         self.connectClient("foo")
         self.joinChannel(1, "#chan")
@@ -48,6 +52,59 @@ class KickTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(m, command="KICK", params=["#chan", "bar", "bye"])
         m = self.getMessage(3)
         self.assertMessageMatch(m, command="KICK", params=["#chan", "bar", "bye"])
+
+    def _testKickNoComment(self, check_default):
+        self.connectClient("foo")
+        self.joinChannel(1, "#chan")
+
+        self.connectClient("bar")
+        self.joinChannel(2, "#chan")
+
+        self.connectClient("baz")
+        self.joinChannel(3, "#chan")
+
+        # TODO: check foo is an operator
+
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(3)
+        self.sendLine(1, "KICK #chan bar")
+        try:
+            m = self.getMessage(1)
+            if m.command == "482":
+                raise runner.ImplementationChoice(
+                    "Channel creators are not opped by default."
+                )
+            self.assertMessageMatch(m, command="KICK")
+        except client_mock.NoMessageException:
+            # The RFCs do not say KICK must be echoed
+            pass
+        m2 = self.getMessage(2)
+        m3 = self.getMessage(3)
+        if check_default:
+            self.assertMessageMatch(m2, command="KICK", params=["#chan", "bar", "foo"])
+            self.assertMessageMatch(m3, command="KICK", params=["#chan", "bar", "foo"])
+        else:
+            self.assertMessageMatch(m2, command="KICK", params=["#chan", "bar", ANYSTR])
+            self.assertMessageMatch(m3, command="KICK", params=["#chan", "bar", ANYSTR])
+
+    @cases.mark_specifications("RFC2812")
+    def testKickDefaultComment(self):
+        """
+        "If a "comment" is
+        given, this will be sent instead of the default message, the nickname
+        of the user issuing the KICK."
+        -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.8
+        """
+        self._testKickNoComment(check_default=True)
+
+    @cases.mark_specifications("Modern")
+    def testKickNoComment(self):
+        """
+        "If no comment is given, the server SHOULD use a default message instead."
+        -- https://github.com/ircdocs/modern-irc/pull/101
+        """
+        self._testKickNoComment(check_default=False)
 
     @cases.mark_specifications("RFC2812")
     def testKickPrivileges(self):
@@ -116,12 +173,34 @@ class KickTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(m, command="403")
 
     @pytest.mark.parametrize("multiple_targets", [True, False])
-    @cases.mark_specifications("RFC2812")
+    @cases.mark_specifications("RFC2812", "Modern", "ircdocs")
     def testDoubleKickMessages(self, multiple_targets):
         """“The server MUST NOT send KICK messages with multiple channels or
         users to clients.  This is necessarily to maintain backward
         compatibility with old client software.”
         -- https://tools.ietf.org/html/rfc2812#section-3.2.8
+
+        "The server MUST NOT send KICK messages with multiple channels or
+        users to clients.
+        This is necessary to maintain backward compatibility with existing
+        client software."
+        -- https://github.com/ircdocs/modern-irc/pull/101
+
+        "Servers MAY limit the number of target users per `KICK` command
+        via the [`TARGMAX` parameter of `RPL_ISUPPORT`](#targmax-parameter),
+        and silently drop targets if the number of targets exceeds the limit."
+        -- https://github.com/ircdocs/modern-irc/pull/101
+
+        "If the "TARGMAX" parameter is not advertised or a value is not sent
+        then a client SHOULD assume that no commands except the "JOIN" and "PART"
+        commands accept multiple parameters."
+        -- https://defs.ircdocs.horse/defs/isupport.html#targmax
+
+        "If a command is not advertised then a client SHOULD consider a default
+        value of 1, meaning that the server does not accept multiple targets.
+        If the "TARGMAX" parameter is not advertised, then a client SHOULD assume
+        its value is empty, meaning that that no commands accept multiple targets."
+        -- https://github.com/ircdocs/modern-irc/pull/112
         """
         self.connectClient("foo")
         self.joinChannel(1, "#chan")
@@ -134,6 +213,14 @@ class KickTestCase(cases.BaseServerTestCase):
 
         self.connectClient("qux")
         self.joinChannel(4, "#chan")
+
+        targmax = dict(
+            item.split(":", 1)
+            for item in self.server_support.get("TARGMAX", "").split(",")
+            if item
+        )
+        if targmax.get("KICK", "1") == "1":
+            raise runner.NotImplementedByController("Multi-target KICK")
 
         # TODO: check foo is an operator
 
@@ -153,14 +240,12 @@ class KickTestCase(cases.BaseServerTestCase):
                 raise runner.OptionalExtensionNotSupported(
                     "Channel creators are not opped by default."
                 )
-            if m.command in {"401", "403"}:
-                raise runner.NotImplementedByController("Multi-target KICK")
         except client_mock.NoMessageException:
             # The RFCs do not say KICK must be echoed
             pass
 
         mgroup = self.getMessages(4)
-        self.assertGreaterEqual(len(mgroup), 2)
+        self.assertGreaterEqual(len(mgroup), 2, mgroup)
         m1, m2 = mgroup[:2]
 
         self.assertMessageMatch(m1, command="KICK", params=["#chan", ANYSTR, "bye"])
