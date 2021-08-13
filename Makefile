@@ -63,6 +63,7 @@ INSPIRCD_SELECTORS := \
 # statusmsg tests fail because STATUSMSG is present in ISUPPORT, but it not actually supported as PRIVMSG target
 # testKeyValidation[empty] fails because ircu2 returns ERR_NEEDMOREPARAMS on empty keys: https://github.com/UndernetIRC/ircu2/issues/13
 # testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
+# testEmptyRealname fails because it uses a default value instead of ERR_NEEDMOREPARAMS.
 IRCU2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -73,6 +74,7 @@ IRCU2_SELECTORS := \
 	and not statusmsg \
 	and not (testKeyValidation and empty) \
 	and not testKickDefaultComment \
+	and not testEmptyRealname \
 	$(EXTRA_SELECTORS)
 
 # same justification as ircu2
