@@ -165,7 +165,11 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         -- https://defs.ircdocs.horse/defs/numerics.html#err-needmoreparams-461
         -- https://modern.ircdocs.horse/#errneedmoreparams-461
 
-        Use of this numeric: TBD https://github.com/ircdocs/modern-irc/issues/85
+        Use of this numeric:
+        "The minimum length of `<username>` is 1, ie. it MUST not be empty.
+        If it is empty, the server SHOULD reject the command with ERR_NEEDMOREPARAMS
+        (even an empty parameter is provided)"
+        https://github.com/ircdocs/modern-irc/issues/85
         """
         self.addClient()
         self.sendLine(1, "NICK foo")
