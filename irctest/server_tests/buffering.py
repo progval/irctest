@@ -118,7 +118,7 @@ class BufferingTestCase(cases.BaseServerTestCase):
 
     def _getLine(self, client) -> bytes:
         line = b""
-        for _ in range(600):
+        for _ in range(30):
             try:
                 data = self.clients[client].conn.recv(4096)
             except socket.timeout:
@@ -127,4 +127,5 @@ class BufferingTestCase(cases.BaseServerTestCase):
             if data.endswith(b"\r\n"):
                 return line
             time.sleep(0.1)
+            print(f"{client}: Waiting...")
         return line
