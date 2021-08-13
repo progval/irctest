@@ -196,11 +196,14 @@ class KickTestCase(cases.BaseServerTestCase):
         commands accept multiple parameters."
         -- https://defs.ircdocs.horse/defs/isupport.html#targmax
 
-        "If a command is not advertised then a client SHOULD consider a default
-        value of 1, meaning that the server does not accept multiple targets.
-        If the "TARGMAX" parameter is not advertised, then a client SHOULD assume
-        its value is empty, meaning that that no commands accept multiple targets."
-        -- https://github.com/ircdocs/modern-irc/pull/112
+        "If this parameter is not advertised or a value is not sent then a client
+        SHOULD assume that no commands except the `JOIN` and `PART` commands
+        accept multiple parameters."
+        -- https://github.com/ircdocs/modern-irc/pull/113
+
+        "If <limit> is not specified, then there is no maximum number of targets
+        for that command."
+        -- https://modern.ircdocs.horse/#targmax-parameter
         """
         self.connectClient("foo")
         self.joinChannel(1, "#chan")
