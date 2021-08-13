@@ -52,6 +52,7 @@ class IsupportTokens(enum.Enum):
     BOT = "BOT"
     MONITOR = "MONITOR"
     STATUSMSG = "STATUSMSG"
+    TARGMAX = "TARGMAX"
 
     @classmethod
     def from_name(cls, name: str) -> IsupportTokens:
