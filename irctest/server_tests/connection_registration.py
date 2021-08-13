@@ -5,6 +5,8 @@ Tests section 4.1 of RFC 1459.
 
 from irctest import cases
 from irctest.client_mock import ConnectionClosed
+from irctest.numerics import ERR_NEEDMOREPARAMS
+from irctest.patma import ANYSTR, StrRe
 
 
 class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
@@ -154,6 +156,24 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             (command1, command2),
             "Two concurrently registering requesting the same nickname "
             "neither got 001.",
+        )
+
+    def testEmptyRealname(self):
+        """
+        Syntax:
+        "<client> <command> :Not enough parameters"
+        -- https://defs.ircdocs.horse/defs/numerics.html#err-needmoreparams-461
+        -- https://modern.ircdocs.horse/#errneedmoreparams-461
+
+        Use of this numeric: TBD https://github.com/ircdocs/modern-irc/issues/85
+        """
+        self.addClient()
+        self.sendLine(1, "NICK foo")
+        self.sendLine(1, "USER username * * :")
+        self.assertMessageMatch(
+            self.getRegistrationMessage(1),
+            command=ERR_NEEDMOREPARAMS,
+            params=[StrRe(r"(\*|foo)"), "USER", ANYSTR],
         )
 
     @cases.mark_specifications("IRCv3")
