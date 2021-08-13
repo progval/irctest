@@ -105,6 +105,7 @@ software:
         build_script: |
             cd $GITHUB_WORKSPACE/Bahamut/
             patch src/s_user.c < $GITHUB_WORKSPACE/bahamut_localhost.patch
+            echo "#undef THROTTLE_ENABLE" >> include/config.h
             libtoolize --force
             aclocal
             autoheader
