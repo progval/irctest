@@ -39,7 +39,6 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
             self.sendLine(2, "AWAY :I'm on a break")
         self.getMessages(2)
 
-        # make both opers, to test both oper-only numerics and RPL_WHOISOPERATOR
         self.getMessages(1)
         if oper:
             self.sendLine(1, "OPER operuser operpassword")
