@@ -35,6 +35,9 @@ Client {{
 
 features {{
     "PPATH" = "{pidfile}";
+
+    # workaround for whois tests, checking the server name
+    "HIS_SERVERNAME" = "My.Little.Server";
 }};
 """
 
