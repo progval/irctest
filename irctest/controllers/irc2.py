@@ -23,6 +23,9 @@ Y:10:90::100:512000:100.100:100.100:
 
 # I:<TARGET Host Addr>:<Password>:<TARGET Hosts NAME>:<Port>:<Class>:<Flags>:
 I::{password_field}:::10::
+
+# O:<TARGET Host NAME>:<Password>:<Nickname>:<Port>:<Class>:<Flags>:
+O:*:operpassword:operuser::::
 """
 
 

@@ -55,6 +55,16 @@ auth {{
     flags = exceed_limit;
     {password_field}
 }};
+
+operator {{
+    name = "operuser";
+    user = "*@*";
+    password = "operpassword";
+    encrypted = no;
+    umodes = locops, servnotice, wallop;
+    flags = admin, connect, connect:remote, die, globops, kill, kill:remote,
+            kline, module, rehash, restart, set, unkline, unxline, xline;
+}};
 """
 
 

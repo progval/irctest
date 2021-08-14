@@ -19,6 +19,18 @@ TEMPLATE_CONFIG = """
     timeout="10"  # So tests don't hang too long
     {password_field}>
 
+<type
+    name="NetAdmin"
+    classes=""
+    privs="users/auspex channels/auspex servers/auspex"
+    >
+# password is "operpassword"
+<oper name="operuser"
+      password="operpassword"
+      host="*@*"
+      type="NetAdmin"
+      >
+
 <options casemapping="ascii">
 
 # Disable 'NOTICE #chan :*** foo invited bar into the channel-
@@ -131,7 +143,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                 "--config",
                 os.path.join(self.directory, "server.conf"),
             ],
-            stdout=subprocess.DEVNULL,
+            # stdout=subprocess.DEVNULL,
         )
 
         if run_services:

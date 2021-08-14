@@ -11,8 +11,6 @@ from irctest.basecontrollers import (
 )
 from irctest.cases import BaseServerTestCase
 
-OPER_PWD = "frenchfries"
-
 BASE_CONFIG = {
     "network": {"name": "ErgoTest"},
     "server": {
@@ -110,11 +108,11 @@ BASE_CONFIG = {
         }
     },
     "opers": {
-        "root": {
+        "operuser": {
             "class": "server-admin",
             "whois-line": "is a server admin",
-            # OPER_PWD
-            "password": "$2a$04$3GzUZB5JapaAbwn7sogpOu9NSiLOgnozVllm2e96LiNPrm61ZsZSq",
+            # "operpassword"
+            "password": "$2a$04$bKb6k5A6yuFA2wx.iJtxcuT2dojHQAjHd5ZPK/I2sjJml7p4spxjG",
         }
     },
 }
@@ -291,7 +289,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         self._write_config()
         client = "operator_for_rehash"
         case.connectClient(nick=client, name=client)
-        case.sendLine(client, "OPER root %s" % (OPER_PWD,))
+        case.sendLine(client, "OPER operuser operpassword")
         case.sendLine(client, "REHASH")
         case.getMessages(client)
         case.sendLine(client, "QUIT")

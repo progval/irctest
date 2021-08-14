@@ -69,6 +69,14 @@ connect {{
     cpasswd     password;
     class       services;
 }};
+
+oper {{
+    name operuser;
+    host *@*;
+    passwd operpassword;
+    access  *Aa;
+    class users;
+}};
 """
 
 

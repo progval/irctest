@@ -7,19 +7,22 @@ from irctest.numerics import (
     RPL_WHOISACCOUNT,
     RPL_WHOISACTUALLY,
     RPL_WHOISCHANNELS,
+    RPL_WHOISHOST,
     RPL_WHOISIDLE,
+    RPL_WHOISMODES,
     RPL_WHOISOPERATOR,
     RPL_WHOISREGNICK,
     RPL_WHOISSECURE,
     RPL_WHOISSERVER,
     RPL_WHOISSPECIAL,
     RPL_WHOISUSER,
+    RPL_YOUREOPER,
 )
 from irctest.patma import ANYSTR, StrRe
 
 
 class _WhoisTestMixin(cases.BaseServerTestCase):
-    def _testWhoisNumerics(self, authenticate, away):
+    def _testWhoisNumerics(self, authenticate, away, oper):
         if authenticate:
             self.connectClient("nick1")
             self.controller.registerUser(self, "val", "sesame")
@@ -35,6 +38,16 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
         if away:
             self.sendLine(2, "AWAY :I'm on a break")
         self.getMessages(2)
+
+        # make both opers, to test both oper-only numerics and RPL_WHOISOPERATOR
+        self.getMessages(1)
+        if oper:
+            self.sendLine(1, "OPER operuser operpassword")
+            self.assertIn(
+                RPL_YOUREOPER,
+                [m.command for m in self.getMessages(1)],
+                fail_msg="OPER failed",
+            )
 
         self.sendLine(1, "WHOIS nick2")
 
@@ -93,7 +106,48 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
             elif m.command == RPL_WHOISACCOUNT and authenticate:
                 self.assertMessageMatch(m, params=["nick1", "nick2", "val", ANYSTR])
             elif m.command == RPL_WHOISACTUALLY:
-                self.assertMessageMatch(m, params=["nick1", "nick2", ANYSTR, ANYSTR])
+                host_re = "[0-9a-z_:.-]+"
+                if len(m.params) == 4:
+                    # Most common
+                    self.assertMessageMatch(
+                        m,
+                        params=[
+                            "nick1",
+                            "nick2",
+                            StrRe(host_re),
+                            ANYSTR,
+                        ],
+                    )
+                elif len(m.params) == 5:
+                    # eg. Hybrid
+                    self.assertMessageMatch(
+                        m,
+                        params=[
+                            "nick1",
+                            "nick2",
+                            StrRe("~?username@" + host_re),
+                            StrRe(host_re),
+                            ANYSTR,
+                        ],
+                    )
+                elif len(m.params) == 3:
+                    # eg. Plexus4
+                    self.assertMessageMatch(
+                        m,
+                        params=[
+                            "nick1",
+                            "nick2",
+                            ANYSTR,
+                        ],
+                    )
+                else:
+                    assert (
+                        False
+                    ), f"Unexpected number of params for RPL_WHOISACTUALLY: {m.params}"
+            elif m.command == RPL_WHOISHOST:
+                self.assertMessageMatch(m, params=["nick1", "nick2", ANYSTR])
+            elif m.command == RPL_WHOISMODES:
+                self.assertMessageMatch(m, params=["nick1", "nick2", ANYSTR])
             elif m.command == RPL_WHOISSECURE:
                 # TODO: unlikely to ever send this, we should oper up nick2 first
                 self.assertMessageMatch(m, params=["nick1", "nick2", ANYSTR])
@@ -132,27 +186,32 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase, cases.Optionality
         )
         self.assertEqual(whois_user.params[5], realname)
 
-    @pytest.mark.parametrize("away", [True, False])
+    @pytest.mark.parametrize(
+        "away,oper",
+        [(False, False), (True, False), (False, True)],
+        ids=["normal", "away", "oper"],
+    )
     @cases.mark_specifications("Modern")
-    def testWhoisNumerics(self, away):
+    def testWhoisNumerics(self, away, oper):
         """Tests all numerics are in the exhaustive list defined in the Modern spec.
 
         TBD modern PR"""
-        self._testWhoisNumerics(authenticate=False, away=away)
+        self._testWhoisNumerics(authenticate=False, away=away, oper=oper)
 
 
 @cases.mark_services
 class ServicesWhoisTestCase(
     _WhoisTestMixin, cases.BaseServerTestCase, cases.OptionalityHelper
 ):
+    @pytest.mark.parametrize("oper", [False, True], ids=["normal", "oper"])
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
     @cases.mark_specifications("Modern")
-    def testWhoisNumerics(self):
+    def testWhoisNumerics(self, oper):
         """Tests all numerics are in the exhaustive list defined in the Modern spec,
         on an authenticated user.
 
         TBD modern PR"""
-        self._testWhoisNumerics(authenticate=True, away=False)
+        self._testWhoisNumerics(oper=oper, authenticate=True, away=False)
 
     @cases.mark_specifications("Ergo")
     def testInvisibleWhois(self):
