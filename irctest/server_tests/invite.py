@@ -6,6 +6,7 @@ from irctest.numerics import (
     ERR_INVITEONLYCHAN,
     ERR_NOSUCHNICK,
     ERR_NOTONCHANNEL,
+    ERR_USERONCHANNEL,
     RPL_INVITING,
 )
 from irctest.patma import ANYSTR, StrRe
@@ -383,3 +384,29 @@ class InviteTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC2812", deprecated=True)
     def testInviteOnlyFromUsersInChannelRfc(self):
         self._testInviteOnlyFromUsersInChannel(modern=False)
+
+    @cases.mark_specifications("Modern")
+    def testInviteAlreadyInChannel(self):
+        """
+        "If the user is already on the target channel,
+        the server MUST reject the command with the `ERR_USERONCHANNEL` numeric."
+        -- https://github.com/ircdocs/modern-irc/pull/80
+        """
+        self.connectClient("foo")
+        self.connectClient("bar")
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(1, "JOIN #chan")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.sendLine(1, "INVITE bar #chan")
+
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=ERR_USERONCHANNEL,
+            params=["foo", "bar", "#chan", ANYSTR],
+        )
