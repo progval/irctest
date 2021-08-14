@@ -143,7 +143,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                 "--config",
                 os.path.join(self.directory, "server.conf"),
             ],
-            # stdout=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
         )
 
         if run_services:

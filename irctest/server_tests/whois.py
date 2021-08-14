@@ -160,8 +160,13 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
 
 
 class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase, cases.OptionalityHelper):
+    @pytest.mark.parametrize(
+        "server",
+        ["", "My.Little.Server", "myCoolNick"],
+        ids=["no-target", "target_server", "target-nick"],
+    )
     @cases.mark_specifications("RFC2812")
-    def testWhoisUser(self):
+    def testWhoisUser(self, server):
         """Test basic WHOIS behavior"""
         nick = "myCoolNick"
         username = "myusernam"  # may be truncated if longer than this
@@ -173,7 +178,7 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase, cases.Optionality
 
         self.connectClient("otherNickname")
         self.getMessages(2)
-        self.sendLine(2, "WHOIS mycoolnick")
+        self.sendLine(2, f"WHOIS {server} mycoolnick")
         messages = self.getMessages(2)
         whois_user = messages[0]
         self.assertEqual(whois_user.command, RPL_WHOISUSER)
