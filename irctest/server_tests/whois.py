@@ -118,13 +118,13 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
                         ],
                     )
                 elif len(m.params) == 5:
-                    # eg. Hybrid
+                    # eg. Hybrid, Unreal
                     self.assertMessageMatch(
                         m,
                         params=[
                             "nick1",
                             "nick2",
-                            StrRe("~?username@" + host_re),
+                            StrRe(r"(~?username|\*)@" + host_re),
                             StrRe(host_re),
                             ANYSTR,
                         ],
