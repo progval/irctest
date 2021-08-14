@@ -16,9 +16,9 @@ class WhoisTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.mark_specifications("RFC2812")
     def testWhoisUser(self):
         """Test basic WHOIS behavior"""
-        nick = "myCoolNickname"
-        username = "myUsernam"  # may be truncated if longer than this
-        realname = "My Real Name"
+        nick = "myCoolNick"
+        username = "myusernam"  # may be truncated if longer than this
+        realname = "My User Name"
         self.addClient()
         self.sendLine(1, f"NICK {nick}")
         self.sendLine(1, f"USER {username} 0 * :{realname}")
@@ -26,7 +26,7 @@ class WhoisTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
         self.connectClient("otherNickname")
         self.getMessages(2)
-        self.sendLine(2, "WHOIS mycoolnickname")
+        self.sendLine(2, "WHOIS mycoolnick")
         messages = self.getMessages(2)
         whois_user = messages[0]
         self.assertEqual(whois_user.command, RPL_WHOISUSER)
