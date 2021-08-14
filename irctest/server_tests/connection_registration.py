@@ -88,10 +88,14 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.getMessages(1)
         self.sendLine(1, "QUIT")
-        try:
-            commands = {m.command for m in self.getMessages(1)}
-        except ConnectionClosed:
-            assert False, "Connection closed without ERROR."
+        while True:
+            try:
+                new_messages = self.getMessages(1)
+                if not new_messages:
+                    break
+                commands = {m.command for m in new_messages}
+            except ConnectionClosed:
+                break
         self.assertIn(
             "ERROR", commands, fail_msg="Did not receive ERROR as a reply to QUIT."
         )
