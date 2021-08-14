@@ -1,5 +1,8 @@
+import pytest
+
 from irctest import cases
 from irctest.numerics import (
+    RPL_AWAY,
     RPL_ENDOFWHOIS,
     RPL_WHOISACCOUNT,
     RPL_WHOISACTUALLY,
@@ -9,13 +12,14 @@ from irctest.numerics import (
     RPL_WHOISREGNICK,
     RPL_WHOISSECURE,
     RPL_WHOISSERVER,
+    RPL_WHOISSPECIAL,
     RPL_WHOISUSER,
 )
 from irctest.patma import ANYSTR, StrRe
 
 
 class _WhoisTestMixin(cases.BaseServerTestCase):
-    def _testWhoisNumerics(self, authenticate):
+    def _testWhoisNumerics(self, authenticate, away):
         if authenticate:
             self.connectClient("nick1")
             self.controller.registerUser(self, "val", "sesame")
@@ -28,6 +32,8 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
 
         self.sendLine(2, "JOIN #chan1")
         self.sendLine(2, "JOIN #chan2")
+        if away:
+            self.sendLine(2, "AWAY :I'm on a break")
         self.getMessages(2)
 
         self.sendLine(1, "WHOIS nick2")
@@ -51,7 +57,9 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
 
         # Straight from the Modern spec
         for m in messages:
-            if m.command == RPL_WHOISREGNICK and authenticate:
+            if m.command == RPL_AWAY and away:
+                self.assertMessageMatch(m, params=["nick1", "nick2", "I'm on a break"])
+            elif m.command == RPL_WHOISREGNICK and authenticate:
                 self.assertMessageMatch(m, params=["nick1", "nick2", ANYSTR])
             elif m.command == RPL_WHOISUSER:
                 self.assertMessageMatch(
@@ -66,6 +74,10 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
                         StrRe("(@#chan1 @#chan2|@#chan2 @#chan1)"),
                     ],
                 )
+            elif m.command == RPL_WHOISSPECIAL:
+                # Technically allowed, but it's a bad style to use this without
+                # explicit configuration by the operators.
+                assert False, "RPL_WHOISSPECIAL in use with default configuration"
             elif m.command == RPL_WHOISSERVER:
                 self.assertMessageMatch(
                     m, params=["nick1", "nick2", "My.Little.Server", ANYSTR]
@@ -120,12 +132,13 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase, cases.Optionality
         )
         self.assertEqual(whois_user.params[5], realname)
 
+    @pytest.mark.parametrize("away", [True, False])
     @cases.mark_specifications("Modern")
-    def testWhoisNumerics(self):
+    def testWhoisNumerics(self, away):
         """Tests all numerics are in the exhaustive list defined in the Modern spec.
 
         TBD modern PR"""
-        self._testWhoisNumerics(authenticate=False)
+        self._testWhoisNumerics(authenticate=False, away=away)
 
 
 @cases.mark_services
@@ -139,7 +152,7 @@ class ServicesWhoisTestCase(
         on an authenticated user.
 
         TBD modern PR"""
-        self._testWhoisNumerics(authenticate=True)
+        self._testWhoisNumerics(authenticate=True, away=False)
 
     @cases.mark_specifications("Ergo")
     def testInvisibleWhois(self):
