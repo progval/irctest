@@ -46,6 +46,7 @@ BASE_CONFIG = {
     },
     "accounts": {
         "authentication-enabled": True,
+        "advertise-scram": True,
         "multiclient": {
             "allowed-by-default": True,
             "enabled": True,
