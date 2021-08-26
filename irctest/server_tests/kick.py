@@ -19,9 +19,9 @@ class KickTestCase(cases.BaseServerTestCase):
         -- <https://tools.ietf.org/html/rfc1459#section-4.2.1>
         and <https://tools.ietf.org/html/rfc2812#section-3.2.1>
 
-        " If a comment is given, this will be sent instead of the default message,
+        "If a comment is given, this will be sent instead of the default message,
         the nickname of the user targeted by the KICK."
-        -- https://github.com/ircdocs/modern-irc/pull/101
+        -- https://modern.ircdocs.horse/#kick-message
         """
         self.connectClient("foo")
         self.joinChannel(1, "#chan")
@@ -102,7 +102,7 @@ class KickTestCase(cases.BaseServerTestCase):
     def testKickNoComment(self):
         """
         "If no comment is given, the server SHOULD use a default message instead."
-        -- https://github.com/ircdocs/modern-irc/pull/101
+        -- https://modern.ircdocs.horse/#kick-message
         """
         self._testKickNoComment(check_default=False)
 
@@ -184,12 +184,12 @@ class KickTestCase(cases.BaseServerTestCase):
         users to clients.
         This is necessary to maintain backward compatibility with existing
         client software."
-        -- https://github.com/ircdocs/modern-irc/pull/101
+        -- https://modern.ircdocs.horse/#kick-message
 
         "Servers MAY limit the number of target users per `KICK` command
         via the [`TARGMAX` parameter of `RPL_ISUPPORT`](#targmax-parameter),
         and silently drop targets if the number of targets exceeds the limit."
-        -- https://github.com/ircdocs/modern-irc/pull/101
+        -- https://modern.ircdocs.horse/#kick-message
 
         "If the "TARGMAX" parameter is not advertised or a value is not sent
         then a client SHOULD assume that no commands except the "JOIN" and "PART"

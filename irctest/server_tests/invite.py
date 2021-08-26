@@ -390,7 +390,7 @@ class InviteTestCase(cases.BaseServerTestCase):
         """
         "If the user is already on the target channel,
         the server MUST reject the command with the `ERR_USERONCHANNEL` numeric."
-        -- https://github.com/ircdocs/modern-irc/pull/80
+        -- https://modern.ircdocs.horse/#invite-message
         """
         self.connectClient("foo")
         self.connectClient("bar")
