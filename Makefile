@@ -35,8 +35,10 @@ ERGO_SELECTORS := \
 	not deprecated \
 	$(EXTRA_SELECTORS)
 
+# testInviteUnoppedModern is the only strict test that Hybrid fails
 HYBRID_SELECTORS := \
 	not Ergo \
+	and not testInviteUnoppedModern \
 	and not deprecated \
 	$(EXTRA_SELECTORS)
 
@@ -91,6 +93,15 @@ MAMMON_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
+	$(EXTRA_SELECTORS)
+
+# testInviteUnoppedModern is the only strict test that Plexus4 fails
+# testInviteInviteOnlyModern fails because Plexus4 allows non-op to invite if (and only if) the channel is not invite-only
+PLEXUS4_SELECTORS := \
+	not Ergo \
+	and not testInviteUnoppedModern \
+	and not testInviteInviteOnlyModern \
+	and not deprecated \
 	$(EXTRA_SELECTORS)
 
 # Limnoria can actually pass all the test so there is none to exclude.
@@ -239,7 +250,7 @@ plexus4:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.plexus4 \
 		-m 'not services' \
-		-k "$(HYBRID_SELECTORS)"
+		-k "$(PLEXUS4_SELECTORS)"
 
 solanum:
 	$(PYTEST) $(PYTEST_ARGS) \

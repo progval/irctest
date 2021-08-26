@@ -21,6 +21,9 @@ TEMPLATE_CONFIG = """
 
 <options casemapping="ascii">
 
+# Disable 'NOTICE #chan :*** foo invited bar into the channel-
+<security announceinvites="none">
+
 # Services:
 <bind address="{services_hostname}" port="{services_port}" type="servers">
 <link name="services.example.org"
