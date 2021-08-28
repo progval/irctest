@@ -16,7 +16,7 @@ OPER_PWD = "frenchfries"
 BASE_CONFIG = {
     "network": {"name": "ErgoTest"},
     "server": {
-        "name": "ergo.test",
+        "name": "My.Little.Server",
         "listeners": {},
         "max-sendq": "16k",
         "connection-limits": {
