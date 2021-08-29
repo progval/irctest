@@ -88,12 +88,14 @@ SNIRCD_SELECTORS := \
 
 # testListEmpty and testListOne fails because irc2 deprecated LIST
 # testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
+# testWallopsPrivileges fails because it ignores the command instead of replying ERR_UNKNOWNCOMMAND
 IRC2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	and not testListEmpty and not testListOne \
 	and not testKickDefaultComment \
+	and not testWallopsPrivileges \
 	$(EXTRA_SELECTORS)
 
 MAMMON_SELECTORS := \

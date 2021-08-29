@@ -38,7 +38,7 @@ class WallopsTestCase(cases.BaseServerTestCase):
                 message,
                 prefix=StrRe("nick1!.*"),
                 command="WALLOPS",
-                params=["hi everyone"],
+                params=[StrRe(".*hi everyone")],
             )
 
         self.assertMessageMatch(
