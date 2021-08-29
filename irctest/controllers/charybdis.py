@@ -52,6 +52,21 @@ connect "services.example.org" {{
 service {{
     name = "services.example.org";
 }};
+
+privset "omnioper" {{
+    privs = oper:general, oper:privs, oper:testline, oper:kill, oper:operwall, oper:message,
+            oper:routing, oper:kline, oper:unkline, oper:xline,
+            oper:resv, oper:cmodes, oper:mass_notice, oper:wallops,
+            oper:remoteban,
+            usermode:servnotice, auspex:oper, auspex:hostname, auspex:umodes, auspex:cmodes,
+            oper:admin, oper:die, oper:rehash, oper:spy, oper:grant;
+}};
+operator "operuser" {{
+    user = "*@*";
+    password = "operpassword";
+    privset = "omnioper";
+    flags = ~encrypted;
+}};
 """
 
 

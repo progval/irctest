@@ -11,6 +11,7 @@ from irctest.irc_utils.junkdrawer import find_hostname_and_port
 
 TEMPLATE_CONFIG = """
 include "modules.default.conf";
+include "operclass.default.conf";
 
 me {{
     name "My.Little.Server";
@@ -98,6 +99,13 @@ tld {{
     motd "{empty_file}";
     botmotd "{empty_file}";
     rules "{empty_file}";
+}}
+
+oper "operuser" {{
+    password = "operpassword";
+    mask *;
+    class clients;
+    operclass netadmin;
 }}
 """
 

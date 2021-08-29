@@ -750,29 +750,27 @@ class OptionalityHelper(Generic[TController]):
     @staticmethod
     def skipUnlessHasMechanism(
         mech: str,
-    ) -> Callable[[Callable[[_TSelf], _TReturn]], Callable[[_TSelf], _TReturn]]:
+    ) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
         # Just a function returning a function that takes functions and
         # returns functions, nothing to see here.
         # If Python didn't have such an awful syntax for callables, it would be:
         # str -> ((TSelf -> TReturn) -> (TSelf -> TReturn))
-        def decorator(f: Callable[[_TSelf], _TReturn]) -> Callable[[_TSelf], _TReturn]:
+        def decorator(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
             @functools.wraps(f)
-            def newf(self: _TSelf) -> _TReturn:
+            def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
                 self.checkMechanismSupport(mech)
-                return f(self)
+                return f(self, *args, **kwargs)
 
             return newf
 
         return decorator
 
     @staticmethod
-    def skipUnlessHasSasl(
-        f: Callable[[_TSelf], _TReturn]
-    ) -> Callable[[_TSelf], _TReturn]:
+    def skipUnlessHasSasl(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
         @functools.wraps(f)
-        def newf(self: _TSelf) -> _TReturn:
+        def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
             self.checkSaslSupport()
-            return f(self)
+            return f(self, *args, **kwargs)
 
         return newf
 

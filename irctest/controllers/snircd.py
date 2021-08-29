@@ -33,6 +33,14 @@ Client {{
     {password_field}
 }};
 
+Operator {{
+    local = no;
+    host = "*@*";
+    password = "$PLAIN$operpassword";
+    name = "operuser";
+    class = "Client";
+}};
+
 features {{
     "PPATH" = "{pidfile}";
 

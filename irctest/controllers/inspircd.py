@@ -19,6 +19,21 @@ TEMPLATE_CONFIG = """
     timeout="10"  # So tests don't hang too long
     {password_field}>
 
+<class
+    name="ServerOperators"
+    privs="channels/auspex users/auspex channels/auspex servers/auspex"
+    >
+<type
+    name="NetAdmin"
+    classes="ServerOperators"
+    >
+<oper name="operuser"
+      password="operpassword"
+      host="*@*"
+      type="NetAdmin"
+      class="ServerOperators"
+      >
+
 <options casemapping="ascii">
 
 # Disable 'NOTICE #chan :*** foo invited bar into the channel-
