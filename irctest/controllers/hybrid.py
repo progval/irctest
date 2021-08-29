@@ -63,7 +63,7 @@ operator {{
     encrypted = no;
     umodes = locops, servnotice, wallop;
     flags = admin, connect, connect:remote, die, globops, kill, kill:remote,
-            kline, module, rehash, restart, set, unkline, unxline, xline;
+            kline, module, rehash, restart, set, unkline, unxline, wallops, xline;
 }};
 """
 

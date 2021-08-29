@@ -45,7 +45,7 @@ class WallopsTestCase(cases.BaseServerTestCase):
             self.getMessage(3),
             prefix=StrRe("nick1!.*"),
             command="WALLOPS",
-            params=["hi everyone"],
+            params=[StrRe(".*hi everyone")],
         )
         self.assertEqual(
             self.getMessages(2), [], fail_msg="Server sent WALLOPS to user without +w"
@@ -58,6 +58,9 @@ class WallopsTestCase(cases.BaseServerTestCase):
         """
         self.connectClient("nick1")
         self.sendLine(1, "WALLOPS :hi everyone")
+        message = self.getMessage(1)
+        if message.command == ERR_UNKNOWNCOMMAND:
+            raise runner.NotImplementedByController("WALLOPS")
         self.assertMessageMatch(
-            self.getMessage(1), command=ERR_NOPRIVILEGES, params=["nick1", ANYSTR]
+            message, command=ERR_NOPRIVILEGES, params=["nick1", ANYSTR]
         )
