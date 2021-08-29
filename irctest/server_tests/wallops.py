@@ -11,6 +11,12 @@ class WallopsTestCase(cases.BaseServerTestCase):
         users who have set the 'w' user mode for themselves."
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-4.7
         -- https://github.com/ircdocs/modern-irc/pull/118
+
+        "Servers MAY echo WALLOPS messages to their sender even if they don't have
+        the 'w' user mode.
+        Servers MAY send WALLOPS only to operators."
+        -- https://github.com/ircdocs/modern-irc/pull/118
+
         """
         self.connectClient("nick1")
         self.connectClient("nick2")
@@ -41,12 +47,14 @@ class WallopsTestCase(cases.BaseServerTestCase):
                 params=[StrRe(".*hi everyone")],
             )
 
-        self.assertMessageMatch(
-            self.getMessage(3),
-            prefix=StrRe("nick1!.*"),
-            command="WALLOPS",
-            params=[StrRe(".*hi everyone")],
-        )
+        messages = self.getMessages(3)
+        if messages:
+            self.assertMessageMatch(
+                messages[0],
+                prefix=StrRe("nick1!.*"),
+                command="WALLOPS",
+                params=[StrRe(".*hi everyone")],
+            )
         self.assertEqual(
             self.getMessages(2), [], fail_msg="Server sent WALLOPS to user without +w"
         )
