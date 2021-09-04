@@ -2,7 +2,7 @@ from irctest import cases
 from irctest.numerics import ERR_BANNEDFROMCHAN
 
 
-class BanMode(cases.BaseServerTestCase):
+class BanModeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testBan(self):
         """Basic ban operation"""
