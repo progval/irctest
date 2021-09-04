@@ -1,6 +1,8 @@
 import socket
 import ssl
 
+import pytest
+
 from irctest import cases, runner, tls
 from irctest.exceptions import ConnectionClosed
 from irctest.patma import ANYSTR
@@ -148,7 +150,8 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         super().tearDown()
 
     @cases.mark_capabilities("sts")
-    def testSts(self):
+    @pytest.mark.parametrize("portOnSecure", [False, True])
+    def testSts(self, portOnSecure):
         if not self.controller.supports_sts:
             raise runner.CapabilityNotSupported("sts")
         tls_config = tls.TlsConfig(
@@ -176,10 +179,12 @@ class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         # and reconnect securely on the stated port."
         self.acceptClient(tls_cert=GOOD_CERT, tls_key=GOOD_KEY)
 
-        # Send the STS policy, over secure connection this time
-        self.sendLine(
-            "CAP * LS :sts=duration=10,port={}".format(self.server.getsockname()[1])
-        )
+        # Send the STS policy, over secure connection this time.
+        if portOnSecure:
+            # Should be ignored
+            self.sendLine("CAP * LS :sts=duration=10,port=12345")
+        else:
+            self.sendLine("CAP * LS :sts=duration=10")
 
         # Make the client reconnect. It should reconnect to the secure server.
         self.sendLine("ERROR :closing link")
