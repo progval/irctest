@@ -2,7 +2,7 @@ from irctest import cases
 from irctest.numerics import ERR_BANNEDFROMCHAN
 
 
-class BanMode(cases.BaseServerTestCase):
+class BanModeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testBan(self):
         """Basic ban operation"""
@@ -12,9 +12,7 @@ class BanMode(cases.BaseServerTestCase):
         self.sendLine("chanop", "MODE #chan +b bar!*@*")
         self.assertMessageMatch(self.getMessage("chanop"), command="MODE")
 
-        self.connectClient(
-            "Bar", name="bar", capabilities=["echo-message"], skip_if_cap_nak=True
-        )
+        self.connectClient("Bar", name="bar")
         self.getMessages("bar")
         self.sendLine("bar", "JOIN #chan")
         self.assertMessageMatch(self.getMessage("bar"), command=ERR_BANNEDFROMCHAN)
@@ -35,7 +33,7 @@ class BanMode(cases.BaseServerTestCase):
         self.sendLine("chanop", "MODE #chan +b BAR!*@*")
         self.assertMessageMatch(self.getMessage("chanop"), command="MODE")
 
-        self.connectClient("Bar", name="bar", capabilities=["echo-message"])
+        self.connectClient("Bar", name="bar")
         self.getMessages("bar")
         self.sendLine("bar", "JOIN #chan")
         self.assertMessageMatch(self.getMessage("bar"), command=ERR_BANNEDFROMCHAN)

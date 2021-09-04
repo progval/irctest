@@ -2,7 +2,7 @@ from irctest import cases
 from irctest.numerics import ERR_CANNOTSENDTOCHAN
 
 
-class ModeratedMode(cases.BaseServerTestCase):
+class ModeratedModeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC2812")
     def testModeratedMode(self):
         # test the +m channel mode

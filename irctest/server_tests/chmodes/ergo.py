@@ -12,7 +12,7 @@ MODERN_CAPS = [
 
 
 @cases.mark_services
-class RegisteredOnlySpeakMode(cases.BaseServerTestCase):
+class RegisteredOnlySpeakModeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
     def testRegisteredOnlySpeakMode(self):
         self.controller.registerUser(self, "evan", "sesame")
@@ -68,7 +68,7 @@ class RegisteredOnlySpeakMode(cases.BaseServerTestCase):
         )
 
 
-class OpModerated(cases.BaseServerTestCase):
+class OpModeratedTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
     def testOpModerated(self):
         # test the +U channel mode

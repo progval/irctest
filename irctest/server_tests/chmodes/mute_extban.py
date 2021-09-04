@@ -3,7 +3,7 @@ from irctest.numerics import ERR_CANNOTSENDTOCHAN, ERR_CHANOPRIVSNEEDED
 from irctest.patma import ANYLIST, StrRe
 
 
-class MuteExtban(cases.BaseServerTestCase):
+class MuteExtbanTestCase(cases.BaseServerTestCase):
     """https://defs.ircdocs.horse/defs/isupport.html#extban
 
     It magically guesses what char the IRCd uses for mutes."""
