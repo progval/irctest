@@ -166,6 +166,8 @@ class KickTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC2812")
     def testKickNonexistentChannel(self):
         """“Kick command [...] Numeric replies: [...] ERR_NOSUCHCHANNEL."""
+        self.connectClient("nick")
+
         self.connectClient("foo")
         self.sendLine(1, "KICK #chan nick")
         m = self.getMessage(1)

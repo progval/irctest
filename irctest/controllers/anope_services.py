@@ -83,6 +83,7 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
             "hybrid",
             "plexus",
             "unreal4",
+            "ngircd",
         )
 
         with self.open_file("conf/services.conf") as fd:

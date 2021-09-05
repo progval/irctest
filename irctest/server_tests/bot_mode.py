@@ -13,7 +13,7 @@ from irctest.patma import ANYDICT, ANYSTR, StrRe
 class BotModeTestCase(cases.BaseServerTestCase):
     def setUp(self):
         super().setUp()
-        self.connectClient("modegetter")
+        self.connectClient("modegettr")
         if "BOT" not in self.server_support:
             raise runner.IsupportTokenNotSupported("BOT")
         self._mode_char = self.server_support["BOT"]

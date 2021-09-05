@@ -17,6 +17,7 @@ loadmodule "modules/nickserv/cert";
 loadmodule "modules/nickserv/register";
 loadmodule "modules/nickserv/verify";
 
+loadmodule "modules/saslserv/main";
 loadmodule "modules/saslserv/authcookie";
 #loadmodule "modules/saslserv/ecdh-x25519-challenge";
 loadmodule "modules/saslserv/ecdsa-nist256p-challenge";
@@ -61,7 +62,7 @@ class AthemeController(BaseServicesController, DirectoryBasedController):
         if protocol == "inspircd3":
             # That's the name used by Anope
             protocol = "inspircd"
-        assert protocol in ("bahamut", "inspircd", "charybdis", "unreal4")
+        assert protocol in ("bahamut", "inspircd", "charybdis", "unreal4", "ngircd")
 
         with self.open_file("services.conf") as fd:
             fd.write(
