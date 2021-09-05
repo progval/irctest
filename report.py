@@ -170,7 +170,7 @@ def main(filenames):
                 f"</li>"
             )
         else:
-            print(f"<li>{result}</li>")
+            print(f"<li>{filename}: {result}</li>")
     print("</ul>")
 
 
