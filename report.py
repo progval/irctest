@@ -161,17 +161,16 @@ def main(filenames):
         if "\n" in result:
             (summary, details) = result.split("\n", 1)
             summary.rstrip(":")
+            print(
+                f"<li>\n"
+                f"  <details>\n"
+                f"    <summary>{filename}: {summary}</summary>\n"
+                f"    {details}\n"
+                f"  </details>\n"
+                f"</li>"
+            )
         else:
-            summary = result
-            details = ""
-        print(
-            f"<li>\n"
-            f"  <details>\n"
-            f"    <summary>{filename}: {summary}</summary>\n"
-            f"    {details}\n"
-            f"  </details>\n"
-            f"</li>"
-        )
+            print(f"<li>{result}</li>")
     print("</ul>")
 
 
