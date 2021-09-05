@@ -103,21 +103,21 @@ def format_results(d) -> str:
     if isinstance(d, dict):
         items = [f"<li>{k}: {v}</li>" for (k, v) in d.items()]
         items_str = textwrap.indent("\n".join(items), prefix="  ")
-        return f"<ul>\n{items_str}\n</ul>"
+        return f"\n<ul>\n{items_str}\n</ul>"
     elif isinstance(d, CompactedResult):
         if d.success:
             if d.nb_skipped:
                 reason = "".join(f"<li>{msg}</li>" for msg in d.messages)
                 return (
                     f"✔️ {d.count} successful, "
-                    f"including {d.nb_skipped} skipped: <ul>{reason}</ul>"
+                    f"including {d.nb_skipped} skipped:\n<ul>{reason}</ul>"
                 )
             else:
                 return f"✔️ {d.count} successful"
         else:
             assert d.nb_skipped == 0
             reason = "".join(f"<li>{msg}</li>" for msg in d.messages)
-            return f"❌ {d.count} failed: <ul>{reason}</ul>"
+            return f"❌ {d.count} failed:\n<ul>{reason}</ul>"
     else:
         assert False, d
 
@@ -165,7 +165,12 @@ def main(filenames):
         if "\n" in result:
             (summary, details) = result.split("\n", 1)
             print(
-                f"<li><details><summary>{filename}: ❌ some failures</summary>{result}</li>"
+                f"<li>\n"
+                f"  <details>\n"
+                f"    <summary>{filename}: {summary}</summary>\n"
+                f"    {details}\n"
+                f"  </details>\n"
+                f"</li>"
             )
         else:
             print(f"<li>{filename}: {result}</li>")
