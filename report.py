@@ -37,15 +37,43 @@ class CompactedResult:
     messages: Set[str]
 
 
+def partial_compaction(d):
+    # Group all the perfect successes together, but keep those with skipped
+    # tests separate
+    compacted_d = {}
+    successes = []
+    for (k, v) in d.items():
+        if isinstance(v, CompactedResult) and v.success and v.nb_skipped == 0:
+            successes.append((k, v))
+        else:
+            compacted_d[k] = v
+    if len(successes) == 0:
+        pass
+    elif len(successes) == 1:
+        ((k, v),) = successes
+        compacted_d[k] = v
+    else:
+        compacted_d["(others)"] = CompactedResult(
+            success=True,
+            count=sum(res.count for (_, res) in successes),
+            nb_skipped=0,
+            messages=set(),
+        )
+    return compacted_d
+
+
 def compact_results(d):
     """Rewrite the nested dict ``d`` of CaseResult in a more compact form;
     by folding successful subtrees."""
     if isinstance(d, dict):
         if set(d) == {None}:
             return d[None]
+        while len(d) == 1 and all(isinstance(v, dict) for v in d.values()):
+            (key,) = d
+            d = {f"{key}::{k}": v for (k, v) in d[key].items()}
         if not all(isinstance(v, CompactedResult) for v in d.values()):
             # Some children are not compactable, so this subtree isn't either
-            return d
+            return partial_compaction(d)
         statuses = {v.success for v in d.values()}
         if len(statuses) == 1:
             (status,) = statuses
@@ -58,7 +86,7 @@ def compact_results(d):
                 ),
             )
         else:
-            return d
+            return partial_compaction(d)
     elif isinstance(d, CaseResult):
         return CompactedResult(
             success=d.success,
@@ -95,7 +123,7 @@ def format_results(d) -> str:
 
 
 def main(filenames):
-
+    print("<ul>")
     for filename in filenames:
         results = {}
         job = ET.parse(filename).getroot()
@@ -105,9 +133,7 @@ def main(filenames):
                 continue
             path = case.attrib["classname"].split(".")
             class_results = functools.reduce(
-                lambda d, name: d.setdefault(name, {}),
-                path,
-                results.setdefault(filename, {}),
+                lambda d, name: d.setdefault(name, {}), path, results
             )
 
             if len(case):
@@ -124,7 +150,7 @@ def main(filenames):
                 leaf = CaseResult(success=True, skipped=False)
 
             name = case.attrib["name"]
-            m = re.match(r"^(?P<name>.*?)\[(?P<param>.*)\]$", name)
+            m = re.match(r"^(?P<name>.*?)(?P<param>\[.*\])$", name)
             if m:
                 d = class_results.setdefault(m.group("name"), {})
                 assert m.group("param") not in d
@@ -135,7 +161,15 @@ def main(filenames):
                 d[None] = leaf
 
         results = visit_bottomup(compact_results, results)
-        print(visit_bottomup(format_results, results))
+        result = visit_bottomup(format_results, results)
+        if "\n" in result:
+            (summary, details) = result.split("\n", 1)
+            print(
+                f"<li><details><summary>{filename}: ❌ some failures</summary>{result}</li>"
+            )
+        else:
+            print(f"<li>{filename}: {result}</li>")
+    print("</ul>")
 
 
 if __name__ == "__main__":
