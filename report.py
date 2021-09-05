@@ -107,11 +107,7 @@ def format_results(d) -> str:
     elif isinstance(d, CompactedResult):
         if d.success:
             if d.nb_skipped:
-                reason = "".join(f"<li>{msg}</li>" for msg in d.messages)
-                return (
-                    f"✔️ {d.count} successful, "
-                    f"including {d.nb_skipped} skipped:\n<ul>{reason}</ul>"
-                )
+                return f"✔️ {d.count} successful, " f"({d.nb_skipped} skipped)</ul>"
             else:
                 return f"✔️ {d.count} successful"
         else:
@@ -164,16 +160,18 @@ def main(filenames):
         result = visit_bottomup(format_results, results)
         if "\n" in result:
             (summary, details) = result.split("\n", 1)
-            print(
-                f"<li>\n"
-                f"  <details>\n"
-                f"    <summary>{filename}: {summary}</summary>\n"
-                f"    {details}\n"
-                f"  </details>\n"
-                f"</li>"
-            )
+            summary.rstrip(":")
         else:
-            print(f"<li>{filename}: {result}</li>")
+            summary = result
+            details = ""
+        print(
+            f"<li>\n"
+            f"  <details>\n"
+            f"    <summary>{filename}: {summary}</summary>\n"
+            f"    {details}\n"
+            f"  </details>\n"
+            f"</li>"
+        )
     print("</ul>")
 
 
