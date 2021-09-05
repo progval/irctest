@@ -10,6 +10,7 @@ and keep them in sync.
 
 import enum
 import pathlib
+import textwrap
 
 import yaml
 
@@ -357,6 +358,7 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         # this job then
         "if": "success() || failure()",
         "steps": [
+            {"uses": "actions/checkout@v2"},
             {
                 "name": "Download Artifacts",
                 "uses": "actions/download-artifact@v2",
@@ -364,8 +366,32 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
             },
             {
                 "name": "Publish Unit Test Results",
-                "uses": "EnricoMi/publish-unit-test-result-action@v1",
-                "with": {"files": "artifacts/**/*.xml"},
+                "uses": "actions/github-script@v4",
+                "if": "github.event_name == 'pull_request'",
+                "with": {
+                    "result-encoding": "string",
+                    "script": script(
+                        textwrap.dedent(
+                            """\
+                            let body = '';
+                            const options = {};
+                            options.listeners = {
+                                stdout: (data) => {
+                                    body += data.toString();
+                                }
+                            };
+                            await exec.exec('bash', ['-c', 'shopt -s globstar; python3 report.py artifacts/**/*.xml'], options);
+                            github.issues.createComment({
+                              issue_number: context.issue.number,
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              body: body,
+                            });
+                            return body;
+                        """
+                        )
+                    ),
+                },
             },
         ],
     }

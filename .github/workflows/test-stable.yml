@@ -389,14 +389,32 @@ jobs:
     - test-unrealircd-atheme
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Download Artifacts
       uses: actions/download-artifact@v2
       with:
         path: artifacts
-    - name: Publish Unit Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v1
+    - if: github.event_name == 'pull_request'
+      name: Publish Unit Test Results
+      uses: actions/github-script@v4
       with:
-        files: artifacts/**/*.xml
+        result-encoding: string
+        script: |
+          let body = '';
+          const options = {};
+          options.listeners = {
+              stdout: (data) => {
+                  body += data.toString();
+              }
+          };
+          await exec.exec('bash', ['-c', 'shopt -s globstar; python3 report.py artifacts/**/*.xml'], options);
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body,
+          });
+          return body;
   test-bahamut:
     needs:
     - build-bahamut
