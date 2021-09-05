@@ -103,6 +103,9 @@ class BufferingTestCase(cases.BaseServerTestCase):
             if not payload_intact:
                 # truncated
                 self.assertLessEqual(len(received_line), 512, received_line)
+                if received_line.endswith(b"[CUT]\r\n"):
+                    # ngircd
+                    received_line = received_line[0:-7] + b"\r\n"
                 self.assertTrue(
                     payload.encode().startswith(
                         received_line.split(b" ")[-1].strip().lstrip(b":")

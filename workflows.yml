@@ -204,6 +204,24 @@ software:
             make -j 4
             make install
 
+    ngircd:
+        name: ngircd
+        repository: ngircd/ngircd
+        refs:
+            stable: rel-26.1
+            release: null
+            devel: master
+            devel_release: null
+        path: ngircd
+        prefix: ~/.local/
+        separate_build_job: true
+        build_script: |
+            cd $GITHUB_WORKSPACE/ngircd
+            ./autogen.sh
+            ./configure --prefix=$HOME/.local/
+            make -j 4
+            make install
+
     snircd:
         name: snircd
         repository: quakenet/snircd
@@ -313,6 +331,15 @@ tests:
 
     inspircd-anope:
         software: [inspircd, anope]
+
+    ngircd:
+        software: [ngircd]
+
+    ngircd-atheme:
+        software: [ngircd]
+
+    ngircd-anope:
+        software: [ngircd, anope]
 
     plexus4:
         software: [plexus4, anope]

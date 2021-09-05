@@ -104,6 +104,20 @@ MAMMON_SELECTORS := \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
+# testKeyValidation[spaces] and testKeyValidation[empty] fail because ngIRCd does not validate them https://github.com/ngircd/ngircd/issues/290
+# testStarNick: wat
+# testEmptyRealname fails because it uses a default value instead of ERR_NEEDMOREPARAMS.
+# chathistory tests fail because they need nicks longer than 9 chars
+NGIRCD_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	and not (testKeyValidation and (spaces or empty)) \
+	and not testStarNick \
+	and not testEmptyRealname \
+	and not chathistory \
+	$(EXTRA_SELECTORS)
+
 # testInviteUnoppedModern is the only strict test that Plexus4 fails
 # testInviteInviteOnlyModern fails because Plexus4 allows non-op to invite if (and only if) the channel is not invite-only
 PLEXUS4_SELECTORS := \
@@ -261,6 +275,27 @@ plexus4:
 		--controller irctest.controllers.plexus4 \
 		-m 'not services' \
 		-k "$(PLEXUS4_SELECTORS)"
+
+ngircd:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller irctest.controllers.ngircd \
+		-m 'not services' \
+		-n 10 \
+		-k "$(NGIRCD_SELECTORS)"
+
+ngircd-anope:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller irctest.controllers.ngircd \
+		--services-controller=irctest.controllers.anope_services \
+		-m 'services' \
+		-k "$(NGIRCD_SELECTORS)"
+
+ngircd-atheme:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller irctest.controllers.ngircd \
+		--services-controller=irctest.controllers.atheme_services \
+		-m 'services' \
+		-k "$(NGIRCD_SELECTORS)"
 
 solanum:
 	$(PYTEST) $(PYTEST_ARGS) \
