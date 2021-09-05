@@ -107,7 +107,7 @@ def format_results(d) -> str:
     elif isinstance(d, CompactedResult):
         if d.success:
             if d.nb_skipped:
-                return f"✔️ {d.count} successful, " f"({d.nb_skipped} skipped)</ul>"
+                return f"✔️ {d.count} successful ({d.nb_skipped} skipped)</ul>"
             else:
                 return f"✔️ {d.count} successful"
         else:
