@@ -12,7 +12,7 @@ MODERN_CAPS = [
 RENAME_CAP = "draft/channel-rename"
 
 
-class ChannelRename(cases.BaseServerTestCase):
+class ChannelRenameTestCase(cases.BaseServerTestCase):
     """Basic tests for channel-rename."""
 
     @cases.mark_specifications("Ergo")
