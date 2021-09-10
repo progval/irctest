@@ -3,7 +3,7 @@ import pytest
 from irctest import cases, client_mock, runner
 
 
-class TestChannelCaseSensitivity(cases.BaseServerTestCase):
+class ChannelCaseSensitivityTestCase(cases.BaseServerTestCase):
     @pytest.mark.parametrize(
         "casemapping,name1,name2",
         [

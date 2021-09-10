@@ -11,7 +11,7 @@ MODERN_CAPS = [
 ]
 
 
-class ChannelForwarding(cases.BaseServerTestCase):
+class ChannelForwardingTestCase(cases.BaseServerTestCase):
     """Test the +f channel forwarding mode."""
 
     @cases.mark_specifications("Ergo")

@@ -149,7 +149,7 @@ class TopicTestCase(cases.BaseServerTestCase):
         self.assertNotIn(RPL_NOTOPIC, [m.command for m in messages])
 
 
-class TopicPrivileges(cases.BaseServerTestCase):
+class TopicPrivilegesTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC2812")
     def testTopicPrivileges(self):
         # test the +t channel mode, which prevents unprivileged users

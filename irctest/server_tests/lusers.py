@@ -110,7 +110,7 @@ class LusersTestCase(cases.BaseServerTestCase):
         return result
 
 
-class BasicLusersTest(LusersTestCase):
+class BasicLusersTestCase(LusersTestCase):
     @cases.mark_specifications("RFC2812")
     def testLusers(self):
         self.connectClient("bar", name="bar")
@@ -175,7 +175,7 @@ class LusersUnregisteredTestCase(LusersTestCase):
         self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
 
 
-class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
+class LusersUnregisteredDefaultInvisibleTestCase(LusersUnregisteredTestCase):
     """Same as above but with +i as the default."""
 
     @staticmethod
@@ -195,7 +195,7 @@ class LusersUnregisteredDefaultInvisibleTest(LusersUnregisteredTestCase):
         self.assertEqual(lusers.GlobalVisible, 0)
 
 
-class LuserOpersTest(LusersTestCase):
+class LuserOpersTestCase(LusersTestCase):
     @cases.mark_specifications("Ergo")
     def testLuserOpers(self):
         self.connectClient("bar", name="bar")
@@ -204,7 +204,7 @@ class LuserOpersTest(LusersTestCase):
         self.assertIn(lusers.Opers, (0, None))
 
         # add 1 oper
-        self.sendLine("bar", "OPER root frenchfries")
+        self.sendLine("bar", "OPER operuser operpassword")
         msgs = self.getMessages("bar")
         self.assertIn(RPL_YOUREOPER, {msg.command for msg in msgs})
         lusers = self.getLusers("bar")
@@ -213,7 +213,7 @@ class LuserOpersTest(LusersTestCase):
 
         # now 2 opers
         self.connectClient("qux", name="qux")
-        self.sendLine("qux", "OPER root frenchfries")
+        self.sendLine("qux", "OPER operuser operpassword")
         self.getMessages("qux")
         lusers = self.getLusers("bar")
         self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
@@ -235,7 +235,7 @@ class LuserOpersTest(LusersTestCase):
         self.assertEqual(lusers.Opers, 0)
 
 
-class OragonoInvisibleDefaultTest(LusersTestCase):
+class ErgoInvisibleDefaultTestCase(LusersTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(

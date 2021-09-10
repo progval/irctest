@@ -116,7 +116,7 @@ class LengthLimitTestCase(cases.BaseServerTestCase):
         self.joinChannel("bar", "#test_channel")
 
 
-class TestNoCTCPMode(cases.BaseServerTestCase):
+class NoCTCPModeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
     def testNoCTCPMode(self):
         self.connectClient("bar", "bar")

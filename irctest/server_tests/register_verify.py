@@ -5,7 +5,7 @@ REGISTER_CAP_NAME = "draft/account-registration"
 
 
 @cases.mark_specifications("IRCv3")
-class TestRegisterBeforeConnect(cases.BaseServerTestCase):
+class RegisterBeforeConnectTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
@@ -29,7 +29,7 @@ class TestRegisterBeforeConnect(cases.BaseServerTestCase):
 
 
 @cases.mark_specifications("IRCv3")
-class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
+class RegisterBeforeConnectDisallowedTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
@@ -56,7 +56,7 @@ class TestRegisterBeforeConnectDisallowed(cases.BaseServerTestCase):
 
 
 @cases.mark_specifications("IRCv3")
-class TestRegisterEmailVerified(cases.BaseServerTestCase):
+class RegisterEmailVerifiedTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
@@ -106,7 +106,7 @@ class TestRegisterEmailVerified(cases.BaseServerTestCase):
 
 
 @cases.mark_specifications("IRCv3", "Ergo")
-class TestRegisterNoLandGrabs(cases.BaseServerTestCase):
+class RegisterNoLandGrabsTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
