@@ -12,7 +12,7 @@ from irctest.numerics import (
     RPL_HELPSTART,
     RPL_HELPTXT,
 )
-from irctest.patma import ANYSTR
+from irctest.patma import ANYSTR, StrRe
 
 
 class HelpTestCase(cases.BaseServerTestCase):
@@ -80,7 +80,13 @@ class HelpTestCase(cases.BaseServerTestCase):
             self.assertMessageMatch(
                 messages[0],
                 command=ERR_HELPNOTFOUND,
-                params=["nick", "THISISNOTACOMMAND", ANYSTR],
+                params=[
+                    "nick",
+                    StrRe(
+                        "(?i)THISISNOTACOMMAND"
+                    ),  # case-insensitive, for Hybrid and Plexus4 (but not Chary et al)
+                    ANYSTR,
+                ],
             )
         else:
             # Unrealircd
