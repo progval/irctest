@@ -13,6 +13,7 @@ ANOPE_SELECTORS := \
 
 # buffering tests cannot pass because of issues with UTF-8 handling: https://github.com/DALnet/bahamut/issues/196
 # mask tests in test_who.py fail because they are not implemented.
+# some HelpTestCase::*[HELP] tests fail because Bahamut forwards /HELP to HelpServ (but not /HELPOP)
 BAHAMUT_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -21,6 +22,7 @@ BAHAMUT_SELECTORS := \
 	and not buffering \
 	and not (testWho and not whois and mask) \
 	and not testWhoStar \
+	and (not HelpTestCase or HELPOP) \
 	$(EXTRA_SELECTORS)
 
 # testQuitErrors is very flaky
@@ -67,6 +69,7 @@ INSPIRCD_SELECTORS := \
 # testKeyValidation[empty] fails because ircu2 returns ERR_NEEDMOREPARAMS on empty keys: https://github.com/UndernetIRC/ircu2/issues/13
 # testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
 # testEmptyRealname fails because it uses a default value instead of ERR_NEEDMOREPARAMS.
+# HelpTestCase fails because it returns NOTICEs instead of numerics
 IRCU2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -78,6 +81,7 @@ IRCU2_SELECTORS := \
 	and not (testKeyValidation and empty) \
 	and not testKickDefaultComment \
 	and not testEmptyRealname \
+	and not HelpTestCase \
 	$(EXTRA_SELECTORS)
 
 # same justification as ircu2
@@ -94,6 +98,7 @@ SNIRCD_SELECTORS := \
 # testListEmpty and testListOne fails because irc2 deprecated LIST
 # testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
 # testWallopsPrivileges fails because it ignores the command instead of replying ERR_UNKNOWNCOMMAND
+# HelpTestCase fails because it returns NOTICEs instead of numerics
 IRC2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -101,6 +106,7 @@ IRC2_SELECTORS := \
 	and not testListEmpty and not testListOne \
 	and not testKickDefaultComment \
 	and not testWallopsPrivileges \
+	and not HelpTestCase \
 	$(EXTRA_SELECTORS)
 
 MAMMON_SELECTORS := \
@@ -113,6 +119,7 @@ MAMMON_SELECTORS := \
 # testStarNick: wat
 # testEmptyRealname fails because it uses a default value instead of ERR_NEEDMOREPARAMS.
 # chathistory tests fail because they need nicks longer than 9 chars
+# HelpTestCase::*[HELP] fails because it returns NOTICEs instead of numerics
 NGIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -121,6 +128,7 @@ NGIRCD_SELECTORS := \
 	and not testStarNick \
 	and not testEmptyRealname \
 	and not chathistory \
+	and (not HelpTestCase or HELPOP) \
 	$(EXTRA_SELECTORS)
 
 # testInviteUnoppedModern is the only strict test that Plexus4 fails
@@ -163,6 +171,7 @@ SOPEL_SELECTORS := \
 # testChathistory[BETWEEN] fails: https://bugs.unrealircd.org/view.php?id=5952
 # testChathistory[AROUND] fails: https://bugs.unrealircd.org/view.php?id=5953
 # testWhoAllOpers fails because Unreal skips results when the mask is too broad
+# HELP and HELPOP tests fail because Unreal uses custom numerics https://github.com/unrealircd/unrealircd/pull/184
 UNREALIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -177,6 +186,7 @@ UNREALIRCD_SELECTORS := \
 	and not private_chathistory \
 	and not (testChathistory and (between or around)) \
 	and not testWhoAllOpers \
+	and not HelpTestCase \
 	$(EXTRA_SELECTORS)
 
 .PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon limnoria sopel solanum unrealircd

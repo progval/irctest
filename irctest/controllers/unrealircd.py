@@ -15,6 +15,7 @@ TEMPLATE_CONFIG = """
 include "modules.default.conf";
 include "operclass.default.conf";
 {extras}
+include "help/help.conf";
 
 me {{
     name "My.Little.Server";
