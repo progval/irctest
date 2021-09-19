@@ -21,6 +21,7 @@ TEMPLATE_CONFIG = """
 
 <class
     name="ServerOperators"
+    commands="WALLOPS GLOBOPS"
     privs="channels/auspex users/auspex channels/auspex servers/auspex"
     >
 <type
