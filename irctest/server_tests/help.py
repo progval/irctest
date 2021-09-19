@@ -2,6 +2,8 @@
 The HELP and HELPOP command.
 """
 
+import re
+
 import pytest
 
 from irctest import cases, runner
@@ -17,6 +19,9 @@ from irctest.patma import ANYSTR, StrRe
 
 class HelpTestCase(cases.BaseServerTestCase):
     def _assertValidHelp(self, messages, subject):
+        if subject != ANYSTR:
+            subject = StrRe("(?i)" + re.escape(subject))
+
         self.assertMessageMatch(
             messages[0],
             command=RPL_HELPSTART,
