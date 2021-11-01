@@ -3,8 +3,18 @@ import importlib
 import _pytest.unittest
 import pytest
 
-from irctest.basecontrollers import BaseClientController, BaseServerController
-from irctest.cases import BaseClientTestCase, BaseServerTestCase, _IrcTestCase
+# Must be called before importing irctest.cases.
+pytest.register_assert_rewrite("irctest.cases")
+
+from irctest.basecontrollers import (  # noqa: E402
+    BaseClientController,
+    BaseServerController,
+)
+from irctest.cases import (  # noqa: E402
+    BaseClientTestCase,
+    BaseServerTestCase,
+    _IrcTestCase,
+)
 
 
 def pytest_addoption(parser):
