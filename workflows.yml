@@ -276,7 +276,7 @@ software:
         install_steps:
             stable:
                 - name: Install dependencies
-                  run: pip install limnoria==2021.06.15 cryptography pyxmpp2-scram
+                  run: pip install limnoria==2021.10.09 cryptography pyxmpp2-scram
             release:
                 - name: Install dependencies
                   run: pip install limnoria cryptography pyxmpp2-scram
