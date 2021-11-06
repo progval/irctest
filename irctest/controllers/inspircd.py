@@ -22,7 +22,7 @@ TEMPLATE_CONFIG = """
 <class
     name="ServerOperators"
     commands="WALLOPS GLOBOPS"
-    privs="channels/auspex users/auspex channels/auspex servers/auspex"
+    privs="channels/auspex users/auspex channels/auspex servers/auspex users/mass-message"
     >
 <type
     name="NetAdmin"

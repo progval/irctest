@@ -3,8 +3,8 @@ Section 3.2 of RFC 2812
 <https://tools.ietf.org/html/rfc2812#section-3.3>
 """
 
-from irctest import cases
-from irctest.numerics import ERR_INPUTTOOLONG
+from irctest import cases, runner
+from irctest.numerics import ERR_INPUTTOOLONG, ERR_NOPRIVILEGES, ERR_NOSUCHNICK
 
 
 class PrivmsgTestCase(cases.BaseServerTestCase):
@@ -32,6 +32,97 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         msg = self.getMessage(1)
         # ERR_NOSUCHNICK, ERR_NOSUCHCHANNEL, or ERR_CANNOTSENDTOCHAN
         self.assertIn(msg.command, ("401", "403", "404"))
+
+
+class PrivmsgServermaskTestCase(cases.BaseServerTestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.connectClient("chk", "chk")
+        self.sendLine("chk", "PRIVMSG $my.little.server :hello there")
+        msg = self.getMessage("chk")
+        if msg.command == ERR_NOSUCHNICK:
+            raise runner.NotImplementedByController("PRIVMSG to server mask")
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testPrivmsgServermask(self):
+        """
+        <https://datatracker.ietf.org/doc/html/rfc1459#section-4.4.1>
+        <https://datatracker.ietf.org/doc/html/rfc2812>
+        <https://github.com/ircdocs/modern-irc/pull/134>
+        """
+        self.connectClient("sender", "sender")
+        self.connectClient("user", "user")
+
+        self.sendLine("sender", "OPER operuser operpassword")
+        self.getMessages("sender")
+
+        self.sendLine("sender", "PRIVMSG $*.server :hello there")
+        self.getMessages("sender")
+        self.assertMessageMatch(
+            self.getMessage("user"),
+            command="PRIVMSG",
+            params=["$*.server", "hello there"],
+        )
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testPrivmsgServermaskNoMatch(self):
+        """
+        <https://datatracker.ietf.org/doc/html/rfc1459#section-4.4.1>
+        <https://datatracker.ietf.org/doc/html/rfc2812>
+        <https://github.com/ircdocs/modern-irc/pull/134>
+        """
+        self.connectClient("sender", "sender")
+        self.connectClient("user", "user")
+
+        self.sendLine("sender", "OPER operuser operpassword")
+        self.getMessages("sender")
+
+        self.sendLine("sender", "PRIVMSG $*.foobar :hello there")
+        messages = self.getMessages("sender")
+        self.assertEqual(len(messages), 0, messages)
+        messages = self.getMessages("user")
+        self.assertEqual(len(messages), 0, messages)
+
+    @cases.mark_specifications("Modern")
+    def testPrivmsgServermaskStar(self):
+        """
+        <https://github.com/ircdocs/modern-irc/pull/134>
+
+        Note: 1459 and 2812 explicitly forbid "$*" as target.
+        """
+        self.connectClient("sender", "sender")
+        self.connectClient("user", "user")
+
+        self.sendLine("sender", "OPER operuser operpassword")
+        self.getMessages("sender")
+
+        self.connectClient("user", "user")
+
+        self.sendLine("sender", "OPER operuser operpassword")
+        self.getMessages("sender")
+
+        self.sendLine("sender", "PRIVMSG $* :hello there")
+        self.getMessages("sender")
+        self.assertMessageMatch(
+            self.getMessage("user"), command="PRIVMSG", params=["$*", "hello there"]
+        )
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testPrivmsgServermaskNotOper(self):
+        """
+        <https://datatracker.ietf.org/doc/html/rfc1459#section-4.4.1>
+        <https://datatracker.ietf.org/doc/html/rfc2812>
+        <https://github.com/ircdocs/modern-irc/pull/134>
+        """
+        self.connectClient("sender", "sender")
+        self.connectClient("user", "user")
+
+        self.sendLine("sender", "PRIVMSG $*.foobar :hello there")
+        self.assertMessageMatch(self.getMessage("sender"), command=ERR_NOPRIVILEGES)
+
+        pms = [msg for msg in self.getMessages("user") if msg.command == "PRIVMSG"]
+        self.assertEqual(len(pms), 0)
 
 
 class NoticeTestCase(cases.BaseServerTestCase):
