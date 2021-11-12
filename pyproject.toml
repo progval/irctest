@@ -1,5 +1,6 @@
 [tool.black]
 target-version = ['py37']
+exclude = 'irctest/scram/*'
 
 [tool.isort]
 multi_line_output = 3
