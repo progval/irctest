@@ -199,7 +199,7 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase, cases.Optionality
     def testWhoisNumerics(self, away, oper):
         """Tests all numerics are in the exhaustive list defined in the Modern spec.
 
-        TBD modern PR"""
+        <https://modern.ircdocs.horse/#whois-message>"""
         self._testWhoisNumerics(authenticate=False, away=away, oper=oper)
 
 
@@ -214,7 +214,7 @@ class ServicesWhoisTestCase(
         """Tests all numerics are in the exhaustive list defined in the Modern spec,
         on an authenticated user.
 
-        TBD modern PR"""
+        <https://modern.ircdocs.horse/#whois-message>"""
         self._testWhoisNumerics(oper=oper, authenticate=True, away=False)
 
     @cases.mark_specifications("Ergo")
