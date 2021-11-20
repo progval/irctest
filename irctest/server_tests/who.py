@@ -2,7 +2,7 @@ import pytest
 
 from irctest import cases
 from irctest.numerics import RPL_ENDOFWHO, RPL_WHOREPLY, RPL_YOUREOPER
-from irctest.patma import ANYSTR, StrRe
+from irctest.patma import ANYSTR, InsensitiveStr, StrRe
 
 
 class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
@@ -79,13 +79,15 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         # in its `WHO` message. This means the case MUST be preserved."
         # -- https://github.com/ircdocs/modern-irc/pull/138/files
         self.assertMessageMatch(
-            end, command=RPL_ENDOFWHO, params=["otherNick", mask, ANYSTR]
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
     @pytest.mark.parametrize(
         "mask",
-        ["*usernam", "*UniqueReal*", "*UniqueReal Name"],
-        ids=["username", "realname-without-spaces", "realname-with-spaces"],
+        ["*usernam", "*UniqueReal*"],
+        ids=["username", "realname"],
     )
     @cases.mark_specifications("Modern")
     def testWhoUsernameRealName(self, mask):
@@ -106,8 +108,35 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         # in its `WHO` message. This means the case MUST be preserved."
         # -- https://github.com/ircdocs/modern-irc/pull/138/files
         self.assertMessageMatch(
-            end, command=RPL_ENDOFWHO, params=["otherNick", mask, ANYSTR]
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
+
+    @cases.mark_specifications("Modern")
+    def testWhoRealNameSpaces(self):
+        self._init()
+
+        self.sendLine(2, "WHO :*UniqueReal Name")
+        messages = self.getMessages(2)
+
+        self.assertEqual(len(messages), 2, "Unexpected number of messages")
+
+        (reply, end) = messages
+
+        self._checkReply(reply, "H")
+
+        # What to do here? This?
+        # self.assertMessageMatch(
+        #     end,
+        #     command=RPL_ENDOFWHO,
+        #     params=[
+        #         "otherNick",
+        #         InsensitiveStr("*UniqueReal"),
+        #         InsensitiveStr("Name"),
+        #         ANYSTR,
+        #     ],
+        # )
 
     @pytest.mark.parametrize("mask", ["coolNick", "coolni*"])
     @cases.mark_specifications("Modern")
@@ -129,7 +158,9 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self._checkReply(reply, "G")
 
         self.assertMessageMatch(
-            end, command=RPL_ENDOFWHO, params=["otherNick", mask, ANYSTR]
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
     @pytest.mark.parametrize("mask", ["coolNick", "coolni*"])
@@ -157,7 +188,9 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self._checkReply(reply, "H*")
 
         self.assertMessageMatch(
-            end, command=RPL_ENDOFWHO, params=["otherNick", mask, ANYSTR]
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
     @pytest.mark.parametrize("mask", ["coolNick", "coolni*"])
@@ -187,7 +220,9 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self._checkReply(reply, "G*")
 
         self.assertMessageMatch(
-            end, command=RPL_ENDOFWHO, params=["otherNick", mask, ANYSTR]
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
     @cases.mark_specifications("Modern")
@@ -216,7 +251,9 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self._checkReply(reply, "H*")
 
         self.assertMessageMatch(
-            end, command=RPL_ENDOFWHO, params=["otherNick", mask, ANYSTR]
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
     @pytest.mark.parametrize("mask", ["#chan", "#CHAN"])
@@ -278,5 +315,7 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
 
         self.assertMessageMatch(
-            end, command=RPL_ENDOFWHO, params=["otherNick", mask, ANYSTR]
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )

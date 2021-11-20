@@ -44,6 +44,14 @@ class NotStrRe(Operator):
 
 
 @dataclasses.dataclass(frozen=True)
+class InsensitiveStr(Operator):
+    string: str
+
+    def __repr__(self) -> str:
+        return f"InsensitiveStr({self.string!r})"
+
+
+@dataclasses.dataclass(frozen=True)
 class RemainingKeys(Operator):
     """Used in a dict pattern to match all remaining keys.
     May only be present once."""
@@ -81,6 +89,9 @@ def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bo
             return False
     elif isinstance(expected, NotStrRe):
         if got is None or re.match(expected.regexp, got):
+            return False
+    elif isinstance(expected, InsensitiveStr):
+        if got is None or got.lower() != expected.string.lower():
             return False
     elif isinstance(expected, Operator):
         raise NotImplementedError(f"Unsupported operator: {expected}")
