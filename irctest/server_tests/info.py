@@ -5,7 +5,7 @@ The INFO command.
 import pytest
 
 from irctest import cases
-from irctest.numerics import ERR_NOSUCHSERVER, RPL_ENDOFINFO, RPL_INFO
+from irctest.numerics import ERR_NOSUCHSERVER, RPL_ENDOFINFO, RPL_INFO, RPL_YOUREOPER
 from irctest.patma import ANYSTR
 
 
@@ -26,6 +26,14 @@ class InfoTestCase(cases.BaseServerTestCase):
         -- <https://modern.ircdocs.horse/#info-message>
         """
         self.connectClient("nick")
+
+        # Remote /INFO is oper-only on Unreal and ircu2
+        self.sendLine(1, "OPER operuser operpassword")
+        self.assertIn(
+            RPL_YOUREOPER,
+            [m.command for m in self.getMessages(1)],
+            fail_msg="OPER failed",
+        )
 
         if target:
             self.sendLine(1, "INFO My.Little.Server")
@@ -54,6 +62,14 @@ class InfoTestCase(cases.BaseServerTestCase):
         -- <https://modern.ircdocs.horse/#info-message>
         """
         self.connectClient("nick")
+
+        # Remote /INFO is oper-only on Unreal and ircu2
+        self.sendLine(1, "OPER operuser operpassword")
+        self.assertIn(
+            RPL_YOUREOPER,
+            [m.command for m in self.getMessages(1)],
+            fail_msg="OPER failed",
+        )
 
         self.sendLine(1, f"INFO {target}")
 
