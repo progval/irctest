@@ -225,37 +225,6 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
-    @cases.mark_specifications("Modern")
-    def testWhoAllOpers(self):
-        """Test basic WHOIS behavior"""
-        self._init()
-
-        mask = "*"
-
-        self.sendLine(1, "OPER operuser operpassword")
-        self.assertIn(
-            RPL_YOUREOPER,
-            [m.command for m in self.getMessages(1)],
-            fail_msg="OPER failed",
-        )
-
-        self.getMessages(2)
-
-        self.sendLine(2, f"WHO {mask} o")
-        messages = self.getMessages(2)
-
-        self.assertEqual(len(messages), 2, "Unexpected number of messages")
-
-        (reply, end) = messages
-
-        self._checkReply(reply, "H*")
-
-        self.assertMessageMatch(
-            end,
-            command=RPL_ENDOFWHO,
-            params=["otherNick", InsensitiveStr(mask), ANYSTR],
-        )
-
     @pytest.mark.parametrize("mask", ["#chan", "#CHAN"])
     @cases.mark_specifications("Modern")
     def testWhoChan(self, mask):
