@@ -17,6 +17,8 @@ TEMPLATE_CONFIG = """
     resolvehostnames="no" # Faster
     recvq="40960" # Needs to be larger than a valid message with tags
     timeout="10"  # So tests don't hang too long
+    localmax="1000"
+    globalmax="1000"
     {password_field}>
 
 <class
