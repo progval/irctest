@@ -84,12 +84,12 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
+    @pytest.mark.skip("Not consistently implemented")
     @pytest.mark.parametrize(
         "mask",
-        ["*usernam", "*UniqueReal*"],
-        ids=["username", "realname"],
+        ["*usernam", "*UniqueReal*", "127.0.0.1"],
+        ids=["username", "realname", "hostname"],
     )
-    @cases.mark_specifications("Modern")
     def testWhoUsernameRealName(self, mask):
         """Test basic WHOIS behavior"""
 
@@ -113,7 +113,7 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
-    @cases.mark_specifications("Modern")
+    @pytest.mark.skip("Not consistently implemented")
     def testWhoRealNameSpaces(self):
         self._init()
 
