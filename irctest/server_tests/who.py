@@ -1,8 +1,18 @@
+import re
+
 import pytest
 
 from irctest import cases
 from irctest.numerics import RPL_ENDOFWHO, RPL_WHOREPLY, RPL_YOUREOPER
 from irctest.patma import ANYSTR, InsensitiveStr, StrRe
+
+
+def realname_regexp(realname):
+    return (
+        "[0-9]+ "  # is 0 for every IRCd I can find, except ircu2 (which returns 3)
+        + "(0042 )?"  # for irc2...
+        + re.escape(realname)
+    )
 
 
 class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
@@ -39,7 +49,7 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                     "My.Little.Server",
                     "coolNick",
                     flags,
-                    "0 " + self.realname,
+                    StrRe(realname_regexp(self.realname)),
                 ],
             )
         else:
@@ -55,7 +65,7 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                     "My.Little.Server",
                     "coolNick",
                     flags + "@",
-                    "0 " + self.realname,
+                    StrRe(realname_regexp(self.realname)),
                 ],
             )
 
@@ -264,7 +274,7 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 "My.Little.Server",
                 "coolNick",
                 "G*@",
-                "0 " + self.realname,
+                StrRe(realname_regexp(self.realname)),
             ],
         )
 
@@ -279,7 +289,7 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 "My.Little.Server",
                 "otherNick",
                 "H",
-                StrRe("0 .*"),
+                StrRe("[0-9]+ .*"),
             ],
         )
 
