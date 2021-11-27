@@ -69,6 +69,33 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 ],
             )
 
+    @cases.mark_specifications("Modern")
+    def testWhoStar(self):
+        """Test basic WHOIS behavior"""
+
+        self._init()
+
+        self.sendLine(2, "WHO *")
+        messages = self.getMessages(2)
+
+        self.assertEqual(len(messages), 3, "Unexpected number of messages")
+
+        (*replies, end) = messages
+
+        # Get them in deterministic order
+        replies.sort(key=lambda msg: msg.params[5])
+
+        self._checkReply(replies[0], "H")
+
+        # " `<mask>` MUST be exactly the `<mask>` parameter sent by the client
+        # in its `WHO` message. This means the case MUST be preserved."
+        # -- https://github.com/ircdocs/modern-irc/pull/138/files
+        self.assertMessageMatch(
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", "*", ANYSTR],
+        )
+
     @pytest.mark.parametrize("mask", ["coolNick", "coolnick", "coolni*"])
     @cases.mark_specifications("Modern")
     def testWhoNick(self, mask):
