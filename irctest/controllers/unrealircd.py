@@ -1,5 +1,7 @@
+import functools
 import os
 import subprocess
+import textwrap
 from typing import Optional, Set, Type
 
 from irctest.basecontrollers import (
@@ -12,6 +14,7 @@ from irctest.irc_utils.junkdrawer import find_hostname_and_port
 TEMPLATE_CONFIG = """
 include "modules.default.conf";
 include "operclass.default.conf";
+{extras}
 
 me {{
     name "My.Little.Server";
@@ -110,6 +113,17 @@ oper "operuser" {{
 """
 
 
+@functools.lru_cache()
+def installed_version() -> int:
+    output = subprocess.check_output(["unrealircd", "-v"], universal_newlines=True)
+    if output.startswith("UnrealIRCd-5."):
+        return 5
+    elif output.startswith("UnrealIRCd-6."):
+        return 6
+    else:
+        assert False, f"unexpected version: {output}"
+
+
 class UnrealircdController(BaseServerController, DirectoryBasedController):
     software_name = "UnrealIRCd"
     supported_sasl_mechanisms = {"PLAIN"}
@@ -155,6 +169,16 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
             # Unreal refuses to start without TLS enabled
             (tls_hostname, tls_port) = (unused_hostname, unused_port)
 
+        if installed_version() >= 6:
+            extras = textwrap.dedent(
+                """
+                include "snomasks.default.conf";
+                loadmodule "cloak_md5";
+                """
+            )
+        else:
+            extras = ""
+
         with self.open_file("empty.txt") as fd:
             fd.write("\n")
 
@@ -172,6 +196,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                     key_path=self.key_path,
                     pem_path=self.pem_path,
                     empty_file=os.path.join(self.directory, "empty.txt"),
+                    extras=extras,
                 )
             )
         self.proc = subprocess.Popen(

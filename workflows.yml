@@ -251,8 +251,8 @@ software:
         refs: &unrealircd_refs
             stable: 94993a03ca8d3c193c0295c33af39270c3f9d27d  # 5.2.1-rc1
             release: null
-            devel: unreal52
-            devel_release: null
+            devel: unreal60_dev
+            devel_release: unreal52
         path: unrealircd
         prefix: ~/.local/unrealircd
         separate_build_job: true
