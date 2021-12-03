@@ -10,6 +10,7 @@ import re
 import pytest
 
 from irctest import cases
+from irctest.numerics import ERR_UNKNOWNCOMMAND
 from irctest.patma import ANYDICT, AnyOptStr, NotStrRe, RemainingKeys, StrRe
 
 
@@ -502,3 +503,19 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
         ack = ms[0]
 
         self.assertMessageMatch(ack, command="ACK", tags={"label": "98765"})
+
+    @cases.mark_capabilities("labeled-response")
+    def testUnknownCommand(self):
+        self.connectClient(
+            "bar", capabilities=["batch", "labeled-response"], skip_if_cap_nak=True
+        )
+
+        # this command doesn't exist, but the error response should still
+        # be labeled:
+        self.sendLine(1, "@label=deadbeef NONEXISTENT_COMMAND")
+        ms = self.getMessages(1)
+        self.assertEqual(len(ms), 1)
+        unknowncommand = ms[0]
+        self.assertMessageMatch(
+            unknowncommand, command=ERR_UNKNOWNCOMMAND, tags={"label": "deadbeef"}
+        )
