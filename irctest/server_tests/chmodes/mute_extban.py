@@ -16,7 +16,7 @@ class MuteExtbanTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("Ergo")
     def testISupport(self):
-        self.connectClient(1)  # Fetches ISUPPORT
+        self.connectClient("chk")  # Fetches ISUPPORT
         isupport = self.server_support
         token = isupport["EXTBAN"]
         prefix, comma, types = token.partition(",")
