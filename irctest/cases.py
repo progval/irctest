@@ -162,7 +162,7 @@ class _IrcTestCase(Generic[TController]):
                     msg=msg,
                 )
 
-        if prefix and not patma.match_string(msg.prefix, prefix):
+        if prefix is not None and not patma.match_string(msg.prefix, prefix):
             fail_msg = (
                 fail_msg or "expected prefix to match {expects}, got {got}: {msg}"
             )
@@ -170,7 +170,7 @@ class _IrcTestCase(Generic[TController]):
                 *extra_format, got=msg.prefix, expects=prefix, msg=msg
             )
 
-        if params and not patma.match_list(list(msg.params), params):
+        if params is not None and not patma.match_list(list(msg.params), params):
             fail_msg = (
                 fail_msg or "expected params to match {expects}, got {got}: {msg}"
             )
@@ -178,11 +178,11 @@ class _IrcTestCase(Generic[TController]):
                 *extra_format, got=msg.params, expects=params, msg=msg
             )
 
-        if tags and not patma.match_dict(msg.tags, tags):
+        if tags is not None and not patma.match_dict(msg.tags, tags):
             fail_msg = fail_msg or "expected tags to match {expects}, got {got}: {msg}"
             return fail_msg.format(*extra_format, got=msg.tags, expects=tags, msg=msg)
 
-        if nick:
+        if nick is not None:
             got_nick = msg.prefix.split("!")[0] if msg.prefix else None
             if nick != got_nick:
                 fail_msg = (
