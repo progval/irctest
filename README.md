@@ -113,6 +113,9 @@ cd inspircd
 # optional, makes tests run considerably faster
 patch src/inspircd.cpp < ~/irctest/inspircd_mainloop.patch
 
+# third-party module, used in named-modes tests because the spec is not implemented upstream
+wget https://raw.githubusercontent.com/progval/inspircd-contrib/namedmodes/4.0/m_ircv3_namedmodes.cpp -O src/modules/m_ircv3_namedmodes.cpp
+
 ./configure --prefix=$HOME/.local/ --development
 make -j 4
 make install

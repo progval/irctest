@@ -36,6 +36,7 @@ class Capabilities(enum.Enum):
     MESSAGE_TAGS = "message-tags"
     MULTILINE = "draft/multiline"
     MULTI_PREFIX = "multi-prefix"
+    NAMED_MODES = "draft/named-modes"
     SERVER_TIME = "server-time"
     STS = "sts"
 
