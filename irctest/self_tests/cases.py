@@ -4,7 +4,16 @@ import pytest
 
 from irctest import cases
 from irctest.irc_utils.message_parser import parse_message
-from irctest.patma import ANYDICT, ANYSTR, AnyOptStr, NotStrRe, RemainingKeys, StrRe
+from irctest.patma import (
+    ANYDICT,
+    ANYLIST,
+    ANYSTR,
+    AnyOptStr,
+    ListRemainder,
+    NotStrRe,
+    RemainingKeys,
+    StrRe,
+)
 
 # fmt: off
 MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
@@ -150,6 +159,58 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
             "@tag1=value1 PRIVMSG #chan :hello",
             "@tag1=bar;tag2= PRIVMSG #chan :hello",
             "@tag1=bar;tag2=baz PRIVMSG #chan :hello",
+        ]
+    ),
+    (
+        # the specification:
+        dict(
+            command="005",
+            params=["nick", "FOO=1", *ANYLIST],
+        ),
+        # matches:
+        [
+            "005 nick FOO=1",
+            "005 nick FOO=1 BAR=2",
+        ],
+        # and does not match:
+        [
+            "005 nick",
+            "005 nick BAR=2",
+        ]
+    ),
+    (
+        # the specification:
+        dict(
+            command="005",
+            params=["nick", ListRemainder(ANYSTR, min_length=1)],
+        ),
+        # matches:
+        [
+            "005 nick FOO=1",
+            "005 nick FOO=1 BAR=2",
+            "005 nick BAR=2",
+        ],
+        # and does not match:
+        [
+            "005 nick",
+        ]
+    ),
+    (
+        # the specification:
+        dict(
+            command="005",
+            params=["nick", ListRemainder(StrRe("[A-Z]+=.*"), min_length=1)],
+        ),
+        # matches:
+        [
+            "005 nick FOO=1",
+            "005 nick FOO=1 BAR=2",
+            "005 nick BAR=2",
+        ],
+        # and does not match:
+        [
+            "005 nick",
+            "005 nick foo=1",
         ]
     ),
 ]

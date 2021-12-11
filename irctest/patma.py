@@ -70,12 +70,19 @@ ANYDICT = {RemainingKeys(ANYSTR): AnyOptStr()}
 `match_dict(got_tags, {"label": "foo", **ANYDICT})`"""
 
 
-class _AnyListRemainder:
+@dataclasses.dataclass(frozen=True)
+class ListRemainder:
+    item: Operator
+    min_length: int = 0
+
     def __repr__(self) -> str:
-        return "*ANYLIST"
+        if self.min_length:
+            return f"*ListRemainder({self.item!r}, min_length={self.min_length})"
+        else:
+            return f"*ListRemainder({self.item!r})"
 
 
-ANYLIST = [_AnyListRemainder()]
+ANYLIST = [ListRemainder(ANYSTR)]
 """Matches any list remainder"""
 
 
@@ -109,9 +116,13 @@ def match_list(
     The ANYSTR operator can be used on the 'expected' side as a wildcard,
     matching any *single* value; and StrRe("<regexp>") can be used to match regular
     expressions"""
-    if expected[-1] is ANYLIST[0]:
-        expected = expected[0:-1]
-        got = got[0 : len(expected)]  # Ignore remaining
+    if expected and isinstance(expected[-1], ListRemainder):
+        # Expand the 'expected' list to have as many items as the 'got' list
+        expected = list(expected)  # copy
+        remainder = expected.pop()
+        nb_remaining_items = len(got) - len(expected)
+        expected += [remainder.item] * max(nb_remaining_items, remainder.min_length)
+
     if len(got) != len(expected):
         return False
     return all(
