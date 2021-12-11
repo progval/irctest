@@ -20,7 +20,9 @@ class _NamedModeTestMixin:
     @cases.mark_specifications("IRCv3")
     def testListMode(self):
         """Checks list modes (type 1), using 'ban' as example."""
-        self.connectClient("foo", name="user", capabilities=["draft/named-modes"])
+        self.connectClient(
+            "foo", name="user", capabilities=["draft/named-modes"], skip_if_cap_nak=True
+        )
         self.connectClient("chanop", name="chanop", capabilities=["draft/named-modes"])
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
@@ -93,7 +95,9 @@ class _NamedModeTestMixin:
     @cases.mark_specifications("IRCv3")
     def testFlagModeDefaultOn(self):
         """Checks list modes (type 1), using 'noextmsg' as example."""
-        self.connectClient("foo", name="user", capabilities=["draft/named-modes"])
+        self.connectClient(
+            "foo", name="user", capabilities=["draft/named-modes"], skip_if_cap_nak=True
+        )
         self.connectClient("chanop", name="chanop", capabilities=["draft/named-modes"])
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
@@ -176,7 +180,9 @@ class _NamedModeTestMixin:
     @cases.mark_specifications("IRCv3")
     def testFlagModeDefaultOff(self):
         """Checks flag modes (type 4), using 'inviteonly' as example."""
-        self.connectClient("foo", name="user", capabilities=["draft/named-modes"])
+        self.connectClient(
+            "foo", name="user", capabilities=["draft/named-modes"], skip_if_cap_nak=True
+        )
         self.connectClient("chanop", name="chanop", capabilities=["draft/named-modes"])
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
@@ -267,7 +273,14 @@ class NamedModesTestCase(_NamedModeTestMixin, cases.BaseServerTestCase):
     @cases.mark_specifications("IRCv3")
     def testConnectionNumerics(self):
         """Tests RPL_CHMODELIST and RPL_UMODELIST."""
-        self.addClient()
+        self.connectClient(
+            "capchk",
+            name="capchk",
+            capabilities=["draft/named-modes"],
+            skip_if_cap_nak=True,
+        )
+
+        self.addClient(1)
         self.sendLine(1, "CAP LS 302")
         self.getCapLs(1)
         self.sendLine(1, "USER user user user :user")
