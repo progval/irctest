@@ -13,9 +13,61 @@ from irctest.numerics import (
     RPL_UMODELIST,
 )
 from irctest.patma import ANYLIST, ANYSTR, ListRemainder, StrRe
+from irctest.runner import NotImplementedByController
 
 
 class _NamedModeTestMixin:
+    ALLOW_MODE_REPLY: bool
+
+    def assertNewBans(self, msgs, expected_masks):
+        """Checks ``msgs`` is a set of PROP messages (and/or MODE if
+        ``self.ALLOW_MODE_REPLY`` is True) that ban exactly the given set of masks."""
+        banned_masks = set()
+        for msg in msgs:
+            if self.ALLOW_MODE_REPLY and msg.command == "MODE":
+                self.assertMessageMatch(
+                    msg, command="MODE", params=["#chan", StrRe(r"\+?b+"), *ANYLIST]
+                )
+                (_, chars, *args) = msg.params
+                chars = chars.lstrip("+")
+                self.assertEqual(
+                    len(chars), len(args), "Mismatched number of +b and args"
+                )
+                banned_masks.update(args)
+            else:
+                self.assertMessageMatch(
+                    msg,
+                    command="PROP",
+                    params=["#chan", ListRemainder(StrRe(r"\+ban=.+"), min_length=1)],
+                )
+                banned_masks.update(param.split("=")[1] for param in msg.params[1:])
+
+        self.assertEqual(banned_masks, expected_masks)
+
+    def assertNewUnbans(self, msgs, expected_masks):
+        """Same as ``assertNewBans`` but for unbans."""
+        banned_masks = set()
+        for msg in msgs:
+            if self.ALLOW_MODE_REPLY and msg.command == "MODE":
+                self.assertMessageMatch(
+                    msg, command="MODE", params=["#chan", StrRe(r"-b+"), *ANYLIST]
+                )
+                (_, chars, *args) = msg.params
+                chars = chars.lstrip("-")
+                self.assertEqual(
+                    len(chars), len(args), "Mismatched number of -b and args"
+                )
+                banned_masks.update(args)
+            else:
+                self.assertMessageMatch(
+                    msg,
+                    command="PROP",
+                    params=["#chan", ListRemainder(StrRe(r"-ban=.+"), min_length=1)],
+                )
+                banned_masks.update(param.split("=")[1] for param in msg.params[1:])
+
+        self.assertEqual(banned_masks, expected_masks)
+
     @cases.mark_capabilities("draft/named-modes")
     @cases.mark_specifications("IRCv3")
     def testListMode(self):
@@ -29,15 +81,7 @@ class _NamedModeTestMixin:
 
         # Set ban
         self.sendLine("chanop", "PROP #chan +ban=foo!*@*")
-        msg = self.getMessage("chanop")
-        if self.ALLOW_MODE_REPLY and msg.command == "MODE":
-            self.assertMessageMatch(
-                msg, command="MODE", params=["#chan", "+b", "foo!*@*"]
-            )
-        else:
-            self.assertMessageMatch(
-                msg, command="PROP", params=["#chan", "+ban=foo!*@*"]
-            )
+        self.assertNewBans(self.getMessages("chanop"), {"foo!*@*"})
 
         # Should not appear in the main list
         self.sendLine("chanop", "PROP #chan")
@@ -69,15 +113,7 @@ class _NamedModeTestMixin:
 
         # Unset ban
         self.sendLine("chanop", "PROP #chan -ban=foo!*@*")
-        msg = self.getMessage("chanop")
-        if msg.command == "MODE":
-            self.assertMessageMatch(
-                msg, command="MODE", params=["#chan", "-b", "foo!*@*"]
-            )
-        else:
-            self.assertMessageMatch(
-                msg, command="PROP", params=["#chan", "-ban=foo!*@*"]
-            )
+        self.assertNewUnbans(self.getMessages("chanop"), {"foo!*@*"})
 
         # Check unbanned
         self.sendLine("chanop", "PROP #chan ban")
@@ -94,7 +130,7 @@ class _NamedModeTestMixin:
     @cases.mark_capabilities("draft/named-modes")
     @cases.mark_specifications("IRCv3")
     def testFlagModeDefaultOn(self):
-        """Checks list modes (type 1), using 'noextmsg' as example."""
+        """Checks flag modes (type 4), using 'noextmsg' as example."""
         self.connectClient(
             "foo", name="user", capabilities=["draft/named-modes"], skip_if_cap_nak=True
         )
@@ -261,6 +297,77 @@ class _NamedModeTestMixin:
         self.sendLine("user", "JOIn #chan")
         self.assertMessageMatch(
             self.getMessage("user"), command="JOIN", params=["#chan"]
+        )
+
+    @cases.mark_capabilities("draft/named-modes")
+    @cases.mark_specifications("IRCv3")
+    def testManyListModes(self):
+        """Checks setting three list modes (type 1) at once, using 'ban' as example."""
+        self.connectClient("chanop", name="chanop", capabilities=["draft/named-modes"])
+        self.joinChannel("chanop", "#chan")
+        self.getMessages("chanop")
+
+        if int(self.server_support.get("MAXMODES") or "1") < 3:
+            raise NotImplementedByController("MAXMODES is not >= 3.")
+
+        # Set ban
+        self.sendLine("chanop", "PROP #chan +ban=foo1!*@* +ban=foo2!*@* +ban=foo3!*@*")
+        msgs = self.getMessages("chanop")
+        self.assertNewBans(msgs, {"foo1!*@*", "foo2!*@*", "foo3!*@*"})
+
+        # Should not appear in the main list
+        self.sendLine("chanop", "PROP #chan")
+        msg = self.getMessage("chanop")
+        self.assertMessageMatch(
+            msg, command=RPL_PROPLIST, params=["chanop", "#chan", *ANYLIST]
+        )
+        self.assertNotIn("ban", msg.params[2:])
+        self.assertMessageMatch(
+            self.getMessage("chanop"),
+            command=RPL_ENDOFPROPLIST,
+            params=["chanop", "#chan", ANYSTR],
+        )
+
+        # Check banned
+        self.sendLine("chanop", "PROP #chan ban")
+        # TODO: make it so the order doesn't matter
+        self.assertMessageMatch(
+            self.getMessage("chanop"),
+            command=RPL_LISTPROPLIST,
+            params=["chanop", "#chan", "ban", "foo1!*@*", *ANYLIST],
+        )
+        self.assertMessageMatch(
+            self.getMessage("chanop"),
+            command=RPL_LISTPROPLIST,
+            params=["chanop", "#chan", "ban", "foo2!*@*", *ANYLIST],
+        )
+        self.assertMessageMatch(
+            self.getMessage("chanop"),
+            command=RPL_LISTPROPLIST,
+            params=["chanop", "#chan", "ban", "foo3!*@*", *ANYLIST],
+        )
+        self.assertMessageMatch(
+            self.getMessage("chanop"),
+            command=RPL_ENDOFLISTPROPLIST,
+            params=["chanop", "#chan", "ban", ANYSTR],
+        )
+
+        # Unset two bans
+        self.sendLine("chanop", "PROP #chan -ban=foo2!*@* -ban=foo3!*@*")
+        msgs = self.getMessages("chanop")
+        self.assertNewUnbans(msgs, {"foo2!*@*", "foo3!*@*"})
+
+        # Check unbanned
+        self.sendLine("chanop", "PROP #chan ban")
+        self.assertMessageMatch(
+            self.getMessage("chanop"),
+            command=RPL_LISTPROPLIST,
+            params=["chanop", "#chan", "ban", "foo1!*@*", *ANYLIST],
+        )
+        self.assertMessageMatch(
+            self.getMessage("chanop"),
+            command=RPL_ENDOFLISTPROPLIST,
+            params=["chanop", "#chan", "ban", ANYSTR],
         )
 
 
