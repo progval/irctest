@@ -90,6 +90,7 @@ set {{
         // Prevent throttling, especially test_buffering.py which
         // triggers anti-flood with its very long lines
         unknown-users {{
+            nick-flood 255:10;
             lag-penalty 1;
             lag-penalty-bytes 10000;
         }}
@@ -129,7 +130,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
 
-    extban_mute_char = "q"
+    extban_mute_char = "quiet" if installed_version() >= 6 else "q"
 
     def create_config(self) -> None:
         super().create_config()

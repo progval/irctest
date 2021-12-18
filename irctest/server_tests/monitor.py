@@ -188,15 +188,12 @@ class MonitorTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "MONITOR + *!username@127.0.0.1")
         try:
             m = self.getMessage(1)
-            self.assertNotEqual(
-                m.command,
-                "731",
-                m,
-                fail_msg="Got 731 (RPL_MONOFFLINE) after adding a monitor "
-                "on a mask: {msg}",
-            )
+            self.assertMessageMatch(m, command="731")
         except NoMessageException:
             pass
+        else:
+            m = self.getMessage(1)
+            self.assertMessageMatch(m, command="731")
         self.connectClient("bar")
         try:
             m = self.getMessage(1)
