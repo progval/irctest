@@ -15,6 +15,40 @@ from irctest.numerics import (
 from irctest.patma import ANYLIST, ANYSTR, ListRemainder, StrRe
 from irctest.runner import NotImplementedByController
 
+CHMODES = {
+    "op",
+    "voice",
+    "ban",
+    "inviteonly",
+    "limit",
+    "moderated",
+    "noextmsg",
+    "key",
+    "private",
+    "topiclock",
+    "secret",
+    "banex",
+    "invex",
+    "admin",
+    "halfop",
+    "noctcp",
+    "owner",
+    "permanent",
+    "regonly",
+    "secureonly",
+    "mute",
+}
+
+UMODES = {
+    "invisible",
+    "oper",
+    "snomask",
+    "wallops",
+    "bot",
+    "hidechans",
+    "cloak",
+}
+
 
 class _NamedModeTestMixin:
     ALLOW_MODE_REPLY: bool
@@ -403,8 +437,8 @@ class NamedModesTestCase(_NamedModeTestMixin, cases.BaseServerTestCase):
         got_last_umode = False
         capturing_re = r"[12345]:(?P<name>(\S+/)?[a-zA-Z0-9-]+)(=[a-zA-Z]+)?"
         # fmt: off
-        chmode_re = r"[12345]:(\S+/)?[a-zA-Z0-9-]+(=[a-zA-Z]+)?"
-        umode_re  =    r"[34]:(\S+/)?[a-zA-Z0-9-]+(=[a-zA-Z]+)?"  # noqa
+        chmode_re = r"^[12345]:(\S+/)?[a-zA-Z0-9-]+(=[a-zA-Z]+)?$"
+        umode_re  =    r"^[34]:(\S+/)?[a-zA-Z0-9-]+(=[a-zA-Z]+)?$"  # noqa
         # fmt: on
         chmode_pat = [ListRemainder(StrRe(chmode_re), min_length=1)]
         umode_pat = [ListRemainder(StrRe(umode_re), min_length=1)]
@@ -452,6 +486,15 @@ class NamedModesTestCase(_NamedModeTestMixin, cases.BaseServerTestCase):
         )
         self.assertIn(
             "invisible", seen_umodes, "'invisible' umode not supported/advertised"
+        )
+
+        unknown_chmodes = {m for m in seen_chmodes if "/" not in m} - CHMODES
+        unknown_umodes = {m for m in seen_umodes if "/" not in m} - UMODES
+        self.assertFalse(
+            unknown_chmodes, fail_msg="Got unknown unvendored chmodes: {got}"
+        )
+        self.assertFalse(
+            unknown_umodes, fail_msg="Got unknown unvendored umodes: {got}"
         )
 
 
