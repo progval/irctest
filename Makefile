@@ -316,6 +316,8 @@ unrealircd:
 		-m 'not services' \
 		-k '$(UNREALIRCD_SELECTORS)'
 
+unrealircd-5: unrealircd
+
 unrealircd-atheme:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.unrealircd \
