@@ -246,13 +246,13 @@ software:
             make install
 
     unrealircd:
-        name: UnrealIRCd
+        name: UnrealIRCd 6
         repository: unrealircd/unrealircd
-        refs: &unrealircd_refs
-            stable: 94993a03ca8d3c193c0295c33af39270c3f9d27d  # 5.2.1-rc1
-            release: null
+        refs:
+            stable: d77f42e4bef388ae344256eeef9a8000345ae381  # 6.0.0 + 2 commits
+            release: 893bf864f6c616e891d84916d27e342c252f31aaa  # 6.0.0
             devel: unreal60_dev
-            devel_release: unreal52
+            devel_release: null
         path: unrealircd
         prefix: ~/.local/unrealircd
         separate_build_job: true
@@ -266,6 +266,19 @@ software:
             CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
             make -j 4
             make install
+
+    unrealircd-5:
+        name: UnrealIRCd 5
+        repository: unrealircd/unrealircd
+        refs:
+            stable: 94993a03ca8d3c193c0295c33af39270c3f9d27d  # 5.2.1-rc1
+            release: null
+            devel: unreal52
+            devel_release:
+        path: unrealircd
+        prefix: ~/.local/unrealircd
+        separate_build_job: true
+        build_script: *unrealircd_build_script
 
     #############################
     # Clients:
@@ -353,6 +366,9 @@ tests:
 
     ircu2:
         software: [ircu2]
+
+    unrealircd-5:
+        software: [unrealircd-5]
 
     unrealircd:
         software: [unrealircd]
