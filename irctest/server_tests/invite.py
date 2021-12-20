@@ -2,6 +2,7 @@ import pytest
 
 from irctest import cases
 from irctest.numerics import (
+    ERR_BANNEDFROMCHAN,
     ERR_CHANOPRIVSNEEDED,
     ERR_INVITEONLYCHAN,
     ERR_NOSUCHNICK,
@@ -410,3 +411,43 @@ class InviteTestCase(cases.BaseServerTestCase):
             command=ERR_USERONCHANNEL,
             params=["foo", "bar", "#chan", ANYSTR],
         )
+
+    @cases.mark_specifications("Ergo")
+    def testInviteExemptsFromBan(self):
+        # regression test for ergochat/ergo#1876;
+        # INVITE should override a +b ban
+        self.connectClient("alice", name="alice")
+        self.joinChannel("alice", "#alice")
+        self.sendLine("alice", "MODE #alice +b bob!*@*")
+        result = {msg.command for msg in self.getMessages("alice")}
+        self.assertIn("MODE", result)
+
+        self.connectClient("bob", name="bob")
+        self.sendLine("bob", "JOIN #alice")
+        result = {msg.command for msg in self.getMessages("bob")}
+        self.assertIn(ERR_BANNEDFROMCHAN, result)
+        self.assertNotIn("JOIN", result)
+
+        self.sendLine("alice", "INVITE bob #alice")
+        result = {msg.command for msg in self.getMessages("alice")}
+        self.assertIn(RPL_INVITING, result)
+        self.assertNotIn(ERR_USERONCHANNEL, result)
+
+        result = {msg.command for msg in self.getMessages("bob")}
+        self.assertIn("INVITE", result)
+
+        self.sendLine("bob", "JOIN #alice")
+        result = {msg.command for msg in self.getMessages("bob")}
+        self.assertNotIn(ERR_BANNEDFROMCHAN, result)
+        self.assertIn("JOIN", result)
+
+        self.sendLine("alice", "KICK #alice bob")
+        self.getMessages("alice")
+        result = {msg.command for msg in self.getMessages("bob")}
+        self.assertIn("KICK", result)
+
+        # INVITE gets "used up" after one JOIN
+        self.sendLine("bob", "JOIN #alice")
+        result = {msg.command for msg in self.getMessages("bob")}
+        self.assertIn(ERR_BANNEDFROMCHAN, result)
+        self.assertNotIn("JOIN", result)
