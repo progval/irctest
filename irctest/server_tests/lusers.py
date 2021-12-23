@@ -50,7 +50,7 @@ class LusersTestCase(cases.BaseServerTestCase):
         self.assertIn(lusers.LocalTotal, (total, None))
         self.assertIn(lusers.LocalMax, (max_, None))
 
-    def getLusers(self, client):
+    def getLusers(self, client, allow_missing_265_266):
         self.sendLine(client, "LUSERS")
         messages = self.getMessages(client)
         by_numeric = dict((msg.command, msg) for msg in messages)
@@ -78,6 +78,13 @@ class LusersTestCase(cases.BaseServerTestCase):
             result.Unregistered = int(by_numeric[RPL_LUSERUNKNOWN].params[1])
         if RPL_LUSERCHANNELS in by_numeric:
             result.Channels = int(by_numeric[RPL_LUSERCHANNELS].params[1])
+
+        if (
+            allow_missing_265_266
+            and RPL_LOCALUSERS not in by_numeric
+            and RPL_GLOBALUSERS not in by_numeric
+        ):
+            return
 
         # FIXME: RPL_LOCALUSERS and RPL_GLOBALUSERS are only in Modern, not in RFC2812
         localusers = by_numeric[RPL_LOCALUSERS]
@@ -114,23 +121,39 @@ class BasicLusersTestCase(LusersTestCase):
     @cases.mark_specifications("RFC2812")
     def testLusers(self):
         self.connectClient("bar", name="bar")
-        lusers = self.getLusers("bar")
+        self.getLusers("bar", True)
+
+        self.connectClient("qux", name="qux")
+        self.getLusers("qux", True)
+
+        self.sendLine("qux", "QUIT")
+        self.assertDisconnected("qux")
+        self.getLusers("bar", True)
+
+    @cases.mark_specifications("Modern")
+    def testLusersFull(self):
+        self.connectClient("bar", name="bar")
+        lusers = self.getLusers("bar", False)
         self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
 
         self.connectClient("qux", name="qux")
-        lusers = self.getLusers("qux")
+        lusers = self.getLusers("qux", False)
         self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
 
         self.sendLine("qux", "QUIT")
         self.assertDisconnected("qux")
-        lusers = self.getLusers("bar")
+        lusers = self.getLusers("bar", False)
         self.assertLusersResult(lusers, unregistered=0, total=1, max_=2)
 
 
 class LusersUnregisteredTestCase(LusersTestCase):
     @cases.mark_specifications("RFC2812")
-    def testLusers(self):
-        self.doLusersTest()
+    def testLusersRfc2812(self):
+        self.doLusersTest(True)
+
+    @cases.mark_specifications("Modern")
+    def testLusersFull(self):
+        self.doLusersTest(False)
 
     def _synchronize(self, client_name):
         """Synchronizes using a PING, but accept ERR_NOTREGISTERED as a response."""
@@ -145,34 +168,39 @@ class LusersUnregisteredTestCase(LusersTestCase):
                 "got neither PONG or ERR_NOTREGISTERED"
             )
 
-    def doLusersTest(self):
+    def doLusersTest(self, allow_missing_265_266):
         self.connectClient("bar", name="bar")
-        lusers = self.getLusers("bar")
-        self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
+        lusers = self.getLusers("bar", allow_missing_265_266)
+        if lusers:
+            self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
 
         self.addClient("qux")
         self.sendLine("qux", "NICK qux")
         self._synchronize("qux")
-        lusers = self.getLusers("bar")
-        self.assertLusersResult(lusers, unregistered=1, total=1, max_=1)
+        lusers = self.getLusers("bar", allow_missing_265_266)
+        if lusers:
+            self.assertLusersResult(lusers, unregistered=1, total=1, max_=1)
 
         self.addClient("bat")
         self.sendLine("bat", "NICK bat")
         self._synchronize("bat")
-        lusers = self.getLusers("bar")
-        self.assertLusersResult(lusers, unregistered=2, total=1, max_=1)
+        lusers = self.getLusers("bar", allow_missing_265_266)
+        if lusers:
+            self.assertLusersResult(lusers, unregistered=2, total=1, max_=1)
 
         # complete registration on one client
         self.sendLine("qux", "USER u s e r")
         self.getRegistrationMessage("qux")
-        lusers = self.getLusers("bar")
-        self.assertLusersResult(lusers, unregistered=1, total=2, max_=2)
+        lusers = self.getLusers("bar", allow_missing_265_266)
+        if lusers:
+            self.assertLusersResult(lusers, unregistered=1, total=2, max_=2)
 
         # QUIT the other without registering
         self.sendLine("bat", "QUIT")
         self.assertDisconnected("bat")
-        lusers = self.getLusers("bar")
-        self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
+        lusers = self.getLusers("bar", allow_missing_265_266)
+        if lusers:
+            self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
 
 
 class LusersUnregisteredDefaultInvisibleTestCase(LusersUnregisteredTestCase):
@@ -188,8 +216,8 @@ class LusersUnregisteredDefaultInvisibleTestCase(LusersUnregisteredTestCase):
 
     @cases.mark_specifications("Ergo")
     def testLusers(self):
-        self.doLusersTest()
-        lusers = self.getLusers("bar")
+        self.doLusersTest(False)
+        lusers = self.getLusers("bar", False)
         self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
         self.assertEqual(lusers.GlobalInvisible, 2)
         self.assertEqual(lusers.GlobalVisible, 0)
@@ -199,7 +227,7 @@ class LuserOpersTestCase(LusersTestCase):
     @cases.mark_specifications("Ergo")
     def testLuserOpers(self):
         self.connectClient("bar", name="bar")
-        lusers = self.getLusers("bar")
+        lusers = self.getLusers("bar", False)
         self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
         self.assertIn(lusers.Opers, (0, None))
 
@@ -207,7 +235,7 @@ class LuserOpersTestCase(LusersTestCase):
         self.sendLine("bar", "OPER operuser operpassword")
         msgs = self.getMessages("bar")
         self.assertIn(RPL_YOUREOPER, {msg.command for msg in msgs})
-        lusers = self.getLusers("bar")
+        lusers = self.getLusers("bar", False)
         self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
         self.assertEqual(lusers.Opers, 1)
 
@@ -215,7 +243,7 @@ class LuserOpersTestCase(LusersTestCase):
         self.connectClient("qux", name="qux")
         self.sendLine("qux", "OPER operuser operpassword")
         self.getMessages("qux")
-        lusers = self.getLusers("bar")
+        lusers = self.getLusers("bar", False)
         self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
         self.assertEqual(lusers.Opers, 2)
 
@@ -223,14 +251,14 @@ class LuserOpersTestCase(LusersTestCase):
         self.sendLine("bar", "MODE bar -o")
         msgs = self.getMessages("bar")
         self.assertIn("MODE", {msg.command for msg in msgs})
-        lusers = self.getLusers("bar")
+        lusers = self.getLusers("bar", False)
         self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
         self.assertEqual(lusers.Opers, 1)
 
         # remove oper by quit
         self.sendLine("qux", "QUIT")
         self.assertDisconnected("qux")
-        lusers = self.getLusers("bar")
+        lusers = self.getLusers("bar", False)
         self.assertLusersResult(lusers, unregistered=0, total=1, max_=2)
         self.assertEqual(lusers.Opers, 0)
 
@@ -247,13 +275,13 @@ class ErgoInvisibleDefaultTestCase(LusersTestCase):
     @cases.mark_specifications("Ergo")
     def testLusers(self):
         self.connectClient("bar", name="bar")
-        lusers = self.getLusers("bar")
+        lusers = self.getLusers("bar", False)
         self.assertLusersResult(lusers, unregistered=0, total=1, max_=1)
         self.assertEqual(lusers.GlobalInvisible, 1)
         self.assertEqual(lusers.GlobalVisible, 0)
 
         self.connectClient("qux", name="qux")
-        lusers = self.getLusers("qux")
+        lusers = self.getLusers("qux", False)
         self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
         self.assertEqual(lusers.GlobalInvisible, 2)
         self.assertEqual(lusers.GlobalVisible, 0)
@@ -261,7 +289,7 @@ class ErgoInvisibleDefaultTestCase(LusersTestCase):
         # remove +i with MODE
         self.sendLine("bar", "MODE bar -i")
         msgs = self.getMessages("bar")
-        lusers = self.getLusers("bar")
+        lusers = self.getLusers("bar", False)
         self.assertIn("MODE", {msg.command for msg in msgs})
         self.assertLusersResult(lusers, unregistered=0, total=2, max_=2)
         self.assertEqual(lusers.GlobalInvisible, 1)
@@ -270,7 +298,7 @@ class ErgoInvisibleDefaultTestCase(LusersTestCase):
         # disconnect invisible user
         self.sendLine("qux", "QUIT")
         self.assertDisconnected("qux")
-        lusers = self.getLusers("bar")
+        lusers = self.getLusers("bar", False)
         self.assertLusersResult(lusers, unregistered=0, total=1, max_=2)
         self.assertEqual(lusers.GlobalInvisible, 0)
         self.assertEqual(lusers.GlobalVisible, 1)

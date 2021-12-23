@@ -62,7 +62,7 @@ INSPIRCD_SELECTORS := \
 
 # buffering tests fail because ircu2 discards the whole buffer on long lines (TODO: refine how we exclude these tests)
 # testQuit and testQuitErrors fail because ircu2 does not send ERROR or QUIT
-# lusers tests fail because they depend on Modern behavior, not just RFC2812 (TODO: update lusers tests to accept RFC2812-compliant implementations)
+# lusers "full" tests fail because they depend on Modern behavior, not just RFC2812
 # statusmsg tests fail because STATUSMSG is present in ISUPPORT, but it not actually supported as PRIVMSG target
 # testKeyValidation[empty] fails because ircu2 returns ERR_NEEDMOREPARAMS on empty keys: https://github.com/UndernetIRC/ircu2/issues/13
 # testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
@@ -73,7 +73,7 @@ IRCU2_SELECTORS := \
 	and not strict \
 	and not buffering \
 	and not testQuit \
-	and not lusers \
+	and not (lusers and full) \
 	and not statusmsg \
 	and not (testKeyValidation and empty) \
 	and not testKickDefaultComment \
@@ -87,7 +87,7 @@ SNIRCD_SELECTORS := \
 	and not strict \
 	and not buffering \
 	and not testQuit \
-	and not lusers \
+	and not (lusers and full) \
 	and not statusmsg \
 	$(EXTRA_SELECTORS)
 
