@@ -12,12 +12,15 @@ ANOPE_SELECTORS := \
 	and not testPlainLarge
 
 # buffering tests cannot pass because of issues with UTF-8 handling: https://github.com/DALnet/bahamut/issues/196
+# mask tests in test_who.py fail because they are not implemented.
 BAHAMUT_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	and not IRCv3 \
 	and not buffering \
+	and not (testWho and not whois and mask) \
+	and not testWhoStar \
 	$(EXTRA_SELECTORS)
 
 # testQuitErrors is very flaky
@@ -159,6 +162,7 @@ SOPEL_SELECTORS := \
 # Tests marked with private_chathistory can't pass because Unreal does not implement CHATHISTORY for DMs
 # testChathistory[BETWEEN] fails: https://bugs.unrealircd.org/view.php?id=5952
 # testChathistory[AROUND] fails: https://bugs.unrealircd.org/view.php?id=5953
+# testWhoAllOpers fails because Unreal skips results when the mask is too broad
 UNREALIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -172,6 +176,7 @@ UNREALIRCD_SELECTORS := \
 	and not react_tag \
 	and not private_chathistory \
 	and not (testChathistory and (between or around)) \
+	and not testWhoAllOpers \
 	$(EXTRA_SELECTORS)
 
 .PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon limnoria sopel solanum unrealircd
