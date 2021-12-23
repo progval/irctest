@@ -12,12 +12,15 @@ ANOPE_SELECTORS := \
 	and not testPlainLarge
 
 # buffering tests cannot pass because of issues with UTF-8 handling: https://github.com/DALnet/bahamut/issues/196
+# mask tests in test_who.py fail because they are not implemented.
 BAHAMUT_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	and not IRCv3 \
 	and not buffering \
+	and not (testWho and not whois and mask) \
+	and not testWhoStar \
 	$(EXTRA_SELECTORS)
 
 # testQuitErrors is very flaky

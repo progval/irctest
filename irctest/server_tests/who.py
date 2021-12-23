@@ -71,8 +71,6 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
 
     @cases.mark_specifications("Modern")
     def testWhoStar(self):
-        """Test basic WHOIS behavior"""
-
         self._init()
 
         self.sendLine(2, "WHO *")
@@ -96,11 +94,11 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             params=["otherNick", "*", ANYSTR],
         )
 
-    @pytest.mark.parametrize("mask", ["coolNick", "coolnick", "coolni*"])
+    @pytest.mark.parametrize(
+        "mask", ["coolNick", "coolnick", "coolni*"], ids=["exact", "casefolded", "mask"]
+    )
     @cases.mark_specifications("Modern")
     def testWhoNick(self, mask):
-        """Test basic WHOIS behavior"""
-
         self._init()
 
         self.sendLine(2, f"WHO {mask}")
@@ -125,11 +123,9 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     @pytest.mark.parametrize(
         "mask",
         ["*usernam", "*UniqueReal*", "127.0.0.1"],
-        ids=["username", "realname", "hostname"],
+        ids=["username", "realname-mask", "hostname"],
     )
     def testWhoUsernameRealName(self, mask):
-        """Test basic WHOIS behavior"""
-
         self._init()
 
         self.sendLine(2, f"WHO :{mask}")
@@ -175,10 +171,11 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         #     ],
         # )
 
-    @pytest.mark.parametrize("mask", ["coolNick", "coolni*"])
+    @pytest.mark.parametrize(
+        "mask", ["coolNick", "coolnick", "coolni*"], ids=["exact", "casefolded", "mask"]
+    )
     @cases.mark_specifications("Modern")
     def testWhoNickAway(self, mask):
-        """Test basic WHOIS behavior"""
         self._init()
 
         self.sendLine(1, "AWAY :be right back")
@@ -200,10 +197,11 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
-    @pytest.mark.parametrize("mask", ["coolNick", "coolni*"])
+    @pytest.mark.parametrize(
+        "mask", ["coolNick", "coolnick", "coolni*"], ids=["exact", "casefolded", "mask"]
+    )
     @cases.mark_specifications("Modern")
     def testWhoNickOper(self, mask):
-        """Test basic WHOIS behavior"""
         self._init()
 
         self.sendLine(1, "OPER operuser operpassword")
@@ -230,10 +228,11 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
-    @pytest.mark.parametrize("mask", ["coolNick", "coolni*"])
+    @pytest.mark.parametrize(
+        "mask", ["coolNick", "coolnick", "coolni*"], ids=["exact", "casefolded", "mask"]
+    )
     @cases.mark_specifications("Modern")
     def testWhoNickAwayAndOper(self, mask):
-        """Test basic WHOIS behavior"""
         self._init()
 
         self.sendLine(1, "OPER operuser operpassword")
@@ -262,10 +261,9 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
-    @pytest.mark.parametrize("mask", ["#chan", "#CHAN"])
+    @pytest.mark.parametrize("mask", ["#chan", "#CHAN"], ids=["exact", "casefolded"])
     @cases.mark_specifications("Modern")
     def testWhoChan(self, mask):
-        """Test basic WHOIS behavior"""
         self._init()
 
         self.sendLine(1, "OPER operuser operpassword")
