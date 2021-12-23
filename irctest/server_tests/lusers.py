@@ -14,6 +14,7 @@ from irctest.numerics import (
     RPL_LUSERUNKNOWN,
     RPL_YOUREOPER,
 )
+from irctest.patma import ANYSTR, StrRe
 
 # 3 numbers, delimited by spaces, possibly negative (eek)
 LUSERCLIENT_REGEX = re.compile(r"^.*( [-0-9]* ).*( [-0-9]* ).*( [-0-9]* ).*$")
@@ -54,6 +55,7 @@ class LusersTestCase(cases.BaseServerTestCase):
         self.sendLine(client, "LUSERS")
         messages = self.getMessages(client)
         by_numeric = dict((msg.command, msg) for msg in messages)
+        self.assertEqual(len(by_numeric), len(messages), "Duplicated numerics")
 
         result = LusersResult()
 
@@ -73,11 +75,23 @@ class LusersTestCase(cases.BaseServerTestCase):
             raise ValueError("corrupt reply for 251 RPL_LUSERCLIENT", luserclient_param)
 
         if RPL_LUSEROP in by_numeric:
+            self.assertMessageMatch(
+                by_numeric[RPL_LUSEROP], params=[client, StrRe("[0-9]+"), ANYSTR]
+            )
             result.Opers = int(by_numeric[RPL_LUSEROP].params[1])
         if RPL_LUSERUNKNOWN in by_numeric:
+            self.assertMessageMatch(
+                by_numeric[RPL_LUSERUNKNOWN], params=[client, StrRe("[0-9]+"), ANYSTR]
+            )
             result.Unregistered = int(by_numeric[RPL_LUSERUNKNOWN].params[1])
         if RPL_LUSERCHANNELS in by_numeric:
+            self.assertMessageMatch(
+                by_numeric[RPL_LUSERCHANNELS], params=[client, StrRe("[0-9]+"), ANYSTR]
+            )
             result.Channels = int(by_numeric[RPL_LUSERCHANNELS].params[1])
+
+        self.assertMessageMatch(by_numeric[RPL_LUSERCLIENT], params=[client, ANYSTR])
+        self.assertMessageMatch(by_numeric[RPL_LUSERME], params=[client, ANYSTR])
 
         if (
             allow_missing_265_266
