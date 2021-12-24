@@ -17,11 +17,8 @@ class TimeTestCase(cases.BaseServerTestCase):
 
         time_after = math.ceil(time.time())
 
-        if len(msg.params) == 3:
-            self.assertMessageMatch(
-                msg, command=RPL_TIME, params=["user", "My.Little.Server", ANYSTR]
-            )
-        else:
+        if len(msg.params) == 5:
+            # ircu2, snircd
             self.assertMessageMatch(
                 msg,
                 command=RPL_TIME,
@@ -31,4 +28,21 @@ class TimeTestCase(cases.BaseServerTestCase):
                 int(msg.params[2]),
                 range(time_before, time_after + 1),
                 "Timestamp not in expected range",
+            )
+        elif len(msg.params) == 4:
+            # bahamut
+            self.assertMessageMatch(
+                msg,
+                command=RPL_TIME,
+                params=["user", "My.Little.Server", StrRe("[0-9]+"), ANYSTR],
+            )
+            self.assertIn(
+                int(msg.params[2]),
+                range(time_before, time_after + 1),
+                "Timestamp not in expected range",
+            )
+        else:
+            # Common case
+            self.assertMessageMatch(
+                msg, command=RPL_TIME, params=["user", "My.Little.Server", ANYSTR]
             )
