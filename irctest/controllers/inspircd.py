@@ -76,6 +76,11 @@ TEMPLATE_CONFIG = """
 <module name="namesx"> # For multi-prefix
 <module name="sasl">
 
+# HELP/HELPOP
+<module name="alias">  # for the HELP alias
+<module name="helpop">
+<include file="examples/helpop.conf.example">
+
 # Misc:
 <log method="file" type="*" level="debug" target="/tmp/ircd-{port}.log">
 <server name="My.Little.Server" description="testnet" id="000" network="testnet">

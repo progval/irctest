@@ -14,6 +14,11 @@ class ImplementationChoice(unittest.SkipTest):
         )
 
 
+class OptionalCommandNotSupported(unittest.SkipTest):
+    def __str__(self) -> str:
+        return "Unsupported command: {}".format(self.args[0])
+
+
 class OptionalExtensionNotSupported(unittest.SkipTest):
     def __str__(self) -> str:
         return "Unsupported extension: {}".format(self.args[0])
