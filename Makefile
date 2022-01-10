@@ -39,8 +39,10 @@ CHARYBDIS_SELECTORS := \
 	and not (testWhoisNumerics and oper) \
 	$(EXTRA_SELECTORS)
 
+# testInfoNosuchserver does not apply to Ergo: Ergo ignores the optional <target> argument
 ERGO_SELECTORS := \
 	not deprecated \
+	and not testInfoNosuchserver \
 	$(EXTRA_SELECTORS)
 
 # testInviteUnoppedModern is the only strict test that Hybrid fails
