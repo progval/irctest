@@ -336,11 +336,21 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHe
     @cases.mark_specifications("IRCv3")
     @cases.mark_isupport("WHOX")
     def testWhoxFull(self):
+        """https://github.com/ircv3/ircv3-specifications/pull/482"""
+        self._testWhoxFull("%cuihsnfdlaor")
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("WHOX")
+    def testWhoxFullReversed(self):
+        """https://github.com/ircv3/ircv3-specifications/pull/482"""
+        self._testWhoxFull("%" + "".join(reversed("cuihsnfdlaor")))
+
+    def _testWhoxFull(self, chars):
         self._init()
         if "WHOX" not in self.server_support:
             raise runner.IsupportTokenNotSupported("WHOX")
 
-        self.sendLine(2, "WHO coolNick %cuihsnfdlaor")
+        self.sendLine(2, f"WHO coolNick {chars}")
         messages = self.getMessages(2)
 
         self.assertEqual(len(messages), 2, "Unexpected number of messages")
@@ -352,7 +362,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHe
             command=RPL_WHOSPCRPL,
             params=[
                 "otherNick",
-                "#chan",
+                StrRe(r"(#chan|\*)"),
                 StrRe("~?myusernam"),
                 ANYSTR,
                 ANYSTR,
