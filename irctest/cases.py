@@ -647,6 +647,16 @@ class BaseServerTestCase(
             else:
                 raise
 
+    def authenticateClient(
+        self, client: TClientName, account: str, password: str
+    ) -> None:
+        self.sendLine(client, "AUTHENTICATE PLAIN")
+        m = self.getRegistrationMessage(client)
+        self.assertMessageMatch(m, command="AUTHENTICATE", params=["+"])
+        self.sendLine(client, sasl_plain_blob(account, password))
+        m = self.getRegistrationMessage(client)
+        self.assertIn(m.command, ["900", "903"], str(m))
+
     def connectClient(
         self,
         nick: str,
@@ -670,12 +680,7 @@ class BaseServerTestCase(
         if password is not None:
             if "sasl" not in (capabilities or ()):
                 raise ValueError("Used 'password' option without sasl capbilitiy")
-            self.sendLine(client, "AUTHENTICATE PLAIN")
-            m = self.getRegistrationMessage(client)
-            self.assertMessageMatch(m, command="AUTHENTICATE", params=["+"])
-            self.sendLine(client, sasl_plain_blob(account or nick, password))
-            m = self.getRegistrationMessage(client)
-            self.assertIn(m.command, ["900", "903"], str(m))
+            self.authenticateClient(client, account or nick, password)
 
         self.sendLine(client, "NICK {}".format(nick))
         self.sendLine(client, "USER %s * * :Realname" % (ident,))
