@@ -337,13 +337,13 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHe
     @cases.mark_isupport("WHOX")
     def testWhoxFull(self):
         """https://github.com/ircv3/ircv3-specifications/pull/482"""
-        self._testWhoxFull("%cuihsnfdlaor")
+        self._testWhoxFull("%tcuihsnfdlaor,123")
 
     @cases.mark_specifications("IRCv3")
     @cases.mark_isupport("WHOX")
     def testWhoxFullReversed(self):
         """https://github.com/ircv3/ircv3-specifications/pull/482"""
-        self._testWhoxFull("%" + "".join(reversed("cuihsnfdlaor")))
+        self._testWhoxFull("%" + "".join(reversed("tcuihsnfdlaor")) + ",123")
 
     def _testWhoxFull(self, chars):
         self._init()
@@ -362,6 +362,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHe
             command=RPL_WHOSPCRPL,
             params=[
                 "otherNick",
+                "123",
                 StrRe(r"(#chan|\*)"),
                 StrRe("~?myusernam"),
                 ANYSTR,
@@ -374,6 +375,35 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHe
                 "0",  # account name
                 ANYSTR,  # op level
                 "My UniqueReal Name",
+            ],
+        )
+
+        self.assertMessageMatch(
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr("coolNick"), ANYSTR],
+        )
+
+    def testWhoxToken(self):
+        """https://github.com/ircv3/ircv3-specifications/pull/482"""
+        self._init()
+        if "WHOX" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("WHOX")
+
+        self.sendLine(2, "WHO coolNick %tn,321")
+        messages = self.getMessages(2)
+
+        self.assertEqual(len(messages), 2, "Unexpected number of messages")
+
+        (reply, end) = messages
+
+        self.assertMessageMatch(
+            reply,
+            command=RPL_WHOSPCRPL,
+            params=[
+                "otherNick",
+                "321",
+                "coolNick",
             ],
         )
 
