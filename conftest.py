@@ -106,7 +106,13 @@ def pytest_collection_modifyitems(session, config, items):
         assert isinstance(item, _pytest.python.Function)
 
         # unittest-style test functions have the node of UnitTest class as parent
-        assert isinstance(item.parent, _pytest.python.Instance)
+        assert isinstance(
+            item.parent,
+            (
+                _pytest.python.Class,  # pytest >= 7.0.0
+                _pytest.python.Instance,  # pytest < 7.0.0
+            ),
+        )
 
         # and that node references the UnitTest class
         assert issubclass(item.parent.cls, _IrcTestCase)
