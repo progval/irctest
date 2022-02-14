@@ -163,6 +163,13 @@ SOPEL_SELECTORS := \
 	not testPlainNotAvailable \
 	$(EXTRA_SELECTORS)
 
+# TheLounge can actually pass all the test so there is none to exclude.
+# `(foo or not foo)` serves as a `true` value so it doesn't break when
+# $(EXTRA_SELECTORS) is non-empty
+THELOUNGE_SELECTORS := \
+	(foo or not foo) \
+	$(EXTRA_SELECTORS)
+
 # testNoticeNonexistentChannel fails: https://bugs.unrealircd.org/view.php?id=5949
 # regressions::testTagCap fails: https://bugs.unrealircd.org/view.php?id=5948
 # messages::testLineTooLong fails: https://bugs.unrealircd.org/view.php?id=5947
@@ -326,6 +333,11 @@ sopel:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.sopel \
 		-k '$(SOPEL_SELECTORS)'
+
+thelounge:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.thelounge \
+		-k '$(THELOUNGE_SELECTORS)'
 
 unrealircd:
 	$(PYTEST) $(PYTEST_ARGS) \
