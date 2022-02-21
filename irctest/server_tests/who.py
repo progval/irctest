@@ -2,8 +2,8 @@ import re
 
 import pytest
 
-from irctest import cases
-from irctest.numerics import RPL_ENDOFWHO, RPL_WHOREPLY, RPL_YOUREOPER
+from irctest import cases, runner
+from irctest.numerics import RPL_ENDOFWHO, RPL_WHOREPLY, RPL_WHOSPCRPL, RPL_YOUREOPER
 from irctest.patma import ANYSTR, InsensitiveStr, StrRe
 
 
@@ -15,15 +15,22 @@ def realname_regexp(realname):
     )
 
 
-class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
-    def _init(self):
+class BaseWhoTestCase:
+    def _init(self, auth=False):
         self.nick = "coolNick"
         self.username = "myusernam"  # may be truncated if longer than this
         self.realname = "My UniqueReal Name"
 
         self.addClient()
+        if auth:
+            self.controller.registerUser(self, "coolAcct", "sesame")
+            self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=True)
+            self.authenticateClient(1, "coolAcct", "sesame")
         self.sendLine(1, f"NICK {self.nick}")
         self.sendLine(1, f"USER {self.username} 0 * :{self.realname}")
+        if auth:
+            self.sendLine(1, "CAP END")
+            self.getRegistrationMessage(1)
         self.skipToWelcome(1)
         self.sendLine(1, "JOIN #chan")
 
@@ -69,6 +76,8 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
                 ],
             )
 
+
+class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHelper):
     @cases.mark_specifications("Modern")
     def testWhoStar(self):
         self._init()
@@ -322,4 +331,149 @@ class WhoTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
             end,
             command=RPL_ENDOFWHO,
             params=["otherNick", InsensitiveStr(mask), ANYSTR],
+        )
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("WHOX")
+    def testWhoxFull(self):
+        """https://github.com/ircv3/ircv3-specifications/pull/482"""
+        self._testWhoxFull("%tcuihsnfdlaor,123")
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("WHOX")
+    def testWhoxFullReversed(self):
+        """https://github.com/ircv3/ircv3-specifications/pull/482"""
+        self._testWhoxFull("%" + "".join(reversed("tcuihsnfdlaor")) + ",123")
+
+    def _testWhoxFull(self, chars):
+        self._init()
+        if "WHOX" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("WHOX")
+
+        self.sendLine(2, f"WHO coolNick {chars}")
+        messages = self.getMessages(2)
+
+        self.assertEqual(len(messages), 2, "Unexpected number of messages")
+
+        (reply, end) = messages
+
+        self.assertMessageMatch(
+            reply,
+            command=RPL_WHOSPCRPL,
+            params=[
+                "otherNick",
+                "123",
+                StrRe(r"(#chan|\*)"),
+                StrRe("~?myusernam"),
+                ANYSTR,
+                ANYSTR,
+                "My.Little.Server",
+                "coolNick",
+                StrRe("H@?"),
+                ANYSTR,  # hopcount
+                StrRe("[0-9]"),  # seconds idle
+                "0",  # account name
+                ANYSTR,  # op level
+                "My UniqueReal Name",
+            ],
+        )
+
+        self.assertMessageMatch(
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr("coolNick"), ANYSTR],
+        )
+
+    def testWhoxToken(self):
+        """https://github.com/ircv3/ircv3-specifications/pull/482"""
+        self._init()
+        if "WHOX" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("WHOX")
+
+        self.sendLine(2, "WHO coolNick %tn,321")
+        messages = self.getMessages(2)
+
+        self.assertEqual(len(messages), 2, "Unexpected number of messages")
+
+        (reply, end) = messages
+
+        self.assertMessageMatch(
+            reply,
+            command=RPL_WHOSPCRPL,
+            params=[
+                "otherNick",
+                "321",
+                "coolNick",
+            ],
+        )
+
+        self.assertMessageMatch(
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr("coolNick"), ANYSTR],
+        )
+
+
+@cases.mark_services
+class WhoServicesTestCase(
+    BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHelper
+):
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("WHOX")
+    def testWhoxAccount(self):
+        self._init(auth=True)
+        if "WHOX" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("WHOX")
+
+        self.sendLine(2, "WHO coolNick %na")
+        messages = self.getMessages(2)
+
+        self.assertEqual(len(messages), 2, "Unexpected number of messages")
+
+        (reply, end) = messages
+
+        self.assertMessageMatch(
+            reply,
+            command=RPL_WHOSPCRPL,
+            params=[
+                "otherNick",
+                "coolNick",
+                "coolAcct",
+            ],
+        )
+
+        self.assertMessageMatch(
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr("coolNick"), ANYSTR],
+        )
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("WHOX")
+    def testWhoxNoAccount(self):
+        self._init(auth=False)
+        if "WHOX" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("WHOX")
+
+        self.sendLine(2, "WHO coolNick %na")
+        messages = self.getMessages(2)
+
+        self.assertEqual(len(messages), 2, "Unexpected number of messages")
+
+        (reply, end) = messages
+
+        self.assertMessageMatch(
+            reply,
+            command=RPL_WHOSPCRPL,
+            params=[
+                "otherNick",
+                "coolNick",
+                "0",
+            ],
+        )
+
+        self.assertMessageMatch(
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr("coolNick"), ANYSTR],
         )
