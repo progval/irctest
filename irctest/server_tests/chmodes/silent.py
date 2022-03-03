@@ -11,18 +11,19 @@ class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
         self.joinChannel("first", "#gen")
         self.getMessages("first")
         self.sendLine("first", "MODE #gen +s")
-        # mode +s = secret, channel shouldn't show
-        # in /quote list UNLESS the user is
-        # in the channel.
-
         # run command LIST
-        # if the daemon works correctly, it will reply with
-        # , among other things, a 322 (RPL_LIST) line which
-        # contains the one channel just created.
         self.sendLine("first", "LIST")
         replies = self.getMessages("first")
-        reply_cmds = {reply.command for reply in replies}
-        self.assertIn(RPL_LIST, reply_cmds)
+
+        # Should be only one line with command RPL_LIST
+        listedChannels = [line for line in replies if line.command == RPL_LIST]
+        # Just one channel in list.
+        self.assertEqual(len(listedChannels), 1)
+        # Check that the channel is reported properly
+        self.assertMessageMatch(
+                listedChannels[0], command=RPL_LIST,
+                params=["first", "#gen", "1", ""]
+                )
 
         # test that another client would not see the secret
         # channel.
@@ -32,7 +33,8 @@ class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
         replies = self.getMessages("second")
         reply_cmds = {reply.command for reply in replies}
         # RPL_LIST 322 should NOT be present this time.
-        self.assertNotIn(RPL_LIST, reply_cmds)
+        listedChannels = [line for line in replies if line.command == RPL_LIST]
+        self.assertEqual(len(listedChannels), 0)
 
         # Second client will join the secret channel
         # and call command LIST. The channel SHOULD
@@ -40,7 +42,13 @@ class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
         self.joinChannel("second", "#gen")
         self.sendLine("second", "LIST")
         replies = self.getMessages("second")
-        reply_cmds = {reply.command for reply in replies}
-        self.assertIn(RPL_LIST, reply_cmds)
-        
+        # Should be only one line with command RPL_LIST
+        listedChannels = [line for line in replies if line.command == RPL_LIST]
+        # Just one channel in list.
+        self.assertEqual(len(listedChannels), 1)
+        # Check that the channel is reported properly
+        self.assertMessageMatch(
+                listedChannels[0], command=RPL_LIST,
+                params=["second", "#gen", "2", ""]
+                )
         
