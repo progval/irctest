@@ -3,13 +3,18 @@ from irctest.numerics import RPL_LIST
 
 
 class SecretChannelTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("RFC1459")
+    @cases.mark_specifications("RFC1459", "Modern")
     def testSecretChannelListCommand(self):
         """
         <https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.6>
 
         "Likewise, secret channels are not listed
         at all unless the client is a member of the channel in question."
+
+        <https://modern.ircdocs.horse/#secret-channel-mode>
+        "A channel that is set to secret will not show up in responses to
+        the LIST or NAMES command unless the client sending the command is
+        joined to the channel."
         """
 
         def get_listed_channels(replies):
