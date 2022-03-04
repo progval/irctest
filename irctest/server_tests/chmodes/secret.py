@@ -15,8 +15,9 @@ class SecretChannelTestCase(cases.BaseServerTestCase):
         def get_listed_channels(replies):
             channels = set()
             for reply in replies:
-                # skip pseudo-channel listed by ngircd:
-                if reply.command == RPL_LIST and reply.params[1] != "&SERVER":
+                # skip pseudo-channels (&SERVER, &NOTICES) listed by ngircd
+                # and ircu:
+                if reply.command == RPL_LIST and reply.params[1].startswith("#"):
                     channels.add(reply.params[1])
             return channels
 

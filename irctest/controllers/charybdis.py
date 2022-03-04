@@ -12,6 +12,9 @@ serverinfo {{
 
 general {{
     throttle_count = 100;  # We need to connect lots of clients quickly
+    # disable throttling for LIST and similar:
+    pace_wait_simple = 0 second;
+    pace_wait = 0 second;
     sasl_service = "SaslServ";
 }};
 
