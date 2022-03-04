@@ -15,8 +15,8 @@ class ListTestCase(cases.BaseServerTestCase):
         if m.command == "321":
             # skip RPL_LISTSTART
             m = self.getMessage(2)
-        while m.command == "322" and m.params[1] == "&SERVER":
-            # ngircd adds this pseudo-channel
+        # skip local pseudo-channels listed by ngircd and ircu
+        while m.command == "322" and m.params[1].startswith("&"):
             m = self.getMessage(2)
         self.assertNotEqual(
             m.command,
@@ -58,8 +58,8 @@ class ListTestCase(cases.BaseServerTestCase):
             "nor 323 (RPL_LISTEND) but: {msg}",
         )
         m = self.getMessage(2)
-        while m.command == "322" and m.params[1] == "&SERVER":
-            # ngircd adds this pseudo-channel
+        # skip local pseudo-channels listed by ngircd and ircu
+        while m.command == "322" and m.params[1].startswith("&"):
             m = self.getMessage(2)
         self.assertNotEqual(
             m.command,
