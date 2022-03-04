@@ -3,6 +3,7 @@ from irctest.numerics import RPL_LIST
 
 # RPL_LIST = "322"
 
+
 class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testSilentChannelWhileJoined(self):
@@ -21,9 +22,8 @@ class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(listedChannels), 1)
         # Check that the channel is reported properly
         self.assertMessageMatch(
-                listedChannels[0], command=RPL_LIST,
-                params=["first", "#gen", "1", ""]
-                )
+            listedChannels[0], command=RPL_LIST, params=["first", "#gen", "1", ""]
+        )
 
         # test that another client would not see the secret
         # channel.
@@ -31,7 +31,6 @@ class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
         self.getMessages("second")
         self.sendLine("second", "LIST")
         replies = self.getMessages("second")
-        reply_cmds = {reply.command for reply in replies}
         # RPL_LIST 322 should NOT be present this time.
         listedChannels = [line for line in replies if line.command == RPL_LIST]
         self.assertEqual(len(listedChannels), 0)
@@ -48,7 +47,5 @@ class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(listedChannels), 1)
         # Check that the channel is reported properly
         self.assertMessageMatch(
-                listedChannels[0], command=RPL_LIST,
-                params=["second", "#gen", "2", ""]
-                )
-        
+            listedChannels[0], command=RPL_LIST, params=["second", "#gen", "2", ""]
+        )
