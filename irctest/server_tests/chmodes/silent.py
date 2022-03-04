@@ -1,8 +1,6 @@
 from irctest import cases
 from irctest.numerics import RPL_LIST
 
-# RPL_LIST = "322"
-
 
 class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
@@ -21,9 +19,7 @@ class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
         # Just one channel in list.
         self.assertEqual(len(listedChannels), 1)
         # Check that the channel is reported properly
-        self.assertMessageMatch(
-            listedChannels[0], command=RPL_LIST, params=["first", "#gen", "1", ""]
-        )
+        self.assertEqual(listedChannels[0].params[:2], ["first", "#gen"])
 
         # test that another client would not see the secret
         # channel.
@@ -46,6 +42,4 @@ class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
         # Just one channel in list.
         self.assertEqual(len(listedChannels), 1)
         # Check that the channel is reported properly
-        self.assertMessageMatch(
-            listedChannels[0], command=RPL_LIST, params=["second", "#gen", "2", ""]
-        )
+        self.assertEqual(listedChannels[0].params[:2], ["second", "#gen"])
