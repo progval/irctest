@@ -2,9 +2,15 @@ from irctest import cases
 from irctest.numerics import RPL_LIST
 
 
-class SilentWhileJoinedListModeTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("RFC1459", "RFC2812")
-    def testSilentChannelWhileJoined(self):
+class SecretChannelTestCase(cases.BaseServerTestCase):
+    @cases.mark_specifications("RFC1459")
+    def testSecretChannelListCommand(self):
+        """
+        <https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.6>
+
+        "Likewise, secret channels are not listed
+        at all unless the client is a member of the channel in question."
+        """
         # test that a silent channel is shown in list if the user is in the channel.
         self.connectClient("first", name="first")
         self.joinChannel("first", "#gen")
