@@ -11,6 +11,15 @@ class SecretChannelTestCase(cases.BaseServerTestCase):
         "Likewise, secret channels are not listed
         at all unless the client is a member of the channel in question."
         """
+
+        def get_listed_channels(replies):
+            channels = set()
+            for reply in replies:
+                # skip pseudo-channel listed by ngircd:
+                if reply.command == RPL_LIST and reply.params[1] != "&SERVER":
+                    channels.add(reply.params[1])
+            return channels
+
         # test that a silent channel is shown in list if the user is in the channel.
         self.connectClient("first", name="first")
         self.joinChannel("first", "#gen")
@@ -19,13 +28,7 @@ class SecretChannelTestCase(cases.BaseServerTestCase):
         # run command LIST
         self.sendLine("first", "LIST")
         replies = self.getMessages("first")
-
-        # Should be only one line with command RPL_LIST
-        listedChannels = [line for line in replies if line.command == RPL_LIST]
-        # Just one channel in list.
-        self.assertEqual(len(listedChannels), 1)
-        # Check that the channel is reported properly
-        self.assertEqual(listedChannels[0].params[:2], ["first", "#gen"])
+        self.assertEqual(get_listed_channels(replies), {"#gen"})
 
         # test that another client would not see the secret
         # channel.
@@ -34,8 +37,7 @@ class SecretChannelTestCase(cases.BaseServerTestCase):
         self.sendLine("second", "LIST")
         replies = self.getMessages("second")
         # RPL_LIST 322 should NOT be present this time.
-        listedChannels = [line for line in replies if line.command == RPL_LIST]
-        self.assertEqual(len(listedChannels), 0)
+        self.assertEqual(get_listed_channels(replies), set())
 
         # Second client will join the secret channel
         # and call command LIST. The channel SHOULD
@@ -44,8 +46,4 @@ class SecretChannelTestCase(cases.BaseServerTestCase):
         self.sendLine("second", "LIST")
         replies = self.getMessages("second")
         # Should be only one line with command RPL_LIST
-        listedChannels = [line for line in replies if line.command == RPL_LIST]
-        # Just one channel in list.
-        self.assertEqual(len(listedChannels), 1)
-        # Check that the channel is reported properly
-        self.assertEqual(listedChannels[0].params[:2], ["second", "#gen"])
+        self.assertEqual(get_listed_channels(replies), {"#gen"})
