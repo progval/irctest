@@ -223,8 +223,8 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         ],
         # and they each error with:
         [
-            "expected params to match ['nick', 'FOO=1', ListRemainder(ANYSTR)], got ['nick']",
-            "expected params to match ['nick', 'FOO=1', ListRemainder(ANYSTR)], got ['nick', 'BAR=2']",
+            "expected params to match ['nick', 'FOO=1', *ANYLIST], got ['nick']",
+            "expected params to match ['nick', 'FOO=1', *ANYLIST], got ['nick', 'BAR=2']",
         ]
     ),
     (
