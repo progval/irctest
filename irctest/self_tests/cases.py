@@ -7,8 +7,8 @@ from irctest.irc_utils.message_parser import parse_message
 from irctest.patma import (
     ANYDICT,
     ANYLIST,
+    ANYOPTSTR,
     ANYSTR,
-    AnyOptStr,
     ListRemainder,
     NotStrRe,
     RemainingKeys,
@@ -142,9 +142,9 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         ],
         # and they each error with:
         [
-            "expected tags to match {'tag1': AnyStr}, got {'tag1': 'bar', 'tag2': ''}",
-            "expected tags to match {'tag1': AnyStr}, got {}",
-            "expected tags to match {'tag1': AnyStr}, got {}",
+            "expected tags to match {'tag1': ANYSTR}, got {'tag1': 'bar', 'tag2': ''}",
+            "expected tags to match {'tag1': ANYSTR}, got {}",
+            "expected tags to match {'tag1': ANYSTR}, got {}",
         ]
     ),
     (
@@ -171,16 +171,16 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         # and they each error with:
         [
             "expected command to be PRIVMSG, got PRIVMG",
-            "expected tags to match {'tag1': 'bar', RemainingKeys(AnyStr): AnyOptStr()}, got {'tag1': 'value1'}",
+            "expected tags to match {'tag1': 'bar', RemainingKeys(ANYSTR): ANYOPTSTR}, got {'tag1': 'value1'}",
             "expected params to match ['#chan', 'hello'], got ['#chan', 'hello2']",
             "expected params to match ['#chan', 'hello'], got ['#chan2', 'hello']",
-            "expected tags to match {'tag1': 'bar', RemainingKeys(AnyStr): AnyOptStr()}, got {}",
+            "expected tags to match {'tag1': 'bar', RemainingKeys(ANYSTR): ANYOPTSTR}, got {}",
         ]
     ),
     (
         # the specification:
         dict(
-            tags={"tag1": "bar", RemainingKeys(NotStrRe("tag2")): AnyOptStr()},
+            tags={"tag1": "bar", RemainingKeys(NotStrRe("tag2")): ANYOPTSTR},
             command="PRIVMSG",
             params=["#chan", "hello"],
         ),
@@ -200,9 +200,9 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         # and they each error with:
         [
             "expected command to be PRIVMSG, got PRIVMG",
-            "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): AnyOptStr()}, got {'tag1': 'value1'}",
-            "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): AnyOptStr()}, got {'tag1': 'bar', 'tag2': ''}",
-            "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): AnyOptStr()}, got {'tag1': 'bar', 'tag2': 'baz'}",
+            "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): ANYOPTSTR}, got {'tag1': 'value1'}",
+            "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): ANYOPTSTR}, got {'tag1': 'bar', 'tag2': ''}",
+            "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): ANYOPTSTR}, got {'tag1': 'bar', 'tag2': 'baz'}",
         ]
     ),
     (
@@ -223,8 +223,8 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         ],
         # and they each error with:
         [
-            "expected params to match ['nick', 'FOO=1', ListRemainder(AnyStr)], got ['nick']",
-            "expected params to match ['nick', 'FOO=1', ListRemainder(AnyStr)], got ['nick', 'BAR=2']",
+            "expected params to match ['nick', 'FOO=1', ListRemainder(ANYSTR)], got ['nick']",
+            "expected params to match ['nick', 'FOO=1', ListRemainder(ANYSTR)], got ['nick', 'BAR=2']",
         ]
     ),
     (
@@ -245,7 +245,7 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         ],
         # and they each error with:
         [
-            "expected params to match ['nick', ListRemainder(AnyStr, min_length=1)], got ['nick']",
+            "expected params to match ['nick', ListRemainder(ANYSTR, min_length=1)], got ['nick']",
         ]
     ),
     (
