@@ -13,18 +13,18 @@ class Operator:
         pass
 
 
-class AnyStr(Operator):
+class _AnyStr(Operator):
     """Wildcard matching any string"""
 
     def __repr__(self) -> str:
-        return "AnyStr"
+        return "ANYSTR"
 
 
-class AnyOptStr(Operator):
+class _AnyOptStr(Operator):
     """Wildcard matching any string as well as None"""
 
     def __repr__(self) -> str:
-        return "AnyOptStr()"
+        return "ANYOPTSTR"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -62,10 +62,13 @@ class RemainingKeys(Operator):
         return f"RemainingKeys({self.key!r})"
 
 
-ANYSTR = AnyStr()
+ANYSTR = _AnyStr()
 """Singleton, spares two characters"""
 
-ANYDICT = {RemainingKeys(ANYSTR): AnyOptStr()}
+ANYOPTSTR = _AnyOptStr()
+"""Singleton, spares two characters"""
+
+ANYDICT = {RemainingKeys(ANYSTR): ANYOPTSTR}
 """Matches any dictionary; useful to compare tags dict, eg.
 `match_dict(got_tags, {"label": "foo", **ANYDICT})`"""
 
@@ -87,9 +90,9 @@ ANYLIST = [ListRemainder(ANYSTR)]
 
 
 def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bool:
-    if isinstance(expected, AnyOptStr):
+    if isinstance(expected, _AnyOptStr):
         return True
-    elif isinstance(expected, AnyStr) and got is not None:
+    elif isinstance(expected, _AnyStr) and got is not None:
         return True
     elif isinstance(expected, StrRe):
         if got is None or not re.match(expected.regexp, got):

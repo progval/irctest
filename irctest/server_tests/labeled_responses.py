@@ -11,7 +11,7 @@ import pytest
 
 from irctest import cases
 from irctest.numerics import ERR_UNKNOWNCOMMAND
-from irctest.patma import ANYDICT, AnyOptStr, NotStrRe, RemainingKeys, StrRe
+from irctest.patma import ANYDICT, ANYOPTSTR, NotStrRe, RemainingKeys, StrRe
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
@@ -299,7 +299,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             tags={
                 "+draft/reply": msgid,
                 "+draft/react": "l😃l",
-                RemainingKeys(NotStrRe("label")): AnyOptStr(),
+                RemainingKeys(NotStrRe("label")): ANYOPTSTR,
             },
         )
         self.assertNotIn(
@@ -367,7 +367,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper
             tags={
                 "+draft/reply": msgid,
                 "+draft/react": "l😃l",
-                RemainingKeys(NotStrRe("label")): AnyOptStr(),
+                RemainingKeys(NotStrRe("label")): ANYOPTSTR,
             },
             fail_msg="No TAGMSG received by the target after sending one out",
         )
