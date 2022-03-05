@@ -24,7 +24,7 @@ class AnyOptStr(Operator):
     """Wildcard matching any string as well as None"""
 
     def __repr__(self) -> str:
-        return "AnyOptStr"
+        return "AnyOptStr()"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -59,7 +59,7 @@ class RemainingKeys(Operator):
     key: Operator
 
     def __repr__(self) -> str:
-        return f"Keys({self.key!r})"
+        return f"RemainingKeys({self.key!r})"
 
 
 ANYSTR = AnyStr()
@@ -77,9 +77,9 @@ class ListRemainder:
 
     def __repr__(self) -> str:
         if self.min_length:
-            return f"*ListRemainder({self.item!r}, min_length={self.min_length})"
+            return f"ListRemainder({self.item!r}, min_length={self.min_length})"
         else:
-            return f"*ListRemainder({self.item!r})"
+            return f"ListRemainder({self.item!r})"
 
 
 ANYLIST = [ListRemainder(ANYSTR)]
