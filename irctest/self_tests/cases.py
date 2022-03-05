@@ -16,7 +16,7 @@ from irctest.patma import (
 )
 
 # fmt: off
-MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
+MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
     (
         # the specification:
         dict(
@@ -36,6 +36,11 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
         [
             "PRIVMSG #chan hello2",
             "PRIVMSG #chan2 hello",
+        ],
+        # and they each error with:
+        [
+            "expected params to match ['#chan', 'hello'], got ['#chan', 'hello2']",
+            "expected params to match ['#chan', 'hello'], got ['#chan2', 'hello']",
         ]
     ),
     (
@@ -58,6 +63,11 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
         [
             "PRIVMSG #chan :hi",
             "PRIVMSG #chan2 hello",
+        ],
+        # and they each error with:
+        [
+            "expected params to match ['#chan', StrRe(r'hello.*')], got ['#chan', 'hi']",
+            "expected params to match ['#chan', StrRe(r'hello.*')], got ['#chan2', 'hello']",
         ]
     ),
     (
@@ -76,6 +86,12 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
             "PRIVMSG #chan :hi",
             ":foo2!baz@qux PRIVMSG #chan hello",
             "@tag1=bar :foo2!baz@qux PRIVMSG #chan :hello",
+        ],
+        # and they each error with:
+        [
+            "expected nick to be foo, got None instead",
+            "expected nick to be foo, got foo2 instead",
+            "expected nick to be foo, got foo2 instead",
         ]
     ),
     (
@@ -96,6 +112,13 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
             "@tag1=value1 PRIVMSG #chan :hello",
             "PRIVMSG #chan hello",
             ":foo!baz@qux PRIVMSG #chan hello",
+        ],
+        # and they each error with:
+        [
+            "expected tags to match {'tag1': 'bar'}, got {'tag1': 'bar', 'tag2': ''}",
+            "expected tags to match {'tag1': 'bar'}, got {'tag1': 'value1'}",
+            "expected tags to match {'tag1': 'bar'}, got {}",
+            "expected tags to match {'tag1': 'bar'}, got {}",
         ]
     ),
     (
@@ -116,6 +139,12 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
             "@tag1=bar;tag2= PRIVMSG #chan :hello",
             "PRIVMSG #chan hello",
             ":foo!baz@qux PRIVMSG #chan hello",
+        ],
+        # and they each error with:
+        [
+            "expected tags to match {'tag1': AnyStr}, got {'tag1': 'bar', 'tag2': ''}",
+            "expected tags to match {'tag1': AnyStr}, got {}",
+            "expected tags to match {'tag1': AnyStr}, got {}",
         ]
     ),
     (
@@ -138,6 +167,14 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
             "PRIVMSG #chan hello2",
             "PRIVMSG #chan2 hello",
             ":foo!baz@qux PRIVMSG #chan hello",
+        ],
+        # and they each error with:
+        [
+            "expected command to be PRIVMSG, got PRIVMG",
+            "expected tags to match {'tag1': 'bar', RemainingKeys(AnyStr): AnyOptStr()}, got {'tag1': 'value1'}",
+            "expected params to match ['#chan', 'hello'], got ['#chan', 'hello2']",
+            "expected params to match ['#chan', 'hello'], got ['#chan2', 'hello']",
+            "expected tags to match {'tag1': 'bar', RemainingKeys(AnyStr): AnyOptStr()}, got {}",
         ]
     ),
     (
@@ -159,6 +196,13 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
             "@tag1=value1 PRIVMSG #chan :hello",
             "@tag1=bar;tag2= PRIVMSG #chan :hello",
             "@tag1=bar;tag2=baz PRIVMSG #chan :hello",
+        ],
+        # and they each error with:
+        [
+            "expected command to be PRIVMSG, got PRIVMG",
+            "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): AnyOptStr()}, got {'tag1': 'value1'}",
+            "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): AnyOptStr()}, got {'tag1': 'bar', 'tag2': ''}",
+            "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): AnyOptStr()}, got {'tag1': 'bar', 'tag2': 'baz'}",
         ]
     ),
     (
@@ -176,6 +220,11 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
         [
             "005 nick",
             "005 nick BAR=2",
+        ],
+        # and they each error with:
+        [
+            "expected params to match ['nick', 'FOO=1', ListRemainder(AnyStr)], got ['nick']",
+            "expected params to match ['nick', 'FOO=1', ListRemainder(AnyStr)], got ['nick', 'BAR=2']",
         ]
     ),
     (
@@ -193,6 +242,10 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
         # and does not match:
         [
             "005 nick",
+        ],
+        # and they each error with:
+        [
+            "expected params to match ['nick', ListRemainder(AnyStr, min_length=1)], got ['nick']",
         ]
     ),
     (
@@ -211,6 +264,11 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str]]] = [
         [
             "005 nick",
             "005 nick foo=1",
+        ],
+        # and they each error with:
+        [
+            "expected params to match ['nick', ListRemainder(StrRe(r'[A-Z]+=.*'), min_length=1)], got ['nick']",
+            "expected params to match ['nick', ListRemainder(StrRe(r'[A-Z]+=.*'), min_length=1)], got ['nick', 'foo=1']",
         ]
     ),
 ]
@@ -222,7 +280,7 @@ class IrcTestCaseTestCase(cases._IrcTestCase):
         "spec,msg",
         [
             pytest.param(spec, msg, id=f"{spec}-{msg}")
-            for (spec, positive_matches, _) in MESSAGE_SPECS
+            for (spec, positive_matches, _, _) in MESSAGE_SPECS
             for msg in positive_matches
         ],
     )
@@ -235,7 +293,7 @@ class IrcTestCaseTestCase(cases._IrcTestCase):
         "spec,msg",
         [
             pytest.param(spec, msg, id=f"{spec}-{msg}")
-            for (spec, _, negative_matches) in MESSAGE_SPECS
+            for (spec, _, negative_matches, _) in MESSAGE_SPECS
             for msg in negative_matches
         ],
     )
@@ -244,3 +302,14 @@ class IrcTestCaseTestCase(cases._IrcTestCase):
         assert not self.messageEqual(parse_message(msg), **spec), msg
         with pytest.raises(AssertionError):
             self.assertMessageMatch(parse_message(msg), **spec), msg
+
+    @pytest.mark.parametrize(
+        "spec,msg,error_string",
+        [
+            pytest.param(spec, msg, error_string, id=error_string)
+            for (spec, _, negative_matches, error_stringgexps) in MESSAGE_SPECS
+            for (msg, error_string) in zip(negative_matches, error_stringgexps)
+        ],
+    )
+    def test_message_matching_negative_message(self, spec, msg, error_string):
+        self.assertIn(error_string, self.messageDiffers(parse_message(msg), **spec))
