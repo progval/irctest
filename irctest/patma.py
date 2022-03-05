@@ -81,6 +81,8 @@ class ListRemainder:
     def __repr__(self) -> str:
         if self.min_length:
             return f"ListRemainder({self.item!r}, min_length={self.min_length})"
+        elif self.item is ANYSTR:
+            return "*ANYLIST"
         else:
             return f"ListRemainder({self.item!r})"
 
