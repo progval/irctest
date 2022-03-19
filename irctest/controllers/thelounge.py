@@ -50,6 +50,10 @@ class TheLoungeController(BaseClientController, DirectoryBasedController):
             for mech in auth.mechanisms
         ):
             raise NotImplementedByController("ecdsa")
+        if auth and auth.password and len(auth.password) > 300:
+            # https://github.com/thelounge/thelounge/pull/4480
+            # Note that The Lounge truncates on 300 characters, not bytes.
+            raise NotImplementedByController("Passwords longer than 300 chars")
         # Runs a client with the config given as arguments
         assert self.proc is None
         self.create_config()
