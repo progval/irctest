@@ -84,8 +84,9 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         m = self.getMessage()
         self.assertMessageMatch(m, command="CAP")
 
+    @pytest.mark.parametrize("pattern", ["barbaz", "éèà"])
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
-    def testPlainLarge(self):
+    def testPlainLarge(self, pattern):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400.
         <http://ircv3.net/specs/extensions/sasl-3.1.html#the-authenticate-command>
@@ -94,10 +95,10 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         auth = authentication.Authentication(
             mechanisms=[authentication.Mechanisms.plain],
             username="foo",
-            password="bar" * 200,
+            password=pattern * 100,
         )
         authstring = base64.b64encode(
-            b"\x00".join([b"foo", b"foo", b"bar" * 200])
+            b"\x00".join([b"foo", b"foo", pattern.encode() * 100])
         ).decode()
         m = self.negotiateCapabilities(["sasl"], auth=auth)
         self.assertEqual(m, Message({}, None, "AUTHENTICATE", ["PLAIN"]))
@@ -114,7 +115,8 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
     @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
-    def testPlainLargeMultiple(self):
+    @pytest.mark.parametrize("pattern", ["quux", "éè"])
+    def testPlainLargeMultiple(self, pattern):
         """Test the client splits large AUTHENTICATE messages whose payload
         is a multiple of 400.
         <http://ircv3.net/specs/extensions/sasl-3.1.html#the-authenticate-command>
@@ -123,10 +125,10 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         auth = authentication.Authentication(
             mechanisms=[authentication.Mechanisms.plain],
             username="foo",
-            password="quux" * 148,
+            password=pattern * 148,
         )
         authstring = base64.b64encode(
-            b"\x00".join([b"foo", b"foo", b"quux" * 148])
+            b"\x00".join([b"foo", b"foo", pattern.encode() * 148])
         ).decode()
         m = self.negotiateCapabilities(["sasl"], auth=auth)
         self.assertEqual(m, Message({}, None, "AUTHENTICATE", ["PLAIN"]))
