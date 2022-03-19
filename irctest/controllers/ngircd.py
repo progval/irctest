@@ -26,6 +26,9 @@ TEMPLATE_CONFIG = """
     Passive = yes  # don't connect to it
     ServiceMask = *Serv
 
+[Options]
+    MorePrivacy = no  # by default, always replies to WHOWAS with ERR_WASNOSUCHNICK
+
 [Operator]
     Name = operuser
     Password = operpassword
