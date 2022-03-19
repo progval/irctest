@@ -74,6 +74,7 @@ INSPIRCD_SELECTORS := \
 # testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
 # testEmptyRealname fails because it uses a default value instead of ERR_NEEDMOREPARAMS.
 # HelpTestCase fails because it returns NOTICEs instead of numerics
+# testWhowasCountZero fails: https://github.com/UndernetIRC/ircu2/pull/19
 IRCU2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -86,6 +87,7 @@ IRCU2_SELECTORS := \
 	and not testKickDefaultComment \
 	and not testEmptyRealname \
 	and not HelpTestCase \
+	and not testWhowasCountZero \
 	$(EXTRA_SELECTORS)
 
 # same justification as ircu2
