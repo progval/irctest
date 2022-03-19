@@ -61,7 +61,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: Bahamut
-        ref: v2.2.0
+        ref: v2.2.1
         repository: DALnet/Bahamut
     - name: Build Bahamut
       run: |
@@ -149,7 +149,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: ircd-hybrid
-        ref: 8.2.38
+        ref: 8.2.39
         repository: ircd-hybrid/ircd-hybrid
     - name: Build Hybrid
       run: |
@@ -179,7 +179,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: inspircd
-        ref: v3.10.0
+        ref: v3.12.0
         repository: inspircd/inspircd
     - name: Build InspIRCd
       run: |
@@ -257,10 +257,10 @@ jobs:
       with:
         python-version: 3.7
     - name: clone
-      run: 'curl https://gitlab.com/rizon/plexus4/-/archive/403a967e3677a2a8420b504f451e7557259e0790/plexus4-403a967e3677a2a8420b504f451e7557259e0790.tar.gz
-        | tar -zx
+      run: 'curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar
+        | tar -x
 
-        mv plexus4* plexus4'
+        mv plexus* plexus4'
     - name: build
       run: 'cd $GITHUB_WORKSPACE/plexus4
 
@@ -302,7 +302,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: solanum
-        ref: e370888264da666a1bd9faac86cd5f2aa06084f4
+        ref: 492d560ee13e71dc35403fd676e58c2d5bdcf2a9
         repository: solanum-ircd/solanum
     - name: Build Solanum
       run: |
@@ -342,7 +342,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: unrealircd
-        ref: d77f42e4bef388ae344256eeef9a8000345ae381
+        ref: daa0c11f285c7123ba9fa2966dee2d1a17729f1e
         repository: unrealircd/unrealircd
     - name: Build UnrealIRCd 6
       run: |
@@ -386,7 +386,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: unrealircd
-        ref: 94993a03ca8d3c193c0295c33af39270c3f9d27d
+        ref: 6604856973f713a494f83d38992d7d61ce6b9db4
         repository: unrealircd/unrealircd
     - name: Build UnrealIRCd 5
       run: |
@@ -876,7 +876,7 @@ jobs:
       with:
         python-version: 3.7
     - name: Install dependencies
-      run: pip install limnoria==2021.10.09 cryptography pyxmpp2-scram
+      run: pip install limnoria==2022.03.17 cryptography pyxmpp2-scram
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
@@ -1074,7 +1074,7 @@ jobs:
       with:
         python-version: 3.7
     - name: Install dependencies
-      run: pip install sopel==7.1.1
+      run: pip install sopel==7.1.8
     - name: Install Atheme
       run: sudo apt-get install atheme-services
     - name: Install irctest dependencies
