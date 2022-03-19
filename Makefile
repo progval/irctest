@@ -29,6 +29,7 @@ BAHAMUT_SELECTORS := \
 # AccountTagTestCase.testInvite fails because https://github.com/solanum-ircd/solanum/issues/166
 # testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
 # testWhoisNumerics[oper] fails because charybdis uses RPL_WHOISSPECIAL instead of RPL_WHOISOPERATOR
+# testWhowasNoSuchNick fails because of a typo (solved in https://github.com/solanum-ircd/solanum/commit/08b7b6bd7e60a760ad47b58cbe8075b45d66166f)
 CHARYBDIS_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -37,6 +38,7 @@ CHARYBDIS_SELECTORS := \
 	and not testKickDefaultComment \
 	and not (AccountTagTestCase and testInvite) \
 	and not (testWhoisNumerics and oper) \
+	and not testWhowasNoSuchNick \
 	$(EXTRA_SELECTORS)
 
 # testInfoNosuchserver does not apply to Ergo: Ergo ignores the optional <target> argument
