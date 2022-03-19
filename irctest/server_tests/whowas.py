@@ -1,6 +1,8 @@
 from irctest import cases
 from irctest.exceptions import ConnectionClosed
 from irctest.numerics import (
+    ERR_NONICKNAMEGIVEN,
+    ERR_WASNOSUCHNICK,
     RPL_ENDOFWHOWAS,
     RPL_WHOISACTUALLY,
     RPL_WHOISSERVER,
@@ -202,3 +204,64 @@ class WhowasTestCase(cases.BaseServerTestCase):
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS *ck2")
+
+    @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True)
+    def testWhowasNoParam(self):
+        """
+        https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
+        https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+
+        and:
+
+        "At the end of all reply batches, there must be RPL_ENDOFWHOWAS
+        (even if there was only one reply and it was an error)."
+        -- https://datatracker.ietf.org/doc/html/rfc1459#page-50
+        -- https://datatracker.ietf.org/doc/html/rfc2812#page-45
+        """
+        # But no one seems to follow this. Most implementations use ERR_NEEDMOREPARAMS
+        # instead of ERR_NONICKNAMEGIVEN; and I couldn't find any that returns
+        # RPL_ENDOFWHOWAS either way.
+        self.connectClient("nick1")
+
+        self.sendLine(1, "WHOWAS")
+
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=ERR_NONICKNAMEGIVEN,
+            params=["nick1", ANYSTR],
+        )
+
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=RPL_ENDOFWHOWAS,
+            params=["nick1", "nick2", ANYSTR],
+        )
+
+    @cases.mark_specifications("RFC1459", "RFC2812")
+    def testWhowasNoSuchNick(self):
+        """
+        https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
+        https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+
+        and:
+
+        "At the end of all reply batches, there must be RPL_ENDOFWHOWAS
+        (even if there was only one reply and it was an error)."
+        -- https://datatracker.ietf.org/doc/html/rfc1459#page-50
+        -- https://datatracker.ietf.org/doc/html/rfc2812#page-45
+        """
+        self.connectClient("nick1")
+
+        self.sendLine(1, "WHOWAS nick2")
+
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=ERR_WASNOSUCHNICK,
+            params=["nick1", "nick2", ANYSTR],
+        )
+
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=RPL_ENDOFWHOWAS,
+            params=["nick1", "nick2", ANYSTR],
+        )
