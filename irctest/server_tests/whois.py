@@ -200,7 +200,7 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase, cases.Optionality
         """Tests all numerics are in the exhaustive list defined in the Modern spec.
 
         <https://modern.ircdocs.horse/#whois-message>"""
-        self._testWhoisNumerics(authenticate=False, away=away, oper=oper)
+        self._testWhoisNumerics(oper=oper, authenticate=False, away=away)
 
 
 @cases.mark_services
