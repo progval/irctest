@@ -47,7 +47,7 @@ software:
             stable:
                 - name: clone
                   run: |-
-                      curl https://gitlab.com/rizon/plexus4/uploads/d2bd512ec668cf956ec03ef207df4c30/plexus-20211115_0-611.tar.gz | tar -zx
+                      curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar | tar -zx
                       mv plexus4* plexus4
                 - name: build
                   run: |-
@@ -272,7 +272,7 @@ software:
         name: UnrealIRCd 5
         repository: unrealircd/unrealircd
         refs:
-            stable: 96604856973f713a494f83d38992d7d61ce6b9db4  # 5.2.4
+            stable: 6604856973f713a494f83d38992d7d61ce6b9db4  # 5.2.4
             release: null
             devel: unreal52
             devel_release:

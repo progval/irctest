@@ -257,7 +257,7 @@ jobs:
       with:
         python-version: 3.7
     - name: clone
-      run: 'curl https://gitlab.com/rizon/plexus4/uploads/d2bd512ec668cf956ec03ef207df4c30/plexus-20211115_0-611.tar.gz
+      run: 'curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar
         | tar -zx
 
         mv plexus4* plexus4'
@@ -386,7 +386,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: unrealircd
-        ref: 96604856973f713a494f83d38992d7d61ce6b9db4
+        ref: 6604856973f713a494f83d38992d7d61ce6b9db4
         repository: unrealircd/unrealircd
     - name: Build UnrealIRCd 5
       run: |
