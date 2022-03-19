@@ -47,7 +47,7 @@ software:
             stable:
                 - name: clone
                   run: |-
-                      curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar | tar -zx
+                      curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar | tar -x
                       mv plexus* plexus4
                 - name: build
                   run: |-
