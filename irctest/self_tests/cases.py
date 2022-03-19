@@ -271,6 +271,25 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
             "expected params to match ['nick', ListRemainder(StrRe(r'[A-Z]+=.*'), min_length=1)], got ['nick', 'foo=1']",
         ]
     ),
+    (
+        # the specification:
+        dict(
+            command="PING",
+            params=["abc"]
+        ),
+        # matches:
+        [
+            "PING abc",
+        ],
+        # and does not match:
+        [
+            "PONG def"
+        ],
+        # and they each error with:
+        [
+            "expected command to be PING, got PONG"
+        ]
+    ),
 ]
 # fmt: on
 
