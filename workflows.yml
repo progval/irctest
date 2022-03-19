@@ -27,7 +27,7 @@ software:
         name: Hybrid
         repository: ircd-hybrid/ircd-hybrid
         refs:
-            stable: "8.2.38"
+            stable: "8.2.39"
             release: null
             devel: "8.2.x"
             devel_release: null
@@ -47,7 +47,7 @@ software:
             stable:
                 - name: clone
                   run: |-
-                      curl https://gitlab.com/rizon/plexus4/-/archive/403a967e3677a2a8420b504f451e7557259e0790/plexus4-403a967e3677a2a8420b504f451e7557259e0790.tar.gz | tar -zx
+                      curl https://gitlab.com/rizon/plexus4/uploads/d2bd512ec668cf956ec03ef207df4c30/plexus-20211115_0-611.tar.gz | tar -zx
                       mv plexus4* plexus4
                 - name: build
                   run: |-
@@ -77,7 +77,7 @@ software:
         refs:
             # Actually Solanum doesn't have releases; so we just bump this
             # commit hash from time to time
-            stable: e370888264da666a1bd9faac86cd5f2aa06084f4
+            stable: 492d560ee13e71dc35403fd676e58c2d5bdcf2a9
             release: null
             devel: main
             devel_release: null
@@ -96,7 +96,7 @@ software:
         name: Bahamut
         repository: DALnet/Bahamut
         refs:
-            stable: "v2.2.0"
+            stable: "v2.2.1"
             release: null
             devel: "master"
             devel_release: null
@@ -142,7 +142,7 @@ software:
         name: InspIRCd
         repository: inspircd/inspircd
         refs: &inspircd_refs
-            stable: v3.10.0
+            stable: v3.12.0
             release: null
             devel: master
             devel_release: insp3
@@ -250,8 +250,8 @@ software:
         name: UnrealIRCd 6
         repository: unrealircd/unrealircd
         refs:
-            stable: d77f42e4bef388ae344256eeef9a8000345ae381  # 6.0.0 + 2 commits
-            release: 893bf864f6c616e891d84916d27e342c252f31aaa  # 6.0.0
+            stable: daa0c11f285c7123ba9fa2966dee2d1a17729f1e  # 6.0.2 + a few commits
+            release: 29fd2e772a6b4b9107daa4e3c237df454b055810  # 6.0.2
             devel: unreal60_dev
             devel_release: null
         path: unrealircd
@@ -272,7 +272,7 @@ software:
         name: UnrealIRCd 5
         repository: unrealircd/unrealircd
         refs:
-            stable: 94993a03ca8d3c193c0295c33af39270c3f9d27d  # 5.2.1-rc1
+            stable: 96604856973f713a494f83d38992d7d61ce6b9db4  # 5.2.4
             release: null
             devel: unreal52
             devel_release:
@@ -290,7 +290,7 @@ software:
         install_steps:
             stable:
                 - name: Install dependencies
-                  run: pip install limnoria==2021.10.09 cryptography pyxmpp2-scram
+                  run: pip install limnoria==2022.03.17 cryptography pyxmpp2-scram
             release:
                 - name: Install dependencies
                   run: pip install limnoria cryptography pyxmpp2-scram
@@ -305,7 +305,7 @@ software:
         install_steps:
             stable:
                 - name: Install dependencies
-                  run: pip install sopel==7.1.1
+                  run: pip install sopel==7.1.8
             release:
                 - name: Install dependencies
                   run: pip install sopel
