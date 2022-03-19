@@ -66,7 +66,7 @@ jobs:
     - name: Build Bahamut
       run: |
         cd $GITHUB_WORKSPACE/Bahamut/
-        patch src/s_user.c < $GITHUB_WORKSPACE/bahamut_localhost.patch
+        patch src/s_user.c < $GITHUB_WORKSPACE/patches/bahamut_localhost.patch
         echo "#undef THROTTLE_ENABLE" >> include/config.h
         libtoolize --force
         aclocal
@@ -144,7 +144,7 @@ jobs:
     - name: Build InspIRCd
       run: |
         cd $GITHUB_WORKSPACE/inspircd/
-        patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
+        patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
         ./configure --prefix=$HOME/.local/inspircd --development
         make -j 4
         make install
@@ -184,6 +184,7 @@ jobs:
     - name: Build ngircd
       run: |
         cd $GITHUB_WORKSPACE/ngircd
+        patch src/ngircd/client.c < $GITHUB_WORKSPACE/patches/ngircd_whowas_delay.patch
         ./autogen.sh
         ./configure --prefix=$HOME/.local/
         make -j 4

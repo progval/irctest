@@ -55,6 +55,7 @@ HYBRID_SELECTORS := \
 # testNoticeNonexistentChannel fails because of https://github.com/inspircd/inspircd/issues/1849
 # testBotPrivateMessage and testBotChannelMessage fail because https://github.com/inspircd/inspircd/pull/1910 is not released yet
 # testNamesInvalidChannel and testNamesNonexistingChannel fail because https://github.com/inspircd/inspircd/pull/1922 is not released yet.
+# WHOWAS tests fail because https://github.com/inspircd/inspircd/pull/1967 and https://github.com/inspircd/inspircd/pull/1968 are not released yet
 INSPIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -62,6 +63,7 @@ INSPIRCD_SELECTORS := \
 	and not testNoticeNonexistentChannel \
 	and not testBotPrivateMessage and not testBotChannelMessage \
 	and not testNamesInvalidChannel and not testNamesNonexistingChannel \
+	and not whowas \
 	$(EXTRA_SELECTORS)
 
 # buffering tests fail because ircu2 discards the whole buffer on long lines (TODO: refine how we exclude these tests)
@@ -72,6 +74,7 @@ INSPIRCD_SELECTORS := \
 # testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
 # testEmptyRealname fails because it uses a default value instead of ERR_NEEDMOREPARAMS.
 # HelpTestCase fails because it returns NOTICEs instead of numerics
+# testWhowasCountZero fails: https://github.com/UndernetIRC/ircu2/pull/19
 IRCU2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -84,6 +87,7 @@ IRCU2_SELECTORS := \
 	and not testKickDefaultComment \
 	and not testEmptyRealname \
 	and not HelpTestCase \
+	and not testWhowasCountZero \
 	$(EXTRA_SELECTORS)
 
 # same justification as ircu2

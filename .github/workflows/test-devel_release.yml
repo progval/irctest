@@ -57,7 +57,7 @@ jobs:
     - name: Build InspIRCd
       run: |
         cd $GITHUB_WORKSPACE/inspircd/
-        patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
+        patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
         ./configure --prefix=$HOME/.local/inspircd --development
         make -j 4
         make install

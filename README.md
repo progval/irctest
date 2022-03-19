@@ -111,7 +111,7 @@ git clone https://github.com/inspircd/inspircd.git
 cd inspircd
 
 # optional, makes tests run considerably faster
-patch src/inspircd.cpp < ~/irctest/inspircd_mainloop.patch
+patch src/inspircd.cpp < ~/irctest/patches/inspircd_mainloop.patch
 
 ./configure --prefix=$HOME/.local/ --development
 make -j 4
