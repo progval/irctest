@@ -1,4 +1,5 @@
 from irctest import cases
+from irctest.exceptions import ConnectionClosed
 from irctest.numerics import (
     RPL_ENDOFWHOWAS,
     RPL_WHOISACTUALLY,
@@ -19,7 +20,10 @@ class WhowasTestCase(cases.BaseServerTestCase):
 
         self.connectClient("nick2")
         self.sendLine(2, "QUIT :bye")
-        self.getMessages(2)
+        try:
+            self.getMessages(2)
+        except ConnectionClosed:
+            pass
 
         self.sendLine(1, "WHOWAS nick2")
 
@@ -83,11 +87,17 @@ class WhowasTestCase(cases.BaseServerTestCase):
 
         self.connectClient("nick2", ident="ident2")
         self.sendLine(2, "QUIT :bye")
-        self.getMessages(2)
+        try:
+            self.getMessages(2)
+        except ConnectionClosed:
+            pass
 
         self.connectClient("nick2", ident="ident3")
         self.sendLine(3, "QUIT :bye")
-        self.getMessages(3)
+        try:
+            self.getMessages(3)
+        except ConnectionClosed:
+            pass
 
         self.sendLine(1, whowas_command)
 
