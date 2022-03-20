@@ -345,5 +345,3 @@ class WhowasTestCase(cases.BaseServerTestCase):
             params=["nick1", targets, ANYSTR],
             fail_msg=f"Last message was not RPL_ENDOFWHOWAS ({RPL_ENDOFWHOWAS})",
         )
-
-        assert False
