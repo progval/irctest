@@ -1,4 +1,6 @@
-from irctest import cases
+import pytest
+
+from irctest import cases, runner
 from irctest.exceptions import ConnectionClosed
 from irctest.numerics import (
     ERR_NONICKNAMEGIVEN,
@@ -264,4 +266,82 @@ class WhowasTestCase(cases.BaseServerTestCase):
             self.getMessage(1),
             command=RPL_ENDOFWHOWAS,
             params=["nick1", "nick2", ANYSTR],
+        )
+
+    @cases.mark_specifications("RFC2812")
+    @cases.mark_isupport("TARGMAX")
+    @pytest.mark.parametrize("targets", ["nick2,nick3", "nick3,nick2"])
+    def testWhowasMultiTarget(self, targets):
+        """
+        https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        """
+        self.connectClient("nick1")
+
+        targmax = dict(
+            item.split(":", 1)
+            for item in self.server_support.get("TARGMAX", "").split(",")
+            if item
+        )
+        if targmax.get("WHOWAS", "1") == "1":
+            raise runner.NotImplementedByController("Multi-target WHOWAS")
+
+        self.connectClient("nick2", ident="ident2")
+        self.sendLine(2, "QUIT :bye")
+        try:
+            self.getMessages(2)
+        except ConnectionClosed:
+            pass
+
+        self.connectClient("nick3", ident="ident3")
+        self.sendLine(3, "QUIT :bye")
+        try:
+            self.getMessages(3)
+        except ConnectionClosed:
+            pass
+
+        self.sendLine(1, f"WHOWAS {targets}")
+
+        messages = self.getMessages(1)
+
+        self.assertMessageMatch(
+            messages.pop(0),
+            command=RPL_WHOWASUSER,
+            params=[
+                "nick1",
+                "nick3",
+                StrRe("~?ident3"),
+                ANYSTR,
+                "*",
+                "Realname",
+            ],
+        )
+        while messages[0].command in (RPL_WHOISACTUALLY, RPL_WHOISSERVER):
+            # don't care
+            messages.pop(0)
+
+        # nick2 with ident2
+        self.assertMessageMatch(
+            messages.pop(0),
+            command=RPL_WHOWASUSER,
+            params=[
+                "nick1",
+                "nick2",
+                StrRe("~?ident2"),
+                ANYSTR,
+                "*",
+                "Realname",
+            ],
+        )
+        if messages[0].command == RPL_WHOISACTUALLY:
+            # don't care
+            messages.pop(0)
+        while messages[0].command in (RPL_WHOISACTUALLY, RPL_WHOISSERVER):
+            # don't care
+            messages.pop(0)
+
+        self.assertMessageMatch(
+            messages.pop(0),
+            command=RPL_ENDOFWHOWAS,
+            params=["nick1", targets, ANYSTR],
+            fail_msg=f"Last message was not RPL_ENDOFWHOWAS ({RPL_ENDOFWHOWAS})",
         )

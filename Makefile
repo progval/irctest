@@ -14,6 +14,7 @@ ANOPE_SELECTORS := \
 # buffering tests cannot pass because of issues with UTF-8 handling: https://github.com/DALnet/bahamut/issues/196
 # mask tests in test_who.py fail because they are not implemented.
 # some HelpTestCase::*[HELP] tests fail because Bahamut forwards /HELP to HelpServ (but not /HELPOP)
+# testWhowasMultiTarget fails because Bahamut returns the results in query order instead of chronological order
 BAHAMUT_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -23,6 +24,7 @@ BAHAMUT_SELECTORS := \
 	and not (testWho and not whois and mask) \
 	and not testWhoStar \
 	and (not HelpTestCase or HELPOP) \
+	and not testWhowasMultiTarget \
 	$(EXTRA_SELECTORS)
 
 # testQuitErrors is very flaky
