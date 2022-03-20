@@ -5,7 +5,7 @@ Tests section 4.1 of RFC 1459.
 
 from irctest import cases
 from irctest.client_mock import ConnectionClosed
-from irctest.numerics import ERR_NEEDMOREPARAMS
+from irctest.numerics import ERR_NEEDMOREPARAMS, ERR_PASSWDMISMATCH
 from irctest.patma import ANYSTR, StrRe
 
 
@@ -46,6 +46,7 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.assertNotEqual(
             m.command, "001", msg="Got 001 after NICK+USER but incorrect PASS"
         )
+        self.assertIn(m.command, {ERR_PASSWDMISMATCH, "ERROR"})
 
     @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
     def testPassAfterNickuser(self):
