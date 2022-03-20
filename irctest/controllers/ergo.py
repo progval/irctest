@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+import shutil
 import subprocess
 from typing import Any, Dict, Optional, Set, Type, Union
 
@@ -155,6 +156,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
         restricted_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
         config: Optional[Any] = None,
     ) -> None:
         if valid_metadata_keys or invalid_metadata_keys:
@@ -202,8 +204,15 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         self._write_config()
         subprocess.call(["ergo", "initdb", "--conf", self._config_path, "--quiet"])
         subprocess.call(["ergo", "mkcerts", "--conf", self._config_path, "--quiet"])
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
         self.proc = subprocess.Popen(
-            ["ergo", "run", "--conf", self._config_path, "--quiet"]
+            [*faketime_cmd, "ergo", "run", "--conf", self._config_path, "--quiet"]
         )
 
     def wait_for_services(self) -> None:

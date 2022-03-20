@@ -18,6 +18,7 @@ have no side effect.
 Install irctest and dependencies:
 
 ```
+sudo apt install faketime  # Optional, but greatly speeds up irctest/server_tests/list.py
 cd ~
 git clone https://github.com/ProgVal/irctest.git
 cd irctest
