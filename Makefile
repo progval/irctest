@@ -179,6 +179,7 @@ SOPEL_SELECTORS := \
 # testChathistory[AROUND] fails: https://bugs.unrealircd.org/view.php?id=5953
 # testWhoAllOpers fails because Unreal skips results when the mask is too broad
 # HELP and HELPOP tests fail because Unreal uses custom numerics https://github.com/unrealircd/unrealircd/pull/184
+# testListTopicTime fails because Unreal mistakenly advertises it as available https://github.com/unrealircd/unrealircd/pull/193
 UNREALIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -194,6 +195,7 @@ UNREALIRCD_SELECTORS := \
 	and not (testChathistory and (between or around)) \
 	and not testWhoAllOpers \
 	and not HelpTestCase \
+	and not testListTopicTime \
 	$(EXTRA_SELECTORS)
 
 .PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon limnoria sopel solanum unrealircd

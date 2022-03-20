@@ -1,12 +1,8 @@
 import functools
 import os
-<<<<<<< HEAD
 import pathlib
 import shutil
 import signal
-=======
-import shutil
->>>>>>> 96e6642 (Add support for 'faketime', to avoid long sleeps in upcoming ELIST tests)
 import subprocess
 import textwrap
 from typing import Optional, Set, Type
