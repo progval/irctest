@@ -106,6 +106,10 @@ tld {{
     rules "{empty_file}";
 }}
 
+files {{
+    tunefile "{empty_file}";
+}}
+
 oper "operuser" {{
     password = "operpassword";
     mask *;
