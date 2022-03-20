@@ -48,6 +48,12 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         )
         self.assertIn(m.command, {ERR_PASSWDMISMATCH, "ERROR"})
 
+        if m.command == "ERR_PASSWDMISMATCH":
+            m = self.getRegistrationMessage(1)
+            self.assertEqual(
+                m.command, "ERROR", msg="ERR_PASSWDMISMATCH not followed by ERROR."
+            )
+
     @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
     def testPassAfterNickuser(self):
         """“The password can and must be set before any attempt to register
