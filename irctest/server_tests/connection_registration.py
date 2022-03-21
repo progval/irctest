@@ -36,8 +36,14 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
             m.command, "001", msg="Got 001 after NICK+USER but missing PASS"
         )
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("Modern")
     def testWrongPassword(self):
+        """
+        "If the password supplied does not match the password expected by the server,
+        then the server SHOULD send ERR_PASSWDMISMATCH and MUST close the connection
+        with ERROR."
+        -- https://github.com/ircdocs/modern-irc/pull/172
+        """
         self.addClient()
         self.sendLine(1, "PASS {}".format(self.password + "garbage"))
         self.sendLine(1, "NICK foo")
