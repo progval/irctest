@@ -10,8 +10,8 @@ class NamesTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.connectClient("nick2")
         self.sendLine(2, "JOIN #chan")
-        self.getMessages(1)
         self.getMessages(2)
+        self.getMessages(1)
 
         self.sendLine(1, "NAMES #chan")
 
