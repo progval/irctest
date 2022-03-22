@@ -88,7 +88,7 @@ class NamesTestCase(cases.BaseServerTestCase):
         """
         self._testNamesNoArgumentPublic(symbol=False)
 
-    @cases.mark_specifications("RFC2812")
+    @cases.mark_specifications("RFC2812", deprecated=True)
     def testNamesNoArgumentPublic2812(self):
         """
         "If no <channel> parameter is given, a list of all channels and their
@@ -134,7 +134,7 @@ class NamesTestCase(cases.BaseServerTestCase):
         """
         self._testNamesNoArgumentPrivate(symbol=False)
 
-    @cases.mark_specifications("RFC2812")
+    @cases.mark_specifications("RFC2812", deprecated=True)
     def testNamesNoArgumentPrivate2812(self):
         """
         "If no <channel> parameter is given, a list of all channels and their
