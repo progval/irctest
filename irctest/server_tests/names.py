@@ -1,9 +1,112 @@
-from irctest import cases
+from irctest import cases, runner
 from irctest.numerics import RPL_ENDOFNAMES, RPL_NAMREPLY
-from irctest.patma import ANYSTR
+from irctest.patma import ANYSTR, StrRe
 
 
 class NamesTestCase(cases.BaseServerTestCase):
+    def _testNames(self, symbol):
+        self.connectClient("nick1")
+        self.sendLine(1, "JOIN #chan")
+        self.getMessages(1)
+        self.connectClient("nick2")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(1, "NAMES #chan")
+
+        # TODO: It is technically allowed to have one line for each;
+        # but noone does that.
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=RPL_NAMREPLY,
+            params=[
+                "nick1",
+                *(["="] if symbol else []),
+                "#chan",
+                StrRe("(nick2 @nick1|@nick1 nick2)"),
+            ],
+        )
+
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=RPL_ENDOFNAMES,
+            params=["nick1", "#chan", ANYSTR],
+        )
+
+    @cases.mark_specifications("RFC1459", deprecated=True)
+    def testNames1459(self):
+        """
+        https://modern.ircdocs.horse/#names-message
+        https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.5
+        https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5
+        """
+        self._testNames(symbol=False)
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testNames2812(self):
+        """
+        https://modern.ircdocs.horse/#names-message
+        https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.5
+        https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5
+        """
+        self._testNames(symbol=True)
+
+    def _testNamesMultipleChannels(self, symbol):
+        self.connectClient("nick1")
+
+        targmax = dict(
+            item.split(":", 1)
+            for item in self.server_support.get("TARGMAX", "").split(",")
+            if item
+        )
+        if targmax.get("NAMES", "1") == "1":
+            raise runner.NotImplementedByController("Multi-target NAMES")
+
+        self.sendLine(1, "JOIN #chan1")
+        self.sendLine(1, "JOIN #chan2")
+        self.getMessages(1)
+
+        self.sendLine(1, "NAMES #chan1,#chan2")
+
+        # TODO: order is unspecified
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=RPL_NAMREPLY,
+            params=["nick1", *(["="] if symbol else []), "#chan1", "@nick1"],
+        )
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=RPL_NAMREPLY,
+            params=["nick1", *(["="] if symbol else []), "#chan2", "@nick1"],
+        )
+
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=RPL_ENDOFNAMES,
+            params=["nick1", "#chan1,#chan2", ANYSTR],
+        )
+
+    @cases.mark_isupport("TARGMAX")
+    @cases.mark_specifications("RFC1459", deprecated=True)
+    def testNamesMultipleChannels1459(self):
+        """
+        https://modern.ircdocs.horse/#names-message
+        https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.5
+        https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5
+        """
+        self._testNamesMultipleChannels(symbol=False)
+
+    @cases.mark_isupport("TARGMAX")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testNamesMultipleChannels2812(self):
+        """
+        https://modern.ircdocs.horse/#names-message
+        https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.5
+        https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5
+        """
+        self._testNamesMultipleChannels(symbol=True)
+
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     def testNamesInvalidChannel(self):
         """
