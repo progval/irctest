@@ -76,6 +76,7 @@ INSPIRCD_SELECTORS := \
 # testEmptyRealname fails because it uses a default value instead of ERR_NEEDMOREPARAMS.
 # HelpTestCase fails because it returns NOTICEs instead of numerics
 # testWhowasCountZero fails: https://github.com/UndernetIRC/ircu2/pull/19
+# testWhoxOneChar[l] fails because https://github.com/UndernetIRC/ircu2/commit/17c539103abbd0055b2297e17854cd0756c85d62 is not released yet
 IRCU2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -89,6 +90,7 @@ IRCU2_SELECTORS := \
 	and not testEmptyRealname \
 	and not HelpTestCase \
 	and not testWhowasCountZero \
+	and not "testWhoxOneChar[l]" \
 	$(EXTRA_SELECTORS)
 
 # same justification as ircu2
