@@ -384,6 +384,34 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHe
             params=["otherNick", InsensitiveStr("coolNick"), ANYSTR],
         )
 
+    @pytest.mark.parametrize("char", "cuihsnfdlaor")
+    def testWhoxOneChar(self, char):
+        self._init()
+        if "WHOX" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("WHOX")
+
+        self.sendLine(2, f"WHO coolNick %{char}")
+        messages = self.getMessages(2)
+
+        self.assertEqual(len(messages), 2, "Unexpected number of messages")
+
+        (reply, end) = messages
+
+        self.assertMessageMatch(
+            reply,
+            command=RPL_WHOSPCRPL,
+            params=[
+                "otherNick",
+                StrRe(".+"),
+            ],
+        )
+
+        self.assertMessageMatch(
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr("coolNick"), ANYSTR],
+        )
+
     def testWhoxToken(self):
         """https://github.com/ircv3/ircv3-specifications/pull/482"""
         self._init()
