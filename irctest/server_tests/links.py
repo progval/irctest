@@ -29,15 +29,20 @@ class LinksTestCase(cases.BaseServerTestCase):
         messages = self.getMessages(1)
         if messages[0].command == ERR_UNKNOWNCOMMAND:
             raise runner.NotImplementedByController("LINKS")
+
+        self.assertMessageMatch(
+            messages.pop(-1),
+            command=RPL_ENDOFLINKS,
+            params=["nick", "*", ANYSTR],
+        )
+        if not messages:
+            # This server probably redacts links
+            return
+
         self.assertMessageMatch(
             messages[0],
             command=RPL_LINKS,
             params=["nick", "My.Little.Server", "My.Little.Server", "0 test server"],
-        )
-        self.assertMessageMatch(
-            messages[1],
-            command=RPL_ENDOFLINKS,
-            params=["nick", "*", ANYSTR],
         )
 
 
@@ -77,6 +82,10 @@ class ServicesLinksTestCase(cases.BaseServerTestCase):
             command=RPL_ENDOFLINKS,
             params=["nick", "*", ANYSTR],
         )
+
+        if not messages:
+            # This server redacts links
+            return
 
         messages.sort(key=lambda m: m.params[-1])
 
