@@ -4,12 +4,14 @@ from irctest.patma import ANYSTR, StrRe
 
 
 class LinksTestCase(cases.BaseServerTestCase):
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     def testLinksSingleServer(self):
         """
         Only testing the parameter-less case.
 
         https://datatracker.ietf.org/doc/html/rfc1459#section-4.3.3
         https://datatracker.ietf.org/doc/html/rfc2812#section-3.4.5
+        https://github.com/ircdocs/modern-irc/pull/175
 
         "
         364     RPL_LINKS
@@ -23,6 +25,10 @@ class LinksTestCase(cases.BaseServerTestCase):
         "
         -- https://datatracker.ietf.org/doc/html/rfc1459#page-51
         -- https://datatracker.ietf.org/doc/html/rfc2812#page-48
+
+        RPL_LINKS: "<client> * <server> :<hopcount> <server info>"
+        RPL_ENDOFLINKS: "<client> * :End of /LINKS list"
+        -- https://github.com/ircdocs/modern-irc/pull/175/files
         """
         self.connectClient("nick")
         self.sendLine(1, "LINKS")
@@ -59,6 +65,7 @@ class LinksTestCase(cases.BaseServerTestCase):
 class ServicesLinksTestCase(cases.BaseServerTestCase):
     # On every IRCd but Ergo, services are linked.
     # Ergo does not implement LINKS at all, so this test is skipped.
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     def testLinksWithServices(self):
         """
         Only testing the parameter-less case.
@@ -78,6 +85,10 @@ class ServicesLinksTestCase(cases.BaseServerTestCase):
         "
         -- https://datatracker.ietf.org/doc/html/rfc1459#page-51
         -- https://datatracker.ietf.org/doc/html/rfc2812#page-48
+
+        RPL_LINKS: "<client> * <server> :<hopcount> <server info>"
+        RPL_ENDOFLINKS: "<client> * :End of /LINKS list"
+        -- https://github.com/ircdocs/modern-irc/pull/175/files
         """
         self.connectClient("nick")
         self.sendLine(1, "LINKS")
