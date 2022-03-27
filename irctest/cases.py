@@ -539,13 +539,10 @@ class BaseServerTestCase(
         if self.run_services:
             self.controller.wait_for_services()
         if not name:
-            new_name: int = (
-                max(
-                    [int(name) for name in self.clients if isinstance(name, (int, str))]
-                    + [0]
-                )
-                + 1
-            )
+            used_ids: List[int] = [
+                int(name) for name in self.clients if isinstance(name, (int, str))
+            ]
+            new_name = max(used_ids + [0]) + 1
             name = cast(TClientName, new_name)
         show_io = show_io if show_io is not None else self.show_io
         self.clients[name] = client_mock.ClientMock(name=name, show_io=show_io)
