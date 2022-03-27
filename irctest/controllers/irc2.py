@@ -10,7 +10,7 @@ from irctest.basecontrollers import (
 
 TEMPLATE_CONFIG = """
 # M:<Server NAME>:<YOUR Internet IP#>:<Geographic Location>:<Port>:<SID>:
-M:My.Little.Server:{hostname}:Somewhere:{port}:0042:
+M:My.Little.Server:{hostname}:test server:{port}:0042:
 
 # A:<Your Name/Location>:<Your E-Mail Addr>:<other info>::<network name>:
 A:Organization, IRC dept.:Daemon <ircd@example.irc.org>:Client Server::IRCnet:

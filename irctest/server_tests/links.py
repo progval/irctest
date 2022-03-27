@@ -35,6 +35,10 @@ class LinksTestCase(cases.BaseServerTestCase):
             command=RPL_ENDOFLINKS,
             params=["nick", "*", ANYSTR],
         )
+
+        # Ignore '/LINKS has been disabled' from ircu2
+        messages = [m for m in messages if m.command != "NOTICE"]
+
         if not messages:
             # This server probably redacts links
             return
@@ -42,7 +46,12 @@ class LinksTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             messages[0],
             command=RPL_LINKS,
-            params=["nick", "My.Little.Server", "My.Little.Server", "0 test server"],
+            params=[
+                "nick",
+                "My.Little.Server",
+                "My.Little.Server",
+                StrRe("0 (0042 )?test server"),
+            ],
         )
 
 
@@ -83,6 +92,9 @@ class ServicesLinksTestCase(cases.BaseServerTestCase):
             params=["nick", "*", ANYSTR],
         )
 
+        # Ignore '/LINKS has been disabled' from ircu2
+        messages = [m for m in messages if m.command != "NOTICE"]
+
         if not messages:
             # This server redacts links
             return
@@ -92,12 +104,22 @@ class ServicesLinksTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             messages.pop(0),
             command=RPL_LINKS,
-            params=["nick", "My.Little.Server", "My.Little.Server", "0 test server"],
+            params=[
+                "nick",
+                "My.Little.Server",
+                "My.Little.Server",
+                StrRe("0 (0042 )?test server"),
+            ],
         )
         self.assertMessageMatch(
             messages.pop(0),
             command=RPL_LINKS,
-            params=["nick", "services.example.org", "My.Little.Server", StrRe("1 .+")],
+            params=[
+                "nick",
+                "services.example.org",
+                "My.Little.Server",
+                StrRe("1 .+"),  # SID instead of description for Anope...
+            ],
         )
 
         self.assertEqual(messages, [])
