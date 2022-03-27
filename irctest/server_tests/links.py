@@ -30,14 +30,14 @@ class LinksTestCase(cases.BaseServerTestCase):
         if messages[0].command == ERR_UNKNOWNCOMMAND:
             raise runner.NotImplementedByController("LINKS")
 
+        # Ignore '/LINKS has been disabled' from ircu2
+        messages = [m for m in messages if m.command != "NOTICE"]
+
         self.assertMessageMatch(
             messages.pop(-1),
             command=RPL_ENDOFLINKS,
             params=["nick", "*", ANYSTR],
         )
-
-        # Ignore '/LINKS has been disabled' from ircu2
-        messages = [m for m in messages if m.command != "NOTICE"]
 
         if not messages:
             # This server probably redacts links
@@ -86,14 +86,14 @@ class ServicesLinksTestCase(cases.BaseServerTestCase):
         if messages[0].command == ERR_UNKNOWNCOMMAND:
             raise runner.NotImplementedByController("LINKS")
 
+        # Ignore '/LINKS has been disabled' from ircu2
+        messages = [m for m in messages if m.command != "NOTICE"]
+
         self.assertMessageMatch(
             messages.pop(-1),
             command=RPL_ENDOFLINKS,
             params=["nick", "*", ANYSTR],
         )
-
-        # Ignore '/LINKS has been disabled' from ircu2
-        messages = [m for m in messages if m.command != "NOTICE"]
 
         if not messages:
             # This server redacts links
