@@ -376,13 +376,16 @@ class InviteTestCase(cases.BaseServerTestCase):
         m = self.getMessage(2)
         if m.command == ERR_NEEDMOREPARAMS:
             raise runner.NotImplementedByController("INVITE with no parameter")
+        if m.command != "337":
+            # Hybrid always sends an empty list; so skip this.
+            self.assertMessageMatch(
+                m,
+                command="336",
+                params=["bar", "#chan"],
+            )
+            m = self.getMessage(2)
         self.assertMessageMatch(
             m,
-            command="336",
-            params=["bar", "#chan"],
-        )
-        self.assertMessageMatch(
-            self.getMessage(2),
             command="337",
             params=["bar", ANYSTR],
         )
@@ -397,8 +400,6 @@ class InviteTestCase(cases.BaseServerTestCase):
             invex = self.server_support.get("INVEX") or "I"
         else:
             raise runner.NotImplementedByController("INVEX")
-        # if self.controller.software_name == "UnrealIRCd":
-        #    invex = "I"
 
         self.sendLine(1, "JOIN #chan")
         self.getMessages(1)
