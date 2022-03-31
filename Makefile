@@ -49,10 +49,10 @@ ERGO_SELECTORS := \
 	and not testInfoNosuchserver \
 	$(EXTRA_SELECTORS)
 
-# testInviteUnoppedModern is the only strict test that Hybrid fails
+# testInviteUnopped is the only strict test that Hybrid fails
 HYBRID_SELECTORS := \
 	not Ergo \
-	and not testInviteUnoppedModern \
+	and not testInviteUnopped \
 	and not deprecated \
 	$(EXTRA_SELECTORS)
 
@@ -138,12 +138,12 @@ NGIRCD_SELECTORS := \
 	and (not HelpTestCase or HELPOP) \
 	$(EXTRA_SELECTORS)
 
-# testInviteUnoppedModern is the only strict test that Plexus4 fails
-# testInviteInviteOnlyModern fails because Plexus4 allows non-op to invite if (and only if) the channel is not invite-only
+# testInviteUnopped is the only strict test that Plexus4 fails
+# testInviteInviteOnly fails because Plexus4 allows non-op to invite if (and only if) the channel is not invite-only
 PLEXUS4_SELECTORS := \
 	not Ergo \
-	and not testInviteUnoppedModern \
-	and not testInviteInviteOnlyModern \
+	and not testInviteUnopped \
+	and not testInviteInviteOnly \
 	and not deprecated \
 	$(EXTRA_SELECTORS)
 
