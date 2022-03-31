@@ -61,6 +61,7 @@ TEMPLATE_CONFIG = """
 # Protocol:
 <module name="botmode">
 <module name="cap">
+<module name="inviteexception">
 <module name="ircv3">
 <module name="ircv3_accounttag">
 <module name="ircv3_batch">
