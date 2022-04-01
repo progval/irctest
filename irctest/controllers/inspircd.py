@@ -74,6 +74,7 @@ TEMPLATE_CONFIG = """
 <module name="monitor">
 <module name="m_muteban">  # for testing mute extbans
 <module name="namesx"> # For multi-prefix
+<module name="noctcp">
 <module name="sasl">
 
 # HELP/HELPOP
