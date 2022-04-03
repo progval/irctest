@@ -210,9 +210,10 @@ class BaseServerController(_BaseController):
         case: irctest.cases.BaseServerTestCase,  # type: ignore
         username: str,
         password: Optional[str] = None,
+        **kwargs: Any,
     ) -> None:
         if self.services_controller is not None:
-            self.services_controller.registerUser(case, username, password)
+            self.services_controller.registerUser(case, username, password, **kwargs)
         else:
             raise NotImplementedByController("account registration")
 
@@ -293,7 +294,7 @@ class BaseServicesController(_BaseController):
         timeout = time.time() + 5
         while True:
             c.sendLine(f"PRIVMSG {self.server_controller.nickserv} :HELP")
-            msgs = self.getNickServResponse(c)
+            msgs = self.getServiceResponse(c)
             for msg in msgs:
                 if msg.command == "401":
                     # NickServ not available yet
@@ -319,7 +320,7 @@ class BaseServicesController(_BaseController):
         c.disconnect()
         self.services_up = True
 
-    def getNickServResponse(self, client: Any) -> List[Message]:
+    def getServiceResponse(self, client: Any) -> List[Message]:
         """Wrapper aroung getMessages() that waits longer, because NickServ
         is queried asynchronously."""
         msgs: List[Message] = []
@@ -333,11 +334,14 @@ class BaseServicesController(_BaseController):
         case: irctest.cases.BaseServerTestCase,  # type: ignore
         username: str,
         password: Optional[str] = None,
+        **kwargs: Any,
     ) -> None:
         if not case.run_services:
             raise ValueError(
                 "Attempted to register a nick, but `run_services` it not True."
             )
+        if kwargs:
+            raise NotImplementedByController(", ".join(kwargs))
         assert password
         client = case.addClient(show_io=True)
         case.sendLine(client, "NICK " + username)
@@ -350,7 +354,7 @@ class BaseServicesController(_BaseController):
             f"PRIVMSG {self.server_controller.nickserv} "
             f":REGISTER {password} foo@example.org",
         )
-        msgs = self.getNickServResponse(case.clients[client])
+        msgs = self.getServiceResponse(case.clients[client])
         if self.server_controller.software_name == "inspircd":
             assert "900" in {msg.command for msg in msgs}, msgs
         assert "NOTICE" in {msg.command for msg in msgs}, msgs

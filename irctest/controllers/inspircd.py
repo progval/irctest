@@ -61,10 +61,12 @@ TEMPLATE_CONFIG = """
 # Protocol:
 <module name="botmode">
 <module name="cap">
+<module name="chghost">
 <module name="ircv3">
 <module name="ircv3_accounttag">
 <module name="ircv3_batch">
 <module name="ircv3_capnotify">
+<module name="ircv3_chghost">
 <module name="ircv3_ctctags">
 <module name="ircv3_echomessage">
 <module name="ircv3_invitenotify">
