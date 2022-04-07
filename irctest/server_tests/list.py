@@ -1,5 +1,5 @@
 from irctest import cases
-from irctest.numerics import ERR_NOSUCHCHANNEL, RPL_LIST, RPL_LISTEND
+from irctest.numerics import RPL_LISTEND, RPL_LISTSTART
 
 
 class ListTestCase(cases.BaseServerTestCase):
@@ -85,8 +85,8 @@ class ListTestCase(cases.BaseServerTestCase):
         self.connectClient("bar")
         self.sendLine(1, "LIST #nonexistent")
         responses = {msg.command for msg in self.getMessages(1)}
+        # successful response MUST include RPL_LISTEND:
         self.assertIn(RPL_LISTEND, responses)
-        # no successful response:
-        self.assertNotIn(RPL_LIST, responses)
-        # no error response:
-        self.assertNotIn(ERR_NOSUCHCHANNEL, responses)
+        # and MUST NOT include RPL_LIST (since there is no matching channel)
+        # or any error numerics:
+        self.assertLessEqual(responses, {RPL_LISTSTART, RPL_LISTEND})
