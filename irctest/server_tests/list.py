@@ -1,4 +1,5 @@
 from irctest import cases
+from irctest.numerics import ERR_NOSUCHCHANNEL, RPL_LIST, RPL_LISTEND
 
 
 class ListTestCase(cases.BaseServerTestCase):
@@ -73,3 +74,19 @@ class ListTestCase(cases.BaseServerTestCase):
             fail_msg="Third reply to LIST is not 322 (RPL_LIST) "
             "or 323 (RPL_LISTEND), or but: {msg}",
         )
+
+    @cases.mark_specifications("RFC1459", "RFC2812")
+    def testListNonexistent(self):
+        """LIST on a nonexistent channel does not send an error
+        response.
+        <https://tools.ietf.org/html/rfc1459#section-4.2.6>
+        <https://tools.ietf.org/html/rfc2812#section-3.2.6>
+        """
+        self.connectClient("bar")
+        self.sendLine(1, "LIST #nonexistent")
+        responses = {msg.command for msg in self.getMessages(1)}
+        self.assertIn(RPL_LISTEND, responses)
+        # no successful response:
+        self.assertNotIn(RPL_LIST, responses)
+        # no error response:
+        self.assertNotIn(ERR_NOSUCHCHANNEL, responses)
