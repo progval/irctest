@@ -903,7 +903,7 @@ jobs:
       with:
         path: nefarious
         ref: f26b7cc3514a2d7175c1dec608f4d2ed93ada7cd
-        repository: evilnet/nefarious
+        repository: evilnet/nefarious2
     - name: Build nefarious
       run: |
         cd $GITHUB_WORKSPACE/nefarious

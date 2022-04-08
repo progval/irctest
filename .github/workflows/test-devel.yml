@@ -743,7 +743,7 @@ jobs:
       with:
         path: nefarious
         ref: master
-        repository: evilnet/nefarious
+        repository: evilnet/nefarious2
     - name: Build nefarious
       run: |
         cd $GITHUB_WORKSPACE/nefarious

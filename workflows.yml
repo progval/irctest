@@ -206,7 +206,7 @@ software:
 
     nefarious:
         name: nefarious
-        repository: evilnet/nefarious
+        repository: evilnet/nefarious2
         refs:
             stable: "f26b7cc3514a2d7175c1dec608f4d2ed93ada7cd"
             release: null
