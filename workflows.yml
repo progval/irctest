@@ -219,6 +219,7 @@ software:
             ./configure --prefix=$HOME/.local/ --enable-debug
             make -j 4
             make install
+            cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
 
     ngircd:
         name: ngircd
