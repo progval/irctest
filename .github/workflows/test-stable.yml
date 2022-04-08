@@ -423,6 +423,7 @@ jobs:
     - test-irc2
     - test-ircu2
     - test-limnoria
+    - test-nefarious
     - test-ngircd
     - test-ngircd-anope
     - test-ngircd-atheme
@@ -887,6 +888,42 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest-results_limnoria_stable
+        path: pytest.xml
+  test-nefarious:
+    needs: []
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Checkout nefarious
+      uses: actions/checkout@v2
+      with:
+        path: nefarious
+        ref: f26b7cc3514a2d7175c1dec608f4d2ed93ada7cd
+        repository: evilnet/nefarious
+    - name: Build nefarious
+      run: |
+        cd $GITHUB_WORKSPACE/nefarious
+        ./configure --prefix=$HOME/.local/ --enable-debug
+        make -j 4
+        make install
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        nefarious
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest results nefarious (stable)
         path: pytest.xml
   test-ngircd:
     needs:

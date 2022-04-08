@@ -92,6 +92,18 @@ IRCU2_SELECTORS := \
 	$(EXTRA_SELECTORS)
 
 # same justification as ircu2
+NEFARIOUS_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	and not buffering \
+	and not testQuit \
+	and not statusmsg \
+	and not (testKeyValidation and empty) \
+	and not testEmptyRealname \
+	$(EXTRA_SELECTORS)
+
+# same justification as ircu2
 SNIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
