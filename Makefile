@@ -208,9 +208,9 @@ UNREALIRCD_SELECTORS := \
 	and not HelpTestCase \
 	$(EXTRA_SELECTORS)
 
-.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon limnoria sopel solanum unrealircd
+.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sopel solanum unrealircd
 
-all: flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon limnoria sopel solanum unrealircd
+all: flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sopel solanum unrealircd
 
 flakes:
 	find irctest/ -name "*.py" -not -path "irctest/scram/*" -print0 | xargs -0 pyflakes3
@@ -281,6 +281,13 @@ ircu2:
 		-m 'not services and not IRCv3' \
 		-n 10 \
 		-k '$(IRCU2_SELECTORS)'
+
+nefarious:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.nefarious \
+		-m 'not services' \
+		-n 10 \
+		-k '$(NEFARIOUS_SELECTORS)'
 
 snircd:
 	$(PYTEST) $(PYTEST_ARGS) \
