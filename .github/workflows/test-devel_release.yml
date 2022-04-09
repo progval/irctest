@@ -33,7 +33,7 @@ jobs:
       name: Upload to Netlify
       run: |-
         npm i -g netlify-cli
-        ./deploy_to_netlify.sh
+        ./.github/deploy_to_netlify.sh
 name: irctest with devel_release versions
 'on':
   schedule:
