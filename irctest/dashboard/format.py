@@ -30,9 +30,13 @@ class CaseResult:
     job: str
     success: bool
     skipped: bool
+    system_out: Optional[str]
     details: Optional[str] = None
     type: Optional[str] = None
     message: Optional[str] = None
+
+    def output_filename(self):
+        return f"{self.job}_{self.module_name}.{self.class_name}.{self.test_name}.txt"
 
 
 TK = TypeVar("TK")
@@ -53,28 +57,36 @@ def iter_job_results(job_file_name: Path, job: ET.ElementTree) -> Iterator[CaseR
         if "name" not in case.attrib:
             continue
 
-        if len(case):
-            (case_result,) = case
-            if case_result.tag == "skipped":
+        success = True
+        skipped = False
+        details = None
+        system_out = None
+        extra = {}
+        for child in case:
+            if child.tag == "skipped":
                 success = True
                 skipped = True
                 details = None
-            elif case_result.tag in ("failure", "error"):
+                extra = child.attrib
+            elif child.tag in ("failure", "error"):
                 success = False
                 skipped = False
-                details = case_result.text
+                details = child.text
+                extra = child.attrib
+            elif child.tag == "system-out":
+                assert (
+                    system_out is None
+                    # for some reason, skipped tests have two system-out;
+                    # and the second one contains test teardown
+                    or child.text.startswith(system_out.rstrip())
+                ), ("Duplicate system-out tag", repr(system_out), repr(child.text))
+                system_out = child.text
             else:
-                assert False, case_result.tag
-            extra = case_result.attrib
-        else:
-            success = True
-            skipped = False
-            details = None
-            extra = {}
+                assert False, child
 
         (module_name, class_name) = case.attrib["classname"].rsplit(".", 1)
         m = re.match(
-            r".*/pytest[ -]results[ _](?P<name>.*)"
+            r"(.*/)?pytest[ -]results[ _](?P<name>.*)"
             r"[ _][(]?(stable|release|devel|devel_release)[)]?/pytest.xml(.gz)?",
             str(job_file_name),
         )
@@ -87,6 +99,7 @@ def iter_job_results(job_file_name: Path, job: ET.ElementTree) -> Iterator[CaseR
             success=success,
             skipped=skipped,
             details=details,
+            system_out=system_out,
             **extra,
         )
 
@@ -159,26 +172,35 @@ def build_module_html(
                     cell.text = "d"
                     continue
 
+                text: Optional[str]
+
                 if result.skipped:
                     cell.set("class", "skipped")
                     if result.type == "pytest.skip":
-                        cell.text = "s"
+                        text = "s"
                     else:
-                        cell.text = result.type
+                        text = result.type
                 elif result.success:
                     cell.set("class", "success")
                     if result.type:
                         # dead code?
-                        cell.text = result.type
+                        text = result.type
                     else:
-                        cell.text = "."
+                        text = "."
                 else:
                     cell.set("class", "failure")
                     if result.type:
                         # dead code?
-                        cell.text = result.type
+                        text = result.type
                     else:
-                        cell.text = "f"
+                        text = "f"
+
+                if result.system_out:
+                    # There is a log file; link to it.
+                    a = ET.SubElement(cell, "a", href=f"./{result.output_filename()}")
+                    a.text = text or "?"
+                else:
+                    cell.text = text or "?"
 
     # Hacky: ET expects the namespace to be present in every tag we create instead;
     # but it would be excessively verbose.
@@ -206,6 +228,16 @@ def write_html_pages(
         pages.append((module_name, file_name))
 
     return pages
+
+
+def write_test_outputs(output_dir: Path, results: List[CaseResult]) -> None:
+    """Writes stdout files of each test."""
+    for result in results:
+        if result.system_out is None:
+            continue
+        output_file = output_dir / result.output_filename()
+        with output_file.open("wt") as fd:
+            fd.write(result.system_out)
 
 
 def write_html_index(output_dir: Path, pages: List[Tuple[str, str]]) -> None:
@@ -268,6 +300,7 @@ def main(output_path: Path, filenames: List[Path]) -> int:
     pages = write_html_pages(output_path, results)
 
     write_html_index(output_path, pages)
+    write_test_outputs(output_path, results)
     write_assets(output_path)
 
     return 0
