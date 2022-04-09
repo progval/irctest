@@ -34,7 +34,7 @@ request = urllib.request.Request(
     statuses_url,
     data=json.dumps(payload).encode(),
     headers={
-        "Authorization": os.environ["GITHUB_TOKEN"],
+        "Authorization": f'token {os.environ["GITHUB_TOKEN"]}',
         "Content-Type": "text/json",
         "Accept": "application/vnd.github+json",
     },
