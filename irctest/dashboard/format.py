@@ -36,11 +36,21 @@ class CaseResult:
     message: Optional[str] = None
 
     def output_filename(self):
-        return f"{self.job}_{self.module_name}.{self.class_name}.{self.test_name}.txt"
+        test_name = self.test_name
+        if len(test_name) > 50:
+            # Makes the file name too long. This should be good enough:
+            m = re.match(r"(?P<function_name>\w+?)\[(?P<params>.+)\]", test_name)
+            assert m, "File name is too long but has no parameter."
+            test_name = f'{m.group("function_name")}[{md5sum(m.group("params"))}]'
+        return f"{self.job}_{self.module_name}.{self.class_name}.{test_name}.txt"
 
 
 TK = TypeVar("TK")
 TV = TypeVar("TV")
+
+
+def md5sum(text: str) -> str:
+    return base64.urlsafe_b64encode(hashlib.md5(text.encode()).digest()).decode()
 
 
 def group_by(list_: Iterable[TV], key: Callable[[TV], TK]) -> Dict[TK, List[TV]]:
@@ -151,9 +161,7 @@ def build_module_html(
             if len(row_anchor) >= 50:
                 # Too long; give up on generating readable URL
                 # TODO: only hash test parameter
-                row_anchor = base64.urlsafe_b64encode(
-                    hashlib.md5(row_anchor.encode()).digest()
-                ).decode()
+                row_anchor = md5sum(row_anchor)
 
             row = ET.SubElement(table, "tr", id=row_anchor)
 
