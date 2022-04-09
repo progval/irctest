@@ -73,7 +73,7 @@ def iter_job_results(job_file_name: Path, job: ET.ElementTree) -> Iterator[CaseR
 
         (module_name, class_name) = case.attrib["classname"].rsplit(".", 1)
         m = re.match(
-            r".*/pytest[ _]results[ _](?P<name>.*)"
+            r".*/pytest[ -]results[ _](?P<name>.*)"
             r"[ _][(]?(stable|release|devel|devel_release)[)]?/pytest.xml(.gz)?",
             str(job_file_name),
         )
