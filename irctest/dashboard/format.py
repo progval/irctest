@@ -21,6 +21,9 @@ import xml.etree.ElementTree as ET
 
 from defusedxml.ElementTree import parse as parse_xml
 
+NETLIFY_CHAR_BLACKLIST = frozenset('":<>|*?\r\n')
+"""Characters not allowed in output filenames"""
+
 
 @dataclasses.dataclass
 class CaseResult:
@@ -37,8 +40,8 @@ class CaseResult:
 
     def output_filename(self):
         test_name = self.test_name
-        if len(test_name) > 50:
-            # Makes the file name too long. This should be good enough:
+        if len(test_name) > 50 or set(test_name) & NETLIFY_CHAR_BLACKLIST:
+            # File name too long or otherwise invalid. This should be good enough:
             m = re.match(r"(?P<function_name>\w+?)\[(?P<params>.+)\]", test_name)
             assert m, "File name is too long but has no parameter."
             test_name = f'{m.group("function_name")}[{md5sum(m.group("params"))}]'
