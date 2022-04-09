@@ -92,11 +92,6 @@ jobs:
         shopt -s globstar
         python3 -m irctest.dashboard.format dashboard/ artifacts/**/*.xml
         echo '/ /index.xhtml' > dashboard/_redirects
-    - name: Publish dashboard artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: dashboard
-        path: dashboard/
     - name: Install netlify-cli
       run: npm i -g netlify-cli
     - env:
