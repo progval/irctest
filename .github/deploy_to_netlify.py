@@ -46,24 +46,54 @@ assert m
 netlify_site_url = m.group(0)
 target_url = f"{netlify_site_url}/index.xhtml"
 
-statuses_url = github_event["repository"]["statuses_url"].format(sha=sha)
 
-payload = {
-    "state": "success",
-    "context": f"Dashboard{context_suffix}",
-    "description": "Table of all test results",
-    "target_url": target_url,
-}
-request = urllib.request.Request(
-    statuses_url,
-    data=json.dumps(payload).encode(),
-    headers={
-        "Authorization": f'token {os.environ["GITHUB_TOKEN"]}',
-        "Content-Type": "text/json",
-        "Accept": "application/vnd.github+json",
-    },
-)
+def send_status() -> None:
+    statuses_url = github_event["repository"]["statuses_url"].format(sha=sha)
 
-response = urllib.request.urlopen(request)
+    payload = {
+        "state": "success",
+        "context": f"Dashboard{context_suffix}",
+        "description": "Table of all test results",
+        "target_url": target_url,
+    }
+    request = urllib.request.Request(
+        statuses_url,
+        data=json.dumps(payload).encode(),
+        headers={
+            "Authorization": f'token {os.environ["GITHUB_TOKEN"]}',
+            "Content-Type": "text/json",
+            "Accept": "application/vnd.github+json",
+        },
+    )
 
-assert response.status == 201, response.read()
+    response = urllib.request.urlopen(request)
+
+    assert response.status == 201, response.read()
+
+
+send_status()
+
+
+def send_pr_comment() -> None:
+    comments_url = github_event["pull_request"]["_links"]["comments"]["href"]
+
+    payload = {
+        "body": f"[Test results]({target_url})",
+    }
+    request = urllib.request.Request(
+        comments_url,
+        data=json.dumps(payload).encode(),
+        headers={
+            "Authorization": f'token {os.environ["GITHUB_TOKEN"]}',
+            "Content-Type": "text/json",
+            "Accept": "application/vnd.github+json",
+        },
+    )
+
+    response = urllib.request.urlopen(request)
+
+    assert response.status == 201, response.read()
+
+
+if "pull_request" in github_event:
+    send_pr_comment()
