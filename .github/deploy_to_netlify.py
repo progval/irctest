@@ -15,20 +15,23 @@ pprint.pprint(github_event)
 sha = github_event["head_commit"]["id"]
 ref = github_event["ref"]
 
+context_suffix = ""
+
 command = ["netlify", "deploy", "--dir=dashboard/"]
-m = re.match("refs/pull/([0-9]+)/head", ref)
-if m:
-    pr_id = m.group(1)
-    command.extend(["--alias", f"pr-{pr_id}-{sha}"])
+if "pull_request" in github_event and "number" in github_event:
+    pr_number = github_event["number"]
+    command.extend(["--alias", f"pr-{pr_number}-{sha}"])
+    context_suffix = " (pull_request)"
 else:
     m = re.match("refs/heads/(.*)", ref)
     if m:
         branch = m.group(1)
-        if branch in ("main", "master", "dashboard"):
+        if branch in ("main", "master"):
             command.extend(["--prod"])
         else:
             # Aliases can't exceed 37 chars
             command.extend(["--alias", f"br-{branch[0:23]}-{sha[0:10]}"])
+            context_suffix = " (push)"
     else:
         # TODO
         pass
@@ -49,7 +52,7 @@ statuses_url = github_event["repository"]["statuses_url"].format(sha=sha)
 
 payload = {
     "state": "success",
-    "context": "Dashboard",
+    "context": f"Dashboard{context_suffix}",
     "description": "Table of all test results",
     "target_url": target_url,
 }
