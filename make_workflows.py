@@ -375,6 +375,7 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
                 "run": script(
                     "shopt -s globstar",
                     "python3 -m irctest.dashboard.format dashboard/ artifacts/**/*.xml",
+                    "echo '/ /index.xhtml' > dashboard/_redirects",
                 ),
             },
             {

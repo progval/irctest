@@ -448,6 +448,7 @@ jobs:
       run: |-
         shopt -s globstar
         python3 -m irctest.dashboard.format dashboard/ artifacts/**/*.xml
+        echo '/ /index.xhtml' > dashboard/_redirects
     - name: Publish dashboard artifact
       uses: actions/upload-artifact@v2
       with:
