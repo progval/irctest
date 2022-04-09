@@ -4,7 +4,7 @@
         color: rgba(255, 255, 255, 0.87);
     }
     a {
-        filter: invert(0.85) hue.job-name(180deg);
+        filter: invert(0.85) hue-rotate(180deg);
     }
 }
 
