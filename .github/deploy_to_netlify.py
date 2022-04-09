@@ -34,7 +34,7 @@ else:
         pass
 
 
-proc = subprocess.run(command, capture_output=True, stdout=subprocess.PIPE)
+proc = subprocess.run(command, capture_output=True)
 
 output = proc.stdout.decode()
 print(output)
