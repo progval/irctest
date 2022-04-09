@@ -4,7 +4,7 @@
 jobs:
   publish-test-results:
     if: success() || failure()
-    name: Publish Unit Tests Results
+    name: Publish Dashboard
     needs: []
     runs-on: ubuntu-latest
     steps:

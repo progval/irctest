@@ -350,7 +350,7 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
             jobs[f"test-{test_id}"] = test_job
 
     jobs["publish-test-results"] = {
-        "name": "Publish Unit Tests Results",
+        "name": "Publish Dashboard",
         "needs": sorted({f"test-{test_id}" for test_id in config["tests"]} & set(jobs)),
         "runs-on": "ubuntu-latest",
         # the build-and-test job might be skipped, we don't need to run
