@@ -16,6 +16,7 @@ from typing import (
     Tuple,
     TypeVar,
 )
+import xml.dom.minidom
 import xml.etree.ElementTree as ET
 
 from defusedxml.ElementTree import parse as parse_xml
@@ -92,7 +93,7 @@ def iter_job_results(job_file_name: Path, job: ET.ElementTree) -> Iterator[CaseR
 
 def build_module_html(
     jobs: List[str], results: List[CaseResult], module_name: str
-) -> ET.ElementTree:
+) -> ET.Element:
     root = ET.Element("html")
     head = ET.SubElement(root, "head")
     ET.SubElement(head, "title").text = module_name
@@ -134,7 +135,7 @@ def build_module_html(
         results_by_test = group_by(class_results, key=lambda r: r.test_name)
         for (test_name, test_results) in results_by_test.items():
             row_anchor = f"{module_name}.{class_name}.{test_name}"
-            if len(row_anchor) >= 50:
+            if len(row_anchor) >= 100:
                 # Too long; give up on generating readable URL
                 # TODO: only hash test parameter
                 row_anchor = base64.urlsafe_b64encode(
@@ -183,7 +184,7 @@ def build_module_html(
     # but it would be excessively verbose.
     root.set("xmlns", "http://www.w3.org/1999/xhtml")
 
-    return ET.ElementTree(root)
+    return root
 
 
 def write_html_pages(
@@ -199,10 +200,9 @@ def write_html_pages(
     pages = []
 
     for (module_name, module_results) in results_by_module.items():
-        tree = build_module_html(jobs, module_results, module_name)
+        root = build_module_html(jobs, module_results, module_name)
         file_name = f"{module_name}.xhtml"
-        output_file = output_dir / file_name
-        tree.write(str(output_file))
+        write_xml_file(output_dir / file_name, root)
         pages.append((module_name, file_name))
 
     return pages
@@ -226,17 +226,26 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str]]) -> None:
 
     root.set("xmlns", "http://www.w3.org/1999/xhtml")
 
-    tree = ET.ElementTree(root)
-    tree.write(str(output_dir / "index.xhtml"))
+    write_xml_file(output_dir / "index.xhtml", root)
 
 
 def write_assets(output_dir: Path) -> None:
     css_path = output_dir / "style.css"
     source_css_path = Path(__file__).parent / "style.css"
-    print(source_css_path, css_path)
     with css_path.open("wt") as fd:
         with source_css_path.open() as source_fd:
             fd.write(source_fd.read())
+
+
+def write_xml_file(filename: Path, root: ET.Element) -> None:
+    # Serialize
+    s = ET.tostring(root)
+
+    # Prettify
+    s = xml.dom.minidom.parseString(s).toprettyxml(indent=" ")
+
+    with filename.open("wt") as fd:
+        fd.write(s)  # type: ignore
 
 
 def parse_xml_file(filename: Path) -> ET.ElementTree:
