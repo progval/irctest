@@ -34,8 +34,11 @@ else:
         pass
 
 
-output = subprocess.check_output(command).decode()
+proc = subprocess.run(command, capture_output=True, stdout=subprocess.PIPE)
+
+output = proc.stdout.decode()
 print(output)
+assert proc.returncode == 0, output
 
 m = re.search("https://[^ ]*--[^ ]*netlify.app", output)
 assert m
