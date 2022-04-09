@@ -17,6 +17,7 @@ get_from_event() {
 
 GITHUB_API_DEPLOYMENTS_URL="$(get_from_event '.deployment.statuses_url')"
 
+cat $GITHUB_EVENT_PATH
 echo $GITHUB_API_DEPLOYMENTS_URL
 
 curl --fail \
