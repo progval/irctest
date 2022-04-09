@@ -1,0 +1,30 @@
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: rgba(255, 255, 255, 0.87);
+    }
+    a {
+        filter: invert(0.85) hue-rotate(180deg);
+    }
+}
+
+table.test-matrix {
+    border-spacing: 0;
+}
+
+table.test-matrix td {
+    text-align: center;
+}
+
+table.test-matrix .deselected {
+    background-color: grey;
+}
+table.test-matrix .success {
+    background-color: green;
+}
+table.test-matrix .skipped {
+    background-color: yellow;
+}
+table.test-matrix .failure {
+    background-color: red;
+}

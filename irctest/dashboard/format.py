@@ -96,6 +96,7 @@ def build_module_html(
     root = ET.Element("html")
     head = ET.SubElement(root, "head")
     ET.SubElement(head, "title").text = module_name
+    ET.SubElement(head, "link", rel="stylesheet", type="text/css", href="./style.css")
 
     body = ET.SubElement(root, "body")
 
@@ -104,6 +105,7 @@ def build_module_html(
     results_by_class = group_by(results, lambda r: r.class_name)
 
     table = ET.SubElement(body, "table")
+    table.set("class", "test-matrix")
 
     job_row = ET.Element("tr")
     ET.SubElement(job_row, "th")  # column of case name
@@ -150,25 +152,25 @@ def build_module_html(
                 try:
                     (result,) = results_by_job[job_name]
                 except KeyError:
-                    cell.set("classes", "deselected")
+                    cell.set("class", "deselected")
                     cell.text = "d"
                     continue
 
                 if result.skipped:
-                    cell.set("classes", "skipped")
+                    cell.set("class", "skipped")
                     if result.type == "pytest.skip":
                         cell.text = "s"
                     else:
                         cell.text = result.type
                 elif result.success:
-                    cell.set("classes", "success")
+                    cell.set("class", "success")
                     if result.type:
                         # dead code?
                         cell.text = result.type
                     else:
                         cell.text = "."
                 else:
-                    cell.set("classes", "failure")
+                    cell.set("class", "failure")
                     if result.type:
                         # dead code?
                         cell.text = result.type
@@ -208,6 +210,7 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str]]) -> None:
     root = ET.Element("html")
     head = ET.SubElement(root, "head")
     ET.SubElement(head, "title").text = "irctest dashboard"
+    ET.SubElement(head, "link", rel="stylesheet", type="text/css", href="./style.css")
 
     body = ET.SubElement(root, "body")
 
@@ -223,6 +226,15 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str]]) -> None:
 
     tree = ET.ElementTree(root)
     tree.write(str(output_dir / "index.xhtml"))
+
+
+def write_assets(output_dir: Path) -> None:
+    css_path = output_dir / "style.css"
+    source_css_path = Path(__file__).parent / "style.css"
+    print(source_css_path, css_path)
+    with css_path.open("wt") as fd:
+        with source_css_path.open() as source_fd:
+            fd.write(source_fd.read())
 
 
 def parse_xml_file(filename: Path) -> ET.ElementTree:
@@ -245,6 +257,7 @@ def main(output_path: Path, filenames: List[Path]) -> int:
     pages = write_html_pages(output_path, results)
 
     write_html_index(output_path, pages)
+    write_assets(output_path)
 
     return 0
 
