@@ -46,7 +46,7 @@ def group_by(list_: Iterable[TV], key: Callable[[TV], TK]) -> Dict[TK, List[TV]]
     return groups
 
 
-def iter_job_results(job_name: str, job: ET.ElementTree) -> Iterator[CaseResult]:
+def iter_job_results(job_file_name: Path, job: ET.ElementTree) -> Iterator[CaseResult]:
     (suite,) = job.getroot()
     for case in suite:
         if "name" not in case.attrib:
@@ -73,11 +73,11 @@ def iter_job_results(job_name: str, job: ET.ElementTree) -> Iterator[CaseResult]
 
         (module_name, class_name) = case.attrib["classname"].rsplit(".", 1)
         m = re.match(
-            r"pytest[ _]results[ _](?P<name>.*)"
-            r"[ _][(]?(stable|release|devel|devel_release)[)]?.xml(.gz)?",
-            job_name,
+            r".*/pytest[ _]results[ _](?P<name>.*)"
+            r"[ _][(]?(stable|release|devel|devel_release)[)]?/pytest.xml(.gz)?",
+            str(job_file_name),
         )
-        assert m, job_name
+        assert m, job_file_name
         yield CaseResult(
             module_name=module_name,
             class_name=class_name,
@@ -239,7 +239,7 @@ def main(output_path: Path, filenames: List[Path]) -> int:
     results = [
         result
         for filename in filenames
-        for result in iter_job_results(filename.name, parse_xml_file(filename))
+        for result in iter_job_results(filename, parse_xml_file(filename))
     ]
 
     pages = write_html_pages(output_path, results)

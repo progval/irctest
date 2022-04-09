@@ -70,11 +70,13 @@ def main(output_dir: Path, repo: str, run_id: int) -> int:
     run_path.mkdir(exist_ok=True)
 
     for artifact in iter_run_artifacts(repo, run_id):
-        artifact_path = run_path / f"{artifact.name}.xml.gz"
+        artifact_path = run_path / artifact.name / "pytest.xml.gz"
+        artifact_path.parent.mkdir(exist_ok=True)
         try:
             download_artifact(artifact_path, artifact.download_url)
         except Exception:
             download_artifact(artifact_path, artifact.public_download_url)
+        print("downloaded", artifact.name)
 
     return 0
 
