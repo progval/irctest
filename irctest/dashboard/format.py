@@ -119,7 +119,7 @@ def build_module_html(
         # Header row: class name
         header_row = ET.SubElement(table, "tr")
         th = ET.SubElement(header_row, "th", colspan=str(len(jobs) + 1))
-        row_anchor = f"{module_name}.{class_name}"
+        row_anchor = f"{class_name}"
         section_header = ET.SubElement(
             ET.SubElement(th, "h2"),
             "a",
@@ -134,8 +134,8 @@ def build_module_html(
         # One row for each test:
         results_by_test = group_by(class_results, key=lambda r: r.test_name)
         for (test_name, test_results) in results_by_test.items():
-            row_anchor = f"{module_name}.{class_name}.{test_name}"
-            if len(row_anchor) >= 100:
+            row_anchor = f"{class_name}.{test_name}"
+            if len(row_anchor) >= 50:
                 # Too long; give up on generating readable URL
                 # TODO: only hash test parameter
                 row_anchor = base64.urlsafe_b64encode(
