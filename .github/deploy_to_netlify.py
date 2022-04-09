@@ -19,16 +19,16 @@ command = ["netlify", "deploy", "--dir=dashboard/"]
 m = re.match("refs/pull/([0-9]+)/head", ref)
 if m:
     pr_id = m.group(1)
-    command.append(f"--alias pr-{pr_id}-{sha}")
+    command.extend(["--alias", "pr-{pr_id}-{sha}"])
 else:
     m = re.match("refs/heads/(.*)", ref)
     if m:
         branch = m.group(1)
         if branch in ("main", "master"):
-            command.append("--prod")
+            command.extend(["--prod"])
         else:
             # Aliases can't exceed 37 chars
-            command.append(f"--alias br-{branch[0:23]}-{sha[0:10]}")
+            command.extend(["--alias", "br-{branch[0:23]}-{sha[0:10]}"])
     else:
         # TODO
         pass
