@@ -28,7 +28,7 @@ else:
             command.extend(["--prod"])
         else:
             # Aliases can't exceed 37 chars
-            command.extend(["--alias", "br-{branch[0:23]}-{sha[0:10]}"])
+            command.extend(["--alias", f"br-{branch[0:23]}-{sha[0:10]}"])
     else:
         # TODO
         pass
@@ -38,7 +38,7 @@ proc = subprocess.run(command, capture_output=True)
 
 output = proc.stdout.decode()
 print(output)
-assert proc.returncode == 0, output
+assert proc.returncode == 0, (output, proc.stderr.decode())
 
 m = re.search("https://[^ ]*--[^ ]*netlify.app", output)
 assert m
