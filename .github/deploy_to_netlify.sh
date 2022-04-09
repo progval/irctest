@@ -6,10 +6,12 @@ set -e
 
 OUTPUT=$(sh -c "netlify deploy --dir=dashboard/")
 echo $OUTPUT
+echo "========"
 
 NETLIFY_SITE_URL=$(echo $OUTPUT | grep -o "https://.*--.*netlify.app")
 echo $NETLIFY_SITE_URL
 ENVIRONMENT_URL=$NETLIFY_SITE_URL/index.xhtml
+echo "========"
 
 get_from_event() {
   jq -r "$1" "${GITHUB_EVENT_PATH}"
@@ -17,6 +19,7 @@ get_from_event() {
 
 GITHUB_API_DEPLOYMENTS_URL="$(get_from_event '.deployment.statuses_url')"
 
+echo $GITHUB_EVENT_PATH
 cat $GITHUB_EVENT_PATH
 echo $GITHUB_API_DEPLOYMENTS_URL
 
@@ -33,3 +36,4 @@ curl --fail \
     "auto_inactive": false,
     "environment_url": "${ENVIRONMENT_URL}"
 }
+EOF
