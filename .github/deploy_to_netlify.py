@@ -27,8 +27,8 @@ else:
         if branch in ("main", "master"):
             command.append("--prod")
         else:
-            # Aliases can't exceed 37 chars; {sha} is 20 chars
-            command.append(f"--alias br-{branch[0:13]}-{sha}")
+            # Aliases can't exceed 37 chars
+            command.append(f"--alias br-{branch[0:23]}-{sha[0:10]}")
     else:
         # TODO
         pass
