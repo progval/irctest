@@ -10,7 +10,6 @@ and keep them in sync.
 
 import enum
 import pathlib
-import textwrap
 
 import yaml
 
@@ -326,7 +325,7 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         }
 
     jobs = {}
-    jobs["build-anope"] = get_build_job_anope()
+    # jobs["build-anope"] = get_build_job_anope()
 
     for software_id in config["software"]:
         software_config = config["software"][software_id]
@@ -365,32 +364,36 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
                 "with": {"path": "artifacts"},
             },
             {
-                "name": "Publish Unit Test Results",
-                "uses": "actions/github-script@v4",
-                "if": "github.event_name == 'pull_request'",
+                "name": "Install dashboard dependencies",
+                "run": script(
+                    "python -m pip install --upgrade pip",
+                    "pip install defusedxml",
+                ),
+            },
+            {
+                "name": "Generate dashboard",
+                "run": script(
+                    "shopt -s globstar",
+                    "python3 -m irctest.dashboard.format dashboard/ artifacts/**/*.xml",
+                ),
+            },
+            {
+                "name": "Publish dashboard artifact",
+                "uses": "actions/upload-artifact@v2",
                 "with": {
-                    "result-encoding": "string",
-                    "script": script(
-                        textwrap.dedent(
-                            """\
-                            let body = '';
-                            const options = {};
-                            options.listeners = {
-                                stdout: (data) => {
-                                    body += data.toString();
-                                }
-                            };
-                            await exec.exec('bash', ['-c', 'shopt -s globstar; python3 report.py artifacts/**/*.xml'], options);
-                            github.issues.createComment({
-                              issue_number: context.issue.number,
-                              owner: context.repo.owner,
-                              repo: context.repo.repo,
-                              body: body,
-                            });
-                            return body;
-                        """
-                        )
-                    ),
+                    "name": "dashboard",
+                    "path": "dashboard/",
+                },
+            },
+            {
+                "name": "Upload to Netlify",
+                "run": script(
+                    "npm i -g netlify-cli",
+                    "netlify deploy --dir=dashboard/",
+                ),
+                "env": {
+                    "NETLIFY_SITE_ID": "${{ secrets.NETLIFY_SITE_ID }}",
+                    "NETLIFY_AUTH_TOKEN": "${{ secrets.NETLIFY_AUTH_TOKEN }}",
                 },
             },
         ],
