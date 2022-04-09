@@ -111,7 +111,8 @@ def build_module_html(
     ET.SubElement(job_row, "th")  # column of case name
     for job in jobs:
         cell = ET.SubElement(job_row, "th")
-        cell.text = job
+        ET.SubElement(ET.SubElement(cell, "div"), "span").text = job
+        cell.set("class", "job-name")
 
     for (class_name, class_results) in results_by_class.items():
         # Header row: class name
@@ -143,6 +144,7 @@ def build_module_html(
             row = ET.SubElement(table, "tr", id=row_anchor)
 
             cell = ET.SubElement(row, "th")
+            cell.set("class", "test-name")
             cell_link = ET.SubElement(cell, "a", href=f"#{row_anchor}")
             cell_link.text = test_name
 
