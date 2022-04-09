@@ -12,7 +12,6 @@ with open(os.environ["GITHUB_EVENT_PATH"]) as fd:
 
 pprint.pprint(github_event)
 
-sha = github_event["head_commit"]["id"]
 ref = github_event["ref"]
 
 context_suffix = ""
@@ -20,17 +19,19 @@ context_suffix = ""
 command = ["netlify", "deploy", "--dir=dashboard/"]
 if "pull_request" in github_event and "number" in github_event:
     pr_number = github_event["number"]
+    sha = github_event["after"]
     command.extend(["--alias", f"pr-{pr_number}-{sha}"])
     context_suffix = " (pull_request)"
 else:
     m = re.match("refs/heads/(.*)", ref)
     if m:
         branch = m.group(1)
+        sha = github_event["head_commit"]["id"]
+        command.extend(["--alias", f"br-{branch[0:23]}-{sha[0:10]}"])
         if branch in ("main", "master"):
             command.extend(["--prod"])
         else:
             # Aliases can't exceed 37 chars
-            command.extend(["--alias", f"br-{branch[0:23]}-{sha[0:10]}"])
             context_suffix = " (push)"
     else:
         # TODO
