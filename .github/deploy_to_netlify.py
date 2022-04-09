@@ -24,7 +24,7 @@ else:
     m = re.match("refs/heads/(.*)", ref)
     if m:
         branch = m.group(1)
-        if branch in ("main", "master"):
+        if branch in ("main", "master", "dashboard"):
             command.extend(["--prod"])
         else:
             # Aliases can't exceed 37 chars
