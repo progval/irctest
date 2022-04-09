@@ -13,8 +13,28 @@ with open(os.environ["GITHUB_EVENT_PATH"]) as fd:
 pprint.pprint(github_event)
 
 sha = github_event["head_commit"]["id"]
+ref = github_event["ref"]
 
-output = subprocess.check_output(["netlify", "deploy", "--dir=dashboard/"]).decode()
+command = ["netlify", "deploy", "--dir=dashboard/"]
+m = re.match("refs/pull/([0-9]+)/head", ref)
+if m:
+    pr_id = m.group(1)
+    command.append(f"--alias pr-{pr_id}-{sha}")
+else:
+    m = re.match("refs/heads/(.*)", ref)
+    if m:
+        branch = m.group(1)
+        if branch in ("main", "master"):
+            command.append("--prod")
+        else:
+            # Aliases can't exceed 37 chars; {sha} is 20 chars
+            command.append(f"--alias br-{branch[0:13]}-{sha}")
+    else:
+        # TODO
+        pass
+
+
+output = subprocess.check_output(command).decode()
 print(output)
 
 m = re.search("https://[^ ]*--[^ ]*netlify.app", output)
@@ -24,9 +44,9 @@ target_url = f"{netlify_site_url}/index.xhtml"
 
 statuses_url = github_event["repository"]["statuses_url"].format(sha=sha)
 
-print(statuses_url)
 payload = {
     "state": "success",
+    "context": "summary",
     "description": "irctest dashboard",
     "target_url": target_url,
 }
@@ -39,7 +59,6 @@ request = urllib.request.Request(
         "Accept": "application/vnd.github+json",
     },
 )
-print(request)
 
 response = urllib.request.urlopen(request)
 
