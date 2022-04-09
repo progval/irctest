@@ -21,7 +21,7 @@ import xml.etree.ElementTree as ET
 
 from defusedxml.ElementTree import parse as parse_xml
 
-NETLIFY_CHAR_BLACKLIST = frozenset('":<>|*?\r\n')
+NETLIFY_CHAR_BLACKLIST = frozenset('":<>|*?\r\n#')
 """Characters not allowed in output filenames"""
 
 
