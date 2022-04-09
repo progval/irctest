@@ -325,7 +325,7 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         }
 
     jobs = {}
-    # jobs["build-anope"] = get_build_job_anope()
+    jobs["build-anope"] = get_build_job_anope()
 
     for software_id in config["software"]:
         software_config = config["software"][software_id]

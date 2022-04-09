@@ -2,15 +2,12 @@
 
 import json
 import os
-import pprint
 import re
 import subprocess
 import urllib.request
 
 with open(os.environ["GITHUB_EVENT_PATH"]) as fd:
     github_event = json.load(fd)
-
-pprint.pprint(github_event)
 
 context_suffix = ""
 
@@ -42,7 +39,6 @@ else:
 proc = subprocess.run(command, capture_output=True)
 
 output = proc.stdout.decode()
-print(output)
 assert proc.returncode == 0, (output, proc.stderr.decode())
 
 m = re.search("https://[^ ]*--[^ ]*netlify.app", output)
