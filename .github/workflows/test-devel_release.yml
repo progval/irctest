@@ -134,7 +134,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd (devel_release)
+        name: pytest-results_inspircd_devel_release
         path: pytest.xml
   test-inspircd-anope:
     needs:
@@ -172,7 +172,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd-anope (devel_release)
+        name: pytest-results_inspircd-anope_devel_release
         path: pytest.xml
   test-inspircd-atheme:
     needs:
@@ -204,7 +204,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd-atheme (devel_release)
+        name: pytest-results_inspircd-atheme_devel_release
         path: pytest.xml
 name: irctest with devel_release versions
 'on':

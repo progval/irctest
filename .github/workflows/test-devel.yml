@@ -448,7 +448,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results bahamut (devel)
+        name: pytest-results_bahamut_devel
         path: pytest.xml
   test-bahamut-anope:
     needs:
@@ -486,7 +486,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results bahamut-anope (devel)
+        name: pytest-results_bahamut-anope_devel
         path: pytest.xml
   test-bahamut-atheme:
     needs:
@@ -518,7 +518,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results bahamut-atheme (devel)
+        name: pytest-results_bahamut-atheme_devel
         path: pytest.xml
   test-ergo:
     needs: []
@@ -557,7 +557,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results ergo (devel)
+        name: pytest-results_ergo_devel
         path: pytest.xml
   test-hybrid:
     needs:
@@ -595,7 +595,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results hybrid (devel)
+        name: pytest-results_hybrid_devel
         path: pytest.xml
   test-inspircd:
     needs:
@@ -627,7 +627,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd (devel)
+        name: pytest-results_inspircd_devel
         path: pytest.xml
   test-inspircd-anope:
     needs:
@@ -665,7 +665,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd-anope (devel)
+        name: pytest-results_inspircd-anope_devel
         path: pytest.xml
   test-ircu2:
     needs: []
@@ -703,7 +703,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results ircu2 (devel)
+        name: pytest-results_ircu2_devel
         path: pytest.xml
   test-limnoria:
     needs: []
@@ -730,7 +730,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results limnoria (devel)
+        name: pytest-results_limnoria_devel
         path: pytest.xml
   test-ngircd:
     needs:
@@ -762,7 +762,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results ngircd (devel)
+        name: pytest-results_ngircd_devel
         path: pytest.xml
   test-ngircd-anope:
     needs:
@@ -800,7 +800,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results ngircd-anope (devel)
+        name: pytest-results_ngircd-anope_devel
         path: pytest.xml
   test-ngircd-atheme:
     needs:
@@ -832,7 +832,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results ngircd-atheme (devel)
+        name: pytest-results_ngircd-atheme_devel
         path: pytest.xml
   test-plexus4:
     needs:
@@ -870,7 +870,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results plexus4 (devel)
+        name: pytest-results_plexus4_devel
         path: pytest.xml
   test-solanum:
     needs:
@@ -902,7 +902,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results solanum (devel)
+        name: pytest-results_solanum_devel
         path: pytest.xml
   test-sopel:
     needs: []
@@ -928,7 +928,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results sopel (devel)
+        name: pytest-results_sopel_devel
         path: pytest.xml
   test-unrealircd:
     needs:
@@ -960,7 +960,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results unrealircd (devel)
+        name: pytest-results_unrealircd_devel
         path: pytest.xml
   test-unrealircd-5:
     needs:
@@ -992,7 +992,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results unrealircd-5 (devel)
+        name: pytest-results_unrealircd-5_devel
         path: pytest.xml
   test-unrealircd-anope:
     needs:
@@ -1030,7 +1030,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results unrealircd-anope (devel)
+        name: pytest-results_unrealircd-anope_devel
         path: pytest.xml
   test-unrealircd-atheme:
     needs:
@@ -1062,7 +1062,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results unrealircd-atheme (devel)
+        name: pytest-results_unrealircd-atheme_devel
         path: pytest.xml
 name: irctest with devel versions
 'on':
