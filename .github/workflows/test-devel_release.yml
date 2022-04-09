@@ -27,12 +27,13 @@ jobs:
         name: dashboard
         path: dashboard/
     - env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
       name: Upload to Netlify
       run: |-
         npm i -g netlify-cli
-        netlify deploy --dir=dashboard/
+        ./deploy_to_netlify.sh
 name: irctest with devel_release versions
 'on':
   schedule:

@@ -389,11 +389,12 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
                 "name": "Upload to Netlify",
                 "run": script(
                     "npm i -g netlify-cli",
-                    "netlify deploy --dir=dashboard/",
+                    "./deploy_to_netlify.sh",
                 ),
                 "env": {
                     "NETLIFY_SITE_ID": "${{ secrets.NETLIFY_SITE_ID }}",
                     "NETLIFY_AUTH_TOKEN": "${{ secrets.NETLIFY_AUTH_TOKEN }}",
+                    "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN }}",
                 },
             },
         ],
