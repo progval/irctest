@@ -49,8 +49,8 @@ statuses_url = github_event["repository"]["statuses_url"].format(sha=sha)
 
 payload = {
     "state": "success",
-    "context": "summary",
-    "description": "irctest dashboard",
+    "context": "Dashboard",
+    "description": "Table of all test results",
     "target_url": target_url,
 }
 request = urllib.request.Request(

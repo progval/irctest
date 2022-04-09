@@ -28,14 +28,14 @@ jobs:
       with:
         name: dashboard
         path: dashboard/
+    - name: Install netlify-cli
+      run: npm i -g netlify-cli
     - env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-      name: Upload to Netlify
-      run: |-
-        npm i -g netlify-cli
-        ./.github/deploy_to_netlify.py
+      name: Deploy to Netlify
+      run: ./.github/deploy_to_netlify.py
   test-ergo:
     needs: []
     runs-on: ubuntu-latest

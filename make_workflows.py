@@ -386,11 +386,12 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
                 },
             },
             {
-                "name": "Upload to Netlify",
-                "run": script(
-                    "npm i -g netlify-cli",
-                    "./.github/deploy_to_netlify.py",
-                ),
+                "name": "Install netlify-cli",
+                "run": "npm i -g netlify-cli",
+            },
+            {
+                "name": "Deploy to Netlify",
+                "run": "./.github/deploy_to_netlify.py",
                 "env": {
                     "NETLIFY_SITE_ID": "${{ secrets.NETLIFY_SITE_ID }}",
                     "NETLIFY_AUTH_TOKEN": "${{ secrets.NETLIFY_AUTH_TOKEN }}",
