@@ -19,7 +19,7 @@ command = ["netlify", "deploy", "--dir=dashboard/"]
 m = re.match("refs/pull/([0-9]+)/head", ref)
 if m:
     pr_id = m.group(1)
-    command.extend(["--alias", "pr-{pr_id}-{sha}"])
+    command.extend(["--alias", f"pr-{pr_id}-{sha}"])
 else:
     m = re.match("refs/heads/(.*)", ref)
     if m:
