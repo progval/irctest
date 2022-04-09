@@ -379,14 +379,6 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
                 ),
             },
             {
-                "name": "Publish dashboard artifact",
-                "uses": "actions/upload-artifact@v2",
-                "with": {
-                    "name": "dashboard",
-                    "path": "dashboard/",
-                },
-            },
-            {
                 "name": "Install netlify-cli",
                 "run": "npm i -g netlify-cli",
             },
