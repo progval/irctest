@@ -1,3 +1,12 @@
+"""
+The LIST command  (`RFC 1459
+<https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.6>`__,
+`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.6>`__,
+`Modern <https://modern.ircdocs.horse/#list-message>`__)
+
+TODO: check with Modern
+"""
+
 from irctest import cases
 
 

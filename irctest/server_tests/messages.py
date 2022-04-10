@@ -1,6 +1,5 @@
 """
-Section 3.2 of RFC 2812
-<https://tools.ietf.org/html/rfc2812#section-3.3>
+The PRIVMSG and NOTICE commands.
 """
 
 from irctest import cases

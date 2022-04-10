@@ -1,3 +1,10 @@
+"""
+`Ergo <https://ergo.chat/>`_-specific tests of non-Unicode filtering
+
+TODO: turn this into a test of `IRCv3 UTF8ONLY
+<https://ircv3.net/specs/extensions/utf8-only>`_
+"""
+
 from irctest import cases
 from irctest.patma import ANYSTR
 

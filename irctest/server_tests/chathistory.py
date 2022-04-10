@@ -1,3 +1,7 @@
+"""
+`IRCv3 draft chathistory <https://ircv3.net/specs/extensions/chathistory>`_
+"""
+
 import secrets
 import time
 

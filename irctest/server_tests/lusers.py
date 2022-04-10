@@ -1,3 +1,11 @@
+"""
+The LUSERS command  (`RFC 2812
+<https://datatracker.ietf.org/doc/html/rfc2812#section-3.4.2>`__,
+`Modern <https://modern.ircdocs.horse/#lusers-message>`__),
+which provides statistics on user counts.
+"""
+
+
 from dataclasses import dataclass
 import re
 from typing import Optional

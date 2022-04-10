@@ -1,5 +1,7 @@
-"""Sends packets with various length to check the server reassembles them
-correctly. Also checks truncation"""
+"""
+Sends packets with various length to check the server reassembles them
+correctly. Also checks truncation.
+"""
 
 import socket
 import time

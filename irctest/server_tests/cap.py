@@ -1,3 +1,8 @@
+"""
+`IRCv3 Capability negotiation
+<https://ircv3.net/specs/extensions/capability-negotiation>`_
+"""
+
 from irctest import cases
 from irctest.patma import ANYSTR
 from irctest.runner import CapabilityNotSupported, ImplementationChoice

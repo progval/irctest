@@ -1,3 +1,9 @@
+"""
+The WALLOPS command  (`RFC 2812
+<https://datatracker.ietf.org/doc/html/rfc2812#section-3.7>`__,
+`Modern <https://modern.ircdocs.horse/#wallops-message>`__)
+"""
+
 from irctest import cases, runner
 from irctest.numerics import ERR_NOPRIVILEGES, ERR_UNKNOWNCOMMAND, RPL_YOUREOPER
 from irctest.patma import ANYSTR, StrRe

@@ -1,3 +1,5 @@
+"""Clients should validate certificates; either with a CA or fingerprints."""
+
 import socket
 import ssl
 

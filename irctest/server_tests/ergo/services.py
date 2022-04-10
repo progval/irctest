@@ -1,3 +1,7 @@
+"""
+`Ergo <https://ergo.chat/>`-specific tests of NickServ.
+"""
+
 from irctest import cases
 from irctest.numerics import RPL_YOUREOPER
 

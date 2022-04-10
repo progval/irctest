@@ -1,3 +1,7 @@
+"""
+Various Ergo-specific channel modes
+"""
+
 from irctest import cases
 from irctest.numerics import ERR_CANNOTSENDTOCHAN, ERR_CHANOPRIVSNEEDED
 

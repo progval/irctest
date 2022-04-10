@@ -1,3 +1,5 @@
+"""Internal checks of assertion implementations."""
+
 from typing import Dict, List, Tuple
 
 import pytest

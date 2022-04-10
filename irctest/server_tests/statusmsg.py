@@ -1,3 +1,10 @@
+"""
+STATUSMSG ISUPPORT token and related PRIVMSG (`Modern
+<https://modern.ircdocs.horse/#statusmsg-parameter>`__)
+
+TODO: cross-reference Modern
+"""
+
 from irctest import cases, runner
 from irctest.numerics import RPL_NAMREPLY
 

@@ -1,5 +1,5 @@
 """
-https://ircv3.net/specs/extensions/message-tags.html
+`IRCv3 message-tags <https://ircv3.net/specs/extensions/message-tags>`_
 """
 
 import pytest

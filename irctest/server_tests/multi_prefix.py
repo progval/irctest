@@ -1,6 +1,5 @@
 """
-Tests multi-prefix.
-<http://ircv3.net/specs/extensions/multi-prefix-3.1.html>
+`IRCv3 multi-prefix <https://ircv3.net/specs/extensions/multi-prefix>`_
 """
 
 from irctest import cases

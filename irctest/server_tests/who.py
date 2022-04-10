@@ -1,3 +1,10 @@
+"""
+The WHO command  (`Modern <https://modern.ircdocs.horse/#who-message>`__)
+and `IRCv3 WHOX <https://ircv3.net/specs/extensions/whox>`_
+
+TODO: cross-reference RFC 1459 and RFC 2812
+"""
+
 import re
 
 import pytest

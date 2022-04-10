@@ -1,3 +1,8 @@
+"""SASL authentication from clients, for all known mechanisms.
+
+For now, only `SASLv3.1 <https://ircv3.net/specs/extensions/sasl-3.1>`_
+is tested, not `SASLv3.2 <https://ircv3.net/specs/extensions/sasl-3.2>`_."""
+
 import base64
 
 import pytest

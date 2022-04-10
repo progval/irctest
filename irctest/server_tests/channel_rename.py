@@ -1,3 +1,7 @@
+"""
+`Draft IRCv3 channel-rename <https://ircv3.net/specs/extensions/channel-rename>`_
+"""
+
 from irctest import cases
 from irctest.numerics import ERR_CHANOPRIVSNEEDED
 

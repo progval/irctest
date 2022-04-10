@@ -1,6 +1,8 @@
 """
 Tests section 4.1 of RFC 1459.
 <https://tools.ietf.org/html/rfc1459#section-4.1>
+
+TODO: cross-reference Modern and RFC 2812 too
 """
 
 from irctest import cases
