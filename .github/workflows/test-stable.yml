@@ -924,7 +924,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results nefarious (stable)
+        name: pytest-results_nefarious_stable
         path: pytest.xml
   test-ngircd:
     needs:
