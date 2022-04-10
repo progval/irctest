@@ -1,8 +1,8 @@
 """
+`IRCv3 labeled-response <https://ircv3.net/specs/extensions/labeled-response>`_
+
 This specification is a little hard to test because all labels are optional;
 so there may be many false positives.
-
-<https://ircv3.net/specs/extensions/labeled-response.html>
 """
 
 import re

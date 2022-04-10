@@ -1,5 +1,5 @@
 """
-<http://ircv3.net/specs/extensions/extended-join-3.1.html>
+`IRCv3 extended-join <https://ircv3.net/specs/extensions/extended-join>`_
 """
 
 from irctest import cases

@@ -1,6 +1,5 @@
 """
-Draft bot mode specification, as defined in
-<https://ircv3.net/specs/extensions/bot-mode>
+`IRCv3 draft bot mode <https://ircv3.net/specs/extensions/bot-mode>`_
 """
 
 from irctest import cases, runner

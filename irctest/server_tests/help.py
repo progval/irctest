@@ -1,5 +1,5 @@
 """
-The HELP and HELPOP command.
+The HELP and HELPOP command (`Modern <https://modern.ircdocs.horse/#help-message>`__)
 """
 
 import re

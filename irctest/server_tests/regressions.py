@@ -1,5 +1,5 @@
 """
-Regression tests for bugs in oragono.
+Regression tests for bugs in `Ergo <https://ergo.chat/>`_.
 """
 
 import time

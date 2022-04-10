@@ -8,6 +8,10 @@
     }
 }
 
+dl.module-index {
+    column-width: 40em; /* Magic constant for 2 columns on average laptop/desktop */
+}
+
 /* Only 1px solid border between cells */
 table.test-matrix {
     border-spacing: 0;

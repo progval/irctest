@@ -1,5 +1,8 @@
 """
-The INFO command.
+The INFO command  (`RFC 1459
+<https://datatracker.ietf.org/doc/html/rfc1459#section-4.3.8>`__,
+`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.4.10>`__,
+`Modern <https://modern.ircdocs.horse/#info-message>`__)
 """
 
 import pytest

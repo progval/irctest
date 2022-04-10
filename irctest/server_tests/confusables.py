@@ -1,3 +1,8 @@
+"""
+`Ergo <https://ergo.chat/>`_-specific tests for nick collisions based on Unicode
+confusable characters
+"""
+
 from irctest import cases
 from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME
 

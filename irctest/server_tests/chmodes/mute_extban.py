@@ -1,3 +1,7 @@
+"""
+Mute extban, currently no specifications or ways to discover it.
+"""
+
 from irctest import cases, runner
 from irctest.numerics import ERR_CANNOTSENDTOCHAN, ERR_CHANOPRIVSNEEDED
 from irctest.patma import ANYLIST, StrRe

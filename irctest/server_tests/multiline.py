@@ -1,5 +1,5 @@
 """
-draft/multiline
+`Draft IRCv3 multiline <https://ircv3.net/specs/extensions/multiline>`_
 """
 
 from irctest import cases

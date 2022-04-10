@@ -1,5 +1,5 @@
 """
-<http://ircv3.net/specs/extensions/account-tag-3.2.html>
+`IRCv3 account-tag <https://ircv3.net/specs/extensions/account-tag>`_
 """
 
 from irctest import cases

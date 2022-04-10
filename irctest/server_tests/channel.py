@@ -1,3 +1,7 @@
+"""
+Channel casemapping
+"""
+
 import pytest
 
 from irctest import cases, client_mock, runner

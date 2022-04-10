@@ -1,3 +1,9 @@
+"""
+`Ergo <https://ergo.chat/>`_-specific tests of channel forwarding
+
+TODO: Should be extended to other servers, once a specification is written.
+"""
+
 from irctest import cases
 from irctest.numerics import ERR_CHANOPRIVSNEEDED, ERR_INVALIDMODEPARAM, ERR_LINKCHANNEL
 

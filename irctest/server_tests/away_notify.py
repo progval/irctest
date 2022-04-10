@@ -1,5 +1,5 @@
 """
-<https://ircv3.net/specs/extensions/away-notify-3.1>
+`IRCv3 away-notify <https://ircv3.net/specs/extensions/away-notify>`_
 """
 
 from irctest import cases

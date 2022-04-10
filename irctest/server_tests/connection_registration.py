@@ -1,6 +1,8 @@
 """
 Tests section 4.1 of RFC 1459.
 <https://tools.ietf.org/html/rfc1459#section-4.1>
+
+TODO: cross-reference Modern and RFC 2812 too
 """
 
 from irctest import cases
@@ -182,61 +184,4 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             self.getRegistrationMessage(1),
             command=ERR_NEEDMOREPARAMS,
             params=[StrRe(r"(\*|foo)"), "USER", ANYSTR],
-        )
-
-    @cases.mark_specifications("IRCv3")
-    def testIrc301CapLs(self):
-        """
-        Current version:
-
-        "The LS subcommand is used to list the capabilities supported by the server.
-        The client should send an LS subcommand with no other arguments to solicit
-        a list of all capabilities."
-
-        "If a client has not indicated support for CAP LS 302 features,
-        the server MUST NOT send these new features to the client."
-        -- <https://ircv3.net/specs/core/capability-negotiation.html>
-
-        Before the v3.1 / v3.2 merge:
-
-        IRCv3.1: “The LS subcommand is used to list the capabilities
-        supported by the server. The client should send an LS subcommand with
-        no other arguments to solicit a list of all capabilities.”
-        -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-ls-subcommand>
-
-        IRCv3.2: “Servers MUST NOT send messages described by this document if
-        the client only supports version 3.1.”
-        -- <http://ircv3.net/specs/core/capability-negotiation-3.2.html#version-in-cap-ls>
-        """  # noqa
-        self.addClient()
-        self.sendLine(1, "CAP LS")
-        m = self.getRegistrationMessage(1)
-        self.assertNotEqual(
-            m.params[2],
-            "*",
-            m,
-            fail_msg="Server replied with multi-line CAP LS to a "
-            "“CAP LS” (ie. IRCv3.1) request: {msg}",
-        )
-        self.assertFalse(
-            any("=" in cap for cap in m.params[2].split()),
-            "Server replied with a name-value capability in "
-            "CAP LS reply as a response to “CAP LS” (ie. IRCv3.1) "
-            "request: {}".format(m),
-        )
-
-    @cases.mark_specifications("IRCv3")
-    def testEmptyCapList(self):
-        """“If no capabilities are active, an empty parameter must be sent.”
-        -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-list-subcommand>
-        """  # noqa
-        self.addClient()
-        self.sendLine(1, "CAP LIST")
-        m = self.getRegistrationMessage(1)
-        self.assertMessageMatch(
-            m,
-            command="CAP",
-            params=["*", "LIST", ""],
-            fail_msg="Sending “CAP LIST” as first message got a reply "
-            "that is not “CAP * LIST :”: {msg}",
         )

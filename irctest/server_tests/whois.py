@@ -1,3 +1,9 @@
+"""
+The WHOIS command  (`Modern <https://modern.ircdocs.horse/#whois-message>`__)
+
+TODO: cross-reference RFC 1459 and RFC 2812
+"""
+
 import pytest
 
 from irctest import cases

@@ -1,3 +1,13 @@
+"""
+The WHOSWAS command  (`RFC 1459
+<https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3>`__,
+`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3>`__,
+`Modern <https://modern.ircdocs.horse/#whowas-message>`__)
+
+TODO: cross-reference Modern
+"""
+
+
 import pytest
 
 from irctest import cases, runner
