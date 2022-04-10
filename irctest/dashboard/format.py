@@ -277,6 +277,7 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str]]) -> None:
     ET.SubElement(body, "h1").text = "irctest dashboard"
 
     dl = ET.SubElement(body, "dl")
+    dl.set("class", "module-index")
 
     for (module_name, file_name) in sorted(pages):
         module = importlib.import_module(module_name)
