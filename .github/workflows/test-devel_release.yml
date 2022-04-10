@@ -71,7 +71,7 @@ jobs:
         retention-days: 1
   publish-test-results:
     if: success() || failure()
-    name: Publish Unit Tests Results
+    name: Publish Dashboard
     needs:
     - test-inspircd
     - test-inspircd-anope
@@ -83,27 +83,23 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         path: artifacts
-    - if: github.event_name == 'pull_request'
-      name: Publish Unit Test Results
-      uses: actions/github-script@v4
-      with:
-        result-encoding: string
-        script: |
-          let body = '';
-          const options = {};
-          options.listeners = {
-              stdout: (data) => {
-                  body += data.toString();
-              }
-          };
-          await exec.exec('bash', ['-c', 'shopt -s globstar; python3 report.py artifacts/**/*.xml'], options);
-          github.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: body,
-          });
-          return body;
+    - name: Install dashboard dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install defusedxml
+    - name: Generate dashboard
+      run: |-
+        shopt -s globstar
+        python3 -m irctest.dashboard.format dashboard/ artifacts/**/*.xml
+        echo '/ /index.xhtml' > dashboard/_redirects
+    - name: Install netlify-cli
+      run: npm i -g netlify-cli
+    - env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      name: Deploy to Netlify
+      run: ./.github/deploy_to_netlify.py
   test-inspircd:
     needs:
     - build-inspircd
