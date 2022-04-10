@@ -8,6 +8,7 @@ from irctest.numerics import ERR_CHANOPRIVSNEEDED
 RENAME_CAP = "draft/channel-rename"
 
 
+@cases.mark_specifications("IRCv3")
 class ChannelRenameTestCase(cases.BaseServerTestCase):
     """Basic tests for channel-rename."""
 

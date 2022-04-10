@@ -367,7 +367,7 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
                 "name": "Install dashboard dependencies",
                 "run": script(
                     "python -m pip install --upgrade pip",
-                    "pip install defusedxml",
+                    "pip install defusedxml docutils -r requirements.txt",
                 ),
             },
             {
