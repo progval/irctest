@@ -2,23 +2,40 @@
 
 import json
 import os
+import pprint
 import re
 import subprocess
+import sys
 import urllib.request
+
+event_name = os.environ["GITHUB_EVENT_NAME"]
+
+is_pull_request = is_push = False
+if event_name.startswith("pull_request"):
+    is_pull_request = True
+elif event_name.startswith("push"):
+    is_push = True
+elif event_name.startswith("schedule"):
+    # Don't publish; not all controllers run on scheduled events
+    sys.exit(0)
+else:
+    print("Unexpected event name:", event_name)
 
 with open(os.environ["GITHUB_EVENT_PATH"]) as fd:
     github_event = json.load(fd)
 
+pprint.pprint(github_event)
+
 context_suffix = ""
 
 command = ["netlify", "deploy", "--dir=dashboard/"]
-if "pull_request" in github_event and "number" in github_event:
+if is_pull_request:
     pr_number = github_event["number"]
     sha = github_event["after"]
     # Aliases can't exceed 37 chars
     command.extend(["--alias", f"pr-{pr_number}-{sha[0:10]}"])
     context_suffix = " (pull_request)"
-else:
+elif is_push:
     ref = github_event["ref"]
     m = re.match("refs/heads/(.*)", ref)
     if m:
@@ -95,5 +112,5 @@ def send_pr_comment() -> None:
     assert response.status == 201, response.read()
 
 
-if "pull_request" in github_event:
+if is_pull_request:
     send_pr_comment()
