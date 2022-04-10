@@ -5,24 +5,17 @@
 from irctest import cases
 from irctest.numerics import ERR_CHANOPRIVSNEEDED
 
-MODERN_CAPS = [
-    "server-time",
-    "message-tags",
-    "batch",
-    "labeled-response",
-    "echo-message",
-    "account-tag",
-]
 RENAME_CAP = "draft/channel-rename"
 
 
 class ChannelRenameTestCase(cases.BaseServerTestCase):
     """Basic tests for channel-rename."""
 
-    @cases.mark_specifications("Ergo")
     def testChannelRename(self):
-        self.connectClient("bar", name="bar", capabilities=MODERN_CAPS + [RENAME_CAP])
-        self.connectClient("baz", name="baz", capabilities=MODERN_CAPS)
+        self.connectClient(
+            "bar", name="bar", capabilities=[RENAME_CAP], skip_if_cap_nak=True
+        )
+        self.connectClient("baz", name="baz")
         self.joinChannel("bar", "#bar")
         self.joinChannel("baz", "#bar")
         self.getMessages("bar")
