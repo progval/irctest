@@ -43,11 +43,10 @@ elif is_push:
         branch = m.group(1)
         sha = github_event["head_commit"]["id"]
 
-        command.extend(["--alias", f"br-{branch[0:23]}-{sha[0:10]}"])
-
         if branch in ("main", "master"):
             command.extend(["--prod"])
         else:
+            command.extend(["--alias", f"br-{branch[0:23]}-{sha[0:10]}"])
             context_suffix = " (push)"
     else:
         # TODO
@@ -59,6 +58,7 @@ proc = subprocess.run(command, capture_output=True)
 
 output = proc.stdout.decode()
 assert proc.returncode == 0, (output, proc.stderr.decode())
+print(output)
 
 m = re.search("https://[^ ]*--[^ ]*netlify.app", output)
 assert m
