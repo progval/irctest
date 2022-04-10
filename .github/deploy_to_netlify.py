@@ -16,7 +16,8 @@ if event_name.startswith("pull_request"):
 elif event_name.startswith("push"):
     is_push = True
 elif event_name.startswith("schedule"):
-    # Don't publish; not all controllers run on scheduled events
+    # Don't publish; scheduled workflows run against the latest commit of every
+    # implementation, so they are likely to have failed tests for the wrong reasons
     sys.exit(0)
 else:
     print("Unexpected event name:", event_name)
@@ -53,6 +54,7 @@ elif is_push:
         pass
 
 
+print("Running", command)
 proc = subprocess.run(command, capture_output=True)
 
 output = proc.stdout.decode()
@@ -62,6 +64,8 @@ m = re.search("https://[^ ]*--[^ ]*netlify.app", output)
 assert m
 netlify_site_url = m.group(0)
 target_url = f"{netlify_site_url}/index.xhtml"
+
+print("Published to", netlify_site_url)
 
 
 def send_status() -> None:
