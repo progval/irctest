@@ -51,6 +51,7 @@ features {{
 
 
 class Ircu2Controller(BaseServerController, DirectoryBasedController):
+    software_name = "Ircu2"
     supports_sts = False
     extban_mute_char = None
 
