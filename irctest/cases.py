@@ -672,7 +672,7 @@ class BaseServerTestCase(
         client = self.addClient(name, show_io=show_io)
         if capabilities:
             self.sendLine(client, "CAP LS 302")
-            m = self.getRegistrationMessage(client)
+            self.getCapLs(client)
             self.requestCapabilities(client, capabilities, skip_if_cap_nak)
         if password is not None:
             if "sasl" not in (capabilities or ()):
