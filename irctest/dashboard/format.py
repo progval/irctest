@@ -2,6 +2,7 @@ import base64
 import dataclasses
 import gzip
 import hashlib
+import importlib
 from pathlib import Path
 import re
 import sys
@@ -16,10 +17,10 @@ from typing import (
     Tuple,
     TypeVar,
 )
-import xml.dom.minidom
 import xml.etree.ElementTree as ET
 
 from defusedxml.ElementTree import parse as parse_xml
+import docutils.core
 
 NETLIFY_CHAR_BLACKLIST = frozenset('":<>|*?\r\n#')
 """Characters not allowed in output filenames"""
@@ -117,9 +118,24 @@ def iter_job_results(job_file_name: Path, job: ET.ElementTree) -> Iterator[CaseR
         )
 
 
+def rst_to_element(s: str) -> ET.Element:
+    html = docutils.core.publish_parts(s, writer_name="xhtml")["html_body"]
+    htmltree = ET.fromstring(html)
+    return htmltree
+
+
+def append_docstring(element: ET.Element, obj: object) -> None:
+    if obj.__doc__ is None:
+        return
+
+    element.append(rst_to_element(obj.__doc__))
+
+
 def build_module_html(
     jobs: List[str], results: List[CaseResult], module_name: str
 ) -> ET.Element:
+    module = importlib.import_module(module_name)
+
     root = ET.Element("html")
     head = ET.SubElement(root, "head")
     ET.SubElement(head, "title").text = module_name
@@ -128,6 +144,8 @@ def build_module_html(
     body = ET.SubElement(root, "body")
 
     ET.SubElement(body, "h1").text = module_name
+
+    append_docstring(body, module)
 
     results_by_class = group_by(results, lambda r: r.class_name)
 
@@ -153,6 +171,7 @@ def build_module_html(
             id=row_anchor,
         )
         section_header.text = class_name
+        append_docstring(th, getattr(module, class_name))
 
         # Header row: one column for each implementation
         table.append(job_row)
@@ -213,10 +232,6 @@ def build_module_html(
                 else:
                     cell.text = text or "?"
 
-    # Hacky: ET expects the namespace to be present in every tag we create instead;
-    # but it would be excessively verbose.
-    root.set("xmlns", "http://www.w3.org/1999/xhtml")
-
     return root
 
 
@@ -261,13 +276,14 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str]]) -> None:
 
     ET.SubElement(body, "h1").text = "irctest dashboard"
 
-    ul = ET.SubElement(body, "ul")
+    dl = ET.SubElement(body, "dl")
 
     for (module_name, file_name) in sorted(pages):
-        link = ET.SubElement(ET.SubElement(ul, "li"), "a", href=f"./{file_name}")
-        link.text = module_name
+        module = importlib.import_module(module_name)
 
-    root.set("xmlns", "http://www.w3.org/1999/xhtml")
+        link = ET.SubElement(ET.SubElement(dl, "dt"), "a", href=f"./{file_name}")
+        link.text = module_name
+        append_docstring(ET.SubElement(dl, "dd"), module)
 
     write_xml_file(output_dir / "index.xhtml", root)
 
@@ -281,14 +297,15 @@ def write_assets(output_dir: Path) -> None:
 
 
 def write_xml_file(filename: Path, root: ET.Element) -> None:
+    # Hacky: ET expects the namespace to be present in every tag we create instead;
+    # but it would be excessively verbose.
+    root.set("xmlns", "http://www.w3.org/1999/xhtml")
+
     # Serialize
     s = ET.tostring(root)
 
-    # Prettify
-    s = xml.dom.minidom.parseString(s).toprettyxml(indent=" ")
-
-    with filename.open("wt") as fd:
-        fd.write(s)  # type: ignore
+    with filename.open("wb") as fd:
+        fd.write(s)
 
 
 def parse_xml_file(filename: Path) -> ET.ElementTree:
