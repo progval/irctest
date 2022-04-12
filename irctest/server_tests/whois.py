@@ -29,6 +29,9 @@ from irctest.patma import ANYSTR, StrRe
 
 class _WhoisTestMixin(cases.BaseServerTestCase):
     def _testWhoisNumerics(self, authenticate, away, oper):
+        if oper and self.controller.software_name == "Charybdis":
+            pytest.xfail("charybdis uses RPL_WHOISSPECIAL instead of RPL_WHOISOPERATOR")
+
         if authenticate:
             self.connectClient("nick1")
             self.controller.registerUser(self, "val", "sesame")

@@ -2,6 +2,7 @@
 The HELP and HELPOP command (`Modern <https://modern.ircdocs.horse/#help-message>`__)
 """
 
+import functools
 import re
 
 import pytest
@@ -15,6 +16,30 @@ from irctest.numerics import (
     RPL_HELPTXT,
 )
 from irctest.patma import ANYSTR, StrRe
+
+
+def with_xfails(f):
+    @functools.wraps(f)
+    def newf(self, command, *args, **kwargs):
+        if command == "HELP" and self.controller.software_name == "Bahamut":
+            raise runner.NotImplementedByController(
+                "fail because Bahamut forwards /HELP to HelpServ (but not /HELPOP)"
+            )
+
+        if self.controller.software_name in ("irc2", "ircu2", "ngIRCd"):
+            raise runner.NotImplementedByController(
+                "numerics in reply to /HELP and /HELPOP (uses NOTICE instead)"
+            )
+
+        if self.controller.software_name == "UnrealIRCd":
+            raise runner.NotImplementedByController(
+                "fails because Unreal uses custom numerics "
+                "https://github.com/unrealircd/unrealircd/pull/184"
+            )
+
+        return f(self, command, *args, **kwargs)
+
+    return newf
 
 
 class HelpTestCase(cases.BaseServerTestCase):
@@ -46,6 +71,7 @@ class HelpTestCase(cases.BaseServerTestCase):
 
     @pytest.mark.parametrize("command", ["HELP", "HELPOP"])
     @cases.mark_specifications("Modern")
+    @with_xfails
     def testHelpNoArg(self, command):
         self.connectClient("nick")
         self.sendLine(1, f"{command}")
@@ -59,6 +85,7 @@ class HelpTestCase(cases.BaseServerTestCase):
 
     @pytest.mark.parametrize("command", ["HELP", "HELPOP"])
     @cases.mark_specifications("Modern")
+    @with_xfails
     def testHelpPrivmsg(self, command):
         self.connectClient("nick")
         self.sendLine(1, f"{command} PRIVMSG")
@@ -71,6 +98,7 @@ class HelpTestCase(cases.BaseServerTestCase):
 
     @pytest.mark.parametrize("command", ["HELP", "HELPOP"])
     @cases.mark_specifications("Modern")
+    @with_xfails
     def testHelpUnknownSubject(self, command):
         self.connectClient("nick")
         self.sendLine(1, f"{command} THISISNOTACOMMAND")

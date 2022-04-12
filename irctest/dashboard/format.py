@@ -208,6 +208,9 @@ def build_module_html(
                     cell.set("class", "skipped")
                     if result.type == "pytest.skip":
                         text = "s"
+                    elif result.type == "pytest.xfail":
+                        text = "X"
+                        cell.set("class", "expected-failure")
                     else:
                         text = result.type
                 elif result.success:
@@ -231,6 +234,8 @@ def build_module_html(
                     a.text = text or "?"
                 else:
                     cell.text = text or "?"
+                if result.message:
+                    cell.set("title", result.message)
 
     return root
 

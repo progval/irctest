@@ -84,6 +84,10 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             self.getMessages(1)
 
     @cases.mark_specifications("RFC2812")
+    @cases.xfailIfSoftware(["Charybdis", "Solanum"], "very flaky")
+    @cases.xfailIfSoftware(
+        ["ircu2", "Nefarious", "snircd"], "ircu2 does not send ERROR"
+    )
     def testQuitErrors(self):
         """“A client session is terminated with a quit message.  The server
         acknowledges this by sending an ERROR message to the client.”
@@ -164,6 +168,10 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             "neither got 001.",
         )
 
+    @cases.xfailIfSoftware(
+        ["ircu2", "Nefarious", "ngIRCd"],
+        "uses a default value instead of ERR_NEEDMOREPARAMS",
+    )
     def testEmptyRealname(self):
         """
         Syntax:

@@ -87,6 +87,9 @@ class BaseWhoTestCase:
 class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoStar(self):
+        if self.controller.software_name == "Bahamut":
+            raise runner.NotImplementedByController("WHO mask")
+
         self._init()
 
         self.sendLine(2, "WHO *")
@@ -115,6 +118,9 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     )
     @cases.mark_specifications("Modern")
     def testWhoNick(self, mask):
+        if "*" in mask and self.controller.software_name == "Bahamut":
+            raise runner.NotImplementedByController("WHO mask")
+
         self._init()
 
         self.sendLine(2, f"WHO {mask}")
@@ -142,6 +148,9 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
         ids=["username", "realname-mask", "hostname"],
     )
     def testWhoUsernameRealName(self, mask):
+        if "*" in mask and self.controller.software_name == "Bahamut":
+            raise runner.NotImplementedByController("WHO mask")
+
         self._init()
 
         self.sendLine(2, f"WHO :{mask}")
@@ -192,6 +201,9 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     )
     @cases.mark_specifications("Modern")
     def testWhoNickAway(self, mask):
+        if "*" in mask and self.controller.software_name == "Bahamut":
+            raise runner.NotImplementedByController("WHO mask")
+
         self._init()
 
         self.sendLine(1, "AWAY :be right back")
@@ -218,6 +230,9 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     )
     @cases.mark_specifications("Modern")
     def testWhoNickOper(self, mask):
+        if "*" in mask and self.controller.software_name == "Bahamut":
+            raise runner.NotImplementedByController("WHO mask")
+
         self._init()
 
         self.sendLine(1, "OPER operuser operpassword")
@@ -249,6 +264,9 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     )
     @cases.mark_specifications("Modern")
     def testWhoNickAwayAndOper(self, mask):
+        if "*" in mask and self.controller.software_name == "Bahamut":
+            raise runner.NotImplementedByController("WHO mask")
+
         self._init()
 
         self.sendLine(1, "OPER operuser operpassword")
@@ -280,6 +298,9 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @pytest.mark.parametrize("mask", ["#chan", "#CHAN"], ids=["exact", "casefolded"])
     @cases.mark_specifications("Modern")
     def testWhoChan(self, mask):
+        if "*" in mask and self.controller.software_name == "Bahamut":
+            raise runner.NotImplementedByController("WHO mask")
+
         self._init()
 
         self.sendLine(1, "OPER operuser operpassword")

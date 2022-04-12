@@ -765,6 +765,32 @@ def skipUnlessHasSasl(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
     return newf
 
 
+def xfailIf(
+    condition: Callable[..., bool], reason: str
+) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
+    # Works about the same as skipUnlessHasMechanism
+    def decorator(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
+        @functools.wraps(f)
+        def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
+            if condition:
+                try:
+                    return f(self, *args, **kwargs)
+                except Exception:
+                    pytest.xfail(reason)
+            else:
+                return f(self, *args, **kwargs)
+
+        return newf
+
+    return decorator
+
+
+def xfailIfSoftware(
+    names: List[str], reason: str
+) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
+    return xfailIf(lambda testcase: testcase.controller.software_name in names, reason)
+
+
 def mark_services(cls: TClass) -> TClass:
     cls.run_services = True
     return pytest.mark.services(cls)  # type: ignore

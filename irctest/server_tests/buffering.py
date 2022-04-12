@@ -32,6 +32,16 @@ def _sendBytePerByte(self, line):
 
 
 class BufferingTestCase(cases.BaseServerTestCase):
+    @cases.xfailIfSoftware(
+        ["Bahamut"],
+        "cannot pass because of issues with UTF-8 handling: "
+        "https://github.com/DALnet/bahamut/issues/196",
+    )
+    @cases.xfailIfSoftware(
+        ["ircu2", "Nefarious", "snircd"],
+        "ircu2 discards the whole buffer on long lines "
+        "(TODO: refine how we exclude these tests)",
+    )
     @pytest.mark.parametrize(
         "sender_function,colon",
         [

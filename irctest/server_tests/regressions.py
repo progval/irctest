@@ -99,6 +99,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC1459")
+    @cases.xfailIfSoftware(["ngIRCd"], "wat")
     def testStarNick(self):
         self.addClient(1)
         self.sendLine(1, "NICK *")

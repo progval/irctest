@@ -55,6 +55,9 @@ class AccountTagTestCase(cases.BaseServerTestCase):
 
     @cases.mark_capabilities("account-tag")
     @cases.skipUnlessHasMechanism("PLAIN")
+    @cases.xfailIfSoftware(
+        ["Charybdis"], "https://github.com/solanum-ircd/solanum/issues/166"
+    )
     def testInvite(self):
         self.connectClient("foo", capabilities=["account-tag"], skip_if_cap_nak=True)
         self.getMessages(1)

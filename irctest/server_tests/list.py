@@ -12,6 +12,7 @@ from irctest import cases
 
 class ListTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.xfailIfSoftware(["irc2"], "irc2 deprecated LIST")
     def testListEmpty(self):
         """<https://tools.ietf.org/html/rfc1459#section-4.2.6>
         <https://tools.ietf.org/html/rfc2812#section-3.2.6>
@@ -40,6 +41,7 @@ class ListTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.xfailIfSoftware(["irc2"], "irc2 deprecated LIST")
     def testListOne(self):
         """When a channel exists, LIST should get it in a reply.
         <https://tools.ietf.org/html/rfc1459#section-4.2.6>

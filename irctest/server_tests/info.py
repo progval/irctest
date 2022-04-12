@@ -87,6 +87,9 @@ class InfoTestCase(cases.BaseServerTestCase):
 
     @pytest.mark.parametrize("target", ["invalid.server.example", "invalidserver"])
     @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True)
+    @cases.xfailIfSoftware(
+        ["Ergo"], "does not apply to Ergo, which ignores the optional <target> argument"
+    )
     def testInfoNosuchserver(self, target):
         """
         <https://datatracker.ietf.org/doc/html/rfc1459#section-4.3.8>

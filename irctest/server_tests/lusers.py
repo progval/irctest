@@ -153,6 +153,10 @@ class BasicLusersTestCase(LusersTestCase):
         self.getLusers("bar", True)
 
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(
+        ["ircu2", "Nefarious", "snircd"],
+        "test depends on Modern behavior, not just RFC2812",
+    )
     def testLusersFull(self):
         self.connectClient("bar", name="bar")
         lusers = self.getLusers("bar", False)
@@ -174,6 +178,14 @@ class LusersUnregisteredTestCase(LusersTestCase):
         self.doLusersTest(True)
 
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(
+        ["Nefarious"],
+        "Nefarious doesn't seem to distinguish unregistered users from normal ones",
+    )
+    @cases.xfailIfSoftware(
+        ["ircu2", "Nefarious", "snircd"],
+        "test depends on Modern behavior, not just RFC2812",
+    )
     def testLusersFull(self):
         self.doLusersTest(False)
 
@@ -237,6 +249,10 @@ class LusersUnregisteredDefaultInvisibleTestCase(LusersUnregisteredTestCase):
         )
 
     @cases.mark_specifications("Ergo")
+    @cases.xfailIfSoftware(
+        ["Nefarious"],
+        "Nefarious doesn't seem to distinguish unregistered users from normal ones",
+    )
     def testLusers(self):
         self.doLusersTest(False)
         lusers = self.getLusers("bar", False)

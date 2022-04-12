@@ -61,6 +61,7 @@ class SaslTestCase(cases.BaseClientTestCase):
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
     @cases.skipUnlessHasMechanism("PLAIN")
+    @cases.xfailIfSoftware(["Sopel"], "Sopel requests SASL PLAIN even if not available")
     def testPlainNotAvailable(self):
         """`sasl=EXTERNAL` is advertized, whereas the client is configured
         to use PLAIN.

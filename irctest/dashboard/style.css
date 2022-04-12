@@ -46,6 +46,9 @@ table.test-matrix .skipped {
 table.test-matrix .failure {
     background-color: red;
 }
+table.test-matrix .expected-failure {
+    background-color: orange;
+}
 
 /* Rotate headers, thanks to https://css-tricks.com/rotated-table-column-headers/ */
 th.job-name {

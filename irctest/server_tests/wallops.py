@@ -66,6 +66,9 @@ class WallopsTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(
+        ["irc2"], "irc2 ignores the command instead of replying ERR_UNKNOWNCOMMAND"
+    )
     def testWallopsPrivileges(self):
         """
         https://github.com/ircdocs/modern-irc/pull/118
