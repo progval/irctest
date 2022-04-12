@@ -777,6 +777,7 @@ def xfailIf(
                     return f(self, *args, **kwargs)
                 except Exception:
                     pytest.xfail(reason)
+                    assert False  # make mypy happy
             else:
                 return f(self, *args, **kwargs)
 
