@@ -29,8 +29,8 @@ O:*:operpassword:operuser::::
 """
 
 
-class Ircu2Controller(BaseServerController, DirectoryBasedController):
-    binary_name: str
+class Irc2Controller(BaseServerController, DirectoryBasedController):
+    software_name = "irc2"
     services_protocol: str
 
     supports_sts = False
@@ -89,5 +89,5 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
         )
 
 
-def get_irctest_controller_class() -> Type[Ircu2Controller]:
-    return Ircu2Controller
+def get_irctest_controller_class() -> Type[Irc2Controller]:
+    return Irc2Controller

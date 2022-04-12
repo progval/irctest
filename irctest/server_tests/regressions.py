@@ -4,7 +4,7 @@ Regression tests for bugs in `Ergo <https://ergo.chat/>`_.
 
 import time
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.numerics import ERR_ERRONEUSNICKNAME, ERR_NICKNAMEINUSE, RPL_WELCOME
 from irctest.patma import ANYDICT
 
@@ -57,6 +57,12 @@ class RegressionsTestCase(cases.BaseServerTestCase):
 
     @cases.mark_capabilities("message-tags", "batch", "echo-message", "server-time")
     def testTagCap(self):
+        if self.controller.software_name == "UnrealIRCd":
+            raise runner.NotImplementedByController(
+                "Arbitrary +draft/reply values (TODO: adapt this test to use real "
+                "values so their pass Unreal's validation) "
+                "https://bugs.unrealircd.org/view.php?id=5948"
+            )
         # regression test for oragono #754
         self.connectClient(
             "alice",

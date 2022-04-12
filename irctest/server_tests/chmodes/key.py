@@ -73,7 +73,7 @@ class KeyTestCase(cases.BaseServerTestCase):
                 "ircu2 returns ERR_NEEDMOREPARAMS on empty keys: "
                 "https://github.com/UndernetIRC/ircu2/issues/13"
             )
-        if key in ("spaces", "empty") and self.controller.software_name == "ngIRCd":
+        if not (0 < len(key) <= 300) and self.controller.software_name == "ngIRCd":
             pytest.xfail(
                 "ngIRCd does not validate channel keys: "
                 "https://github.com/ngircd/ngircd/issues/290"

@@ -174,6 +174,10 @@ class BasicLusersTestCase(LusersTestCase):
 
 class LusersUnregisteredTestCase(LusersTestCase):
     @cases.mark_specifications("RFC2812")
+    @cases.xfailIfSoftware(
+        ["Nefarious"],
+        "Nefarious doesn't seem to distinguish unregistered users from normal ones",
+    )
     def testLusersRfc2812(self):
         self.doLusersTest(True)
 
