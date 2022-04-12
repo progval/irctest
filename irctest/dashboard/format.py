@@ -245,10 +245,39 @@ def write_html_pages(
     # used as columns
     jobs = list(sorted({r.job for r in results}))
 
+    job_categories = {}
+    for job in jobs:
+        is_client = any(
+            "client_tests" in result.module_name and result.job == job
+            for result in results
+        )
+        is_server = any(
+            "server_tests" in result.module_name and result.job == job
+            for result in results
+        )
+        assert is_client != is_server, (job, is_client, is_server)
+        if job.endswith(("-atheme", "-anope")):
+            assert is_server
+            job_categories[job] = "server-with-services"
+        elif is_server:
+            job_categories[job] = "server"  # with or without services
+        else:
+            assert is_client
+            job_categories[job] = "client"
+
     pages = []
 
-    for (module_name, module_results) in results_by_module.items():
-        root = build_module_html(jobs, module_results, module_name)
+    for (module_name, module_results) in sorted(results_by_module.items()):
+        # Filter out client jobs if this is a server test module, and vice versa
+        module_categories = {
+            job_categories[result.job]
+            for result in results
+            if result.module_name == module_name and not result.skipped
+        }
+
+        module_jobs = [job for job in jobs if job_categories[job] in module_categories]
+
+        root = build_module_html(module_jobs, module_results, module_name)
         file_name = f"{module_name}.xhtml"
         write_xml_file(output_dir / file_name, root)
         pages.append((module_name, file_name))
