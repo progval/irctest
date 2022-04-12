@@ -67,6 +67,10 @@ class BotModeTestCase(cases.BaseServerTestCase):
             message, command=RPL_WHOISBOT, params=["usernick", "botnick", ANYSTR]
         )
 
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "Uses only vendor tags for now: https://github.com/inspircd/inspircd/pull/1910",
+    )
     def testBotPrivateMessage(self):
         self._initBot()
 
@@ -84,6 +88,10 @@ class BotModeTestCase(cases.BaseServerTestCase):
             tags={"draft/bot": None, **ANYDICT},
         )
 
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "Uses only vendor tags for now: https://github.com/inspircd/inspircd/pull/1910",
+    )
     def testBotChannelMessage(self):
         self._initBot()
 

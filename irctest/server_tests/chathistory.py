@@ -2,12 +2,13 @@
 `IRCv3 draft chathistory <https://ircv3.net/specs/extensions/chathistory>`_
 """
 
+import functools
 import secrets
 import time
 
 import pytest
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.irc_utils.junkdrawer import random_name
 from irctest.patma import ANYSTR
 
@@ -42,6 +43,16 @@ def validate_chathistory_batch(msgs):
     return result
 
 
+def skip_ngircd(f):
+    @functools.wraps(f)
+    def newf(self, *args, **kwargs):
+        if self.controller.software_name == "ngIRCd":
+            raise runner.NotImplementedByController("nicks longer 9 characters")
+        return f(self, *args, **kwargs)
+
+    return newf
+
+
 @cases.mark_specifications("IRCv3")
 @cases.mark_services
 class ChathistoryTestCase(cases.BaseServerTestCase):
@@ -49,6 +60,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(chathistory=True)
 
+    @skip_ngircd
     def testInvalidTargets(self):
         bar, pw = random_name("bar"), random_name("pw")
         self.controller.registerUser(self, bar, pw)
@@ -94,6 +106,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         )
 
     @pytest.mark.private_chathistory
+    @skip_ngircd
     def testMessagesToSelf(self):
         bar, pw = random_name("bar"), random_name("pw")
         self.controller.registerUser(self, bar, pw)
@@ -166,7 +179,19 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(set(msg.time for msg in echo_messages)), num_messages)
 
     @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
+    @skip_ngircd
     def testChathistory(self, subcommand):
+        if subcommand == "BETWEEN" and self.controller.software_name == "UnrealIRCd":
+            pytest.xfail(
+                "CHATHISTORY BETWEEN does not apply bounds correct "
+                "https://bugs.unrealircd.org/view.php?id=5952"
+            )
+        if subcommand == "AROUND" and self.controller.software_name == "UnrealIRCd":
+            pytest.xfail(
+                "CHATHISTORY AROUND excludes 'central' messages "
+                "https://bugs.unrealircd.org/view.php?id=5953"
+            )
+
         self.connectClient(
             "bar",
             capabilities=[
@@ -198,6 +223,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.validate_chathistory(subcommand, echo_messages, 1, chname)
 
     @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
+    @skip_ngircd
     def testChathistoryEventPlayback(self, subcommand):
         self.connectClient(
             "bar",
@@ -231,6 +257,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
     @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
     @pytest.mark.private_chathistory
+    @skip_ngircd
     def testChathistoryDMs(self, subcommand):
         c1 = "foo" + secrets.token_hex(12)
         c2 = "bar" + secrets.token_hex(12)
@@ -553,6 +580,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.assertIn(echo_messages[7], result)
 
     @pytest.mark.arbitrary_client_tags
+    @skip_ngircd
     def testChathistoryTagmsg(self):
         c1 = "foo" + secrets.token_hex(12)
         c2 = "bar" + secrets.token_hex(12)
@@ -651,6 +679,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
     @pytest.mark.arbitrary_client_tags
     @pytest.mark.private_chathistory
+    @skip_ngircd
     def testChathistoryDMClientOnlyTags(self):
         # regression test for Ergo #1411
         c1 = "foo" + secrets.token_hex(12)

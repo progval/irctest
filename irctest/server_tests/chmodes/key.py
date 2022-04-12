@@ -64,6 +64,21 @@ class KeyTestCase(cases.BaseServerTestCase):
         -- https://modern.ircdocs.horse/#key-channel-mode
         -- https://github.com/ircdocs/modern-irc/pull/111
         """
+        if key == "" and self.controller.software_name in (
+            "ircu2",
+            "Nefarious",
+            "snircd",
+        ):
+            pytest.xfail(
+                "ircu2 returns ERR_NEEDMOREPARAMS on empty keys: "
+                "https://github.com/UndernetIRC/ircu2/issues/13"
+            )
+        if (key == "" or " " in key) and self.controller.software_name == "ngIRCd":
+            pytest.xfail(
+                "ngIRCd does not validate channel keys: "
+                "https://github.com/ngircd/ngircd/issues/290"
+            )
+
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
         self.sendLine(1, f"MODE #chan +k :{key}")

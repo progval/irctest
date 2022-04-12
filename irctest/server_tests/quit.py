@@ -16,6 +16,7 @@ from irctest.patma import StrRe
 
 class ChannelQuitTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC2812")
+    @cases.xfailIfSoftware(["ircu2", "Nefarious", "snircd"], "ircu2 does not echo QUIT")
     def testQuit(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This

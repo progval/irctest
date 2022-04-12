@@ -17,6 +17,11 @@ class StatusmsgTestCase(cases.BaseServerTestCase):
         self.assertEqual(self.server_support["STATUSMSG"], "~&@%+")
 
     @cases.mark_isupport("STATUSMSG")
+    @cases.xfailIfSoftware(
+        ["ircu2", "Nefarious", "snircd"],
+        "STATUSMSG is present in ISUPPORT, but it not actually supported as PRIVMSG "
+        "target (only for WALLCOPS/WALLCHOPS/...)",
+    )
     def testStatusmsgFromOp(self):
         """Test that STATUSMSG are sent to the intended recipients,
         with the intended prefixes."""
@@ -68,6 +73,11 @@ class StatusmsgTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(unprivilegedMessages), 0)
 
     @cases.mark_isupport("STATUSMSG")
+    @cases.xfailIfSoftware(
+        ["ircu2", "Nefarious", "snircd"],
+        "STATUSMSG is present in ISUPPORT, but it not actually supported as PRIVMSG "
+        "target (only for WALLCOPS/WALLCHOPS/...)",
+    )
     def testStatusmsgFromRegular(self):
         """Test that STATUSMSG are sent to the intended recipients,
         with the intended prefixes."""

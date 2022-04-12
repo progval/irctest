@@ -96,6 +96,10 @@ class KickTestCase(cases.BaseServerTestCase):
             self.assertMessageMatch(m3, command="KICK", params=["#chan", "bar", ANYSTR])
 
     @cases.mark_specifications("RFC2812")
+    @cases.xfailIfSoftware(
+        ["Charybdis", "ircu2", "irc2", "Solanum"],
+        "uses the nick of the kickee rather than the kicker.",
+    )
     def testKickDefaultComment(self):
         """
         "If a "comment" is

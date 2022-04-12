@@ -171,6 +171,13 @@ class SaslTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.skipUnlessHasMechanism("PLAIN")
+    @cases.xfailIf(
+        lambda self: (
+            self.controller.services_controller is not None
+            and self.controller.services_controller.software_name == "Anope"
+        ),
+        "Anope does not handle split AUTHENTICATE (reported on IRC)",
+    )
     def testPlainLarge(self):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400.
@@ -233,6 +240,13 @@ class SaslTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.skipUnlessHasMechanism("PLAIN")
+    @cases.xfailIf(
+        lambda self: (
+            self.controller.services_controller is not None
+            and self.controller.services_controller.software_name == "Anope"
+        ),
+        "Anope does not handle split AUTHENTICATE (reported on IRC)",
+    )
     def testPlainLargeEquals400(self):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400.

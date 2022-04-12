@@ -78,6 +78,10 @@ class CapTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
+    @cases.xfailIfSoftware(
+        ["UnrealIRCd"],
+        "UnrealIRCd sends a trailing space on CAP NAK: https://github.com/unrealircd/unrealircd/pull/148",
+    )
     def testNakWhole(self):
         """“The capability identifier set must be accepted as a whole, or
         rejected entirely.”
@@ -125,6 +129,10 @@ class CapTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
+    @cases.xfailIfSoftware(
+        ["UnrealIRCd"],
+        "UnrealIRCd sends a trailing space on CAP NAK: https://github.com/unrealircd/unrealircd/pull/148",
+    )
     def testCapRemovalByClient(self):
         """Test CAP LIST and removal of caps via CAP REQ :-tagname."""
         cap1 = "echo-message"
