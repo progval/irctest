@@ -159,7 +159,7 @@ def build_module_html(
         ET.SubElement(ET.SubElement(cell, "div"), "span").text = job
         cell.set("class", "job-name")
 
-    for (class_name, class_results) in results_by_class.items():
+    for (class_name, class_results) in sorted(results_by_class.items()):
         # Header row: class name
         header_row = ET.SubElement(table, "tr")
         th = ET.SubElement(header_row, "th", colspan=str(len(jobs) + 1))
@@ -178,7 +178,7 @@ def build_module_html(
 
         # One row for each test:
         results_by_test = group_by(class_results, key=lambda r: r.test_name)
-        for (test_name, test_results) in results_by_test.items():
+        for (test_name, test_results) in sorted(results_by_test.items()):
             row_anchor = f"{class_name}.{test_name}"
             if len(row_anchor) >= 50:
                 # Too long; give up on generating readable URL
