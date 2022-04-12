@@ -1,5 +1,5 @@
 """
-The INFO command  (`RFC 1459
+The KICK command  (`RFC 1459
 <https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.1>`__,
 `RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.>`__,
 `Modern <https://modern.ircdocs.horse/#kick-message>`__)
