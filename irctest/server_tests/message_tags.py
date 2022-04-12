@@ -10,7 +10,7 @@ from irctest.numerics import ERR_INPUTTOOLONG
 from irctest.patma import ANYDICT, ANYSTR, StrRe
 
 
-class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class MessageTagsTestCase(cases.BaseServerTestCase):
     @pytest.mark.arbitrary_client_tags
     @cases.mark_capabilities("message-tags")
     def testBasic(self):

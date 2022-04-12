@@ -84,7 +84,7 @@ class BaseWhoTestCase:
             )
 
 
-class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHelper):
+class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoStar(self):
         self._init()
@@ -422,9 +422,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHe
 
 
 @cases.mark_services
-class WhoServicesTestCase(
-    BaseWhoTestCase, cases.BaseServerTestCase, cases.OptionalityHelper
-):
+class WhoServicesTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("IRCv3")
     @cases.mark_isupport("WHOX")
     def testWhoxAccount(self):

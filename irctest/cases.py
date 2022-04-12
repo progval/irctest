@@ -732,49 +732,37 @@ class BaseServerTestCase(
                     raise ChannelJoinException(msg.command, msg.params)
 
 
-_TSelf = TypeVar("_TSelf", bound="OptionalityHelper")
+_TSelf = TypeVar("_TSelf", bound="_IrcTestCase")
 _TReturn = TypeVar("_TReturn")
 
 
-class OptionalityHelper(Generic[TController]):
-    controller: TController
-
-    def checkSaslSupport(self) -> None:
-        if self.controller.supported_sasl_mechanisms:
-            return
-        raise runner.NotImplementedByController("SASL")
-
-    def checkMechanismSupport(self, mechanism: str) -> None:
-        if mechanism in self.controller.supported_sasl_mechanisms:
-            return
-        raise runner.OptionalSaslMechanismNotSupported(mechanism)
-
-    @staticmethod
-    def skipUnlessHasMechanism(
-        mech: str,
-    ) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
-        # Just a function returning a function that takes functions and
-        # returns functions, nothing to see here.
-        # If Python didn't have such an awful syntax for callables, it would be:
-        # str -> ((TSelf -> TReturn) -> (TSelf -> TReturn))
-        def decorator(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
-            @functools.wraps(f)
-            def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
-                self.checkMechanismSupport(mech)
-                return f(self, *args, **kwargs)
-
-            return newf
-
-        return decorator
-
-    @staticmethod
-    def skipUnlessHasSasl(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
+def skipUnlessHasMechanism(
+    mech: str,
+) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
+    # Just a function returning a function that takes functions and
+    # returns functions, nothing to see here.
+    # If Python didn't have such an awful syntax for callables, it would be:
+    # str -> ((TSelf -> TReturn) -> (TSelf -> TReturn))
+    def decorator(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
         @functools.wraps(f)
         def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
-            self.checkSaslSupport()
+            if mech not in self.controller.supported_sasl_mechanisms:
+                raise runner.OptionalSaslMechanismNotSupported(mech)
             return f(self, *args, **kwargs)
 
         return newf
+
+    return decorator
+
+
+def skipUnlessHasSasl(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
+    @functools.wraps(f)
+    def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
+        if not self.controller.supported_sasl_mechanisms:
+            raise runner.NotImplementedByController("SASL")
+        return f(self, *args, **kwargs)
+
+    return newf
 
 
 def mark_services(cls: TClass) -> TClass:

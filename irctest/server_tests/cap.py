@@ -8,7 +8,7 @@ from irctest.patma import ANYSTR
 from irctest.runner import CapabilityNotSupported, ImplementationChoice
 
 
-class CapTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class CapTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("IRCv3")
     def testNoReq(self):
         """Test the server handles gracefully clients which do not send

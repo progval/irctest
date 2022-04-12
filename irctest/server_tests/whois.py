@@ -164,7 +164,7 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
         )
 
 
-class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase, cases.OptionalityHelper):
+class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase):
     @pytest.mark.parametrize(
         "server",
         ["", "My.Little.Server", "coolNick"],
@@ -210,11 +210,9 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase, cases.Optionality
 
 
 @cases.mark_services
-class ServicesWhoisTestCase(
-    _WhoisTestMixin, cases.BaseServerTestCase, cases.OptionalityHelper
-):
+class ServicesWhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase):
     @pytest.mark.parametrize("oper", [False, True], ids=["normal", "oper"])
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     @cases.mark_specifications("Modern")
     def testWhoisNumerics(self, oper):
         """Tests all numerics are in the exhaustive list defined in the Modern spec,
@@ -297,7 +295,7 @@ class ServicesWhoisTestCase(
             "RPL_WHOISCHANNELS should be sent for a non-invisible nick",
         )
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     @cases.mark_specifications("ircdocs")
     def testWhoisAccount(self):
         """Test numeric 330, RPL_WHOISACCOUNT.

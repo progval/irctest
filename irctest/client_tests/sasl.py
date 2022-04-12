@@ -39,8 +39,8 @@ class IdentityHash:
         return self._data
 
 
-class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+class SaslTestCase(cases.BaseClientTestCase):
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlain(self):
         """Test PLAIN authentication with correct username/password."""
         auth = authentication.Authentication(
@@ -60,7 +60,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         m = self.negotiateCapabilities(["sasl"], False)
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainNotAvailable(self):
         """`sasl=EXTERNAL` is advertized, whereas the client is configured
         to use PLAIN.
@@ -90,7 +90,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.assertMessageMatch(m, command="CAP")
 
     @pytest.mark.parametrize("pattern", ["barbaz", "éèà"])
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainLarge(self, pattern):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400.
@@ -119,7 +119,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         m = self.negotiateCapabilities(["sasl"], False)
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     @pytest.mark.parametrize("pattern", ["quux", "éè"])
     def testPlainLargeMultiple(self, pattern):
         """Test the client splits large AUTHENTICATE messages whose payload
@@ -150,7 +150,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
     @pytest.mark.skipif(ecdsa is None, reason="python3-ecdsa is not available")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("ECDSA-NIST256P-CHALLENGE")
+    @cases.skipUnlessHasMechanism("ECDSA-NIST256P-CHALLENGE")
     def testEcdsa(self):
         """Test ECDSA authentication."""
         auth = authentication.Authentication(
@@ -184,7 +184,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         m = self.negotiateCapabilities(["sasl"], False)
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
+    @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
     def testScram(self):
         """Test SCRAM-SHA-256 authentication."""
         auth = authentication.Authentication(
@@ -226,7 +226,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.assertEqual(m.command, "AUTHENTICATE", m)
         self.assertEqual(m.params, ["+"], m)
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
+    @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
     def testScramBadPassword(self):
         """Test SCRAM-SHA-256 authentication with a bad password."""
         auth = authentication.Authentication(
@@ -261,8 +261,8 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
             authenticator.response(msg)
 
 
-class Irc302SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+class Irc302SaslTestCase(cases.BaseClientTestCase):
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainNotAvailable(self):
         """Test the client does not try to authenticate using a mechanism the
         server does not advertise.

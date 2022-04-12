@@ -9,7 +9,7 @@ from irctest import cases
 from irctest.patma import ANYSTR
 
 
-class Utf8TestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class Utf8TestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
     def testUtf8Validation(self):
         self.connectClient(

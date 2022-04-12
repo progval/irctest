@@ -14,7 +14,7 @@ from irctest.numerics import ERR_UNKNOWNCOMMAND
 from irctest.patma import ANYDICT, ANYOPTSTR, NotStrRe, RemainingKeys, StrRe
 
 
-class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class LabeledResponsesTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("echo-message", "batch", "labeled-response")
     def testLabeledPrivmsgResponsesToMultipleClients(self):
         self.connectClient(

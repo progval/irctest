@@ -5,7 +5,7 @@
 from irctest import cases
 
 
-class AwayNotifyTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class AwayNotifyTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("away-notify")
     def testAwayNotify(self):
         """Basic away-notify test."""
