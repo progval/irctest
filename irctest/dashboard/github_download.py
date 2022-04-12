@@ -27,14 +27,15 @@ class Artifact:
 
 def iter_run_artifacts(repo: str, run_id: int) -> Iterator[Artifact]:
     request = urllib.request.Request(
-        f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/artifacts",
+        f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/artifacts"
+        "?per_page=100",
         headers={"Accept": "application/vnd.github.v3+json"},
     )
 
     response = urllib.request.urlopen(request)
 
     for artifact in json.load(response)["artifacts"]:
-        if not artifact["name"].startswith(("pytest_results_", "pytest results ")):
+        if not artifact["name"].startswith(("pytest-results_", "pytest results ")):
             continue
         if artifact["expired"]:
             continue
