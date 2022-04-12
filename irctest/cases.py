@@ -772,7 +772,7 @@ def xfailIf(
     def decorator(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
         @functools.wraps(f)
         def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
-            if condition:
+            if condition(self):
                 try:
                     return f(self, *args, **kwargs)
                 except Exception:
