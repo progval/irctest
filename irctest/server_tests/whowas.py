@@ -219,6 +219,10 @@ class WhowasTestCase(cases.BaseServerTestCase):
     @cases.xfailIfSoftware(
         ["ircu2"], "Fix not released yet: https://github.com/UndernetIRC/ircu2/pull/19"
     )
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1967",
+    )
     def testWhowasCountZero(self):
         """
         "If a non-positive number is passed as being <count>, then a full search
