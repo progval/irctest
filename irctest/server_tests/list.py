@@ -325,12 +325,8 @@ class FaketimeListTestCase(_BasedListTestCase):
 
     @cases.mark_isupport("ELIST")
     @cases.mark_specifications("Modern")
-    @cases.xfailIf(
-        lambda self: bool(
-            self.controller.software_name == "UnrealIRCd"
-            and self.controller.software_version == 5
-        ),
-        "UnrealIRCd advertises ELIST=T but does not implement it",
+    @cases.xfailIfSoftware(
+        ["UnrealIRCd"], "UnrealIRCd advertises ELIST=T but does not implement it"
     )
     def testListTopicTime(self):
         """

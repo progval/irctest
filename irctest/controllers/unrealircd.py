@@ -139,7 +139,6 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
     supports_sts = False
 
     extban_mute_char = "quiet" if installed_version() >= 6 else "q"
-    software_version = installed_version()
 
     def create_config(self) -> None:
         super().create_config()
