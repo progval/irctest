@@ -1,5 +1,5 @@
 """
-<http://ircv3.net/specs/core/monitor-3.2.html>
+`IRCv3 MONITOR <https://ircv3.net/specs/extensions/monitor>`_
 """
 
 from irctest import cases

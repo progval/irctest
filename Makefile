@@ -7,90 +7,47 @@ PYTEST_ARGS ?=
 # Will be appended at the end of the -k argument to pytest
 EXTRA_SELECTORS ?=
 
-# testPlainLarge fails because it doesn't handle split AUTHENTICATE (reported on IRC)
-ANOPE_SELECTORS := \
-	and not testPlainLarge
-
-# buffering tests cannot pass because of issues with UTF-8 handling: https://github.com/DALnet/bahamut/issues/196
-# mask tests in test_who.py fail because they are not implemented.
-# some HelpTestCase::*[HELP] tests fail because Bahamut forwards /HELP to HelpServ (but not /HELPOP)
-# testWhowasMultiTarget fails because Bahamut returns the results in query order instead of chronological order
 BAHAMUT_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	and not IRCv3 \
-	and not buffering \
-	and not (testWho and not whois and mask) \
-	and not testWhoStar \
-	and (not HelpTestCase or HELPOP) \
-	and not testWhowasMultiTarget \
 	$(EXTRA_SELECTORS)
 
-# testQuitErrors is very flaky
-# AccountTagTestCase.testInvite fails because https://github.com/solanum-ircd/solanum/issues/166
-# testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
-# testWhoisNumerics[oper] fails because charybdis uses RPL_WHOISSPECIAL instead of RPL_WHOISOPERATOR
-# testWhowasNoSuchNick fails because of a typo (solved in https://github.com/solanum-ircd/solanum/commit/08b7b6bd7e60a760ad47b58cbe8075b45d66166f)
 CHARYBDIS_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not testQuitErrors \
-	and not testKickDefaultComment \
-	and not (AccountTagTestCase and testInvite) \
-	and not (testWhoisNumerics and oper) \
-	and not testWhowasNoSuchNick \
 	$(EXTRA_SELECTORS)
 
-# testInfoNosuchserver does not apply to Ergo: Ergo ignores the optional <target> argument
 ERGO_SELECTORS := \
 	not deprecated \
-	and not testInfoNosuchserver \
 	$(EXTRA_SELECTORS)
 
-# testInviteUnopped is the only strict test that Hybrid fails
 HYBRID_SELECTORS := \
 	not Ergo \
-	and not testInviteUnopped \
 	and not deprecated \
 	$(EXTRA_SELECTORS)
 
-# testBotPrivateMessage and testBotChannelMessage fail because https://github.com/inspircd/inspircd/pull/1910 is not released yet
-# WHOWAS tests fail because https://github.com/inspircd/inspircd/pull/1967 and https://github.com/inspircd/inspircd/pull/1968 are not released yet
 INSPIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not testNoticeNonexistentChannel \
-	and not testBotPrivateMessage and not testBotChannelMessage \
-	and not whowas \
 	$(EXTRA_SELECTORS)
 
-# buffering tests fail because ircu2 discards the whole buffer on long lines (TODO: refine how we exclude these tests)
-# testQuit and testQuitErrors fail because ircu2 does not send ERROR or QUIT
-# lusers "full" tests fail because they depend on Modern behavior, not just RFC2812
-# statusmsg tests fail because STATUSMSG is present in ISUPPORT, but it not actually supported as PRIVMSG target
-# testKeyValidation[empty] fails because ircu2 returns ERR_NEEDMOREPARAMS on empty keys: https://github.com/UndernetIRC/ircu2/issues/13
-# testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
-# testEmptyRealname fails because it uses a default value instead of ERR_NEEDMOREPARAMS.
 # HelpTestCase fails because it returns NOTICEs instead of numerics
-# testWhowasCountZero fails: https://github.com/UndernetIRC/ircu2/pull/19
-# testInviteList fails: https://github.com/UndernetIRC/ircu2/pull/20
 IRCU2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not buffering \
-	and not testQuit \
-	and not (lusers and full) \
-	and not statusmsg \
-	and not (testKeyValidation and empty) \
-	and not testKickDefaultComment \
-	and not testEmptyRealname \
-	and not HelpTestCase \
-	and not testWhowasCountZero \
-	and not testInviteList \
+	$(EXTRA_SELECTORS)
+
+# same justification as ircu2
+# lusers "unregistered" tests fail because 
+NEFARIOUS_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
 	$(EXTRA_SELECTORS)
 
 # same justification as ircu2
@@ -98,24 +55,12 @@ SNIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not buffering \
-	and not testQuit \
-	and not (lusers and full) \
-	and not statusmsg \
 	$(EXTRA_SELECTORS)
 
-# testListEmpty and testListOne fails because irc2 deprecated LIST
-# testKickDefaultComment fails because it uses the nick of the kickee rather than the kicker.
-# testWallopsPrivileges fails because it ignores the command instead of replying ERR_UNKNOWNCOMMAND
-# HelpTestCase fails because it returns NOTICEs instead of numerics
 IRC2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not testListEmpty and not testListOne \
-	and not testKickDefaultComment \
-	and not testWallopsPrivileges \
-	and not HelpTestCase \
 	$(EXTRA_SELECTORS)
 
 MAMMON_SELECTORS := \
@@ -124,28 +69,14 @@ MAMMON_SELECTORS := \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
-# testKeyValidation[spaces] and testKeyValidation[empty] fail because ngIRCd does not validate them https://github.com/ngircd/ngircd/issues/290
-# testStarNick: wat
-# testEmptyRealname fails because it uses a default value instead of ERR_NEEDMOREPARAMS.
-# chathistory tests fail because they need nicks longer than 9 chars
-# HelpTestCase::*[HELP] fails because it returns NOTICEs instead of numerics
 NGIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not (testKeyValidation and (spaces or empty)) \
-	and not testStarNick \
-	and not testEmptyRealname \
-	and not chathistory \
-	and (not HelpTestCase or HELPOP) \
 	$(EXTRA_SELECTORS)
 
-# testInviteUnopped is the only strict test that Plexus4 fails
-# testInviteInviteOnly fails because Plexus4 allows non-op to invite if (and only if) the channel is not invite-only
 PLEXUS4_SELECTORS := \
 	not Ergo \
-	and not testInviteUnopped \
-	and not testInviteInviteOnly \
 	and not deprecated \
 	$(EXTRA_SELECTORS)
 
@@ -156,51 +87,33 @@ LIMNORIA_SELECTORS := \
 	(foo or not foo) \
 	$(EXTRA_SELECTORS)
 
-# testQuitErrors is too flaky for CI
-# testKickDefaultComment fails because solanum uses the nick of the kickee rather than the kicker.
 SOLANUM_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not testQuitErrors \
-	and not testKickDefaultComment \
 	$(EXTRA_SELECTORS)
 
+# Same as Limnoria
 SOPEL_SELECTORS := \
-	not testPlainNotAvailable \
+	(foo or not foo) \
 	$(EXTRA_SELECTORS)
 
-# testNoticeNonexistentChannel fails: https://bugs.unrealircd.org/view.php?id=5949
-# regressions::testTagCap fails: https://bugs.unrealircd.org/view.php?id=5948
-# messages::testLineTooLong fails: https://bugs.unrealircd.org/view.php?id=5947
-# testCapRemovalByClient and testNakWhole fail pending https://github.com/unrealircd/unrealircd/pull/148
 # Tests marked with arbitrary_client_tags can't pass because Unreal whitelists which tags it relays
 # Tests marked with react_tag can't pass because Unreal blocks +draft/react https://github.com/unrealircd/unrealircd/pull/149
 # Tests marked with private_chathistory can't pass because Unreal does not implement CHATHISTORY for DMs
-# testChathistory[BETWEEN] fails: https://bugs.unrealircd.org/view.php?id=5952
-# testChathistory[AROUND] fails: https://bugs.unrealircd.org/view.php?id=5953
-# testWhoAllOpers fails because Unreal skips results when the mask is too broad
-# HELP and HELPOP tests fail because Unreal uses custom numerics https://github.com/unrealircd/unrealircd/pull/184
+
 UNREALIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not testNoticeNonexistentChannel \
-	and not (regressions.py and testTagCap) \
-	and not (messages.py and testLineTooLong) \
-	and not (cap.py and (testCapRemovalByClient or testNakWhole)) \
-	and not (account_tag.py and testInvite) \
 	and not arbitrary_client_tags \
 	and not react_tag \
 	and not private_chathistory \
-	and not (testChathistory and (between or around)) \
-	and not testWhoAllOpers \
-	and not HelpTestCase \
 	$(EXTRA_SELECTORS)
 
-.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon limnoria sopel solanum unrealircd
+.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sopel solanum unrealircd
 
-all: flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon limnoria sopel solanum unrealircd
+all: flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sopel solanum unrealircd
 
 flakes:
 	find irctest/ -name "*.py" -not -path "irctest/scram/*" -print0 | xargs -0 pyflakes3
@@ -226,7 +139,7 @@ bahamut-anope:
 		--services-controller=irctest.controllers.anope_services \
 		-m 'services' \
 		-n 10 \
-		-k '$(BAHAMUT_SELECTORS) $(ANOPE_SELECTORS)'
+		-k '$(BAHAMUT_SELECTORS)'
 
 charybdis:
 	$(PYTEST) $(PYTEST_ARGS) \
@@ -263,7 +176,7 @@ inspircd-anope:
 		--controller=irctest.controllers.inspircd \
 		--services-controller=irctest.controllers.anope_services \
 		-m 'services' \
-		-k '$(INSPIRCD_SELECTORS) $(ANOPE_SELECTORS)'
+		-k '$(INSPIRCD_SELECTORS)'
 
 ircu2:
 	$(PYTEST) $(PYTEST_ARGS) \
@@ -271,6 +184,13 @@ ircu2:
 		-m 'not services and not IRCv3' \
 		-n 10 \
 		-k '$(IRCU2_SELECTORS)'
+
+nefarious:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.nefarious \
+		-m 'not services' \
+		-n 10 \
+		-k '$(NEFARIOUS_SELECTORS)'
 
 snircd:
 	$(PYTEST) $(PYTEST_ARGS) \
@@ -354,4 +274,4 @@ unrealircd-anope:
 		--controller=irctest.controllers.unrealircd \
 		--services-controller=irctest.controllers.anope_services \
 		-m 'services' \
-		-k '$(UNREALIRCD_SELECTORS) $(ANOPE_SELECTORS)'
+		-k '$(UNREALIRCD_SELECTORS)'

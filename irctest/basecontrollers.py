@@ -189,6 +189,10 @@ class BaseServerController(_BaseController):
     """Character used for the 'mute' extban"""
     nickserv = "NickServ"
 
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.faketime_enabled = False
+
     def get_hostname_and_port(self) -> Tuple[str, int]:
         return find_hostname_and_port()
 
@@ -202,6 +206,7 @@ class BaseServerController(_BaseController):
         run_services: bool,
         valid_metadata_keys: Optional[Set[str]],
         invalid_metadata_keys: Optional[Set[str]],
+        faketime: Optional[str],
     ) -> None:
         raise NotImplementedError()
 

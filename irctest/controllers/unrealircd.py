@@ -22,7 +22,7 @@ include "help/help.conf";
 
 me {{
     name "My.Little.Server";
-    info "ExampleNET Server";
+    info "test server";
     sid "001";
 }}
 admin {{
@@ -156,6 +156,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
         restricted_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
     ) -> None:
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
@@ -192,6 +193,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
             fd.write("\n")
 
         assert self.directory
+
         with self.open_file("unrealircd.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -225,9 +227,16 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 proot_cmd = ["proot", "-b", f"{tmpdir}:{unrealircd_prefix}/tmp"]
                 self.using_proot = True
 
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
         self.proc = subprocess.Popen(
             [
                 *proot_cmd,
+                *faketime_cmd,
                 "unrealircd",
                 "-t",
                 "-F",  # BOOT_NOFORK

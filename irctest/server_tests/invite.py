@@ -1,3 +1,10 @@
+"""
+The INVITE command  (`RFC 1459
+<https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.7>`__,
+`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.7>`__,
+`Modern <https://modern.ircdocs.horse/#invite-message>`__)
+"""
+
 import pytest
 
 from irctest import cases, runner
@@ -194,6 +201,9 @@ class InviteTestCase(cases.BaseServerTestCase):
         self._testInvite(opped=True, invite_only=invite_only)
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern", strict=True)
+    @cases.xfailIfSoftware(
+        ["Hybrid", "Plexus4"], "the only strict test that Hybrid fails"
+    )
     def testInviteUnopped(self):
         """Tests invites from unopped users on not-invite-only chans."""
         self._testInvite(opped=False, invite_only=False)
@@ -231,6 +241,11 @@ class InviteTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["Plexus4"],
+        "Plexus4 allows non-op to invite if (and only if) the channel is not "
+        "invite-only",
+    )
     def testInviteInviteOnly(self):
         """
         "To invite a user to a channel which is invite only (MODE

@@ -1,11 +1,13 @@
 """
 Tests section 4.1 of RFC 1459.
 <https://tools.ietf.org/html/rfc1459#section-4.1>
+
+TODO: cross-reference Modern and RFC 2812 too
 """
 
 from irctest import cases
 from irctest.client_mock import ConnectionClosed
-from irctest.numerics import ERR_NEEDMOREPARAMS
+from irctest.numerics import ERR_NEEDMOREPARAMS, ERR_PASSWDMISMATCH
 from irctest.patma import ANYSTR, StrRe
 
 
@@ -36,8 +38,14 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
             m.command, "001", msg="Got 001 after NICK+USER but missing PASS"
         )
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("Modern")
     def testWrongPassword(self):
+        """
+        "If the password supplied does not match the password expected by the server,
+        then the server SHOULD send ERR_PASSWDMISMATCH and MUST close the connection
+        with ERROR."
+        -- https://github.com/ircdocs/modern-irc/pull/172
+        """
         self.addClient()
         self.sendLine(1, "PASS {}".format(self.password + "garbage"))
         self.sendLine(1, "NICK foo")
@@ -46,6 +54,13 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.assertNotEqual(
             m.command, "001", msg="Got 001 after NICK+USER but incorrect PASS"
         )
+        self.assertIn(m.command, {ERR_PASSWDMISMATCH, "ERROR"})
+
+        if m.command == "ERR_PASSWDMISMATCH":
+            m = self.getRegistrationMessage(1)
+            self.assertEqual(
+                m.command, "ERROR", msg="ERR_PASSWDMISMATCH not followed by ERROR."
+            )
 
     @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
     def testPassAfterNickuser(self):
@@ -82,6 +97,10 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             self.getMessages(1)
 
     @cases.mark_specifications("RFC2812")
+    @cases.xfailIfSoftware(["Charybdis", "Solanum"], "very flaky")
+    @cases.xfailIfSoftware(
+        ["ircu2", "Nefarious", "snircd"], "ircu2 does not send ERROR"
+    )
     def testQuitErrors(self):
         """“A client session is terminated with a quit message.  The server
         acknowledges this by sending an ERROR message to the client.”
@@ -162,6 +181,10 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             "neither got 001.",
         )
 
+    @cases.xfailIfSoftware(
+        ["ircu2", "Nefarious", "ngIRCd"],
+        "uses a default value instead of ERR_NEEDMOREPARAMS",
+    )
     def testEmptyRealname(self):
         """
         Syntax:
@@ -182,61 +205,4 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             self.getRegistrationMessage(1),
             command=ERR_NEEDMOREPARAMS,
             params=[StrRe(r"(\*|foo)"), "USER", ANYSTR],
-        )
-
-    @cases.mark_specifications("IRCv3")
-    def testIrc301CapLs(self):
-        """
-        Current version:
-
-        "The LS subcommand is used to list the capabilities supported by the server.
-        The client should send an LS subcommand with no other arguments to solicit
-        a list of all capabilities."
-
-        "If a client has not indicated support for CAP LS 302 features,
-        the server MUST NOT send these new features to the client."
-        -- <https://ircv3.net/specs/core/capability-negotiation.html>
-
-        Before the v3.1 / v3.2 merge:
-
-        IRCv3.1: “The LS subcommand is used to list the capabilities
-        supported by the server. The client should send an LS subcommand with
-        no other arguments to solicit a list of all capabilities.”
-        -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-ls-subcommand>
-
-        IRCv3.2: “Servers MUST NOT send messages described by this document if
-        the client only supports version 3.1.”
-        -- <http://ircv3.net/specs/core/capability-negotiation-3.2.html#version-in-cap-ls>
-        """  # noqa
-        self.addClient()
-        self.sendLine(1, "CAP LS")
-        m = self.getRegistrationMessage(1)
-        self.assertNotEqual(
-            m.params[2],
-            "*",
-            m,
-            fail_msg="Server replied with multi-line CAP LS to a "
-            "“CAP LS” (ie. IRCv3.1) request: {msg}",
-        )
-        self.assertFalse(
-            any("=" in cap for cap in m.params[2].split()),
-            "Server replied with a name-value capability in "
-            "CAP LS reply as a response to “CAP LS” (ie. IRCv3.1) "
-            "request: {}".format(m),
-        )
-
-    @cases.mark_specifications("IRCv3")
-    def testEmptyCapList(self):
-        """“If no capabilities are active, an empty parameter must be sent.”
-        -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-list-subcommand>
-        """  # noqa
-        self.addClient()
-        self.sendLine(1, "CAP LIST")
-        m = self.getRegistrationMessage(1)
-        self.assertMessageMatch(
-            m,
-            command="CAP",
-            params=["*", "LIST", ""],
-            fail_msg="Sending “CAP LIST” as first message got a reply "
-            "that is not “CAP * LIST :”: {msg}",
         )

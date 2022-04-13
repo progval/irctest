@@ -12,9 +12,9 @@ class RegistrationTestCase(cases.BaseServerTestCase):
 
 
 @cases.mark_services
-class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class SaslTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlain(self):
         """PLAIN authentication with correct username/password."""
         self.controller.registerUser(self, "foo", "sesame")
@@ -54,7 +54,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainNonAscii(self):
         password = "é" * 100
         authstring = base64.b64encode(
@@ -82,7 +82,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainNoAuthzid(self):
         """“message   = [authzid] UTF8NUL authcid UTF8NUL passwd
 
@@ -170,7 +170,14 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    @cases.xfailIf(
+        lambda self: (
+            self.controller.services_controller is not None
+            and self.controller.services_controller.software_name == "Anope"
+        ),
+        "Anope does not handle split AUTHENTICATE (reported on IRC)",
+    )
     def testPlainLarge(self):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400.
@@ -232,7 +239,14 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     # message's length too big for it to be valid.
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    @cases.xfailIf(
+        lambda self: (
+            self.controller.services_controller is not None
+            and self.controller.services_controller.software_name == "Anope"
+        ),
+        "Anope does not handle split AUTHENTICATE (reported on IRC)",
+    )
     def testPlainLargeEquals400(self):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400.
@@ -277,7 +291,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     # message's length too big for it to be valid.
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
+    @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
     def testScramSha256Success(self):
         self.controller.registerUser(self, "Scramtest", "sesame")
 
@@ -333,7 +347,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.confirmSuccessfulAuth()
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
+    @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
     def testScramSha256Failure(self):
         self.controller.registerUser(self, "Scramtest", "sesame")
 
