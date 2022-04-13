@@ -7,7 +7,7 @@ TODO: cross-reference Modern and RFC 2812 too
 
 from irctest import cases
 from irctest.client_mock import ConnectionClosed
-from irctest.numerics import ERR_NEEDMOREPARAMS
+from irctest.numerics import ERR_NEEDMOREPARAMS, ERR_PASSWDMISMATCH
 from irctest.patma import ANYSTR, StrRe
 
 
@@ -38,8 +38,14 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
             m.command, "001", msg="Got 001 after NICK+USER but missing PASS"
         )
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("Modern")
     def testWrongPassword(self):
+        """
+        "If the password supplied does not match the password expected by the server,
+        then the server SHOULD send ERR_PASSWDMISMATCH and MUST close the connection
+        with ERROR."
+        -- https://github.com/ircdocs/modern-irc/pull/172
+        """
         self.addClient()
         self.sendLine(1, "PASS {}".format(self.password + "garbage"))
         self.sendLine(1, "NICK foo")
@@ -48,6 +54,13 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.assertNotEqual(
             m.command, "001", msg="Got 001 after NICK+USER but incorrect PASS"
         )
+        self.assertIn(m.command, {ERR_PASSWDMISMATCH, "ERROR"})
+
+        if m.command == "ERR_PASSWDMISMATCH":
+            m = self.getRegistrationMessage(1)
+            self.assertEqual(
+                m.command, "ERROR", msg="ERR_PASSWDMISMATCH not followed by ERROR."
+            )
 
     @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
     def testPassAfterNickuser(self):
