@@ -1,3 +1,10 @@
+"""
+The INVITE command  (`RFC 1459
+<https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.7>`__,
+`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.7>`__,
+`Modern <https://modern.ircdocs.horse/#invite-message>`__)
+"""
+
 import pytest
 
 from irctest import cases
@@ -110,7 +117,7 @@ class InviteTestCase(cases.BaseServerTestCase):
             "got this instead: {msg}",
         )
 
-    def _testInvite(self, opped, invite_only, modern):
+    def _testInvite(self, opped, invite_only):
         """
         "Only the user inviting and the user being invited will receive
         notification of the invitation."
@@ -163,23 +170,14 @@ class InviteTestCase(cases.BaseServerTestCase):
             )
 
         self.sendLine(1, "INVITE bar #chan")
-        if modern:
-            self.assertMessageMatch(
-                self.getMessage(1),
-                command=RPL_INVITING,
-                params=["foo", "bar", "#chan"],
-                fail_msg=f"After “foo” invited “bar” to a channel, “foo” should have "
-                f"received “{RPL_INVITING} foo #chan bar” but got this instead: "
-                f"{{msg}}",
-            )
-        else:
-            self.assertMessageMatch(
-                self.getMessage(1),
-                command=RPL_INVITING,
-                params=["#chan", "bar"],
-                fail_msg=f"After “foo” invited “bar” to a channel, “foo” should have "
-                f"received “{RPL_INVITING} #chan bar” but got this instead: {{msg}}",
-            )
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=RPL_INVITING,
+            params=["foo", "bar", "#chan"],
+            fail_msg=f"After “foo” invited “bar” to a channel, “foo” should have "
+            f"received “{RPL_INVITING} foo #chan bar” but got this instead: "
+            f"{{msg}}",
+        )
 
         messages = self.getMessages(2)
         self.assertNotEqual(
@@ -197,24 +195,17 @@ class InviteTestCase(cases.BaseServerTestCase):
         )
 
     @pytest.mark.parametrize("invite_only", [True, False])
-    @cases.mark_specifications("Modern")
-    def testInviteModern(self, invite_only):
-        self._testInvite(opped=True, invite_only=invite_only, modern=True)
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testInvite(self, invite_only):
+        self._testInvite(opped=True, invite_only=invite_only)
 
-    @pytest.mark.parametrize("invite_only", [True, False])
-    @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True)
-    def testInviteRfc(self, invite_only):
-        self._testInvite(opped=True, invite_only=invite_only, modern=False)
-
-    @cases.mark_specifications("Modern", strict=True)
-    def testInviteUnoppedModern(self):
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern", strict=True)
+    @cases.xfailIfSoftware(
+        ["Hybrid", "Plexus4"], "the only strict test that Hybrid fails"
+    )
+    def testInviteUnopped(self):
         """Tests invites from unopped users on not-invite-only chans."""
-        self._testInvite(opped=False, invite_only=False, modern=True)
-
-    @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True, strict=True)
-    def testInviteUnoppedRfc(self, opped, invite_only):
-        """Tests invites from unopped users on not-invite-only chans."""
-        self._testInvite(opped=False, invite_only=False, modern=False)
+        self._testInvite(opped=False, invite_only=False)
 
     @cases.mark_specifications("RFC2812", "Modern")
     def testInviteNoNotificationForOtherMembers(self):
@@ -248,7 +239,13 @@ class InviteTestCase(cases.BaseServerTestCase):
             "were notified: {got}",
         )
 
-    def _testInviteInviteOnly(self, modern):
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["Plexus4"],
+        "Plexus4 allows non-op to invite if (and only if) the channel is not "
+        "invite-only",
+    )
+    def testInviteInviteOnly(self):
         """
         "To invite a user to a channel which is invite only (MODE
         +i), the client sending the invite must be recognised as being a
@@ -288,35 +285,17 @@ class InviteTestCase(cases.BaseServerTestCase):
         )
 
         self.sendLine(1, "INVITE bar #chan")
-        if modern:
-            self.assertMessageMatch(
-                self.getMessage(1),
-                command=ERR_CHANOPRIVSNEEDED,
-                params=["foo", "#chan", ANYSTR],
-                fail_msg=f"After “foo” invited “bar” to a channel to an invite-only "
-                f"channel without being opped, “foo” should have received "
-                f"“{ERR_CHANOPRIVSNEEDED} foo #chan :*” but got this instead: {{msg}}",
-            )
-        else:
-            self.assertMessageMatch(
-                self.getMessage(1),
-                command=ERR_CHANOPRIVSNEEDED,
-                params=["#chan", ANYSTR],
-                fail_msg=f"After “foo” invited “bar” to a channel to an invite-only "
-                f"channel without being opped, “foo” should have received "
-                f"“{ERR_CHANOPRIVSNEEDED} #chan :*” but got this instead: {{msg}}",
-            )
-
-    @cases.mark_specifications("Modern")
-    def testInviteInviteOnlyModern(self):
-        self._testInviteInviteOnly(modern=True)
-
-    @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True)
-    def testInviteInviteOnlyRfc(self):
-        self._testInviteInviteOnly(modern=False)
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=ERR_CHANOPRIVSNEEDED,
+            params=["foo", "#chan", ANYSTR],
+            fail_msg=f"After “foo” invited “bar” to a channel to an invite-only "
+            f"channel without being opped, “foo” should have received "
+            f"“{ERR_CHANOPRIVSNEEDED} foo #chan :*” but got this instead: {{msg}}",
+        )
 
     @cases.mark_specifications("RFC2812", "Modern")
-    def _testInviteOnlyFromUsersInChannel(self, modern):
+    def testInviteOnlyFromUsersInChannel(self):
         """
         "if the channel exists, only members of the channel are allowed
         to invite other users"
@@ -349,26 +328,15 @@ class InviteTestCase(cases.BaseServerTestCase):
         self.getMessages(3)
 
         self.sendLine(1, "INVITE bar #chan")
-        if modern:
-            self.assertMessageMatch(
-                self.getMessage(1),
-                command=ERR_NOTONCHANNEL,
-                params=["foo", "#chan", ANYSTR],
-                fail_msg=f"After “foo” invited “bar” to a channel it is not on "
-                f"#chan, “foo” should have received "
-                f"“ERR_NOTONCHANNEL ({ERR_NOTONCHANNEL}) foo #chan :*” but "
-                f"got this instead: {{msg}}",
-            )
-        else:
-            self.assertMessageMatch(
-                self.getMessage(1),
-                command=ERR_NOTONCHANNEL,
-                params=["#chan", ANYSTR],
-                fail_msg=f"After “foo” invited “bar” to a channel it is not on "
-                f"#chan, “foo” should have received "
-                f"“ERR_NOTONCHANNEL ({ERR_NOTONCHANNEL}) #chan :*” but "
-                f"got this instead: {{msg}}",
-            )
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command=ERR_NOTONCHANNEL,
+            params=["foo", "#chan", ANYSTR],
+            fail_msg=f"After “foo” invited “bar” to a channel it is not on "
+            f"#chan, “foo” should have received "
+            f"“ERR_NOTONCHANNEL ({ERR_NOTONCHANNEL}) foo #chan :*” but "
+            f"got this instead: {{msg}}",
+        )
 
         messages = self.getMessages(2)
         self.assertEqual(
@@ -377,14 +345,6 @@ class InviteTestCase(cases.BaseServerTestCase):
             fail_msg="After using “INVITE #chan bar” while the emitter is "
             "not in #chan, “bar” received something.",
         )
-
-    @cases.mark_specifications("Modern")
-    def testInviteOnlyFromUsersInChannelModern(self):
-        self._testInviteOnlyFromUsersInChannel(modern=True)
-
-    @cases.mark_specifications("RFC2812", deprecated=True)
-    def testInviteOnlyFromUsersInChannelRfc(self):
-        self._testInviteOnlyFromUsersInChannel(modern=False)
 
     @cases.mark_specifications("Modern")
     def testInviteAlreadyInChannel(self):

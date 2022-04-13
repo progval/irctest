@@ -1,6 +1,5 @@
 """
-Tests METADATA features.
-<http://ircv3.net/specs/core/metadata-3.2.html>
+`Deprecated IRCv3 Metadata <https://ircv3.net/specs/core/metadata-3.2>`_
 """
 
 from irctest import cases

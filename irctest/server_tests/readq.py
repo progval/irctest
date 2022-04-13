@@ -1,9 +1,12 @@
+"""
+`Ergo <https://ergo.chat/>`_-specific tests of responses to DoS attacks
+using long lines.
+"""
+
 from irctest import cases
 
 
 class ReadqTestCase(cases.BaseServerTestCase):
-    """Test responses to DoS attacks using long lines."""
-
     @cases.mark_specifications("Ergo")
     @cases.mark_capabilities("message-tags")
     def testReadqTags(self):

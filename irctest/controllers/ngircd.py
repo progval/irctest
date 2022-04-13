@@ -13,7 +13,7 @@ from irctest.irc_utils.junkdrawer import find_hostname_and_port
 TEMPLATE_CONFIG = """
 [Global]
     Name = My.Little.Server
-    Info = ExampleNET Server
+    Info = test server
     Bind = {hostname}
     Ports = {port}
     AdminInfo1 = Bob Smith

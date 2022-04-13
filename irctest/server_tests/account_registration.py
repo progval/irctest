@@ -1,3 +1,8 @@
+"""
+`Draft IRCv3 account-registration
+<https://ircv3.net/specs/extensions/account-registration>`_
+"""
+
 from irctest import cases
 from irctest.patma import ANYSTR
 

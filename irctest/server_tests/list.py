@@ -1,4 +1,14 @@
+"""
+The LIST command  (`RFC 1459
+<https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.6>`__,
+`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.6>`__,
+`Modern <https://modern.ircdocs.horse/#list-message>`__)
+"""
+
 import time
+
+
+from irctest import cases
 
 from irctest import cases, runner
 from irctest.numerics import RPL_LIST, RPL_LISTEND, RPL_LISTSTART
@@ -22,6 +32,7 @@ class _BasedListTestCase(cases.BaseServerTestCase):
 
 class ListTestCase(_BasedListTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.xfailIfSoftware(["irc2"], "irc2 deprecated LIST")
     def testListEmpty(self):
         """<https://tools.ietf.org/html/rfc1459#section-4.2.6>
         <https://tools.ietf.org/html/rfc2812#section-3.2.6>
@@ -51,6 +62,7 @@ class ListTestCase(_BasedListTestCase):
         )
 
     @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.xfailIfSoftware(["irc2"], "irc2 deprecated LIST")
     def testListOne(self):
         """When a channel exists, LIST should get it in a reply.
         <https://tools.ietf.org/html/rfc1459#section-4.2.6>

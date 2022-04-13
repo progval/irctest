@@ -84,7 +84,7 @@ TEMPLATE_CONFIG = """
 
 # Misc:
 <log method="file" type="*" level="debug" target="/tmp/ircd-{port}.log">
-<server name="My.Little.Server" description="testnet" id="000" network="testnet">
+<server name="My.Little.Server" description="test server" id="000" network="testnet">
 """
 
 TEMPLATE_SSL_CONFIG = """

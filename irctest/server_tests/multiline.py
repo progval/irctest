@@ -1,5 +1,5 @@
 """
-draft/multiline
+`Draft IRCv3 multiline <https://ircv3.net/specs/extensions/multiline>`_
 """
 
 from irctest import cases
@@ -12,7 +12,7 @@ CONCAT_TAG = "draft/multiline-concat"
 base_caps = ["message-tags", "batch", "echo-message", "server-time", "labeled-response"]
 
 
-class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class MultilineTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("draft/multiline")
     def testBasic(self):
         self.connectClient(

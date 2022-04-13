@@ -56,6 +56,8 @@ saslserv {{
 class AthemeController(BaseServicesController, DirectoryBasedController):
     """Mixin for server controllers that rely on Atheme"""
 
+    software_name = "Atheme"
+
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
 

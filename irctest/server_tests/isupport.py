@@ -1,3 +1,8 @@
+"""
+RPL_ISUPPORT: `format <https://modern.ircdocs.horse/#rplisupport-005>`__
+and various `tokens <https://modern.ircdocs.horse/#rplisupport-parameters>`__
+"""
+
 import re
 
 from irctest import cases, runner
