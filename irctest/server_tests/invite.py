@@ -374,6 +374,11 @@ class InviteTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["ircu2"],
+        "Uses 346/347 instead of 336/337 to reply to INVITE "
+        "https://github.com/UndernetIRC/ircu2/pull/20",
+    )
     def testInviteList(self):
         self.connectClient("foo")
         self.connectClient("bar")

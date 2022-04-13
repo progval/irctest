@@ -751,8 +751,8 @@ jobs:
         make -j 4
         make install
         cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
