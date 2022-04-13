@@ -22,7 +22,7 @@ include "help/help.conf";
 
 me {{
     name "My.Little.Server";
-    info "ExampleNET Server";
+    info "test server";
     sid "001";
 }}
 admin {{
