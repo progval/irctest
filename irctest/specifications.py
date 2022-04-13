@@ -50,6 +50,7 @@ class Capabilities(enum.Enum):
 @enum.unique
 class IsupportTokens(enum.Enum):
     BOT = "BOT"
+    ELIST = "ELIST"
     PREFIX = "PREFIX"
     MONITOR = "MONITOR"
     STATUSMSG = "STATUSMSG"

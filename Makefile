@@ -101,6 +101,7 @@ SOPEL_SELECTORS := \
 # Tests marked with arbitrary_client_tags can't pass because Unreal whitelists which tags it relays
 # Tests marked with react_tag can't pass because Unreal blocks +draft/react https://github.com/unrealircd/unrealircd/pull/149
 # Tests marked with private_chathistory can't pass because Unreal does not implement CHATHISTORY for DMs
+
 UNREALIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \

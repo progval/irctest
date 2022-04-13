@@ -508,6 +508,12 @@ class BaseServerTestCase(
     server_support: Optional[Dict[str, Optional[str]]]
     run_services = False
 
+    faketime: Optional[str] = None
+    """If not None and the controller supports it and libfaketime is available,
+    runs the server using faketime and this value set as the $FAKETIME env variable.
+    Tests must check ``self.controller.faketime_enabled`` is True before
+    relying on this."""
+
     __new__ = object.__new__  # pytest won't collect Generic[] subclasses otherwise
 
     def setUp(self) -> None:
@@ -522,6 +528,7 @@ class BaseServerTestCase(
             invalid_metadata_keys=self.invalid_metadata_keys,
             ssl=self.ssl,
             run_services=self.run_services,
+            faketime=self.faketime,
         )
         self.clients: Dict[TClientName, client_mock.ClientMock] = {}
 

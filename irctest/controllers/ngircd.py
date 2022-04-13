@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from typing import Optional, Set, Type
 
@@ -56,6 +57,7 @@ class NgircdController(BaseServerController, DirectoryBasedController):
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
         restricted_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
     ) -> None:
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
@@ -81,6 +83,7 @@ class NgircdController(BaseServerController, DirectoryBasedController):
             fd.write("\n")
 
         assert self.directory
+
         with self.open_file("server.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -94,8 +97,16 @@ class NgircdController(BaseServerController, DirectoryBasedController):
                     empty_file=os.path.join(self.directory, "empty.txt"),
                 )
             )
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
         self.proc = subprocess.Popen(
             [
+                *faketime_cmd,
                 "ngircd",
                 "--nodaemon",
                 "--config",
