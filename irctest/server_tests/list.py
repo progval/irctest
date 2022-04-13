@@ -7,9 +7,6 @@ The LIST command  (`RFC 1459
 
 import time
 
-
-from irctest import cases
-
 from irctest import cases, runner
 from irctest.numerics import RPL_LIST, RPL_LISTEND, RPL_LISTSTART
 
@@ -300,7 +297,12 @@ class FaketimeListTestCase(_BasedListTestCase):
 
             self.sendLine(2, "LIST C>10")
             self.assertEqual(self._parseChanList(2), {"#chan1", "#chan2"})
-        elif self.controller.software_name in ("Solanum", "Charybdis", "InspIRCd"):
+        elif self.controller.software_name in (
+            "Solanum",
+            "Charybdis",
+            "InspIRCd",
+            "Nefarious",
+        ):
             self.sendLine(2, "LIST C>2")
             self.assertEqual(self._parseChanList(2), {"#chan1"})
 
@@ -323,6 +325,13 @@ class FaketimeListTestCase(_BasedListTestCase):
 
     @cases.mark_isupport("ELIST")
     @cases.mark_specifications("Modern")
+    @cases.xfailIf(
+        lambda self: bool(
+            self.controller.software_name == "UnrealIRCd"
+            and self.controller.software_version == 5
+        ),
+        "UnrealIRCd advertises ELIST=T but does not implement it",
+    )
     def testListTopicTime(self):
         """
         "T: Searching based on topic time, via the "T<val" and "T>val"
@@ -387,6 +396,7 @@ class FaketimeListTestCase(_BasedListTestCase):
             "InspIRCd",
             "Plexus4",
             "Hybrid",
+            "Nefarious",
         ):
             self.sendLine(1, "LIST T>2")
             self.assertEqual(self._parseChanList(1), {"#chan1"})

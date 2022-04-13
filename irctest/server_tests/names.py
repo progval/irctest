@@ -9,6 +9,7 @@ from irctest import cases, runner
 from irctest.numerics import RPL_ENDOFNAMES, RPL_NAMREPLY
 from irctest.patma import ANYSTR, StrRe
 
+
 class NamesTestCase(cases.BaseServerTestCase):
     def _testNames(self, symbol):
         self.connectClient("nick1")
