@@ -284,6 +284,8 @@ software:
             CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
             make -j 4
             make install
+            # Prevent download of geoIP database on first startup
+            sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
 
     unrealircd-5:
         name: UnrealIRCd 5
