@@ -1,3 +1,13 @@
+"""
+The WHOSWAS command  (`RFC 1459
+<https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3>`__,
+`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3>`__,
+`Modern <https://modern.ircdocs.horse/#whowas-message>`__)
+
+TODO: cross-reference Modern
+"""
+
+
 import pytest
 
 from irctest import cases, runner
@@ -191,6 +201,10 @@ class WhowasTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1967",
+    )
     def testWhowasMultiple(self):
         """
         "The history is searched backward, returning the most recent entry first."
@@ -201,6 +215,10 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2")
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
+    )
     def testWhowasCount1(self):
         """
         "If there are multiple entries, up to <count> replies will be returned"
@@ -211,6 +229,10 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=False, whowas_command="WHOWAS nick2 1")
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
+    )
     def testWhowasCount2(self):
         """
         "If there are multiple entries, up to <count> replies will be returned"
@@ -221,6 +243,10 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 2")
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
+    )
     def testWhowasCountNegative(self):
         """
         "If a non-positive number is passed as being <count>, then a full search
@@ -232,6 +258,13 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 -1")
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["ircu2"], "Fix not released yet: https://github.com/UndernetIRC/ircu2/pull/19"
+    )
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1967",
+    )
     def testWhowasCountZero(self):
         """
         "If a non-positive number is passed as being <count>, then a full search
@@ -249,6 +282,9 @@ class WhowasTestCase(cases.BaseServerTestCase):
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
         -- https://github.com/ircdocs/modern-irc/pull/170
         """
+        if self.controller.software_name == "Bahamut":
+            raise runner.NotImplementedByController("WHOWAS mask")
+
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS *ck2")
 
     @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True)
@@ -312,6 +348,12 @@ class WhowasTestCase(cases.BaseServerTestCase):
             )
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["Charybdis"],
+        "fails because of a typo (solved in "
+        "https://github.com/solanum-ircd/solanum/commit/"
+        "08b7b6bd7e60a760ad47b58cbe8075b45d66166f)",
+    )
     def testWhowasNoSuchNick(self):
         """
         https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
@@ -354,6 +396,11 @@ class WhowasTestCase(cases.BaseServerTestCase):
         """
         https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
         """
+        if self.controller.software_name == "Bahamut":
+            pytest.xfail(
+                "Bahamut returns entries in query order instead of chronological order"
+            )
+
         self.connectClient("nick1")
 
         targmax = dict(

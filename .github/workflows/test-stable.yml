@@ -409,7 +409,7 @@ jobs:
         retention-days: 1
   publish-test-results:
     if: success() || failure()
-    name: Publish Unit Tests Results
+    name: Publish Dashboard
     needs:
     - test-bahamut
     - test-bahamut-anope
@@ -423,6 +423,7 @@ jobs:
     - test-irc2
     - test-ircu2
     - test-limnoria
+    - test-nefarious
     - test-ngircd
     - test-ngircd-anope
     - test-ngircd-atheme
@@ -440,27 +441,23 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         path: artifacts
-    - if: github.event_name == 'pull_request'
-      name: Publish Unit Test Results
-      uses: actions/github-script@v4
-      with:
-        result-encoding: string
-        script: |
-          let body = '';
-          const options = {};
-          options.listeners = {
-              stdout: (data) => {
-                  body += data.toString();
-              }
-          };
-          await exec.exec('bash', ['-c', 'shopt -s globstar; python3 report.py artifacts/**/*.xml'], options);
-          github.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: body,
-          });
-          return body;
+    - name: Install dashboard dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install defusedxml docutils -r requirements.txt
+    - name: Generate dashboard
+      run: |-
+        shopt -s globstar
+        python3 -m irctest.dashboard.format dashboard/ artifacts/**/*.xml
+        echo '/ /index.xhtml' > dashboard/_redirects
+    - name: Install netlify-cli
+      run: npm i -g netlify-cli
+    - env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      name: Deploy to Netlify
+      run: ./.github/deploy_to_netlify.py
   test-bahamut:
     needs:
     - build-bahamut
@@ -491,7 +488,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results bahamut (stable)
+        name: pytest-results_bahamut_stable
         path: pytest.xml
   test-bahamut-anope:
     needs:
@@ -529,7 +526,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results bahamut-anope (stable)
+        name: pytest-results_bahamut-anope_stable
         path: pytest.xml
   test-bahamut-atheme:
     needs:
@@ -561,7 +558,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results bahamut-atheme (stable)
+        name: pytest-results_bahamut-atheme_stable
         path: pytest.xml
   test-charybdis:
     needs:
@@ -593,7 +590,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results charybdis (stable)
+        name: pytest-results_charybdis_stable
         path: pytest.xml
   test-ergo:
     needs: []
@@ -612,7 +609,7 @@ jobs:
         repository: ergochat/ergo
     - uses: actions/setup-go@v2
       with:
-        go-version: ^1.17.0
+        go-version: ^1.18.0
     - run: go version
     - name: Build Ergo
       run: |
@@ -632,7 +629,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results ergo (stable)
+        name: pytest-results_ergo_stable
         path: pytest.xml
   test-hybrid:
     needs:
@@ -670,7 +667,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results hybrid (stable)
+        name: pytest-results_hybrid_stable
         path: pytest.xml
   test-inspircd:
     needs:
@@ -702,7 +699,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd (stable)
+        name: pytest-results_inspircd_stable
         path: pytest.xml
   test-inspircd-anope:
     needs:
@@ -740,7 +737,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd-anope (stable)
+        name: pytest-results_inspircd-anope_stable
         path: pytest.xml
   test-inspircd-atheme:
     needs:
@@ -772,7 +769,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd-atheme (stable)
+        name: pytest-results_inspircd-atheme_stable
         path: pytest.xml
   test-irc2:
     needs: []
@@ -826,7 +823,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results irc2 (stable)
+        name: pytest-results_irc2_stable
         path: pytest.xml
   test-ircu2:
     needs: []
@@ -864,7 +861,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results ircu2 (stable)
+        name: pytest-results_ircu2_stable
         path: pytest.xml
   test-limnoria:
     needs: []
@@ -890,7 +887,44 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results limnoria (stable)
+        name: pytest-results_limnoria_stable
+        path: pytest.xml
+  test-nefarious:
+    needs: []
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Checkout nefarious
+      uses: actions/checkout@v2
+      with:
+        path: nefarious
+        ref: 985704168ecada12d9e53b46df6087ef9d9fb40b
+        repository: evilnet/nefarious2
+    - name: Build nefarious
+      run: |
+        cd $GITHUB_WORKSPACE/nefarious
+        ./configure --prefix=$HOME/.local/ --enable-debug
+        make -j 4
+        make install
+        cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
+    - name: Install Atheme
+      run: sudo apt-get install atheme-services
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        nefarious
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest-results_nefarious_stable
         path: pytest.xml
   test-ngircd:
     needs:
@@ -922,7 +956,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results ngircd (stable)
+        name: pytest-results_ngircd_stable
         path: pytest.xml
   test-ngircd-anope:
     needs:
@@ -960,7 +994,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results ngircd-anope (stable)
+        name: pytest-results_ngircd-anope_stable
         path: pytest.xml
   test-ngircd-atheme:
     needs:
@@ -992,7 +1026,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results ngircd-atheme (stable)
+        name: pytest-results_ngircd-atheme_stable
         path: pytest.xml
   test-plexus4:
     needs:
@@ -1030,7 +1064,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results plexus4 (stable)
+        name: pytest-results_plexus4_stable
         path: pytest.xml
   test-solanum:
     needs:
@@ -1062,7 +1096,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results solanum (stable)
+        name: pytest-results_solanum_stable
         path: pytest.xml
   test-sopel:
     needs: []
@@ -1088,7 +1122,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results sopel (stable)
+        name: pytest-results_sopel_stable
         path: pytest.xml
   test-unrealircd:
     needs:
@@ -1120,7 +1154,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results unrealircd (stable)
+        name: pytest-results_unrealircd_stable
         path: pytest.xml
   test-unrealircd-5:
     needs:
@@ -1152,7 +1186,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results unrealircd-5 (stable)
+        name: pytest-results_unrealircd-5_stable
         path: pytest.xml
   test-unrealircd-anope:
     needs:
@@ -1190,7 +1224,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results unrealircd-anope (stable)
+        name: pytest-results_unrealircd-anope_stable
         path: pytest.xml
   test-unrealircd-atheme:
     needs:
@@ -1222,7 +1256,7 @@ jobs:
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results unrealircd-atheme (stable)
+        name: pytest-results_unrealircd-atheme_stable
         path: pytest.xml
 name: irctest with stable versions
 'on':

@@ -1,3 +1,7 @@
+"""
+The PING and PONG commands
+"""
+
 from irctest import cases
 from irctest.numerics import ERR_NEEDMOREPARAMS, ERR_NOORIGIN
 from irctest.patma import ANYSTR

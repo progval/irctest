@@ -1,5 +1,8 @@
 import functools
 import os
+import pathlib
+import shutil
+import signal
 import subprocess
 import textwrap
 from typing import Optional, Set, Type
@@ -106,6 +109,10 @@ tld {{
     rules "{empty_file}";
 }}
 
+files {{
+    tunefile "{empty_file}";
+}}
+
 oper "operuser" {{
     password = "operpassword";
     mask *;
@@ -201,8 +208,26 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                     extras=extras,
                 )
             )
+
+        proot_cmd = []
+        self.using_proot = False
+        if shutil.which("proot"):
+            unrealircd_path = shutil.which("unrealircd")
+            if unrealircd_path:
+                unrealircd_prefix = pathlib.Path(unrealircd_path).parents[1]
+                tmpdir = os.path.join(self.directory, "tmp")
+                os.mkdir(tmpdir)
+                # Unreal cleans its tmp/ directory after each run, which prevents
+                # multiple processes from running at the same time.
+                # Using PRoot, we can isolate them, with a tmp/ directory for each
+                # process, so they don't interfere with each other, allowing use of
+                # the -n option (of pytest-xdist) to speed-up tests
+                proot_cmd = ["proot", "-b", f"{tmpdir}:{unrealircd_prefix}/tmp"]
+                self.using_proot = True
+
         self.proc = subprocess.Popen(
             [
+                *proot_cmd,
                 "unrealircd",
                 "-t",
                 "-F",  # BOOT_NOFORK
@@ -222,6 +247,18 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 server_hostname=services_hostname,
                 server_port=services_port,
             )
+
+    def kill(self) -> None:
+        if self.using_proot:
+            # Kill grandchild process, instead of killing proot, which takes more
+            # time (and does not seem to always work)
+            assert self.proc is not None
+            output = subprocess.check_output(
+                ["ps", "-opid", "--no-headers", "--ppid", str(self.proc.pid)]
+            )
+            (grandchild_pid,) = [int(line) for line in output.decode().split()]
+            os.kill(grandchild_pid, signal.SIGKILL)
+        super().kill()
 
 
 def get_irctest_controller_class() -> Type[UnrealircdController]:

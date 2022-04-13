@@ -130,7 +130,7 @@ software:
         pre_deps:
             - uses: actions/setup-go@v2
               with:
-                  go-version: '^1.17.0'
+                  go-version: '^1.18.0'
             - run: go version
         separate_build_job: false
         build_script: |
@@ -203,6 +203,23 @@ software:
             ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
             make -j 4
             make install
+
+    nefarious:
+        name: nefarious
+        repository: evilnet/nefarious2
+        refs:
+            stable: "985704168ecada12d9e53b46df6087ef9d9fb40b"
+            release: null
+            devel: "master"
+            devel_release: null
+        path: nefarious
+        separate_build_job: false
+        build_script: |
+            cd $GITHUB_WORKSPACE/nefarious
+            ./configure --prefix=$HOME/.local/ --enable-debug
+            make -j 4
+            make install
+            cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
 
     ngircd:
         name: ngircd
@@ -358,15 +375,18 @@ tests:
     plexus4:
         software: [plexus4, anope]
 
-    # doesn't build because it can't find liblex for some reason
-    #snircd:
-    #    software: [snircd]
-
     irc2:
         software: [irc2]
 
     ircu2:
         software: [ircu2]
+
+    nefarious:
+        software: [nefarious]
+
+    # doesn't build because it can't find liblex for some reason
+    #snircd:
+    #    software: [snircd]
 
     unrealircd-5:
         software: [unrealircd-5]

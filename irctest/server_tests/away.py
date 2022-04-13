@@ -1,3 +1,8 @@
+"""
+AWAY command (`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-4.1>`__,
+`Modern <https://modern.ircdocs.horse/#away-message>`__)
+"""
+
 from irctest import cases
 from irctest.numerics import RPL_AWAY, RPL_NOWAWAY, RPL_UNAWAY, RPL_USERHOST
 from irctest.patma import StrRe
@@ -32,7 +37,7 @@ class AwayTestCase(cases.BaseServerTestCase):
         """
         "The server acknowledges the change in away status by returning the
         `RPL_NOWAWAY` and `RPL_UNAWAY` numerics."
-        -- https://github.com/ircdocs/modern-irc/pull/100
+        -- https://modern.ircdocs.horse/#away-message
         """
         self.connectClient("bar")
         self.sendLine(1, "AWAY :I'm not here right now")
@@ -48,7 +53,7 @@ class AwayTestCase(cases.BaseServerTestCase):
         """
         "Servers SHOULD notify clients when a user they're interacting with
         is away when relevant"
-        -- https://github.com/ircdocs/modern-irc/pull/100
+        -- https://modern.ircdocs.horse/#away-message
 
         "<client> <nick> :<message>"
         -- https://modern.ircdocs.horse/#rplaway-301
@@ -75,7 +80,7 @@ class AwayTestCase(cases.BaseServerTestCase):
         """
         "Servers SHOULD notify clients when a user they're interacting with
         is away when relevant"
-        -- https://github.com/ircdocs/modern-irc/pull/100
+        -- https://modern.ircdocs.horse/#away-message
 
         "<client> <nick> :<message>"
         -- https://modern.ircdocs.horse/#rplaway-301
@@ -113,7 +118,7 @@ class AwayTestCase(cases.BaseServerTestCase):
         """
         "Servers SHOULD notify clients when a user they're interacting with
         is away when relevant"
-        -- https://github.com/ircdocs/modern-irc/pull/100
+        -- https://modern.ircdocs.horse/#away-message
 
         "<client> <nick> :<message>"
         -- https://modern.ircdocs.horse/#rplaway-301
