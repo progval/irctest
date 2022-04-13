@@ -1,3 +1,5 @@
+"""Format of ``CAP LS`` sent by IRCv3 clients."""
+
 from irctest import cases
 from irctest.irc_utils.message_parser import Message
 

@@ -1,5 +1,5 @@
 """
-https://ircv3.net/specs/extensions/message-tags.html
+`IRCv3 message-tags <https://ircv3.net/specs/extensions/message-tags>`_
 """
 
 import pytest
@@ -10,7 +10,7 @@ from irctest.numerics import ERR_INPUTTOOLONG
 from irctest.patma import ANYDICT, ANYSTR, StrRe
 
 
-class MessageTagsTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class MessageTagsTestCase(cases.BaseServerTestCase):
     @pytest.mark.arbitrary_client_tags
     @cases.mark_capabilities("message-tags")
     def testBasic(self):

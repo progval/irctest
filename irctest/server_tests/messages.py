@@ -1,6 +1,5 @@
 """
-Section 3.2 of RFC 2812
-<https://tools.ietf.org/html/rfc2812#section-3.3>
+The PRIVMSG and NOTICE commands.
 """
 
 from irctest import cases
@@ -52,6 +51,15 @@ class NoticeTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "replies with ERR_NOSUCHCHANNEL to NOTICE to non-existent channels",
+    )
+    @cases.xfailIfSoftware(
+        ["UnrealIRCd"],
+        "replies with ERR_NOSUCHCHANNEL to NOTICE to non-existent channels: "
+        "https://bugs.unrealircd.org/view.php?id=5949",
+    )
     def testNoticeNonexistentChannel(self):
         """
         "automatic replies must never be
@@ -72,6 +80,9 @@ class NoticeTestCase(cases.BaseServerTestCase):
 
 class TagsTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("message-tags")
+    @cases.xfailIfSoftware(
+        ["UnrealIRCd"], "https://bugs.unrealircd.org/view.php?id=5947"
+    )
     def testLineTooLong(self):
         self.connectClient("bar", capabilities=["message-tags"], skip_if_cap_nak=True)
         self.connectClient(

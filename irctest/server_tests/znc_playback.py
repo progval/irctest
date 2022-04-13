@@ -1,3 +1,7 @@
+"""
+`Ergo <https://ergo.chat/>`_-specific tests of ZNC-like message playback
+"""
+
 import time
 
 from irctest import cases

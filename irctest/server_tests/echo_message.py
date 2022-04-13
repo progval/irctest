@@ -1,5 +1,5 @@
 """
-<http://ircv3.net/specs/extensions/echo-message-3.2.html>
+`IRCv3 echo-message <https://ircv3.net/specs/extensions/echo-message>`_
 """
 
 import pytest

@@ -1,3 +1,9 @@
+"""
+`Ergo <https://ergo.chat/>`_-specific tests of
+`multiclient features
+<https://github.com/ergochat/ergo/blob/master/docs/MANUAL.md#multiclient-bouncer>`_
+"""
+
 from irctest import cases
 from irctest.irc_utils.sasl import sasl_plain_blob
 from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME

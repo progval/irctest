@@ -1,3 +1,9 @@
+"""
+Channel moderation mode (`RFC 2812
+<https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.3>`__,
+`Modern <https://modern.ircdocs.horse/#ban-channel-mode>`__)
+"""
+
 from irctest import cases
 from irctest.numerics import ERR_CANNOTSENDTOCHAN
 

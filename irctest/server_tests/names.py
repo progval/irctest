@@ -1,7 +1,13 @@
+"""
+The NAMES command  (`RFC 1459
+<https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.5>`__,
+`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5>`__,
+`Modern <https://modern.ircdocs.horse/#names-message>`__)
+"""
+
 from irctest import cases, runner
 from irctest.numerics import RPL_ENDOFNAMES, RPL_NAMREPLY
 from irctest.patma import ANYSTR, StrRe
-
 
 class NamesTestCase(cases.BaseServerTestCase):
     def _testNames(self, symbol):
