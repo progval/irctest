@@ -13,6 +13,7 @@ import pytest
 from irctest import cases, runner
 from irctest.exceptions import ConnectionClosed
 from irctest.numerics import (
+    ERR_NEEDMOREPARAMS,
     ERR_NONICKNAMEGIVEN,
     ERR_WASNOSUCHNICK,
     RPL_ENDOFWHOWAS,
@@ -86,6 +87,43 @@ class WhowasTestCase(cases.BaseServerTestCase):
 
         self.assertEqual(
             unexpected_messages, [], fail_msg="Unexpected numeric messages: {got}"
+        )
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testWhowasEnd(self):
+        """
+        "At the end of all reply batches, there must be RPL_ENDOFWHOWAS"
+        -- https://datatracker.ietf.org/doc/html/rfc1459#page-50
+        -- https://datatracker.ietf.org/doc/html/rfc2812#page-45
+
+        "Servers MUST reply with either ERR_WASNOSUCHNICK or [...],
+        both followed with RPL_ENDOFWHOWAS"
+        -- https://github.com/ircdocs/modern-irc/pull/170
+        """
+        self.connectClient("nick1")
+
+        self.connectClient("nick2")
+        self.sendLine(2, "QUIT :bye")
+        try:
+            self.getMessages(2)
+        except ConnectionClosed:
+            pass
+
+        self.sendLine(1, "WHOWAS nick2")
+
+        messages = []
+        for _ in range(10):
+            messages.extend(self.getMessages(1))
+            if RPL_ENDOFWHOWAS in (m.command for m in messages):
+                break
+
+        last_message = messages.pop()
+
+        self.assertMessageMatch(
+            last_message,
+            command=RPL_ENDOFWHOWAS,
+            params=["nick1", "nick2", ANYSTR],
+            fail_msg=f"Last message was not RPL_ENDOFWHOWAS ({RPL_ENDOFWHOWAS})",
         )
 
     def _testWhowasMultiple(self, second_result, whowas_command):
@@ -162,7 +200,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
             fail_msg=f"Last message was not RPL_ENDOFWHOWAS ({RPL_ENDOFWHOWAS})",
         )
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     @cases.xfailIfSoftware(
         ["InspIRCd"],
         "Feature not released yet: https://github.com/inspircd/inspircd/pull/1967",
@@ -172,10 +210,11 @@ class WhowasTestCase(cases.BaseServerTestCase):
         "The history is searched backward, returning the most recent entry first."
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://github.com/ircdocs/modern-irc/pull/170
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2")
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     @cases.xfailIfSoftware(
         ["InspIRCd"],
         "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
@@ -185,10 +224,11 @@ class WhowasTestCase(cases.BaseServerTestCase):
         "If there are multiple entries, up to <count> replies will be returned"
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://github.com/ircdocs/modern-irc/pull/170
         """
         self._testWhowasMultiple(second_result=False, whowas_command="WHOWAS nick2 1")
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     @cases.xfailIfSoftware(
         ["InspIRCd"],
         "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
@@ -198,10 +238,11 @@ class WhowasTestCase(cases.BaseServerTestCase):
         "If there are multiple entries, up to <count> replies will be returned"
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://github.com/ircdocs/modern-irc/pull/170
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 2")
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     @cases.xfailIfSoftware(
         ["InspIRCd"],
         "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
@@ -212,10 +253,11 @@ class WhowasTestCase(cases.BaseServerTestCase):
         is done."
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://github.com/ircdocs/modern-irc/pull/170
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 -1")
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     @cases.xfailIfSoftware(
         ["ircu2"], "Fix not released yet: https://github.com/UndernetIRC/ircu2/pull/19"
     )
@@ -229,6 +271,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         is done."
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://github.com/ircdocs/modern-irc/pull/170
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 0")
 
@@ -237,6 +280,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         """
         "Wildcards are allowed in the <target> parameter."
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://github.com/ircdocs/modern-irc/pull/170
         """
         if self.controller.software_name == "Bahamut":
             raise runner.NotImplementedByController("WHOWAS mask")
@@ -244,7 +288,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS *ck2")
 
     @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True)
-    def testWhowasNoParam(self):
+    def testWhowasNoParamRfc(self):
         """
         https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
@@ -275,7 +319,35 @@ class WhowasTestCase(cases.BaseServerTestCase):
             params=["nick1", "nick2", ANYSTR],
         )
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("Modern")
+    def testWhowasNoParamModern(self):
+        """
+        "If the `<nick>` argument is missing, they SHOULD send a single reply, using
+        either ERR_NONICKNAMEGIVEN or ERR_NEEDMOREPARAMS"
+        -- https://github.com/ircdocs/modern-irc/pull/170
+        """
+        # But no one seems to follow this. Most implementations use ERR_NEEDMOREPARAMS
+        # instead of ERR_NONICKNAMEGIVEN; and I couldn't find any that returns
+        # RPL_ENDOFWHOWAS either way.
+        self.connectClient("nick1")
+
+        self.sendLine(1, "WHOWAS")
+
+        m = self.getMessage(1)
+        if m.command == ERR_NONICKNAMEGIVEN:
+            self.assertMessageMatch(
+                m,
+                command=ERR_NONICKNAMEGIVEN,
+                params=["nick1", ANYSTR],
+            )
+        else:
+            self.assertMessageMatch(
+                m,
+                command=ERR_NEEDMOREPARAMS,
+                params=["nick1", "WHOWAS", ANYSTR],
+            )
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     @cases.xfailIfSoftware(
         ["Charybdis"],
         "fails because of a typo (solved in "
@@ -286,6 +358,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         """
         https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://github.com/ircdocs/modern-irc/pull/170
 
         and:
 
@@ -293,6 +366,12 @@ class WhowasTestCase(cases.BaseServerTestCase):
         (even if there was only one reply and it was an error)."
         -- https://datatracker.ietf.org/doc/html/rfc1459#page-50
         -- https://datatracker.ietf.org/doc/html/rfc2812#page-45
+
+        and:
+
+        "Servers MUST reply with either ERR_WASNOSUCHNICK or [...],
+        both followed with RPL_ENDOFWHOWAS"
+        -- https://github.com/ircdocs/modern-irc/pull/170
         """
         self.connectClient("nick1")
 
