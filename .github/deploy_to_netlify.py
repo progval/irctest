@@ -32,7 +32,7 @@ context_suffix = ""
 command = ["netlify", "deploy", "--dir=dashboard/"]
 if is_pull_request:
     pr_number = github_event["number"]
-    sha = github_event["after"]
+    sha = github_event.get("after") or github_event["pull_request"]["head"]["sha"]
     # Aliases can't exceed 37 chars
     command.extend(["--alias", f"pr-{pr_number}-{sha[0:10]}"])
     context_suffix = " (pull_request)"
