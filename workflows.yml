@@ -204,6 +204,23 @@ software:
             make -j 4
             make install
 
+    nefarious:
+        name: nefarious
+        repository: evilnet/nefarious2
+        refs:
+            stable: "985704168ecada12d9e53b46df6087ef9d9fb40b"
+            release: null
+            devel: "master"
+            devel_release: null
+        path: nefarious
+        separate_build_job: false
+        build_script: |
+            cd $GITHUB_WORKSPACE/nefarious
+            ./configure --prefix=$HOME/.local/ --enable-debug
+            make -j 4
+            make install
+            cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
+
     ngircd:
         name: ngircd
         repository: ngircd/ngircd
@@ -250,8 +267,8 @@ software:
         name: UnrealIRCd 6
         repository: unrealircd/unrealircd
         refs:
-            stable: daa0c11f285c7123ba9fa2966dee2d1a17729f1e  # 6.0.2 + a few commits
-            release: 29fd2e772a6b4b9107daa4e3c237df454b055810  # 6.0.2
+            stable: cedd23ae9cdd5985ce16e9869cbdb808479c3fc4  # 6.0.3
+            release: cedd23ae9cdd5985ce16e9869cbdb808479c3fc4  # 6.0.3
             devel: unreal60_dev
             devel_release: null
         path: unrealircd
@@ -267,6 +284,8 @@ software:
             CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
             make -j 4
             make install
+            # Prevent download of geoIP database on first startup
+            sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
 
     unrealircd-5:
         name: UnrealIRCd 5
@@ -358,15 +377,18 @@ tests:
     plexus4:
         software: [plexus4, anope]
 
-    # doesn't build because it can't find liblex for some reason
-    #snircd:
-    #    software: [snircd]
-
     irc2:
         software: [irc2]
 
     ircu2:
         software: [ircu2]
+
+    nefarious:
+        software: [nefarious]
+
+    # doesn't build because it can't find liblex for some reason
+    #snircd:
+    #    software: [snircd]
 
     unrealircd-5:
         software: [unrealircd-5]

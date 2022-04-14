@@ -1,3 +1,9 @@
+"""
+The WALLOPS command  (`RFC 2812
+<https://datatracker.ietf.org/doc/html/rfc2812#section-3.7>`__,
+`Modern <https://modern.ircdocs.horse/#wallops-message>`__)
+"""
+
 from irctest import cases, runner
 from irctest.numerics import ERR_NOPRIVILEGES, ERR_UNKNOWNCOMMAND, RPL_YOUREOPER
 from irctest.patma import ANYSTR, StrRe
@@ -60,6 +66,9 @@ class WallopsTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(
+        ["irc2"], "irc2 ignores the command instead of replying ERR_UNKNOWNCOMMAND"
+    )
     def testWallopsPrivileges(self):
         """
         https://github.com/ircdocs/modern-irc/pull/118

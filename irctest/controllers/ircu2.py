@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from typing import Optional, Set, Type
 
@@ -51,6 +52,7 @@ features {{
 
 
 class Ircu2Controller(BaseServerController, DirectoryBasedController):
+    software_name = "ircu2"
     supports_sts = False
     extban_mute_char = None
 
@@ -69,6 +71,7 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
         run_services: bool,
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
     ) -> None:
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
@@ -94,8 +97,16 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
                     pidfile=pidfile,
                 )
             )
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
         self.proc = subprocess.Popen(
             [
+                *faketime_cmd,
                 "ircd",
                 "-n",  # don't detach
                 "-f",

@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from typing import Optional, Set, Type
 
@@ -92,6 +93,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
         restricted_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
     ) -> None:
         if password is not None:
             raise NotImplementedByController("PASS command")
@@ -113,8 +115,16 @@ class MammonController(BaseServerController, DirectoryBasedController):
         # with self.open_file('server.yml', 'r') as fd:
         #    print(fd.read())
         assert self.directory
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
         self.proc = subprocess.Popen(
             [
+                *faketime_cmd,
                 "mammond",
                 "--nofork",  # '--debug',
                 "--config",

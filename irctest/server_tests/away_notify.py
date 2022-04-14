@@ -1,11 +1,11 @@
 """
-<https://ircv3.net/specs/extensions/away-notify-3.1>
+`IRCv3 away-notify <https://ircv3.net/specs/extensions/away-notify>`_
 """
 
 from irctest import cases
 
 
-class AwayNotifyTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class AwayNotifyTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("away-notify")
     def testAwayNotify(self):
         """Basic away-notify test."""

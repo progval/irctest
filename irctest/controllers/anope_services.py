@@ -73,6 +73,8 @@ module {{ name = "ns_cert" }}
 class AnopeController(BaseServicesController, DirectoryBasedController):
     """Collaborator for server controllers that rely on Anope"""
 
+    software_name = "Anope"
+
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
 
