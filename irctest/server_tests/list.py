@@ -7,9 +7,6 @@ The LIST command  (`RFC 1459
 
 import time
 
-
-from irctest import cases
-
 from irctest import cases, runner
 from irctest.numerics import RPL_LIST, RPL_LISTEND, RPL_LISTSTART
 
@@ -239,6 +236,17 @@ class FaketimeListTestCase(_BasedListTestCase):
 
     @cases.mark_isupport("ELIST")
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(
+        ["Plexus4", "Hybrid"],
+        "Hybrid and Plexus4 filter on ELIST=C with the opposite meaning",
+    )
+    @cases.xfailIf(
+        lambda self: bool(
+            self.controller.software_name == "UnrealIRCd"
+            and self.controller.software_version == 5
+        ),
+        "UnrealIRCd <6.0.3 filters on ELIST=C with the opposite meaning",
+    )
     def testListCreationTime(self):
         """
         " C: Searching based on channel creation time, via the "C<val" and "C>val"
@@ -285,44 +293,33 @@ class FaketimeListTestCase(_BasedListTestCase):
 
         self._sleep_minutes(1)
 
-        if self.controller.software_name in ("UnrealIRCd", "Plexus4", "Hybrid"):
-            self.sendLine(2, "LIST C<2")
-            self.assertEqual(self._parseChanList(2), {"#chan1"})
+        self.sendLine(2, "LIST C>2")
+        self.assertEqual(self._parseChanList(2), {"#chan1"})
 
-            self.sendLine(2, "LIST C>2")
-            self.assertEqual(self._parseChanList(2), {"#chan2"})
+        self.sendLine(2, "LIST C<2")
+        self.assertEqual(self._parseChanList(2), {"#chan2"})
 
-            self.sendLine(2, "LIST C>0")
-            self.assertEqual(self._parseChanList(2), set())
-
-            self.sendLine(2, "LIST C<0")
-            self.assertEqual(self._parseChanList(2), {"#chan1", "#chan2"})
-
-            self.sendLine(2, "LIST C>10")
-            self.assertEqual(self._parseChanList(2), {"#chan1", "#chan2"})
-        elif self.controller.software_name in ("Solanum", "Charybdis", "InspIRCd"):
-            self.sendLine(2, "LIST C>2")
-            self.assertEqual(self._parseChanList(2), {"#chan1"})
-
-            self.sendLine(2, "LIST C<2")
-            self.assertEqual(self._parseChanList(2), {"#chan2"})
-
-            self.sendLine(2, "LIST C<0")
-            if self.controller.software_name == "InspIRCd":
-                self.assertEqual(self._parseChanList(2), {"#chan1", "#chan2"})
-            else:
-                self.assertEqual(self._parseChanList(2), set())
-
-            self.sendLine(2, "LIST C>0")
-            self.assertEqual(self._parseChanList(2), {"#chan1", "#chan2"})
-
-            self.sendLine(2, "LIST C<10")
+        self.sendLine(2, "LIST C<0")
+        if self.controller.software_name == "InspIRCd":
             self.assertEqual(self._parseChanList(2), {"#chan1", "#chan2"})
         else:
-            assert False, f"{self.controller.software_name} not supported"
+            self.assertEqual(self._parseChanList(2), set())
+
+        self.sendLine(2, "LIST C>0")
+        self.assertEqual(self._parseChanList(2), {"#chan1", "#chan2"})
+
+        self.sendLine(2, "LIST C<10")
+        self.assertEqual(self._parseChanList(2), {"#chan1", "#chan2"})
 
     @cases.mark_isupport("ELIST")
     @cases.mark_specifications("Modern")
+    @cases.xfailIf(
+        lambda self: bool(
+            self.controller.software_name == "UnrealIRCd"
+            and self.controller.software_version == 5
+        ),
+        "UnrealIRCd <6.0.3 advertises ELIST=T but does not implement it",
+    )
     def testListTopicTime(self):
         """
         "T: Searching based on topic time, via the "T<val" and "T>val"
@@ -366,45 +363,21 @@ class FaketimeListTestCase(_BasedListTestCase):
 
         self._sleep_minutes(1)
 
-        if self.controller.software_name in ("UnrealIRCd",):
-            self.sendLine(1, "LIST T<2")
-            self.assertEqual(self._parseChanList(1), {"#chan1"})
+        self.sendLine(1, "LIST T>2")
+        self.assertEqual(self._parseChanList(1), {"#chan1"})
 
-            self.sendLine(1, "LIST T>2")
-            self.assertEqual(self._parseChanList(1), {"#chan2"})
+        self.sendLine(1, "LIST T<2")
+        self.assertEqual(self._parseChanList(1), {"#chan2"})
 
-            self.sendLine(1, "LIST T>0")
-            self.assertEqual(self._parseChanList(1), set())
-
-            self.sendLine(1, "LIST T<0")
-            self.assertEqual(self._parseChanList(1), {"#chan1", "#chan2"})
-
-            self.sendLine(1, "LIST T>10")
-            self.assertEqual(self._parseChanList(1), {"#chan1", "#chan2"})
-        elif self.controller.software_name in (
-            "Solanum",
-            "Charybdis",
-            "InspIRCd",
-            "Plexus4",
-            "Hybrid",
-        ):
-            self.sendLine(1, "LIST T>2")
-            self.assertEqual(self._parseChanList(1), {"#chan1"})
-
-            self.sendLine(1, "LIST T<2")
-            self.assertEqual(self._parseChanList(1), {"#chan2"})
-
-            self.sendLine(1, "LIST T<0")
-            if self.controller.software_name == "InspIRCd":
-                # Insp internally represents "LIST T>0" like "LIST"
-                self.assertEqual(self._parseChanList(1), {"#chan1", "#chan2"})
-            else:
-                self.assertEqual(self._parseChanList(1), set())
-
-            self.sendLine(1, "LIST T>0")
-            self.assertEqual(self._parseChanList(1), {"#chan1", "#chan2"})
-
-            self.sendLine(1, "LIST T<10")
+        self.sendLine(1, "LIST T<0")
+        if self.controller.software_name == "InspIRCd":
+            # Insp internally represents "LIST T>0" like "LIST"
             self.assertEqual(self._parseChanList(1), {"#chan1", "#chan2"})
         else:
-            assert False, f"{self.controller.software_name} not supported"
+            self.assertEqual(self._parseChanList(1), set())
+
+        self.sendLine(1, "LIST T>0")
+        self.assertEqual(self._parseChanList(1), {"#chan1", "#chan2"})
+
+        self.sendLine(1, "LIST T<10")
+        self.assertEqual(self._parseChanList(1), {"#chan1", "#chan2"})

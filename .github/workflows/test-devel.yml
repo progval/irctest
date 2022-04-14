@@ -315,6 +315,8 @@ jobs:
         CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
         make -j 4
         make install
+        # Prevent download of geoIP database on first startup
+        sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -359,6 +361,8 @@ jobs:
         CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
         make -j 4
         make install
+        # Prevent download of geoIP database on first startup
+        sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd-5.tar.gz .local/ go/
     - name: Upload build artefacts

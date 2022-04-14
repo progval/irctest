@@ -51,17 +51,17 @@ table.test-matrix .expected-failure {
 }
 
 /* Rotate headers, thanks to https://css-tricks.com/rotated-table-column-headers/ */
-th.job-name {
+table.module-results th.job-name {
   height: 140px;
   white-space: nowrap;
 }
-th.job-name > div {
+table.module-results th.job-name > div {
   transform:
     translate(28px, 50px)
     rotate(315deg);
   width: 40px;
 }
-th.job-name > div > span {
+table.module-results th.job-name > div > span {
   border-bottom: 1px solid grey;
   padding-left: 0px;
 }
