@@ -7,11 +7,12 @@ The INVITE command  (`RFC 1459
 
 import pytest
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.numerics import (
     ERR_BANNEDFROMCHAN,
     ERR_CHANOPRIVSNEEDED,
     ERR_INVITEONLYCHAN,
+    ERR_NEEDMOREPARAMS,
     ERR_NOSUCHNICK,
     ERR_NOTONCHANNEL,
     ERR_USERONCHANNEL,
@@ -370,6 +371,87 @@ class InviteTestCase(cases.BaseServerTestCase):
             self.getMessage(1),
             command=ERR_USERONCHANNEL,
             params=["foo", "bar", "#chan", ANYSTR],
+        )
+
+    @cases.mark_specifications("RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["ircu2"],
+        "Uses 346/347 instead of 336/337 to reply to INVITE "
+        "https://github.com/UndernetIRC/ircu2/pull/20",
+    )
+    def testInviteList(self):
+        self.connectClient("foo")
+        self.connectClient("bar")
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(1, "JOIN #chan")
+        self.getMessages(1)
+
+        self.sendLine(1, "INVITE bar #chan")
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(2, "INVITE")
+        m = self.getMessage(2)
+        if m.command == ERR_NEEDMOREPARAMS:
+            raise runner.NotImplementedByController("INVITE with no parameter")
+        if m.command != "337":
+            # Hybrid always sends an empty list; so skip this.
+            self.assertMessageMatch(
+                m,
+                command="336",
+                params=["bar", "#chan"],
+            )
+            m = self.getMessage(2)
+        self.assertMessageMatch(
+            m,
+            command="337",
+            params=["bar", ANYSTR],
+        )
+
+    @cases.mark_isupport("INVEX")
+    @cases.mark_specifications("Modern")
+    def testInvexList(self):
+        self.connectClient("foo")
+        self.getMessages(1)
+
+        if "INVEX" in self.server_support:
+            invex = self.server_support.get("INVEX") or "I"
+        else:
+            raise runner.NotImplementedByController("INVEX")
+
+        self.sendLine(1, "JOIN #chan")
+        self.getMessages(1)
+
+        self.sendLine(1, f"MODE #chan +{invex} bar!*@*")
+        self.getMessages(1)
+
+        self.sendLine(1, f"MODE #chan +{invex}")
+        m = self.getMessage(1)
+        if len(m.params) == 3:
+            # Old format
+            self.assertMessageMatch(
+                m,
+                command="346",
+                params=["foo", "#chan", "bar!*@*"],
+            )
+        else:
+            self.assertMessageMatch(
+                m,
+                command="346",
+                params=[
+                    "foo",
+                    "#chan",
+                    "bar!*@*",
+                    StrRe("foo(!.*@.*)?"),
+                    StrRe("[0-9]+"),
+                ],
+            )
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="347",
+            params=["foo", "#chan", ANYSTR],
         )
 
     @cases.mark_specifications("Ergo")
