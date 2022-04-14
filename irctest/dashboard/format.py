@@ -131,6 +131,24 @@ def append_docstring(element: ET.Element, obj: object) -> None:
     element.append(rst_to_element(obj.__doc__))
 
 
+def build_job_html(job: str, results: List[CaseResult]) -> ET.Element:
+    jobs = sorted({result.job for result in results})
+    root = ET.Element("html")
+    head = ET.SubElement(root, "head")
+    ET.SubElement(head, "title").text = job
+    ET.SubElement(head, "link", rel="stylesheet", type="text/css", href="./style.css")
+
+    body = ET.SubElement(root, "body")
+
+    ET.SubElement(body, "h1").text = job
+
+    table = build_test_table(jobs, results)
+    table.set("class", "job-results test-matrix")
+    body.append(table)
+
+    return root
+
+
 def build_module_html(
     jobs: List[str], results: List[CaseResult], module_name: str
 ) -> ET.Element:
@@ -147,10 +165,19 @@ def build_module_html(
 
     append_docstring(body, module)
 
-    results_by_class = group_by(results, lambda r: r.class_name)
+    table = build_test_table(jobs, results)
+    table.set("class", "module-results test-matrix")
+    body.append(table)
 
-    table = ET.SubElement(body, "table")
-    table.set("class", "test-matrix")
+    return root
+
+
+def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
+    results_by_module_and_class = group_by(
+        results, lambda r: (r.module_name, r.class_name)
+    )
+
+    table = ET.Element("table")
 
     job_row = ET.Element("tr")
     ET.SubElement(job_row, "th")  # column of case name
@@ -159,7 +186,11 @@ def build_module_html(
         ET.SubElement(ET.SubElement(cell, "div"), "span").text = job
         cell.set("class", "job-name")
 
-    for (class_name, class_results) in sorted(results_by_class.items()):
+    for ((module_name, class_name), class_results) in sorted(
+        results_by_module_and_class.items()
+    ):
+        module = importlib.import_module(module_name)
+
         # Header row: class name
         header_row = ET.SubElement(table, "tr")
         th = ET.SubElement(header_row, "th", colspan=str(len(jobs) + 1))
@@ -237,12 +268,12 @@ def build_module_html(
                 if result.message:
                     cell.set("title", result.message)
 
-    return root
+    return table
 
 
 def write_html_pages(
     output_dir: Path, results: List[CaseResult]
-) -> List[Tuple[str, str]]:
+) -> List[Tuple[str, str, str]]:
     """Returns the list of (module_name, file_name)."""
     output_dir.mkdir(parents=True, exist_ok=True)
     results_by_module = group_by(results, lambda r: r.module_name)
@@ -285,7 +316,19 @@ def write_html_pages(
         root = build_module_html(module_jobs, module_results, module_name)
         file_name = f"{module_name}.xhtml"
         write_xml_file(output_dir / file_name, root)
-        pages.append((module_name, file_name))
+        pages.append(("module", module_name, file_name))
+
+    for category in ("server", "client"):
+        for job in [job for job in job_categories if job_categories[job] == category]:
+            job_results = [
+                result
+                for result in results
+                if result.job == job or result.job.startswith(job + "-")
+            ]
+            root = build_job_html(job, job_results)
+            file_name = f"{job}.xhtml"
+            write_xml_file(output_dir / file_name, root)
+            pages.append(("job", job, file_name))
 
     return pages
 
@@ -300,7 +343,7 @@ def write_test_outputs(output_dir: Path, results: List[CaseResult]) -> None:
             fd.write(result.system_out)
 
 
-def write_html_index(output_dir: Path, pages: List[Tuple[str, str]]) -> None:
+def write_html_index(output_dir: Path, pages: List[Tuple[str, str, str]]) -> None:
     root = ET.Element("html")
     head = ET.SubElement(root, "head")
     ET.SubElement(head, "title").text = "irctest dashboard"
@@ -310,15 +353,36 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str]]) -> None:
 
     ET.SubElement(body, "h1").text = "irctest dashboard"
 
+    module_pages = []
+    job_pages = []
+    for (page_type, title, file_name) in sorted(pages):
+        if page_type == "module":
+            module_pages.append((title, file_name))
+        elif page_type == "job":
+            job_pages.append((title, file_name))
+        else:
+            assert False, page_type
+
+    ET.SubElement(body, "h2").text = "Tests by command/specification"
+
     dl = ET.SubElement(body, "dl")
     dl.set("class", "module-index")
 
-    for (module_name, file_name) in sorted(pages):
+    for (module_name, file_name) in sorted(module_pages):
         module = importlib.import_module(module_name)
 
         link = ET.SubElement(ET.SubElement(dl, "dt"), "a", href=f"./{file_name}")
         link.text = module_name
         append_docstring(ET.SubElement(dl, "dd"), module)
+
+    ET.SubElement(body, "h2").text = "Tests by implementation"
+
+    ul = ET.SubElement(body, "ul")
+    ul.set("class", "job-index")
+
+    for (job, file_name) in sorted(job_pages):
+        link = ET.SubElement(ET.SubElement(ul, "li"), "a", href=f"./{file_name}")
+        link.text = job
 
     write_xml_file(output_dir / "index.xhtml", root)
 
