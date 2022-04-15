@@ -60,6 +60,7 @@ TEMPLATE_CONFIG = """
       target="services.example.org">
 
 # Protocol:
+<module name="banexception">
 <module name="botmode">
 <module name="cap">
 <module name="inviteexception">
