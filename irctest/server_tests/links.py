@@ -34,7 +34,7 @@ class LinksTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "LINKS")
         messages = self.getMessages(1)
         if messages[0].command == ERR_UNKNOWNCOMMAND:
-            raise runner.NotImplementedByController("LINKS")
+            raise runner.OptionalCommandNotSupported("LINKS")
 
         # Ignore '/LINKS has been disabled' from ircu2
         messages = [m for m in messages if m.command != "NOTICE"]
@@ -95,7 +95,7 @@ class ServicesLinksTestCase(cases.BaseServerTestCase):
         messages = self.getMessages(1)
 
         if messages[0].command == ERR_UNKNOWNCOMMAND:
-            raise runner.NotImplementedByController("LINKS")
+            raise runner.OptionalCommandNotSupported("LINKS")
 
         # Ignore '/LINKS has been disabled' from ircu2
         messages = [m for m in messages if m.command != "NOTICE"]

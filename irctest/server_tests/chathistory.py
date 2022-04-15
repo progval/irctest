@@ -47,7 +47,7 @@ def skip_ngircd(f):
     @functools.wraps(f)
     def newf(self, *args, **kwargs):
         if self.controller.software_name == "ngIRCd":
-            raise runner.NotImplementedByController("nicks longer 9 characters")
+            raise runner.OptionalExtensionNotSupported("nicks longer 9 characters")
         return f(self, *args, **kwargs)
 
     return newf

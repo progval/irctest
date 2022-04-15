@@ -283,7 +283,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         -- https://github.com/ircdocs/modern-irc/pull/170
         """
         if self.controller.software_name == "Bahamut":
-            raise runner.NotImplementedByController("WHOWAS mask")
+            raise runner.OptionalExtensionNotSupported("WHOWAS mask")
 
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS *ck2")
 
@@ -409,7 +409,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
             if item
         )
         if targmax.get("WHOWAS", "1") == "1":
-            raise runner.NotImplementedByController("Multi-target WHOWAS")
+            raise runner.OptionalExtensionNotSupported("Multi-target WHOWAS")
 
         self.connectClient("nick2", ident="ident2")
         self.sendLine(2, "QUIT :bye")

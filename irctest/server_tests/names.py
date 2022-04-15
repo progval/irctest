@@ -68,7 +68,7 @@ class NamesTestCase(cases.BaseServerTestCase):
             if item
         )
         if targmax.get("NAMES", "1") == "1":
-            raise runner.NotImplementedByController("Multi-target NAMES")
+            raise runner.OptionalExtensionNotSupported("Multi-target NAMES")
 
         self.sendLine(1, "JOIN #chan1")
         self.sendLine(1, "JOIN #chan2")

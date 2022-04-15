@@ -88,7 +88,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoStar(self):
         if self.controller.software_name == "Bahamut":
-            raise runner.NotImplementedByController("WHO mask")
+            raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
 
@@ -119,7 +119,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoNick(self, mask):
         if "*" in mask and self.controller.software_name == "Bahamut":
-            raise runner.NotImplementedByController("WHO mask")
+            raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
 
@@ -149,7 +149,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     )
     def testWhoUsernameRealName(self, mask):
         if "*" in mask and self.controller.software_name == "Bahamut":
-            raise runner.NotImplementedByController("WHO mask")
+            raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
 
@@ -202,7 +202,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoNickAway(self, mask):
         if "*" in mask and self.controller.software_name == "Bahamut":
-            raise runner.NotImplementedByController("WHO mask")
+            raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
 
@@ -231,7 +231,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoNickOper(self, mask):
         if "*" in mask and self.controller.software_name == "Bahamut":
-            raise runner.NotImplementedByController("WHO mask")
+            raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
 
@@ -265,7 +265,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoNickAwayAndOper(self, mask):
         if "*" in mask and self.controller.software_name == "Bahamut":
-            raise runner.NotImplementedByController("WHO mask")
+            raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
 
@@ -299,7 +299,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoChan(self, mask):
         if "*" in mask and self.controller.software_name == "Bahamut":
-            raise runner.NotImplementedByController("WHO mask")
+            raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
 

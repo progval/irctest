@@ -762,16 +762,6 @@ def skipUnlessHasMechanism(
     return decorator
 
 
-def skipUnlessHasSasl(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
-    @functools.wraps(f)
-    def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
-        if not self.controller.supported_sasl_mechanisms:
-            raise runner.NotImplementedByController("SASL")
-        return f(self, *args, **kwargs)
-
-    return newf
-
-
 def xfailIf(
     condition: Callable[..., bool], reason: str
 ) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
