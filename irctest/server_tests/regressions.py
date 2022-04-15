@@ -58,7 +58,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("message-tags", "batch", "echo-message", "server-time")
     def testTagCap(self):
         if self.controller.software_name == "UnrealIRCd":
-            raise runner.NotImplementedByController(
+            raise runner.ImplementationChoice(
                 "Arbitrary +draft/reply values (TODO: adapt this test to use real "
                 "values so their pass Unreal's validation) "
                 "https://bugs.unrealircd.org/view.php?id=5948"

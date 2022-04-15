@@ -395,7 +395,7 @@ class InviteTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "INVITE")
         m = self.getMessage(2)
         if m.command == ERR_NEEDMOREPARAMS:
-            raise runner.NotImplementedByController("INVITE with no parameter")
+            raise runner.OptionalExtensionNotSupported("INVITE with no parameter")
         if m.command != "337":
             # Hybrid always sends an empty list; so skip this.
             self.assertMessageMatch(
@@ -419,7 +419,7 @@ class InviteTestCase(cases.BaseServerTestCase):
         if "INVEX" in self.server_support:
             invex = self.server_support.get("INVEX") or "I"
         else:
-            raise runner.NotImplementedByController("INVEX")
+            raise runner.IsupportTokenNotSupported("INVEX")
 
         self.sendLine(1, "JOIN #chan")
         self.getMessages(1)

@@ -22,17 +22,17 @@ def with_xfails(f):
     @functools.wraps(f)
     def newf(self, command, *args, **kwargs):
         if command == "HELP" and self.controller.software_name == "Bahamut":
-            raise runner.NotImplementedByController(
+            raise runner.ImplementationChoice(
                 "fail because Bahamut forwards /HELP to HelpServ (but not /HELPOP)"
             )
 
         if self.controller.software_name in ("irc2", "ircu2", "ngIRCd"):
-            raise runner.NotImplementedByController(
+            raise runner.ImplementationChoice(
                 "numerics in reply to /HELP and /HELPOP (uses NOTICE instead)"
             )
 
         if self.controller.software_name == "UnrealIRCd":
-            raise runner.NotImplementedByController(
+            raise runner.ImplementationChoice(
                 "fails because Unreal uses custom numerics "
                 "https://github.com/unrealircd/unrealircd/pull/184"
             )

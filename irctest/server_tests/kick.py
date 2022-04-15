@@ -236,7 +236,7 @@ class KickTestCase(cases.BaseServerTestCase):
             if item
         )
         if targmax.get("KICK", "1") == "1":
-            raise runner.NotImplementedByController("Multi-target KICK")
+            raise runner.OptionalExtensionNotSupported("Multi-target KICK")
 
         # TODO: check foo is an operator
 

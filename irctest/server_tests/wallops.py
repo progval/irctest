@@ -44,7 +44,7 @@ class WallopsTestCase(cases.BaseServerTestCase):
 
         messages = self.getMessages(1)
         if ERR_UNKNOWNCOMMAND in (message.command for message in messages):
-            raise runner.NotImplementedByController("WALLOPS")
+            raise runner.OptionalCommandNotSupported("WALLOPS")
         for message in messages:
             self.assertMessageMatch(
                 message,
@@ -77,7 +77,7 @@ class WallopsTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "WALLOPS :hi everyone")
         message = self.getMessage(1)
         if message.command == ERR_UNKNOWNCOMMAND:
-            raise runner.NotImplementedByController("WALLOPS")
+            raise runner.OptionalCommandNotSupported("WALLOPS")
         self.assertMessageMatch(
             message, command=ERR_NOPRIVILEGES, params=["nick1", ANYSTR]
         )
