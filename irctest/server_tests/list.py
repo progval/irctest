@@ -186,8 +186,8 @@ class ListTestCase(_BasedListTestCase):
         """
         self.connectClient("foo")
 
-        if "M" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=M")
+        if "U" not in self.server_support.get("ELIST", ""):
+            raise runner.OptionalExtensionNotSupported("ELIST=U")
 
         self.sendLine(1, "JOIN #chan1")
         self.getMessages(1)
