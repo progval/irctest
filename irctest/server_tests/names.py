@@ -62,12 +62,7 @@ class NamesTestCase(cases.BaseServerTestCase):
     def _testNamesMultipleChannels(self, symbol):
         self.connectClient("nick1")
 
-        targmax = dict(
-            item.split(":", 1)
-            for item in self.server_support.get("TARGMAX", "").split(",")
-            if item
-        )
-        if targmax.get("NAMES", "1") == "1":
+        if self.targmax.get("NAMES", "1") == "1":
             raise runner.OptionalExtensionNotSupported("Multi-target NAMES")
 
         self.sendLine(1, "JOIN #chan1")

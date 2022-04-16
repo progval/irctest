@@ -709,6 +709,12 @@ class BaseServerTestCase(
                         self.server_support[param] = None
             welcome.append(m)
 
+        self.targmax: Dict[str, Optional[str]] = dict(
+            item.split(":", 1)  # type: ignore
+            for item in (self.server_support.get("TARGMAX") or "").split(",")
+            if item
+        )
+
         return welcome
 
     def joinClient(self, client: TClientName, channel: str) -> None:
