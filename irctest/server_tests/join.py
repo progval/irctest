@@ -16,6 +16,16 @@ from irctest.numerics import (
 )
 from irctest.patma import ANYSTR, StrRe
 
+ERR_BADCHANNAME = "479"  # Hybrid only, and conflicts with others
+
+
+JOIN_ERROR_NUMERICS = {
+    ERR_BADCHANMASK,
+    ERR_NOSUCHCHANNEL,
+    ERR_FORBIDDENCHANNEL,
+    ERR_BADCHANNAME,
+}
+
 
 class JoinTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
@@ -145,12 +155,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         messages = self.getMessages(1)
         received_commands = {m.command for m in messages}
         expected_commands = {RPL_NAMREPLY, RPL_ENDOFNAMES, "JOIN"}
-        acceptable_commands = expected_commands | {
-            "MODE",
-            ERR_BADCHANMASK,
-            ERR_NOSUCHCHANNEL,
-            ERR_FORBIDDENCHANNEL,
-        }
+        acceptable_commands = expected_commands | JOIN_ERROR_NUMERICS | {"MODE"}
         self.assertLessEqual(
             expected_commands,
             received_commands,
@@ -168,7 +173,7 @@ class JoinTestCase(cases.BaseServerTestCase):
 
         nb_errors = 0
         for m in messages:
-            if m.command in {ERR_BADCHANMASK, ERR_NOSUCHCHANNEL, ERR_FORBIDDENCHANNEL}:
+            if m.command in JOIN_ERROR_NUMERICS:
                 nb_errors += 1
                 self.assertMessageMatch(m, params=["foo", "inv@lid", ANYSTR])
 
@@ -201,12 +206,7 @@ class JoinTestCase(cases.BaseServerTestCase):
 
         received_commands = {m.command for m in messages}
         expected_commands = {RPL_NAMREPLY, RPL_ENDOFNAMES, "JOIN"}
-        acceptable_commands = expected_commands | {
-            "MODE",
-            ERR_BADCHANMASK,
-            ERR_NOSUCHCHANNEL,
-            ERR_FORBIDDENCHANNEL,
-        }
+        acceptable_commands = expected_commands | JOIN_ERROR_NUMERICS | {"MODE"}
         self.assertLessEqual(
             expected_commands,
             received_commands,
@@ -226,7 +226,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         for m in messages:
             self.assertIn("batch", m.tags)
             self.assertEqual(m.tags["batch"], batch_id)
-            if m.command in {ERR_BADCHANMASK, ERR_NOSUCHCHANNEL, ERR_FORBIDDENCHANNEL}:
+            if m.command in JOIN_ERROR_NUMERICS:
                 nb_errors += 1
                 self.assertMessageMatch(m, params=["foo", "inv@lid", ANYSTR])
 
