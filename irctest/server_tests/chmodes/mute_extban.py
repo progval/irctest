@@ -198,7 +198,7 @@ class MuteExtbanTestCase(cases.BaseServerTestCase):
             self.getMessages(client)
 
         # +e grants an exemption to +b
-        self.sendLine("chanop", f"MODE #chan +e {prefix}{self.char()}:*!~evan@*")
+        self.sendLine("chanop", f"MODE #chan +e {prefix}{self.char()}:*!*evan@*")
         replies = {msg.command for msg in self.getMessages("chanop")}
         self.assertIn("MODE", replies)
         self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)
