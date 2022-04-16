@@ -230,12 +230,7 @@ class KickTestCase(cases.BaseServerTestCase):
         self.connectClient("qux")
         self.joinChannel(4, "#chan")
 
-        targmax = dict(
-            item.split(":", 1)
-            for item in self.server_support.get("TARGMAX", "").split(",")
-            if item
-        )
-        if targmax.get("KICK", "1") == "1":
+        if self.targmax.get("KICK", "1") == "1":
             raise runner.OptionalExtensionNotSupported("Multi-target KICK")
 
         # TODO: check foo is an operator

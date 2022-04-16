@@ -403,12 +403,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
 
         self.connectClient("nick1")
 
-        targmax = dict(
-            item.split(":", 1)
-            for item in self.server_support.get("TARGMAX", "").split(",")
-            if item
-        )
-        if targmax.get("WHOWAS", "1") == "1":
+        if self.targmax.get("WHOWAS", "1") == "1":
             raise runner.OptionalExtensionNotSupported("Multi-target WHOWAS")
 
         self.connectClient("nick2", ident="ident2")
