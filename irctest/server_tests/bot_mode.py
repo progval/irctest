@@ -85,7 +85,7 @@ class BotModeTestCase(cases.BaseServerTestCase):
             self.getMessage("user"),
             command="PRIVMSG",
             params=["usernick", "beep boop"],
-            tags={"draft/bot": None, **ANYDICT},
+            tags={"bot": None, **ANYDICT},
         )
 
     @cases.xfailIfSoftware(
@@ -111,7 +111,7 @@ class BotModeTestCase(cases.BaseServerTestCase):
             self.getMessage("user"),
             command="PRIVMSG",
             params=["#chan", "beep boop"],
-            tags={"draft/bot": None, **ANYDICT},
+            tags={"bot": None, **ANYDICT},
         )
 
     def testBotWhox(self):
