@@ -105,6 +105,26 @@ class ListTestCase(_BasedListTestCase):
             "or 323 (RPL_LISTEND), or but: {msg}",
         )
 
+    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.xfailIfSoftware(
+        ["Charybdis", "Solanum"],
+        "Charybdis and Solanum insert ERR_NOSUCHNICK reply in LIST",
+    )
+    def testListNonexistent(self):
+        """LIST on a nonexistent channel does not send an error
+        response.
+        <https://tools.ietf.org/html/rfc1459#section-4.2.6>
+        <https://tools.ietf.org/html/rfc2812#section-3.2.6>
+        """
+        self.connectClient("bar")
+        self.sendLine(1, "LIST #nonexistent")
+        responses = {msg.command for msg in self.getMessages(1)}
+        # successful response MUST include RPL_LISTEND:
+        self.assertIn(RPL_LISTEND, responses)
+        # and MUST NOT include RPL_LIST (since there is no matching channel)
+        # or any error numerics:
+        self.assertLessEqual(responses, {RPL_LISTSTART, RPL_LISTEND})
+
     @cases.mark_isupport("ELIST")
     @cases.mark_specifications("Modern")
     def testListMask(self):
