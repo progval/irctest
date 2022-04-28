@@ -1,5 +1,5 @@
 """
-`IRCv3 draft bot mode <https://ircv3.net/specs/extensions/bot-mode>`_
+`IRCv3 bot mode <https://ircv3.net/specs/extensions/bot-mode>`_
 """
 
 from irctest import cases, runner
@@ -85,7 +85,7 @@ class BotModeTestCase(cases.BaseServerTestCase):
             self.getMessage("user"),
             command="PRIVMSG",
             params=["usernick", "beep boop"],
-            tags={"draft/bot": None, **ANYDICT},
+            tags={StrRe("(draft/)?bot"): None, **ANYDICT},
         )
 
     @cases.xfailIfSoftware(
@@ -111,7 +111,7 @@ class BotModeTestCase(cases.BaseServerTestCase):
             self.getMessage("user"),
             command="PRIVMSG",
             params=["#chan", "beep boop"],
-            tags={"draft/bot": None, **ANYDICT},
+            tags={StrRe("(draft/)?bot"): None, **ANYDICT},
         )
 
     def testBotWhox(self):
