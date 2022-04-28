@@ -155,13 +155,15 @@ def match_dict(
     for (expected_key, expected_value) in expected.items():
         if isinstance(expected_key, RemainingKeys):
             remaining_keys_wildcard = (expected_key.key, expected_value)
-        elif isinstance(expected_key, Operator):
-            raise NotImplementedError(f"Unsupported operator: {expected_key}")
         else:
-            if expected_key not in got:
-                return False
-            got_value = got.pop(expected_key)
-            if not match_string(got_value, expected_value):
+            for key in got:
+                if match_string(key, expected_key) and match_string(
+                    got[key], expected_value
+                ):
+                    got.pop(key)
+                    break
+            else:
+                # Found no (key, value) pair matching the request
                 return False
 
     if remaining_keys_wildcard:

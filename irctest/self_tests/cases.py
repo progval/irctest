@@ -182,6 +182,39 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
     (
         # the specification:
         dict(
+            tags={StrRe("tag[12]"): "bar", **ANYDICT},
+            command="PRIVMSG",
+            params=["#chan", "hello"],
+        ),
+        # matches:
+        [
+            "@tag1=bar PRIVMSG #chan :hello",
+            "@tag1=bar;tag2= PRIVMSG #chan :hello",
+            "@tag1=bar :foo!baz@qux PRIVMSG #chan :hello",
+            "@tag2=bar PRIVMSG #chan :hello",
+            "@tag1=bar;tag2= PRIVMSG #chan :hello",
+            "@tag1=;tag2=bar PRIVMSG #chan :hello",
+        ],
+        # and does not match:
+        [
+            "PRIVMG #chan :hello",
+            "@tag1=value1 PRIVMSG #chan :hello",
+            "PRIVMSG #chan hello2",
+            "PRIVMSG #chan2 hello",
+            ":foo!baz@qux PRIVMSG #chan hello",
+        ],
+        # and they each error with:
+        [
+            "expected command to be PRIVMSG, got PRIVMG",
+            "expected tags to match {StrRe(r'tag[12]'): 'bar', RemainingKeys(ANYSTR): ANYOPTSTR}, got {'tag1': 'value1'}",
+            "expected params to match ['#chan', 'hello'], got ['#chan', 'hello2']",
+            "expected params to match ['#chan', 'hello'], got ['#chan2', 'hello']",
+            "expected tags to match {StrRe(r'tag[12]'): 'bar', RemainingKeys(ANYSTR): ANYOPTSTR}, got {}",
+        ]
+    ),
+    (
+        # the specification:
+        dict(
             tags={"tag1": "bar", RemainingKeys(NotStrRe("tag2")): ANYOPTSTR},
             command="PRIVMSG",
             params=["#chan", "hello"],
