@@ -69,6 +69,30 @@ TController = TypeVar("TController", bound=basecontrollers._BaseController)
 T = TypeVar("T")
 
 
+def retry(f: TCallable) -> TCallable:
+    """Retry the function if it raises ConnectionClosed; as a workaround for flaky
+    connection, such as::
+
+        1: connects to server.
+        1 -> S: NICK foo
+        1 -> S: USER username * * :Realname
+        S -> 1: :My.Little.Server NOTICE * :*** Found your hostname (cached)
+        S -> 1: :My.Little.Server NOTICE * :*** Checking Ident
+        S -> 1: :My.Little.Server NOTICE * :*** No Ident response
+        S -> 1: ERROR :Closing Link: cpu-pool.com (Use a different port)
+    """
+
+    @functools.wraps(f)
+    def newf(*args, **kwargs):  # type: ignore
+        try:
+            return f(*args, **kwargs)
+        except ConnectionClosed:
+            time.sleep(1)
+            return f(*args, **kwargs)
+
+    return newf  # type: ignore
+
+
 class ChannelJoinException(Exception):
     def __init__(self, code: str, params: List[str]):
         super().__init__(f"Failed to join channel ({code}): {params}")
@@ -661,6 +685,7 @@ class BaseServerTestCase(
         m = self.getRegistrationMessage(client)
         self.assertIn(m.command, ["900", "903"], str(m))
 
+    @retry
     def connectClient(
         self,
         nick: str,
