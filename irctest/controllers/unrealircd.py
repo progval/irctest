@@ -100,6 +100,12 @@ set {{
         }}
     }}
     modes-on-join "+H 100:1d";  // Enables CHATHISTORY
+
+    // Remove RPL_WHOISSPECIAL used to advertise security groups
+    whois-details {{
+        security-groups {{ everyone none; self none; oper none; }}
+    }}
+
 }}
 
 tld {{
