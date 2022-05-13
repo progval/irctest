@@ -101,10 +101,7 @@ set {{
     }}
     modes-on-join "+H 100:1d";  // Enables CHATHISTORY
 
-    // Remove RPL_WHOISSPECIAL used to advertise security groups
-    whois-details {{
-        security-groups {{ everyone none; self none; oper none; }}
-    }}
+    {set_extras}
 
 }}
 
@@ -193,8 +190,20 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 loadmodule "cloak_md5";
                 """
             )
+            set_extras = textwrap.indent(
+                textwrap.dedent(
+                    """
+                    // Remove RPL_WHOISSPECIAL used to advertise security groups
+                    whois-details {
+                        security-groups { everyone none; self none; oper none; }
+                    }
+                    """
+                ),
+                "    ",
+            )
         else:
             extras = ""
+            set_extras = ""
 
         with self.open_file("empty.txt") as fd:
             fd.write("\n")
@@ -215,6 +224,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                     pem_path=self.pem_path,
                     empty_file=os.path.join(self.directory, "empty.txt"),
                     extras=extras,
+                    set_extras=set_extras,
                 )
             )
 
