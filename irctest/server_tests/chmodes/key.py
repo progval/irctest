@@ -27,10 +27,16 @@ class KeyTestCase(cases.BaseServerTestCase):
 
         self.connectClient("qux")
         self.getMessages(2)
+        # JOIN with a missing key MUST receive ERR_BADCHANNELKEY:
         self.sendLine(2, "JOIN #chan")
-        reply = self.getMessages(2)
-        self.assertNotIn("JOIN", {msg.command for msg in reply})
-        self.assertIn(ERR_BADCHANNELKEY, {msg.command for msg in reply})
+        reply_cmds = {msg.command for msg in self.getMessages(2)}
+        self.assertNotIn("JOIN", reply_cmds)
+        self.assertIn(ERR_BADCHANNELKEY, reply_cmds)
+        # similarly for JOIN with an incorrect key:
+        self.sendLine(2, "JOIN #chan bees")
+        reply_cmds = {msg.command for msg in self.getMessages(2)}
+        self.assertNotIn("JOIN", reply_cmds)
+        self.assertIn(ERR_BADCHANNELKEY, reply_cmds)
 
         self.sendLine(2, "JOIN #chan beer")
         reply = self.getMessages(2)
