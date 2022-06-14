@@ -174,7 +174,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         enable_chathistory = self.test_config.chathistory
         enable_roleplay = self.test_config.ergo_roleplay
         if enable_chathistory or enable_roleplay:
-            config = self.addMysqlToConfig(config)
+            self.addDatabaseToConfig(config)
 
         if enable_roleplay:
             config["roleplay"] = {"enabled": True}
@@ -277,23 +277,31 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         config.update(LOGGING_CONFIG)
         return config
 
-    def addMysqlToConfig(self, config: Dict) -> Dict:
-        socket_path = self.startMysql()
-        self.createMysqlDatabase(socket_path, "ergo_history")
-        config["datastore"]["mysql"] = {
-            "enabled": True,
-            "socket-path": socket_path,
-            "history-database": "ergo_history",
-            "timeout": "3s",
-        }
-
-        config["history"]["persistent"] = {
-            "enabled": True,
-            "unregistered-channels": True,
-            "registered-channels": "opt-out",
-            "direct-messages": "opt-out",
-        }
-        return config
+    def addDatabaseToConfig(self, config: Dict) -> None:
+        history_backend = os.environ.get("ERGO_HISTORY_BACKEND", "memory")
+        if history_backend == "memory":
+            # nothing to do, this is the default
+            pass
+        elif history_backend == "mysql":
+            socket_path = self.startMysql()
+            self.createMysqlDatabase(socket_path, "ergo_history")
+            config["datastore"]["mysql"] = {
+                "enabled": True,
+                "socket-path": socket_path,
+                "history-database": "ergo_history",
+                "timeout": "3s",
+            }
+            config["history"]["persistent"] = {
+                "enabled": True,
+                "unregistered-channels": True,
+                "registered-channels": "opt-out",
+                "direct-messages": "opt-out",
+            }
+        else:
+            raise ValueError(
+                f"Invalid $ERGO_HISTORY_BACKEND value: {history_backend}. "
+                f"It should be 'memory' (the default) or 'mysql'"
+            )
 
     def startMysql(self) -> str:
         """Starts a new MySQL server listening on a UNIX socket, returns the socket
