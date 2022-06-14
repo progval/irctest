@@ -3,7 +3,7 @@ import json
 import os
 import shutil
 import subprocess
-from typing import Any, Dict, Optional, Set, Type, Union
+from typing import Any, Dict, List, Optional, Set, Type, Union
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -139,6 +139,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {"PLAIN", "SCRAM-SHA-256"}
     supports_sts = True
     extban_mute_char = "m"
+    mysql_proc: Optional[subprocess.Popen] = None
 
     def create_config(self) -> None:
         super().create_config()
@@ -215,6 +216,16 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             [*faketime_cmd, "ergo", "run", "--conf", self._config_path, "--quiet"]
         )
 
+    def terminate(self) -> None:
+        if self.mysql_proc is not None:
+            self.mysql_proc.terminate()
+        super().terminate()
+
+    def kill(self) -> None:
+        if self.mysql_proc is not None:
+            self.mysql_proc.kill()
+        super().kill()
+
     def wait_for_services(self) -> None:
         # Nothing to wait for, they start at the same time as Ergo.
         pass
@@ -266,18 +277,12 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         config.update(LOGGING_CONFIG)
         return config
 
-    def addMysqlToConfig(self, config: Optional[Dict] = None) -> Dict:
-        mysql_password = os.getenv("MYSQL_PASSWORD")
-        if config is None:
-            config = self.baseConfig()
-        if not mysql_password:
-            return config
-
+    def addMysqlToConfig(self, config: Dict) -> Dict:
+        socket_path = self.startMysql()
+        self.createMysqlDatabase(socket_path, "ergo_history")
         config["datastore"]["mysql"] = {
             "enabled": True,
-            "host": "localhost",
-            "user": "ergo",
-            "password": mysql_password,
+            "socket-path": socket_path,
             "history-database": "ergo_history",
             "timeout": "3s",
         }
@@ -289,6 +294,56 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             "direct-messages": "opt-out",
         }
         return config
+
+    def startMysql(self) -> str:
+        """Starts a new MySQL server listening on a UNIX socket, returns the socket
+        path"""
+        assert self.directory
+        mysql_dir = os.path.join(self.directory, "mysql")
+        socket_path = os.path.join(mysql_dir, "mysql.socket")
+        os.mkdir(mysql_dir)
+
+        print("Starting MySQL...")
+        self.mysql_proc = subprocess.Popen(
+            [
+                "mysqld",
+                "--no-defaults",
+                "--tmpdir=" + mysql_dir,
+                "--datadir=" + mysql_dir,
+                "--socket=" + socket_path,
+                "--skip-networking",
+                "--skip-grant-tables",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+
+        mysql_stdout = self.mysql_proc.stdout
+        assert mysql_stdout is not None  # for mypy...
+        lines: List[bytes] = []
+        while self.mysql_proc.returncode is None:
+            line = mysql_stdout.readline()
+            lines.append(lines)
+            if b"mysqld: ready for connections." in line:
+                break
+        assert self.mysql_proc.returncode is None, (
+            "MySQL unexpected stopped: " + b"\n".join(lines).decode()
+        )
+        print("MySQL started")
+
+        return socket_path
+
+    def createMysqlDatabase(self, socket_path: str, database_name: str) -> None:
+        subprocess.check_call(
+            [
+                "mysql",
+                "--no-defaults",
+                "-S",
+                socket_path,
+                "-e",
+                f"CREATE DATABASE {database_name};",
+            ]
+        )
 
     def rehash(self, case: BaseServerTestCase, config: Dict) -> None:
         self._config = config
