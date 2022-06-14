@@ -306,12 +306,38 @@ class ErgoController(BaseServerController, DirectoryBasedController):
     def startMysql(self) -> str:
         """Starts a new MySQL server listening on a UNIX socket, returns the socket
         path"""
+        # Function based on pifpaf's MySQL driver:
+        # https://github.com/jd/pifpaf/blob/3.1.5/pifpaf/drivers/mysql.py
         assert self.directory
         mysql_dir = os.path.join(self.directory, "mysql")
         socket_path = os.path.join(mysql_dir, "mysql.socket")
         os.mkdir(mysql_dir)
 
         print("Starting MySQL...")
+        try:
+            subprocess.check_call(
+                [
+                    "mysqld",
+                    "--no-defaults",
+                    "--tmpdir=" + mysql_dir,
+                    "--initialize-insecure",
+                    "--datadir=" + mysql_dir,
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError:
+            # Initialize the old way
+            subprocess.check_call(
+                [
+                    "mysql_install_db",
+                    "--no-defaults",
+                    "--tmpdir=" + mysql_dir,
+                    "--datadir=" + mysql_dir,
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
         self.mysql_proc = subprocess.Popen(
             [
                 "mysqld",
