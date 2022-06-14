@@ -272,6 +272,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             config = self.baseConfig()
         if not mysql_password:
             return config
+
         config["datastore"]["mysql"] = {
             "enabled": True,
             "host": "localhost",
@@ -280,11 +281,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             "history-database": "ergo_history",
             "timeout": "3s",
         }
-        config["accounts"]["multiclient"] = {
-            "enabled": True,
-            "allowed-by-default": True,
-            "always-on": "disabled",
-        }
+
         config["history"]["persistent"] = {
             "enabled": True,
             "unregistered-channels": True,
