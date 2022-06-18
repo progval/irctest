@@ -181,28 +181,28 @@ ircu2:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.ircu2 \
 		-m 'not services and not IRCv3' \
-		-n 10 \
+		-n 4 \
 		-k '$(IRCU2_SELECTORS)'
 
 nefarious:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.nefarious \
 		-m 'not services' \
-		-n 10 \
+		-n 4 \
 		-k '$(NEFARIOUS_SELECTORS)'
 
 snircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.snircd \
 		-m 'not services and not IRCv3' \
-		-n 10 \
+		-n 4 \
 		-k '$(SNIRCD_SELECTORS)'
 
 irc2:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.irc2 \
 		-m 'not services and not IRCv3' \
-		-n 10 \
+		-n 4 \
 		-k '$(IRC2_SELECTORS)'
 
 limnoria:
@@ -225,7 +225,7 @@ ngircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
 		-m 'not services' \
-		-n 10 \
+		-n 4 \
 		-k "$(NGIRCD_SELECTORS)"
 
 ngircd-anope:
