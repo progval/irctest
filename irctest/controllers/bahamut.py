@@ -80,6 +80,19 @@ oper {{
 """
 
 
+def initialize_entropy(directory: str) -> None:
+    # https://github.com/DALnet/bahamut/blob/7fc039d403f66a954225c5dc4ad1fe683aedd794/include/dh.h#L35-L38
+    nb_rand_bytes = 512 // 8
+    # https://github.com/DALnet/bahamut/blob/7fc039d403f66a954225c5dc4ad1fe683aedd794/src/dh.c#L186
+    entropy_file_size = nb_rand_bytes * 4
+
+    # Not actually random; but we don't care.
+    entropy = b"\x00" * entropy_file_size
+
+    with open(os.path.join(directory, ".ircd.entropy"), "wb") as fd:
+        fd.write(entropy)
+
+
 class BahamutController(BaseServerController, DirectoryBasedController):
     software_name = "Bahamut"
     supported_sasl_mechanisms: Set[str] = set()
@@ -120,6 +133,11 @@ class BahamutController(BaseServerController, DirectoryBasedController):
         self.gen_ssl()
 
         assert self.directory
+
+        # Bahamut reads some bytes from /dev/urandom on startup, which causes
+        # GitHub Actions to sometimes freeze and timeout.
+        # This initializes the entropy file so Bahamut does not need to do it itself.
+        initialize_entropy(self.directory)
 
         # they are hardcoded... thankfully Bahamut reads them from the CWD.
         shutil.copy(self.pem_path, os.path.join(self.directory, "ircd.crt"))
