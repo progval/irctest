@@ -222,6 +222,7 @@ class BaseServerController(_BaseController):
             raise NotImplementedByController("account registration")
 
     def wait_for_port(self) -> None:
+        started_at = time.time()
         while not self.port_open:
             self.check_is_alive()
             time.sleep(self._port_wait_interval)
@@ -244,11 +245,16 @@ class BaseServerController(_BaseController):
                     # ircu2 cuts the connection without a message if registration
                     # is not complete.
                     pass
+                except socket.timeout:
+                    # irc2 just keeps it open
+                    pass
 
                 c.close()
                 self.port_open = True
-            except Exception:
-                continue
+            except ConnectionRefusedError:
+                if time.time() - started_at >= 60:
+                    # waited for 60 seconds, giving up
+                    raise
 
     def wait_for_services(self) -> None:
         assert self.services_controller
