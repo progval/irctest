@@ -23,7 +23,6 @@ cd ~
 git clone https://github.com/ProgVal/irctest.git
 cd irctest
 pip3 install --user -r requirements.txt
-python3 setup.py install --user
 ```
 
 Add `~/.local/bin/` (and/or `~/go/bin/` for Ergo)
