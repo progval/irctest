@@ -503,3 +503,31 @@ class WhoServicesTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
             command=RPL_ENDOFWHO,
             params=["otherNick", InsensitiveStr("coolNick"), ANYSTR],
         )
+
+
+class WhoInvisibleTestCase(cases.BaseServerTestCase):
+    @cases.mark_specifications("Modern")
+    def testWhoInvisible(self):
+        self.connectClient("evan", name="evan")
+        self.sendLine("evan", "MODE evan +i")
+        self.getMessages("evan")
+
+        self.connectClient("shivaram", name="shivaram")
+        self.getMessages("shivaram")
+        self.sendLine("shivaram", "WHO eva*")
+        reply_cmds = {msg.command for msg in self.getMessages("shivaram")}
+        self.assertEqual(reply_cmds, {RPL_ENDOFWHO})
+
+        # invisibility should not be respected for plain nicknames, only for masks:
+        self.sendLine("shivaram", "WHO evan")
+        replies = self.getMessages("shivaram")
+        reply_cmds = {msg.command for msg in replies}
+        self.assertEqual(reply_cmds, {RPL_WHOREPLY, RPL_ENDOFWHO})
+
+        # invisibility should not be respected if the users share a channel
+        self.joinChannel("evan", "#test")
+        self.joinChannel("shivaram", "#test")
+        self.sendLine("shivaram", "WHO eva*")
+        replies = self.getMessages("shivaram")
+        reply_cmds = {msg.command for msg in replies}
+        self.assertEqual(reply_cmds, {RPL_WHOREPLY, RPL_ENDOFWHO})
