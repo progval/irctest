@@ -508,6 +508,9 @@ class WhoServicesTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
 class WhoInvisibleTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoInvisible(self):
+        if self.controller.software_name == "Bahamut":
+            raise runner.OptionalExtensionNotSupported("WHO mask")
+
         self.connectClient("evan", name="evan")
         self.sendLine("evan", "MODE evan +i")
         self.getMessages("evan")
