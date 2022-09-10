@@ -1,8 +1,7 @@
 import os
+from pathlib import Path
 import random
-import shutil
 import subprocess
-import tempfile
 from typing import Optional, Type
 
 import irctest
@@ -35,6 +34,7 @@ $cf = [
 	'sqlpass' => 'pifpaf',
 	'sqldb' => 'pifpaf',
     'sqlsock' => '{mysql_socket}',
+    'sqlprefix' => '{dlk_prefix}',
 
 	'logchan' => '#services',
 ]
@@ -78,7 +78,7 @@ $table_prefix = '{wp_prefix}';
 define( 'WP_DEBUG', false );
 
 
-define( 'ABSPATH', '{wp_directory}' );
+define( 'ABSPATH', '{wp_path}' );
 
 /* That's all, stop editing! Happy publishing. */
 
@@ -93,9 +93,9 @@ require_once ABSPATH . 'wp-settings.php';
 class DlkController(BaseServicesController, DirectoryBasedController):
     """Mixin for server controllers that rely on DLK"""
 
-    software_name = "DLK-Services"
+    software_name = "Dlk-Services"
 
-    def run_sql(self, sql):
+    def run_sql(self, sql: str) -> None:
         mysql_socket = os.environ["PIFPAF_MYSQL_SOCKET"]
         subprocess.run(
             ["mysql", "-S", mysql_socket, "pifpaf"],
@@ -114,66 +114,107 @@ class DlkController(BaseServicesController, DirectoryBasedController):
 
         assert self.directory
 
-        self.wp_prefix = f"wp{random.randbytes(6).hex()}_"
+        try:
+            self.wp_cli_path = Path(os.environ["IRCTEST_WP_CLI_PATH"])
+            if not self.wp_cli_path.is_file():
+                raise KeyError()
+        except KeyError:
+            raise RuntimeError(
+                "$IRCTEST_WP_CLI_PATH must be set to a WP-CLI executable (eg. "
+                "downloaded from <https://raw.githubusercontent.com/wp-cli/builds/"
+                "gh-pages/phar/wp-cli.phar>)"
+            ) from None
+
+        try:
+            self.dlk_path = Path(os.environ["IRCTEST_DLK_PATH"])
+            if not self.dlk_path.is_dir():
+                raise KeyError()
+        except KeyError:
+            raise RuntimeError("$IRCTEST_DLK_PATH is not set") from None
+        self.dlk_path = self.dlk_path.resolve()
+
+        # Unpack a fresh Wordpress install in the temporary directory.
+        # In theory we could have a common Wordpress install and only wp-config.php
+        # in the temporary directory; but wp-cli assumes wp-config.php must be
+        # in a Wordpress directory, and fails in various places if it isn't.
+        # Rather than symlinking everything to make it work, let's just copy
+        # the whole code, it's not that big.
+        try:
+            wp_zip_path = Path(os.environ["IRCTEST_WP_ZIP_PATH"])
+            if not wp_zip_path.is_file():
+                raise KeyError()
+        except KeyError:
+            raise RuntimeError(
+                "$IRCTEST_WP_ZIP_PATH must be set to a Wordpress source zipball "
+                "(eg. downloaded from <https://wordpress.org/latest.zip>)"
+            ) from None
+        subprocess.run(
+            ["unzip", wp_zip_path, "-d", self.directory], stdout=subprocess.DEVNULL
+        )
+        self.wp_path = self.directory / "wordpress"
+
+        rand_hex = random.randbytes(6).hex()  # type: ignore[attr-defined]
+        self.wp_prefix = f"wp{rand_hex}_"
+        self.dlk_prefix = f"dlk{rand_hex}_"
         template_vars = dict(
             protocol=protocol,
             server_hostname=server_hostname,
             server_port=server_port,
             mysql_socket=mysql_socket,
-            wp_directory="../wordpress",  # TODO configurable
+            wp_path=self.wp_path,
             wp_prefix=self.wp_prefix,
+            dlk_prefix=self.dlk_prefix,
         )
 
         # Configure Wordpress
-        # wp_config_path = os.path.join(self.directory, "wp-config.php")
-        wp_config_path = "../wordpress/wp-config.php"  # TODO: use the tempdir
+        wp_config_path = self.directory / "wp-config.php"
         with open(wp_config_path, "w") as fd:
             fd.write(TEMPLATE_WP_CONFIG.format(**template_vars))
-        print("=== config wordpress start")
-        wp_proc = subprocess.run(
+
+        subprocess.run(
             [
                 "php",
-                "../wp-cli.phar",  # TODO should not be hardcoded
+                self.wp_cli_path,
                 "core",
                 "install",
                 "--url=http://localhost/",
                 "--title=irctest site",
                 "--admin_user=adminuser",
                 "--admin_email=adminuser@example.org",
-                f"--path=../wordpress",  # TODO should not be hardcoded
+                f"--path={self.wp_path}",
             ],
             check=True,
         )
-        print("=== config wordpress end")
 
         # Configure Dlk
-        dlk_config_path = "../Dalek-Services/conf/dalek.conf"
-        with open(dlk_config_path, "w") as fd:  # TODO: use the tempdir
+        dlk_log_dir = self.directory / "logs"
+        dlk_conf_dir = self.directory / "conf"
+        dlk_conf_path = dlk_conf_dir / "dalek.conf"
+        os.mkdir(dlk_conf_dir)
+        with open(dlk_conf_path, "w") as fd:
             fd.write(TEMPLATE_DLK_CONFIG.format(**template_vars))
-        dlk_wp_config_path = "../Dalek-Services/src/wordpress/wordpress.conf"
-        with open(dlk_wp_config_path, "w") as fd:  # TODO: use the tempdir
+        dlk_wp_config_path = dlk_conf_dir / "wordpress.conf"
+        with open(dlk_wp_config_path, "w") as fd:
             fd.write(TEMPLATE_DLK_WP_CONFIG.format(**template_vars))
+        (dlk_conf_dir / "modules.conf").symlink_to(self.dlk_path / "conf/modules.conf")
 
-        # self.run_sql(INIT_SQL)
         self.proc = subprocess.Popen(
             [
-                # "strace",
-                # "-s", "10000",
-                # "-f",
                 "php",
                 "src/dalek",
             ],
-            cwd="../Dalek-Services/",
-            # stdout=subprocess.DEVNULL,
-            # stderr=subprocess.DEVNULL,
+            cwd=self.dlk_path,
+            env={
+                **os.environ,
+                "DALEK_CONF_DIR": str(dlk_conf_dir),
+                "DALEK_LOG_DIR": str(dlk_log_dir),
+            },
         )
 
     def terminate(self) -> None:
-        print("===== terminate")
         super().terminate()
 
     def kill(self) -> None:
-        print("===== kill")
         super().kill()
 
     def registerUser(
@@ -183,16 +224,16 @@ class DlkController(BaseServicesController, DirectoryBasedController):
         password: Optional[str] = None,
     ) -> None:
         assert password
-        wp_proc = subprocess.run(
+        subprocess.run(
             [
                 "php",
-                "../wp-cli.phar",  # TODO should not be hardcoded
+                self.wp_cli_path,
                 "user",
                 "create",
                 username,
                 f"{username}@example.org",
                 f"--user_pass={password}",
-                f"--path=../wordpress",  # TODO should not be hardcoded
+                f"--path={self.wp_path}",
             ],
             check=True,
         )
