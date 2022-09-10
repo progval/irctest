@@ -337,7 +337,7 @@ software:
             wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
             wget -q https://wordpress.org/latest.zip -O wordpress-latest.zip
         env: >-
-            IRCTEST_DLK_PATH="${{ github.workspace }}/Dalek-Services"
+            IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services"
             IRCTEST_WP_CLI_PATH="${{ github.workspace }}/wp-cli.phar"
             IRCTEST_WP_ZIP_PATH="${{ github.workspace }}/wordpress-latest.zip"
 
