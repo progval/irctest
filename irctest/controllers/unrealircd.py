@@ -1,11 +1,11 @@
+import contextlib
+import fcntl
 import functools
-import os
-import pathlib
+from pathlib import Path
 import shutil
-import signal
 import subprocess
 import textwrap
-from typing import List, Optional, Set, Type, Union
+from typing import Callable, ContextManager, Iterator, Optional, Set, Type
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -125,6 +125,35 @@ oper "operuser" {{
 """
 
 
+def _filelock(path: Path) -> Callable[[], ContextManager]:
+    """Alternative to :cls:`multiprocessing.Lock` that works with pytest-xdist"""
+
+    @contextlib.contextmanager
+    def f() -> Iterator[None]:
+        with open(path, "a") as fd:
+            fcntl.flock(fd, fcntl.LOCK_EX)
+            yield
+
+    return f
+
+
+_UNREALIRCD_BIN = shutil.which("unrealircd")
+if _UNREALIRCD_BIN:
+    _UNREALIRCD_PREFIX = Path(_UNREALIRCD_BIN).parent.parent
+
+    # Try to keep that lock file specific to this Unrealircd instance
+    _LOCK_PATH = _UNREALIRCD_PREFIX / "irctest-unrealircd-startstop.lock"
+else:
+    # unrealircd not found; we are probably going to crash later anyway...
+    _LOCK_PATH = Path("/tmp/irctest-unrealircd-startstop.lock")
+
+_STARTSTOP_LOCK = _filelock(_LOCK_PATH)
+"""
+Unreal cleans its tmp/ directory after each run, which prevents
+multiple processes from starting/stopping at the same time.
+"""
+
+
 @functools.lru_cache()
 def installed_version() -> int:
     output = subprocess.check_output(["unrealircd", "-v"], universal_newlines=True)
@@ -170,18 +199,6 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         self.port = port
         self.hostname = hostname
         self.create_config()
-        (unused_hostname, unused_port) = find_hostname_and_port()
-        (services_hostname, services_port) = find_hostname_and_port()
-
-        password_field = 'password "{}";'.format(password) if password else ""
-
-        self.gen_ssl()
-        if ssl:
-            (tls_hostname, tls_port) = (hostname, port)
-            (hostname, port) = (unused_hostname, unused_port)
-        else:
-            # Unreal refuses to start without TLS enabled
-            (tls_hostname, tls_port) = (unused_hostname, unused_port)
 
         if installed_version() >= 6:
             extras = textwrap.dedent(
@@ -208,63 +225,60 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         with self.open_file("empty.txt") as fd:
             fd.write("\n")
 
-        assert self.directory
+        password_field = 'password "{}";'.format(password) if password else ""
 
-        with self.open_file("unrealircd.conf") as fd:
-            fd.write(
-                TEMPLATE_CONFIG.format(
-                    hostname=hostname,
-                    port=port,
-                    services_hostname=services_hostname,
-                    services_port=services_port,
-                    tls_hostname=tls_hostname,
-                    tls_port=tls_port,
-                    password_field=password_field,
-                    key_path=self.key_path,
-                    pem_path=self.pem_path,
-                    empty_file=self.directory / "empty.txt",
-                    extras=extras,
-                    set_extras=set_extras,
+        with _STARTSTOP_LOCK():
+            (services_hostname, services_port) = find_hostname_and_port()
+            (unused_hostname, unused_port) = find_hostname_and_port()
+
+            self.gen_ssl()
+            if ssl:
+                (tls_hostname, tls_port) = (hostname, port)
+                (hostname, port) = (unused_hostname, unused_port)
+            else:
+                # Unreal refuses to start without TLS enabled
+                (tls_hostname, tls_port) = (unused_hostname, unused_port)
+
+            assert self.directory
+
+            with self.open_file("unrealircd.conf") as fd:
+                fd.write(
+                    TEMPLATE_CONFIG.format(
+                        hostname=hostname,
+                        port=port,
+                        services_hostname=services_hostname,
+                        services_port=services_port,
+                        tls_hostname=tls_hostname,
+                        tls_port=tls_port,
+                        password_field=password_field,
+                        key_path=self.key_path,
+                        pem_path=self.pem_path,
+                        empty_file=self.directory / "empty.txt",
+                        extras=extras,
+                        set_extras=set_extras,
+                    )
                 )
+
+            if faketime and shutil.which("faketime"):
+                faketime_cmd = ["faketime", "-f", faketime]
+                self.faketime_enabled = True
+            else:
+                faketime_cmd = []
+
+            self.proc = subprocess.Popen(
+                [
+                    *faketime_cmd,
+                    "unrealircd",
+                    "-t",
+                    "-F",  # BOOT_NOFORK
+                    "-f",
+                    self.directory / "unrealircd.conf",
+                ],
+                # stdout=subprocess.DEVNULL,
             )
-
-        proot_cmd: List[Union[str, pathlib.Path]] = []
-        self.using_proot = False
-        if shutil.which("proot"):
-            unrealircd_path = shutil.which("unrealircd")
-            if unrealircd_path:
-                unrealircd_prefix = pathlib.Path(unrealircd_path).parents[1]
-                tmpdir = self.directory / "tmp"
-                tmpdir.mkdir()
-                # Unreal cleans its tmp/ directory after each run, which prevents
-                # multiple processes from running at the same time.
-                # Using PRoot, we can isolate them, with a tmp/ directory for each
-                # process, so they don't interfere with each other, allowing use of
-                # the -n option (of pytest-xdist) to speed-up tests
-                proot_cmd = ["proot", "-b", f"{tmpdir}:{unrealircd_prefix}/tmp"]
-                self.using_proot = True
-
-        if faketime and shutil.which("faketime"):
-            faketime_cmd = ["faketime", "-f", faketime]
-            self.faketime_enabled = True
-        else:
-            faketime_cmd = []
-
-        self.proc = subprocess.Popen(
-            [
-                *proot_cmd,
-                *faketime_cmd,
-                "unrealircd",
-                "-t",
-                "-F",  # BOOT_NOFORK
-                "-f",
-                self.directory / "unrealircd.conf",
-            ],
-            # stdout=subprocess.DEVNULL,
-        )
+            self.wait_for_port()
 
         if run_services:
-            self.wait_for_port()
             self.services_controller = self.services_controller_class(
                 self.test_config, self
             )
@@ -274,17 +288,13 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 server_port=services_port,
             )
 
-    def kill(self) -> None:
-        if self.using_proot:
-            # Kill grandchild process, instead of killing proot, which takes more
-            # time (and does not seem to always work)
-            assert self.proc is not None
-            output = subprocess.check_output(
-                ["ps", "-opid", "--no-headers", "--ppid", str(self.proc.pid)]
-            )
-            (grandchild_pid,) = [int(line) for line in output.decode().split()]
-            os.kill(grandchild_pid, signal.SIGKILL)
-        super().kill()
+    def kill_proc(self) -> None:
+        assert self.proc
+
+        with _STARTSTOP_LOCK():
+            self.proc.kill()
+            self.proc.wait(5)  # wait for it to actually die
+            self.proc = None
 
 
 def get_irctest_controller_class() -> Type[UnrealircdController]:
