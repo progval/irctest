@@ -5,18 +5,22 @@ jobs:
   build-anope:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - name: Cache Anope
+    - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: 3-${{ runner.os }}-anope-2.0.9
+        key: 3-${{ runner.os }}-anope-devel_release
         path: '~/.cache
 
-          ${{ github.workspace }}/anope
+          ${ github.workspace }/anope
 
           '
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: Checkout Anope
       uses: actions/checkout@v2
       with:
@@ -24,7 +28,7 @@ jobs:
         ref: 2.0.9
         repository: anope/anope
     - name: Build Anope
-      run: |-
+      run: |
         cd $GITHUB_WORKSPACE/anope/
         cp $GITHUB_WORKSPACE/data/anope/* .
         CFLAGS=-O0 ./Config -quick

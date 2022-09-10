@@ -301,6 +301,28 @@ software:
         separate_build_job: true
         build_script: *unrealircd_build_script
 
+
+    #############################
+    # Services:
+    anope:
+        name: Anope
+        repository: anope/anope
+        separate_build_job: true
+        path: anope
+        refs:
+            stable: "2.0.9"
+            release: "2.0.9"
+            devel: "2.0.9"
+            devel_release: "2.0.9"
+        build_script: |
+            cd $GITHUB_WORKSPACE/anope/
+            cp $GITHUB_WORKSPACE/data/anope/* .
+            CFLAGS=-O0 ./Config -quick
+            make -C build -j 4
+            make -C build install
+
+
+
     #############################
     # Clients:
 
