@@ -304,6 +304,7 @@ software:
 
     #############################
     # Services:
+
     anope:
         name: Anope
         repository: anope/anope
@@ -321,6 +322,23 @@ software:
             make -C build -j 4
             make -C build install
 
+    dlk:
+        name: Dlk
+        repository: DalekIRC/Dalek-Services
+        separate_build_job: false
+        path: Dlk-Services
+        refs:
+            stable: "9e7820f76756d97db7400d0c4c223699d5b689b1"
+            release: "9e7820f76756d97db7400d0c4c223699d5b689b1"
+            devel: "9e7820f76756d97db7400d0c4c223699d5b689b1"
+            devel_release: "9e7820f76756d97db7400d0c4c223699d5b689b1"
+        build_script: |
+            wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+            wget https://wordpress.org/latest.zip -O wordpress-latest.zip
+        env: >-
+            IRCTEST_DLK_PATH="${{ github.workspace }}/Dalek-Services"
+            IRCTEST_WP_CLI_PATH="${{ github.workspace }}/wp-cli.phar"
+            IRCTEST_WP_ZIP_PATH="${{ github.workspace }}/wordpress-latest.zip"
 
 
     #############################
@@ -357,77 +375,80 @@ software:
             devel_release: null
 
 tests:
-    bahamut:
-        software: [bahamut]
-
-    bahamut-atheme:
-        software: [bahamut]
-
-    bahamut-anope:
-        software: [bahamut, anope]
-
-    charybdis:
-        software: [charybdis]
-
-    hybrid:
-        software: [hybrid, anope]
-
-    solanum:
-        software: [solanum]
-
-    ergo:
-        software: [ergo]
-
-    inspircd:
-        software: [inspircd]
-
-    inspircd-atheme:
-        software: [inspircd]
-        exclude_versions: [devel] # Atheme does not support Insp4 yet, so it fails to connect
-
-    inspircd-anope:
-        software: [inspircd, anope]
-
-    ngircd:
-        software: [ngircd]
-
-    ngircd-atheme:
-        software: [ngircd]
-
-    ngircd-anope:
-        software: [ngircd, anope]
-
-    plexus4:
-        software: [plexus4, anope]
-
-    irc2:
-        software: [irc2]
-
-    ircu2:
-        software: [ircu2]
-
-    nefarious:
-        software: [nefarious]
-
-    # doesn't build because it can't find liblex for some reason
-    #snircd:
-    #    software: [snircd]
-
-    unrealircd-5:
-        software: [unrealircd-5]
-
-    unrealircd:
-        software: [unrealircd]
-
+#    bahamut:
+#        software: [bahamut]
+#
+#    bahamut-atheme:
+#        software: [bahamut]
+#
+#    bahamut-anope:
+#        software: [bahamut, anope]
+#
+#    charybdis:
+#        software: [charybdis]
+#
+#    hybrid:
+#        software: [hybrid, anope]
+#
+#    solanum:
+#        software: [solanum]
+#
+#    ergo:
+#        software: [ergo]
+#
+#    inspircd:
+#        software: [inspircd]
+#
+#    inspircd-atheme:
+#        software: [inspircd]
+#        exclude_versions: [devel] # Atheme does not support Insp4 yet, so it fails to connect
+#
+#    inspircd-anope:
+#        software: [inspircd, anope]
+#
+#    ngircd:
+#        software: [ngircd]
+#
+#    ngircd-atheme:
+#        software: [ngircd]
+#
+#    ngircd-anope:
+#        software: [ngircd, anope]
+#
+#    plexus4:
+#        software: [plexus4, anope]
+#
+#    irc2:
+#        software: [irc2]
+#
+#    ircu2:
+#        software: [ircu2]
+#
+#    nefarious:
+#        software: [nefarious]
+#
+#    # doesn't build because it can't find liblex for some reason
+#    #snircd:
+#    #    software: [snircd]
+#
+#    unrealircd-5:
+#        software: [unrealircd-5]
+#
+#    unrealircd:
+#        software: [unrealircd]
+#
     unrealircd-atheme:
         software: [unrealircd]
+#
+#    unrealircd-anope:
+#        software: [unrealircd, anope]
 
-    unrealircd-anope:
-        software: [unrealircd, anope]
+    unrealircd-dlk:
+        software: [unrealircd, dlk]
 
 
-    limnoria:
-        software: [limnoria]
-
-    sopel:
-        software: [sopel]
+#    limnoria:
+#        software: [limnoria]
+#
+#    sopel:
+#        software: [sopel]
