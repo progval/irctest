@@ -1,4 +1,3 @@
-import os
 import shutil
 import subprocess
 from typing import Optional, Set, Type
@@ -164,7 +163,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                 "inspircd",
                 "--nofork",
                 "--config",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
             ],
             stdout=subprocess.DEVNULL,
         )

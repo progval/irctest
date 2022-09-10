@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import shutil
 import subprocess
 from typing import Optional, Set, Type
@@ -80,7 +80,7 @@ oper {{
 """
 
 
-def initialize_entropy(directory: str) -> None:
+def initialize_entropy(directory: Path) -> None:
     # https://github.com/DALnet/bahamut/blob/7fc039d403f66a954225c5dc4ad1fe683aedd794/include/dh.h#L35-L38
     nb_rand_bytes = 512 // 8
     # https://github.com/DALnet/bahamut/blob/7fc039d403f66a954225c5dc4ad1fe683aedd794/src/dh.c#L186
@@ -89,7 +89,7 @@ def initialize_entropy(directory: str) -> None:
     # Not actually random; but we don't care.
     entropy = b"\x00" * entropy_file_size
 
-    with open(os.path.join(directory, ".ircd.entropy"), "wb") as fd:
+    with (directory / ".ircd.entropy").open("wb") as fd:
         fd.write(entropy)
 
 
@@ -140,8 +140,8 @@ class BahamutController(BaseServerController, DirectoryBasedController):
         initialize_entropy(self.directory)
 
         # they are hardcoded... thankfully Bahamut reads them from the CWD.
-        shutil.copy(self.pem_path, os.path.join(self.directory, "ircd.crt"))
-        shutil.copy(self.key_path, os.path.join(self.directory, "ircd.key"))
+        shutil.copy(self.pem_path, self.directory / "ircd.crt")
+        shutil.copy(self.key_path, self.directory / "ircd.key")
 
         with self.open_file("server.conf") as fd:
             fd.write(
@@ -168,7 +168,7 @@ class BahamutController(BaseServerController, DirectoryBasedController):
                 "ircd",
                 "-t",  # don't fork
                 "-f",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
             ],
         )
 

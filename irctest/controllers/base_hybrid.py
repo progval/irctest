@@ -1,4 +1,3 @@
-import os
 import shutil
 import subprocess
 from typing import Optional, Set
@@ -88,9 +87,9 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
                 self.binary_name,
                 "-foreground",
                 "-configfile",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
                 "-pidfile",
-                os.path.join(self.directory, "server.pid"),
+                self.directory / "server.pid",
             ],
             # stderr=subprocess.DEVNULL,
         )

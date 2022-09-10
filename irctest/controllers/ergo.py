@@ -185,21 +185,19 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         bind_address = "127.0.0.1:%s" % (port,)
         listener_conf = None  # plaintext
         if ssl:
-            self.key_path = os.path.join(self.directory, "ssl.key")
-            self.pem_path = os.path.join(self.directory, "ssl.pem")
+            self.key_path = self.directory / "ssl.key"
+            self.pem_path = self.directory / "ssl.pem"
             listener_conf = {"tls": {"cert": self.pem_path, "key": self.key_path}}
         config["server"]["listeners"][bind_address] = listener_conf  # type: ignore
 
-        config["datastore"]["path"] = os.path.join(  # type: ignore
-            self.directory, "ircd.db"
-        )
+        config["datastore"]["path"] = str(self.directory / "ircd.db")  # type: ignore
 
         if password is not None:
             config["server"]["password"] = hash_password(password)  # type: ignore
 
         assert self.proc is None
 
-        self._config_path = os.path.join(self.directory, "server.yml")
+        self._config_path = self.directory / "server.yml"
         self._config = config
         self._write_config()
         subprocess.call(["ergo", "initdb", "--conf", self._config_path, "--quiet"])

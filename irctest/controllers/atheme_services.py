@@ -1,4 +1,3 @@
-import os
 import subprocess
 from typing import Optional, Type
 
@@ -81,11 +80,11 @@ class AthemeController(BaseServicesController, DirectoryBasedController):
                 "atheme-services",
                 "-n",  # don't fork
                 "-c",
-                os.path.join(self.directory, "services.conf"),
+                self.directory / "services.conf",
                 "-l",
                 f"/tmp/services-{server_port}.log",
                 "-p",
-                os.path.join(self.directory, "services.pid"),
+                self.directory / "services.pid",
                 "-D",
                 self.directory,
             ],
