@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-import random
+import secrets
 import subprocess
 from typing import Optional, Type
 
@@ -153,7 +153,7 @@ class DlkController(BaseServicesController, DirectoryBasedController):
         )
         self.wp_path = self.directory / "wordpress"
 
-        rand_hex = random.randbytes(6).hex()  # type: ignore[attr-defined]
+        rand_hex = secrets.token_hex(6)
         self.wp_prefix = f"wp{rand_hex}_"
         self.dlk_prefix = f"dlk{rand_hex}_"
         template_vars = dict(
