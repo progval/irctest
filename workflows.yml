@@ -333,8 +333,9 @@ software:
             devel: "9e7820f76756d97db7400d0c4c223699d5b689b1"
             devel_release: "9e7820f76756d97db7400d0c4c223699d5b689b1"
         build_script: |
-            wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-            wget https://wordpress.org/latest.zip -O wordpress-latest.zip
+            pip install pifpaf
+            wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+            wget -q https://wordpress.org/latest.zip -O wordpress-latest.zip
         env: >-
             IRCTEST_DLK_PATH="${{ github.workspace }}/Dalek-Services"
             IRCTEST_WP_CLI_PATH="${{ github.workspace }}/wp-cli.phar"

@@ -276,7 +276,7 @@ unrealircd-anope:
 		-k '$(UNREALIRCD_SELECTORS)'
 
 unrealircd-dlk:
-	$(PYTEST) $(PYTEST_ARGS) \
+	pifpaf run mysql -- $(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.unrealircd \
 		--services-controller=irctest.controllers.dlk_services \
 		-m 'services' \
