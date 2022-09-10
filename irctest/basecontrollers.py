@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 import os
+from pathlib import Path
 import shutil
 import socket
 import subprocess
@@ -87,7 +88,7 @@ class DirectoryBasedController(_BaseController):
     """Helper for controllers whose software configuration is based on an
     arbitrary directory."""
 
-    directory: Optional[str]
+    directory: Optional[Path]
 
     def __init__(self, test_config: TestCaseControllerConfig):
         super().__init__(test_config)
@@ -110,22 +111,21 @@ class DirectoryBasedController(_BaseController):
         """Open a file in the configuration directory."""
         assert self.directory
         if os.sep in name:
-            dir_ = os.path.join(self.directory, os.path.dirname(name))
-            if not os.path.isdir(dir_):
-                os.makedirs(dir_)
-            assert os.path.isdir(dir_)
-        return open(os.path.join(self.directory, name), mode)
+            dir_ = self.directory / os.path.dirname(name)
+            dir_.mkdir(parents=True, exist_ok=True)
+            assert dir_.is_dir()
+        return (self.directory / name).open(mode)
 
     def create_config(self) -> None:
         if not self.directory:
-            self.directory = tempfile.mkdtemp()
+            self.directory = Path(tempfile.mkdtemp())
 
     def gen_ssl(self) -> None:
         assert self.directory
-        self.csr_path = os.path.join(self.directory, "ssl.csr")
-        self.key_path = os.path.join(self.directory, "ssl.key")
-        self.pem_path = os.path.join(self.directory, "ssl.pem")
-        self.dh_path = os.path.join(self.directory, "dh.pem")
+        self.csr_path = self.directory / "ssl.csr"
+        self.key_path = self.directory / "ssl.key"
+        self.pem_path = self.directory / "ssl.pem"
+        self.dh_path = self.directory / "dh.pem"
         subprocess.check_output(
             [
                 self.openssl_bin,

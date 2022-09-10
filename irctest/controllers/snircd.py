@@ -1,4 +1,3 @@
-import os
 import shutil
 import subprocess
 from typing import Optional, Set, Type
@@ -86,7 +85,7 @@ class SnircdController(BaseServerController, DirectoryBasedController):
         self.create_config()
         password_field = 'password = "{}";'.format(password) if password else ""
         assert self.directory
-        pidfile = os.path.join(self.directory, "ircd.pid")
+        pidfile = self.directory / "ircd.pid"
         with self.open_file("server.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -109,7 +108,7 @@ class SnircdController(BaseServerController, DirectoryBasedController):
                 "ircd",
                 "-n",  # don't detach
                 "-f",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
                 "-x",
                 "DEBUG",
             ],

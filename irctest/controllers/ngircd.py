@@ -1,4 +1,3 @@
-import os
 import shutil
 import subprocess
 from typing import Optional, Set, Type
@@ -94,7 +93,7 @@ class NgircdController(BaseServerController, DirectoryBasedController):
                     password_field=password_field,
                     key_path=self.key_path,
                     pem_path=self.pem_path,
-                    empty_file=os.path.join(self.directory, "empty.txt"),
+                    empty_file=self.directory / "empty.txt",
                 )
             )
 
@@ -110,7 +109,7 @@ class NgircdController(BaseServerController, DirectoryBasedController):
                 "ngircd",
                 "--nodaemon",
                 "--config",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
             ],
             # stdout=subprocess.DEVNULL,
         )

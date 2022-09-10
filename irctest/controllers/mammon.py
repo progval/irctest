@@ -1,4 +1,3 @@
-import os
 import shutil
 import subprocess
 from typing import Optional, Set, Type
@@ -128,7 +127,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
                 "mammond",
                 "--nofork",  # '--debug',
                 "--config",
-                os.path.join(self.directory, "server.yml"),
+                self.directory / "server.yml",
             ]
         )
 

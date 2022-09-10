@@ -5,7 +5,7 @@ import shutil
 import signal
 import subprocess
 import textwrap
-from typing import Optional, Set, Type
+from typing import List, Optional, Set, Type, Union
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -222,20 +222,20 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                     password_field=password_field,
                     key_path=self.key_path,
                     pem_path=self.pem_path,
-                    empty_file=os.path.join(self.directory, "empty.txt"),
+                    empty_file=self.directory / "empty.txt",
                     extras=extras,
                     set_extras=set_extras,
                 )
             )
 
-        proot_cmd = []
+        proot_cmd: List[Union[str, pathlib.Path]] = []
         self.using_proot = False
         if shutil.which("proot"):
             unrealircd_path = shutil.which("unrealircd")
             if unrealircd_path:
                 unrealircd_prefix = pathlib.Path(unrealircd_path).parents[1]
-                tmpdir = os.path.join(self.directory, "tmp")
-                os.mkdir(tmpdir)
+                tmpdir = self.directory / "tmp"
+                tmpdir.mkdir()
                 # Unreal cleans its tmp/ directory after each run, which prevents
                 # multiple processes from running at the same time.
                 # Using PRoot, we can isolate them, with a tmp/ directory for each
@@ -258,7 +258,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 "-t",
                 "-F",  # BOOT_NOFORK
                 "-f",
-                os.path.join(self.directory, "unrealircd.conf"),
+                self.directory / "unrealircd.conf",
             ],
             # stdout=subprocess.DEVNULL,
         )
