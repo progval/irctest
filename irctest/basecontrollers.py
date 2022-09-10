@@ -301,10 +301,11 @@ class BaseServicesController(_BaseController):
                 c.sendLine("PONG :" + msg.params[0])
         c.getMessages()
 
-        timeout = time.time() + 5
+        timeout = time.time() + 3
         while True:
-            c.sendLine(f"PRIVMSG {self.server_controller.nickserv} :HELP")
-            msgs = self.getNickServResponse(c)
+            c.sendLine(f"PRIVMSG {self.server_controller.nickserv} :help")
+
+            msgs = self.getNickServResponse(c, timeout=1)
             for msg in msgs:
                 if msg.command == "401":
                     # NickServ not available yet
@@ -330,12 +331,13 @@ class BaseServicesController(_BaseController):
         c.disconnect()
         self.services_up = True
 
-    def getNickServResponse(self, client: Any) -> List[Message]:
+    def getNickServResponse(self, client: Any, timeout: int = 0) -> List[Message]:
         """Wrapper aroung getMessages() that waits longer, because NickServ
         is queried asynchronously."""
         msgs: List[Message] = []
-        while not msgs:
-            time.sleep(0.05)
+        start_time = time.time()
+        while not msgs and (not timeout or start_time + timeout > time.time()):
+            time.sleep(0.2)
             msgs = client.getMessages()
         return msgs
 
