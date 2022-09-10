@@ -15,28 +15,28 @@ TEMPLATE_DLK_CONFIG = """
 include "languages/en_GB";
 
 $cf = [
-	'debugmode' => 'on',
+    'debugmode' => 'on',
 
-	'sid' => '00A',
-	'servicesname' => 'services.example.org',
-	'network' => 'test network',
+    'sid' => '00A',
+    'servicesname' => 'services.example.org',
+    'network' => 'test network',
 
-	'proto' => '{protocol}',
+    'proto' => '{protocol}',
 
-	'uplink' => '{server_hostname}',
-	'port' => '{server_port}',
-	'serverpassword' => 'password',
+    'uplink' => '{server_hostname}',
+    'port' => '{server_port}',
+    'serverpassword' => 'password',
 
-	/* SQL Config for the user database */
-	'sqlip' => '',
-	'sqlport' => '3306',
-	'sqluser' => 'pifpaf',
-	'sqlpass' => 'pifpaf',
-	'sqldb' => 'pifpaf',
+    /* SQL Config for the user database */
+    'sqlip' => '',
+    'sqlport' => '3306',
+    'sqluser' => 'pifpaf',
+    'sqlpass' => 'pifpaf',
+    'sqldb' => 'pifpaf',
     'sqlsock' => '{mysql_socket}',
     'sqlprefix' => '{dlk_prefix}',
 
-	'logchan' => '#services',
+    'logchan' => '#services',
 ]
 ?>
 """
@@ -47,11 +47,11 @@ TEMPLATE_DLK_WP_CONFIG = """
 global $wpconfig;
 $wpconfig = [
 
-	"dbprefix" => "{wp_prefix}",
+    "dbprefix" => "{wp_prefix}",
 
 
-	"default_avatar" => "https://valware.uk/wp-content/plugins/ultimate-member/assets/img/default_avatar.jpg",
-	"forumschan" => "#DLK-Support",
+    "default_avatar" => "https://valware.uk/wp-content/plugins/ultimate-member/assets/img/default_avatar.jpg",
+    "forumschan" => "#DLK-Support",
 
 ];
 """
