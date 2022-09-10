@@ -144,11 +144,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
     downloads = []
     install_steps = []
     for software_id in test_config.get("software", []):
-        if software_id == "anope":
-            # TODO: don't hardcode anope here
-            software_config = {"separate_build_job": True}
-        else:
-            software_config = config["software"][software_id]
+        software_config = config["software"][software_id]
 
         env += test_config.get("env", {}).get(version_flavor.value, "") + " "
         if "prefix" in software_config:
@@ -245,47 +241,6 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
     }
 
 
-def get_build_job_anope():
-    return {
-        "runs-on": "ubuntu-latest",
-        "steps": [
-            {"uses": "actions/checkout@v2"},
-            {
-                "name": "Create directories",
-                "run": "cd ~/; mkdir -p .local/ go/",
-            },
-            {
-                "name": "Cache Anope",
-                "uses": "actions/cache@v2",
-                "with": {
-                    "path": "~/.cache\n${{ github.workspace }}/anope\n",
-                    "key": "3-${{ runner.os }}-anope-2.0.9",
-                },
-            },
-            {
-                "name": "Checkout Anope",
-                "uses": "actions/checkout@v2",
-                "with": {
-                    "repository": "anope/anope",
-                    "ref": "2.0.9",
-                    "path": "anope",
-                },
-            },
-            {
-                "name": "Build Anope",
-                "run": script(
-                    "cd $GITHUB_WORKSPACE/anope/",
-                    "cp $GITHUB_WORKSPACE/data/anope/* .",
-                    "CFLAGS=-O0 ./Config -quick",
-                    "make -C build -j 4",
-                    "make -C build install",
-                ),
-            },
-            *upload_steps("anope"),
-        ],
-    }
-
-
 def upload_steps(software_id):
     """Make a tarball (to preserve permissions) and upload"""
     return [
@@ -326,7 +281,6 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         }
 
     jobs = {}
-    jobs["build-anope"] = get_build_job_anope()
 
     for software_id in config["software"]:
         software_config = config["software"][software_id]
