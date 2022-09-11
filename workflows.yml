@@ -328,10 +328,10 @@ software:
         separate_build_job: false
         path: Dlk-Services
         refs:
-            stable: "c4cf84ee04af4b9fb78544f61593104d94eb69c3"
-            release: "c4cf84ee04af4b9fb78544f61593104d94eb69c3"
+            stable: &dlk_stable "c6420ff4b9d8daae500b5976138ed9a49616b403"
+            release: *dlk_stable
             devel: "master"
-            devel_release: "c4cf84ee04af4b9fb78544f61593104d94eb69c3"
+            devel_release: *dlk_stable
         build_script: |
             pip install pifpaf
             wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
