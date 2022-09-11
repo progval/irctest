@@ -149,7 +149,11 @@ class AwayTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testAwayEmptyMessage(self):
         """
-        TODO: document this behavior in Modern
+        "If [AWAY] is sent with a nonempty parameter (the 'away message')
+        then the user is set to be away. If this command is sent with no
+        parameters, or with the empty string as the parameter, the user is no
+        longer away."
+        -- https://modern.ircdocs.horse/#away-message
         """
         self.connectClient("bar", name="bar")
         self.connectClient("qux", name="qux")
