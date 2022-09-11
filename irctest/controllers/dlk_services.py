@@ -77,8 +77,9 @@ $table_prefix = '{wp_prefix}';
 
 define( 'WP_DEBUG', false );
 
-
-define( 'ABSPATH', '{wp_path}' );
+if (!defined('ABSPATH')) {{
+    define( 'ABSPATH', '{wp_path}' );
+}}
 
 /* That's all, stop editing! Happy publishing. */
 
