@@ -4,265 +4,265 @@
 # are defined.
 
 software:
-    #############################
-    # Hybrid family:
-    charybdis:
-        name: Charybdis
-        repository: charybdis-ircd/charybdis
-        refs:
-            stable: charybdis-4.1.2
-            release: null
-            devel: null
-            devel_release: null
-        path: charybdis
-        separate_build_job: true
-        build_script: |
-            cd $GITHUB_WORKSPACE/charybdis/
-            ./autogen.sh
-            ./configure --prefix=$HOME/.local/
-            make -j 4
-            make install
-
-    hybrid:
-        name: Hybrid
-        repository: ircd-hybrid/ircd-hybrid
-        refs:
-            stable: "8.2.39"
-            release: null
-            devel: "8.2.x"
-            devel_release: null
-        path: ircd-hybrid
-        separate_build_job: true
-        build_script: |
-            cd $GITHUB_WORKSPACE/ircd-hybrid/
-            ./configure --prefix=$HOME/.local/
-            make -j 4
-            make install
-
-    plexus4:
-        name: Plexus4
-        path: plexus4
-        separate_build_job: true
-        install_steps:
-            stable:
-                - name: clone
-                  run: |-
-                      curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar | tar -x
-                      mv plexus* plexus4
-                - name: build
-                  run: |-
-                      cd $GITHUB_WORKSPACE/plexus4
-                      ./autogen.sh
-                      ./configure --prefix=$HOME/.local/
-                      make -j 4
-                      make install
-            release: null
-            devel:
-                - name: clone
-                  run: |-
-                      curl https://gitlab.com/rizon/plexus4/-/archive/master/plexus4-master.tar.gz | tar -zx
-                      mv plexus4* plexus4
-                - name: build
-                  run: |-
-                      cd $GITHUB_WORKSPACE/plexus4
-                      ./autogen.sh
-                      ./configure --prefix=$HOME/.local/
-                      make -j 4
-                      make install
-            devel_release: null
-
-    solanum:
-        name: Solanum
-        repository: solanum-ircd/solanum
-        refs:
-            # Actually Solanum doesn't have releases; so we just bump this
-            # commit hash from time to time
-            stable: 492d560ee13e71dc35403fd676e58c2d5bdcf2a9
-            release: null
-            devel: main
-            devel_release: null
-        path: solanum
-        separate_build_job: true
-        build_script: |
-            cd $GITHUB_WORKSPACE/solanum/
-            ./autogen.sh
-            ./configure --prefix=$HOME/.local/
-            make -j 4
-            make install
-
-    #############################
-    # Other servers:
-    bahamut:
-        name: Bahamut
-        repository: DALnet/Bahamut
-        refs:
-            stable: "v2.2.1"
-            release: null
-            devel: "master"
-            devel_release: null
-        path: Bahamut
-        separate_build_job: true
-        build_script: |
-            cd $GITHUB_WORKSPACE/Bahamut/
-            patch src/s_user.c < $GITHUB_WORKSPACE/patches/bahamut_localhost.patch
-            patch src/s_bsd.c < $GITHUB_WORKSPACE/patches/bahamut_mainloop.patch
-            echo "#undef THROTTLE_ENABLE" >> include/config.h
-            libtoolize --force
-            aclocal
-            autoheader
-            automake --force-missing --add-missing || true
-            autoreconf
-            ./configure --prefix=$HOME/.local/
-            make -j 4
-            make install
-            mkdir -p $HOME/.local/bin/
-            cp $HOME/.local/ircd $HOME/.local/bin/ircd
-
-    ergo:
-        name: Ergo
-        repository: ergochat/ergo
-        refs:
-            stable: irctest_stable
-            release: stable
-            devel: master
-            devel_release: null
-        path: ergo
-        prefix: ~/go
-        pre_deps:
-            - uses: actions/setup-go@v2
-              with:
-                  go-version: '^1.19.0'
-            - run: go version
-        separate_build_job: false
-        build_script: |
-            cd $GITHUB_WORKSPACE/ergo/
-            make build
-            make install
-
-    inspircd:
-        name: InspIRCd
-        repository: inspircd/inspircd
-        refs: &inspircd_refs
-            stable: v3.12.0
-            release: null
-            devel: master
-            devel_release: insp3
-        path: inspircd
-        prefix: ~/.local/inspircd
-        cache: false  # incremental compilation is frequently broken
-        separate_build_job: true
-        build_script: &inspircd_build_script |
-            cd $GITHUB_WORKSPACE/inspircd/
-            patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
-            ./configure --prefix=$HOME/.local/inspircd --development
-            make -j 4
-            make install
-    irc2:
-        name: irc2
-        separate_build_job: false
-        repository : irc-archive/irc2-mirror
-        path: irc2.11.2p3
-        cache: true
-        refs:
-            stable: 59649f24c3a5c27bad5648b48774f27475bccfd3  #  irc2.11.2p3
-            release: null
-            devel: null
-            devel_release: null
-        build_script: |
-            # Configure
-            cd $GITHUB_WORKSPACE/irc2.11.2p3
-            ./configure --prefix=$HOME/.local/
-            cd x86*
-            echo "#define CMDLINE_CONFIG/" >> config.h
-            echo "#define DEFAULT_SPLIT_USERS 0" >> config.h
-            echo "#define DEFAULT_SPLIT_SERVERS 0" >> config.h
-            #echo "#undef LIST_ALIS_NOTE" >> config.h
-            # TODO: find a better way to make it not fork...
-            echo "#define fork() (0)" >> config.h
-
-            # Compile and install
-            cd $GITHUB_WORKSPACE/irc2.11.2p3/x86*
-            make -j 4 all
-            make install
-            mkdir -p $HOME/.local/bin
-            cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
-
-    ircu2:
-        name: ircu2
-        repository: undernetirc/ircu2
-        refs:
-            stable: "u2.10.12.19"
-            release: null
-            devel: "u2_10_12_branch"
-            devel_release: null
-        path: ircu2
-        separate_build_job: false
-        build_script: |
-            cd $GITHUB_WORKSPACE/ircu2
-            # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
-            # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
-            ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
-            make -j 4
-            make install
-
-    nefarious:
-        name: nefarious
-        repository: evilnet/nefarious2
-        refs:
-            stable: "985704168ecada12d9e53b46df6087ef9d9fb40b"
-            release: null
-            devel: "master"
-            devel_release: null
-        path: nefarious
-        separate_build_job: false
-        build_script: |
-            cd $GITHUB_WORKSPACE/nefarious
-            ./configure --prefix=$HOME/.local/ --enable-debug
-            make -j 4
-            make install
-            cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
-
-    ngircd:
-        name: ngircd
-        repository: ngircd/ngircd
-        refs:
-            stable: rel-26.1
-            release: null
-            devel: master
-            devel_release: null
-        path: ngircd
-        prefix: ~/.local/
-        separate_build_job: true
-        build_script: |
-            cd $GITHUB_WORKSPACE/ngircd
-            patch src/ngircd/client.c < $GITHUB_WORKSPACE/patches/ngircd_whowas_delay.patch
-            ./autogen.sh
-            ./configure --prefix=$HOME/.local/
-            make -j 4
-            make install
-
-    snircd:
-        name: snircd
-        repository: quakenet/snircd
-        refs:
-            stable: "u2.10.12.10+snircd(1.3.4a)"
-            release: null
-            devel: null  # no update in master since 2013...
-            devel_release: null
-        path: snircd
-        separate_build_job: false
-        build_script: |
-            cd $GITHUB_WORKSPACE/snircd
-
-            # Work around an issue with liblex detection
-            rm configure
-            autoconf
-
-            # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
-            # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
-            ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
-            make -j 4
-            make install
+#    #############################
+#    # Hybrid family:
+#    charybdis:
+#        name: Charybdis
+#        repository: charybdis-ircd/charybdis
+#        refs:
+#            stable: charybdis-4.1.2
+#            release: null
+#            devel: null
+#            devel_release: null
+#        path: charybdis
+#        separate_build_job: true
+#        build_script: |
+#            cd $GITHUB_WORKSPACE/charybdis/
+#            ./autogen.sh
+#            ./configure --prefix=$HOME/.local/
+#            make -j 4
+#            make install
+#
+#    hybrid:
+#        name: Hybrid
+#        repository: ircd-hybrid/ircd-hybrid
+#        refs:
+#            stable: "8.2.39"
+#            release: null
+#            devel: "8.2.x"
+#            devel_release: null
+#        path: ircd-hybrid
+#        separate_build_job: true
+#        build_script: |
+#            cd $GITHUB_WORKSPACE/ircd-hybrid/
+#            ./configure --prefix=$HOME/.local/
+#            make -j 4
+#            make install
+#
+#    plexus4:
+#        name: Plexus4
+#        path: plexus4
+#        separate_build_job: true
+#        install_steps:
+#            stable:
+#                - name: clone
+#                  run: |-
+#                      curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar | tar -x
+#                      mv plexus* plexus4
+#                - name: build
+#                  run: |-
+#                      cd $GITHUB_WORKSPACE/plexus4
+#                      ./autogen.sh
+#                      ./configure --prefix=$HOME/.local/
+#                      make -j 4
+#                      make install
+#            release: null
+#            devel:
+#                - name: clone
+#                  run: |-
+#                      curl https://gitlab.com/rizon/plexus4/-/archive/master/plexus4-master.tar.gz | tar -zx
+#                      mv plexus4* plexus4
+#                - name: build
+#                  run: |-
+#                      cd $GITHUB_WORKSPACE/plexus4
+#                      ./autogen.sh
+#                      ./configure --prefix=$HOME/.local/
+#                      make -j 4
+#                      make install
+#            devel_release: null
+#
+#    solanum:
+#        name: Solanum
+#        repository: solanum-ircd/solanum
+#        refs:
+#            # Actually Solanum doesn't have releases; so we just bump this
+#            # commit hash from time to time
+#            stable: 492d560ee13e71dc35403fd676e58c2d5bdcf2a9
+#            release: null
+#            devel: main
+#            devel_release: null
+#        path: solanum
+#        separate_build_job: true
+#        build_script: |
+#            cd $GITHUB_WORKSPACE/solanum/
+#            ./autogen.sh
+#            ./configure --prefix=$HOME/.local/
+#            make -j 4
+#            make install
+#
+#    #############################
+#    # Other servers:
+#    bahamut:
+#        name: Bahamut
+#        repository: DALnet/Bahamut
+#        refs:
+#            stable: "v2.2.1"
+#            release: null
+#            devel: "master"
+#            devel_release: null
+#        path: Bahamut
+#        separate_build_job: true
+#        build_script: |
+#            cd $GITHUB_WORKSPACE/Bahamut/
+#            patch src/s_user.c < $GITHUB_WORKSPACE/patches/bahamut_localhost.patch
+#            patch src/s_bsd.c < $GITHUB_WORKSPACE/patches/bahamut_mainloop.patch
+#            echo "#undef THROTTLE_ENABLE" >> include/config.h
+#            libtoolize --force
+#            aclocal
+#            autoheader
+#            automake --force-missing --add-missing || true
+#            autoreconf
+#            ./configure --prefix=$HOME/.local/
+#            make -j 4
+#            make install
+#            mkdir -p $HOME/.local/bin/
+#            cp $HOME/.local/ircd $HOME/.local/bin/ircd
+#
+#    ergo:
+#        name: Ergo
+#        repository: ergochat/ergo
+#        refs:
+#            stable: irctest_stable
+#            release: stable
+#            devel: master
+#            devel_release: null
+#        path: ergo
+#        prefix: ~/go
+#        pre_deps:
+#            - uses: actions/setup-go@v2
+#              with:
+#                  go-version: '^1.19.0'
+#            - run: go version
+#        separate_build_job: false
+#        build_script: |
+#            cd $GITHUB_WORKSPACE/ergo/
+#            make build
+#            make install
+#
+#    inspircd:
+#        name: InspIRCd
+#        repository: inspircd/inspircd
+#        refs: &inspircd_refs
+#            stable: v3.12.0
+#            release: null
+#            devel: master
+#            devel_release: insp3
+#        path: inspircd
+#        prefix: ~/.local/inspircd
+#        cache: false  # incremental compilation is frequently broken
+#        separate_build_job: true
+#        build_script: &inspircd_build_script |
+#            cd $GITHUB_WORKSPACE/inspircd/
+#            patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
+#            ./configure --prefix=$HOME/.local/inspircd --development
+#            make -j 4
+#            make install
+#    irc2:
+#        name: irc2
+#        separate_build_job: false
+#        repository : irc-archive/irc2-mirror
+#        path: irc2.11.2p3
+#        cache: true
+#        refs:
+#            stable: 59649f24c3a5c27bad5648b48774f27475bccfd3  #  irc2.11.2p3
+#            release: null
+#            devel: null
+#            devel_release: null
+#        build_script: |
+#            # Configure
+#            cd $GITHUB_WORKSPACE/irc2.11.2p3
+#            ./configure --prefix=$HOME/.local/
+#            cd x86*
+#            echo "#define CMDLINE_CONFIG/" >> config.h
+#            echo "#define DEFAULT_SPLIT_USERS 0" >> config.h
+#            echo "#define DEFAULT_SPLIT_SERVERS 0" >> config.h
+#            #echo "#undef LIST_ALIS_NOTE" >> config.h
+#            # TODO: find a better way to make it not fork...
+#            echo "#define fork() (0)" >> config.h
+#
+#            # Compile and install
+#            cd $GITHUB_WORKSPACE/irc2.11.2p3/x86*
+#            make -j 4 all
+#            make install
+#            mkdir -p $HOME/.local/bin
+#            cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
+#
+#    ircu2:
+#        name: ircu2
+#        repository: undernetirc/ircu2
+#        refs:
+#            stable: "u2.10.12.19"
+#            release: null
+#            devel: "u2_10_12_branch"
+#            devel_release: null
+#        path: ircu2
+#        separate_build_job: false
+#        build_script: |
+#            cd $GITHUB_WORKSPACE/ircu2
+#            # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
+#            # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
+#            ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
+#            make -j 4
+#            make install
+#
+#    nefarious:
+#        name: nefarious
+#        repository: evilnet/nefarious2
+#        refs:
+#            stable: "985704168ecada12d9e53b46df6087ef9d9fb40b"
+#            release: null
+#            devel: "master"
+#            devel_release: null
+#        path: nefarious
+#        separate_build_job: false
+#        build_script: |
+#            cd $GITHUB_WORKSPACE/nefarious
+#            ./configure --prefix=$HOME/.local/ --enable-debug
+#            make -j 4
+#            make install
+#            cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
+#
+#    ngircd:
+#        name: ngircd
+#        repository: ngircd/ngircd
+#        refs:
+#            stable: rel-26.1
+#            release: null
+#            devel: master
+#            devel_release: null
+#        path: ngircd
+#        prefix: ~/.local/
+#        separate_build_job: true
+#        build_script: |
+#            cd $GITHUB_WORKSPACE/ngircd
+#            patch src/ngircd/client.c < $GITHUB_WORKSPACE/patches/ngircd_whowas_delay.patch
+#            ./autogen.sh
+#            ./configure --prefix=$HOME/.local/
+#            make -j 4
+#            make install
+#
+#    snircd:
+#        name: snircd
+#        repository: quakenet/snircd
+#        refs:
+#            stable: "u2.10.12.10+snircd(1.3.4a)"
+#            release: null
+#            devel: null  # no update in master since 2013...
+#            devel_release: null
+#        path: snircd
+#        separate_build_job: false
+#        build_script: |
+#            cd $GITHUB_WORKSPACE/snircd
+#
+#            # Work around an issue with liblex detection
+#            rm configure
+#            autoconf
+#
+#            # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
+#            # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
+#            ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
+#            make -j 4
+#            make install
 
     unrealircd:
         name: UnrealIRCd 6
