@@ -4,8 +4,13 @@ AWAY command (`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-4
 """
 
 from irctest import cases
-from irctest.numerics import RPL_AWAY, RPL_NOWAWAY, RPL_UNAWAY, RPL_USERHOST
-from irctest.numerics import RPL_WHOISUSER
+from irctest.numerics import (
+    RPL_AWAY,
+    RPL_NOWAWAY,
+    RPL_UNAWAY,
+    RPL_USERHOST,
+    RPL_WHOISUSER,
+)
 from irctest.patma import StrRe
 
 
