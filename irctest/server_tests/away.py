@@ -5,6 +5,7 @@ AWAY command (`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-4
 
 from irctest import cases
 from irctest.numerics import RPL_AWAY, RPL_NOWAWAY, RPL_UNAWAY, RPL_USERHOST
+from irctest.numerics import RPL_WHOISUSER
 from irctest.patma import StrRe
 
 
@@ -139,3 +140,29 @@ class AwayTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             self.getMessage(2), command=RPL_USERHOST, params=["qux", StrRe(r"bar=-.*")]
         )
+
+    @cases.mark_specifications("Modern")
+    def testAwayEmptyMessage(self):
+        """
+        TODO: document this behavior in Modern
+        """
+        self.connectClient("bar", name="bar")
+        self.connectClient("qux", name="qux")
+
+        self.sendLine("bar", "AWAY :I'm not here right now")
+        replies = self.getMessages("bar")
+        self.assertIn(RPL_NOWAWAY, [msg.command for msg in replies])
+        self.sendLine("qux", "WHOIS bar")
+        replies = self.getMessages("qux")
+        self.assertIn(RPL_WHOISUSER, [msg.command for msg in replies])
+        self.assertIn(RPL_AWAY, [msg.command for msg in replies])
+
+        # empty final parameter to AWAY is treated the same as no parameter,
+        # i.e., the client is considered to be no longer away
+        self.sendLine("bar", "AWAY :")
+        replies = self.getMessages("bar")
+        self.assertIn(RPL_UNAWAY, [msg.command for msg in replies])
+        self.sendLine("qux", "WHOIS bar")
+        replies = self.getMessages("qux")
+        self.assertIn(RPL_WHOISUSER, [msg.command for msg in replies])
+        self.assertNotIn(RPL_AWAY, [msg.command for msg in replies])
