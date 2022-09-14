@@ -279,6 +279,6 @@ unrealircd-dlk:
 	pifpaf run mysql -- $(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.unrealircd \
 		--services-controller=irctest.controllers.dlk_services \
-		-vv \
+		-vvs \
 		-m 'services' \
 		-k '$(UNREALIRCD_SELECTORS)'
