@@ -178,6 +178,14 @@ class SaslTestCase(cases.BaseServerTestCase):
         ),
         "Anope does not handle split AUTHENTICATE (reported on IRC)",
     )
+    @cases.xfailIf(
+        lambda self: (
+            self.controller.services_controller is not None
+            and self.controller.services_controller.software_name == "Dlk-Services"
+        ),
+        "Dlk does not handle split AUTHENTICATE "
+        "https://github.com/DalekIRC/Dalek-Services/issues/28",
+    )
     def testPlainLarge(self):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400.
