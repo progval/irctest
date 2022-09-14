@@ -277,7 +277,6 @@ unrealircd-anope:
 
 unrealircd-dlk:
 	pifpaf run mysql -- $(PYTEST) $(PYTEST_ARGS) \
-		-x \
 		--controller=irctest.controllers.unrealircd \
 		--services-controller=irctest.controllers.dlk_services \
 		-m 'services' \
