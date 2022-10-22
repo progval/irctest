@@ -39,7 +39,7 @@ class SopelController(BaseClientController):
         if self.filename:
             try:
                 (Path("~/.sopel/").expanduser() / self.filename).unlink()
-            except OSError:  #  File does not exist
+            except OSError:  # File does not exist
                 pass
 
     def open_file(self, filename: str, mode: str = "a") -> TextIO:
