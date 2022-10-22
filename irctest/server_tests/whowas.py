@@ -98,7 +98,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
 
         "Servers MUST reply with either ERR_WASNOSUCHNICK or [...],
         both followed with RPL_ENDOFWHOWAS"
-        -- https://github.com/ircdocs/modern-irc/pull/170
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self.connectClient("nick1")
 
@@ -210,7 +210,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         "The history is searched backward, returning the most recent entry first."
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
-        -- https://github.com/ircdocs/modern-irc/pull/170
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2")
 
@@ -224,7 +224,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         "If there are multiple entries, up to <count> replies will be returned"
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
-        -- https://github.com/ircdocs/modern-irc/pull/170
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self._testWhowasMultiple(second_result=False, whowas_command="WHOWAS nick2 1")
 
@@ -238,7 +238,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         "If there are multiple entries, up to <count> replies will be returned"
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
-        -- https://github.com/ircdocs/modern-irc/pull/170
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 2")
 
@@ -253,7 +253,10 @@ class WhowasTestCase(cases.BaseServerTestCase):
         is done."
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
-        -- https://github.com/ircdocs/modern-irc/pull/170
+
+        "If given, <count> SHOULD be a positive number. Otherwise, a full search
+        "is done.
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 -1")
 
@@ -271,7 +274,10 @@ class WhowasTestCase(cases.BaseServerTestCase):
         is done."
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
-        -- https://github.com/ircdocs/modern-irc/pull/170
+
+        "If given, <count> SHOULD be a positive number. Otherwise, a full search
+        "is done.
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 0")
 
@@ -280,7 +286,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         """
         "Wildcards are allowed in the <target> parameter."
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
-        -- https://github.com/ircdocs/modern-irc/pull/170
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         if self.controller.software_name == "Bahamut":
             raise runner.OptionalExtensionNotSupported("WHOWAS mask")
@@ -324,7 +330,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         """
         "If the `<nick>` argument is missing, they SHOULD send a single reply, using
         either ERR_NONICKNAMEGIVEN or ERR_NEEDMOREPARAMS"
-        -- https://github.com/ircdocs/modern-irc/pull/170
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         # But no one seems to follow this. Most implementations use ERR_NEEDMOREPARAMS
         # instead of ERR_NONICKNAMEGIVEN; and I couldn't find any that returns
@@ -358,7 +364,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         """
         https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
-        -- https://github.com/ircdocs/modern-irc/pull/170
+        -- https://modern.ircdocs.horse/#whowas-message
 
         and:
 
@@ -371,7 +377,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
 
         "Servers MUST reply with either ERR_WASNOSUCHNICK or [...],
         both followed with RPL_ENDOFWHOWAS"
-        -- https://github.com/ircdocs/modern-irc/pull/170
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self.connectClient("nick1")
 
