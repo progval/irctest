@@ -9,37 +9,36 @@ from irctest.basecontrollers import BaseServicesController, DirectoryBasedContro
 import irctest.cases
 import irctest.runner
 
-TEMPLATE_DLK_CONFIG = """\
-info {{
-    SID "00A";
-    network-name "testnetwork";
-    services-name "services.example.org";
-    admin-email "admin@example.org";
-}}
+TEMPLATE_DLK_CONFIG = """
+<?php global $cf;
 
-link {{
-    hostname "{server_hostname}";
-    port "{server_port}";
-    password "password";
-}}
+include "languages/en_GB";
 
-log {{
-    debug "yes";
-}}
+$cf = [
+    'debugmode' => 'on',
 
-sql {{
-    port "3306";
-    username "pifpaf";
-    password "pifpaf";
-    database "pifpaf";
-    sockfile "{mysql_socket}";
-    prefix "{dlk_prefix}";
-}}
+    'sid' => '00A',
+    'servicesname' => 'services.example.org',
+    'network' => 'test network',
 
-wordpress {{
-    prefix "{wp_prefix}";
-}}
+    'proto' => '{protocol}',
 
+    'uplink' => '{server_hostname}',
+    'port' => '{server_port}',
+    'serverpassword' => 'password',
+
+    /* SQL Config for the user database */
+    'sqlip' => '',
+    'sqlport' => '3306',
+    'sqluser' => 'pifpaf',
+    'sqlpass' => 'pifpaf',
+    'sqldb' => 'pifpaf',
+    'sqlsock' => '{mysql_socket}',
+    'sqlprefix' => '{dlk_prefix}',
+
+    'logchan' => '#services',
+]
+?>
 """
 
 TEMPLATE_DLK_WP_CONFIG = """
