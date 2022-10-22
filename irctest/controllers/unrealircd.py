@@ -122,6 +122,15 @@ oper "operuser" {{
     class clients;
     operclass netadmin;
 }}
+
+log {{
+        source {{
+                all;
+        }}
+        destination {{
+                file "/dev/stdout" {{ type json; }}
+        }}
+}}
 """
 
 
