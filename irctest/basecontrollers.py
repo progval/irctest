@@ -337,7 +337,7 @@ class BaseServicesController(_BaseController):
         msgs: List[Message] = []
         start_time = time.time()
         while not msgs and (not timeout or start_time + timeout > time.time()):
-            time.sleep(0.2)
+            time.sleep(0.05)
             msgs = client.getMessages()
         return msgs
 
