@@ -29,39 +29,9 @@ software:
             # Prevent download of geoIP database on first startup
             sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
 
-    unrealircd-5:
-        name: UnrealIRCd 5
-        repository: unrealircd/unrealircd
-        refs:
-            stable: 6604856973f713a494f83d38992d7d61ce6b9db4  # 5.2.4
-            release: null
-            devel: unreal52
-            devel_release:
-        path: unrealircd
-        prefix: ~/.local/unrealircd
-        separate_build_job: true
-        build_script: *unrealircd_build_script
-
 
     #############################
     # Services:
-
-    anope:
-        name: Anope
-        repository: anope/anope
-        separate_build_job: true
-        path: anope
-        refs:
-            stable: "2.0.9"
-            release: "2.0.9"
-            devel: "2.0.9"
-            devel_release: "2.0.9"
-        build_script: |
-            cd $GITHUB_WORKSPACE/anope/
-            cp $GITHUB_WORKSPACE/data/anope/* .
-            CFLAGS=-O0 ./Config -quick
-            make -C build -j 4
-            make -C build install
 
     dlk:
         name: Dlk
@@ -83,11 +53,5 @@ software:
             IRCTEST_WP_ZIP_PATH="${{ github.workspace }}/wordpress-latest.zip"
 
 tests:
-    unrealircd-5:
-        software: [unrealircd-5]
-
-    unrealircd:
-        software: [unrealircd]
-
     unrealircd-dlk:
         software: [unrealircd, dlk]
