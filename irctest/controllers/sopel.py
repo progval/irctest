@@ -27,7 +27,11 @@ auth_password = {password}
 
 class SopelController(BaseClientController):
     software_name = "Sopel"
-    supported_sasl_mechanisms = {"PLAIN"}
+    supported_sasl_mechanisms = {
+        "PLAIN",
+        "SCRAM-SHA-256",
+        "EXTERNAL",
+    }
     supports_sts = False
 
     def __init__(self, test_config: TestCaseControllerConfig):
@@ -61,6 +65,8 @@ class SopelController(BaseClientController):
         # Runs a client with the config given as arguments
         if tls_config is not None:
             raise NotImplementedByController("TLS configuration")
+        if auth and len(auth.mechanisms) > 1:
+            raise NotImplementedByController("multiple SASL mechanisms")
         assert self.proc is None
         self.create_config()
         with self.open_file(self.filename) as fd:
@@ -70,7 +76,12 @@ class SopelController(BaseClientController):
                     port=port,
                     username=auth.username if auth else "",
                     password=auth.password if auth else "",
-                    auth_method="auth_method = sasl" if auth else "",
+                    auth_method=(
+                        f"auth_method = sasl\n"
+                        f"auth_target = {auth.mechanisms[0].to_string()}"
+                    )
+                    if auth
+                    else "",
                 )
             )
         self.proc = subprocess.Popen(["sopel", "--quiet", "-c", self.filename])
