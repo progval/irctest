@@ -303,7 +303,7 @@ class MonitorTestCase(_BaseMonitorTestCase):
         self.assertMessageMatch(
             mononline,
             command=RPL_MONONLINE,
-            params=[StrRe(r"(bar|\*)"), StrRe("qux!.*")],
+            params=[StrRe(r"(bar|\*)"), StrRe("qux(!.*)?")],
         )
 
         # no numerics for a case change
