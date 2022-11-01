@@ -1,6 +1,9 @@
 """
 `IRCv3 MONITOR <https://ircv3.net/specs/extensions/monitor>`_
+and `IRCv3 extended-monitor` <https://ircv3.net/specs/extensions/extended-monitor>`_
 """
+
+import pytest
 
 from irctest import cases, runner
 from irctest.client_mock import NoMessageException
@@ -13,7 +16,7 @@ from irctest.numerics import (
 from irctest.patma import ANYSTR, StrRe
 
 
-class MonitorTestCase(cases.BaseServerTestCase):
+class _BaseMonitorTestCase(cases.BaseServerTestCase):
     def check_server_support(self):
         if "MONITOR" not in self.server_support:
             raise runner.IsupportTokenNotSupported("MONITOR")
@@ -42,6 +45,8 @@ class MonitorTestCase(cases.BaseServerTestCase):
             extra_format=(nick,),
         )
 
+
+class MonitorTestCase(_BaseMonitorTestCase):
     @cases.mark_specifications("IRCv3")
     @cases.mark_isupport("MONITOR")
     def testMonitorOneDisconnected(self):
@@ -295,10 +300,11 @@ class MonitorTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "NICK qux")
         self.getMessages(2)
         mononline = self.getMessages(1)[0]
-        self.assertEqual(mononline.command, RPL_MONONLINE)
-        self.assertEqual(len(mononline.params), 2, mononline.params)
-        self.assertIn(mononline.params[0], ("bar", "*"))
-        self.assertEqual(mononline.params[1].split("!")[0], "qux")
+        self.assertMessageMatch(
+            mononline,
+            command=RPL_MONONLINE,
+            params=[StrRe(r"(bar|\*)"), StrRe("qux!.*")],
+        )
 
         # no numerics for a case change
         self.sendLine(2, "NICK QUX")
@@ -309,7 +315,246 @@ class MonitorTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
         monoffline = self.getMessages(1)[0]
         # should get RPL_MONOFFLINE with the current unfolded nick
-        self.assertEqual(monoffline.command, RPL_MONOFFLINE)
-        self.assertEqual(len(monoffline.params), 2, monoffline.params)
-        self.assertIn(monoffline.params[0], ("bar", "*"))
-        self.assertEqual(monoffline.params[1].split("!")[0], "QUX")
+        self.assertMessageMatch(
+            monoffline,
+            command=RPL_MONOFFLINE,
+            params=[StrRe(r"(bar|\*)"), "QUX"],
+        )
+
+
+class _BaseExtendedMonitorTestCase(_BaseMonitorTestCase):
+    def _setupExtendedMonitor(self, monitor_before_connect, watcher_caps, watched_caps):
+        """Tests https://ircv3.net/specs/extensions/extended-monitor.html"""
+        self.connectClient(
+            "foo",
+            capabilities=["draft/extended-monitor", *watcher_caps],
+            skip_if_cap_nak=True,
+        )
+
+        if monitor_before_connect:
+            self.sendLine(1, "MONITOR + bar")
+            self.getMessages(1)
+            self.connectClient("bar", capabilities=watched_caps, skip_if_cap_nak=True)
+            self.getMessages(2)
+        else:
+            self.connectClient("bar", capabilities=watched_caps, skip_if_cap_nak=True)
+            self.getMessages(2)
+            self.sendLine(1, "MONITOR + bar")
+
+        self.assertMononline(1, "bar")
+        self.assertEqual(self.getMessages(1), [])
+
+
+class ExtendedMonitorTestCase(_BaseExtendedMonitorTestCase):
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_capabilities("extended-monitor", "away-notify")
+    @pytest.mark.parametrize(
+        "monitor_before_connect,cap",
+        [
+            pytest.param(
+                monitor_before_connect,
+                cap,
+                id=("monitor_before_connect" if monitor_before_connect else "")
+                + "-"
+                + ("with-cap" if cap else ""),
+            )
+            for monitor_before_connect in [True, False]
+            for cap in [True, False]
+        ],
+    )
+    def testExtendedMonitorAway(self, monitor_before_connect, cap):
+        """Tests https://ircv3.net/specs/extensions/extended-monitor.html
+        with https://ircv3.net/specs/extensions/away-notify
+        """
+        if cap:
+            self._setupExtendedMonitor(
+                monitor_before_connect, ["away-notify"], ["away-notify"]
+            )
+        else:
+            self._setupExtendedMonitor(monitor_before_connect, ["away-notify"], [])
+
+        self.sendLine(2, "AWAY :afk")
+        self.getMessages(2)
+        self.assertMessageMatch(
+            self.getMessage(1), nick="bar", command="AWAY", params=["afk"]
+        )
+        self.assertEqual(self.getMessages(1), [], "watcher got unexpected messages")
+
+        self.sendLine(2, "AWAY")
+        self.getMessages(2)
+        self.assertMessageMatch(
+            self.getMessage(1), nick="bar", command="AWAY", params=[]
+        )
+        self.assertEqual(self.getMessages(1), [], "watcher got unexpected messages")
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_capabilities("extended-monitor", "away-notify")
+    @pytest.mark.parametrize(
+        "monitor_before_connect,cap",
+        [
+            pytest.param(
+                monitor_before_connect,
+                cap,
+                id=("monitor_before_connect" if monitor_before_connect else "")
+                + "-"
+                + ("with-cap" if cap else ""),
+            )
+            for monitor_before_connect in [True, False]
+            for cap in [True, False]
+        ],
+    )
+    def testExtendedMonitorAwayNoCap(self, monitor_before_connect, cap):
+        """Tests https://ircv3.net/specs/extensions/extended-monitor.html
+        does nothing when ``away-notify`` is not enabled by the watcher
+        """
+        if cap:
+            self._setupExtendedMonitor(monitor_before_connect, [], ["away-notify"])
+        else:
+            self._setupExtendedMonitor(monitor_before_connect, [], [])
+
+        self.sendLine(2, "AWAY :afk")
+        self.getMessages(2)
+        self.assertEqual(self.getMessages(1), [], "watcher got unexpected messages")
+
+        self.sendLine(2, "AWAY")
+        self.getMessages(2)
+        self.assertEqual(self.getMessages(1), [], "watcher got unexpected messages")
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_capabilities("extended-monitor", "setname")
+    @pytest.mark.parametrize("monitor_before_connect", [True, False])
+    def testExtendedMonitorSetName(self, monitor_before_connect):
+        """Tests https://ircv3.net/specs/extensions/extended-monitor.html
+        with https://ircv3.net/specs/extensions/setname
+        """
+        self._setupExtendedMonitor(monitor_before_connect, ["setname"], ["setname"])
+
+        self.sendLine(2, "SETNAME :new name")
+        self.getMessages(2)
+        self.assertMessageMatch(
+            self.getMessage(1), nick="bar", command="SETNAME", params=["new name"]
+        )
+        self.assertEqual(self.getMessages(1), [], "watcher got unexpected messages")
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_capabilities("extended-monitor", "setname")
+    @pytest.mark.parametrize("monitor_before_connect", [True, False])
+    def testExtendedMonitorSetNameNoCap(self, monitor_before_connect):
+        """Tests https://ircv3.net/specs/extensions/extended-monitor.html
+        does nothing when ``setname`` is not enabled by the watcher
+        """
+        self._setupExtendedMonitor(monitor_before_connect, [], ["setname"])
+
+        self.sendLine(2, "SETNAME :new name")
+        self.getMessages(2)
+        self.assertEqual(self.getMessages(1), [], "watcher got unexpected messages")
+
+
+@cases.mark_services
+class AuthenticatedExtendedMonitorTestCase(_BaseExtendedMonitorTestCase):
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_capabilities("extended-monitor", "account-notify")
+    @pytest.mark.parametrize(
+        "monitor_before_connect,cap",
+        [
+            pytest.param(
+                monitor_before_connect,
+                cap,
+                id=("monitor_before_connect" if monitor_before_connect else "")
+                + "-"
+                + ("with-cap" if cap else ""),
+            )
+            for monitor_before_connect in [True, False]
+            for cap in [True, False]
+        ],
+    )
+    def testExtendedMonitorAccountNotify(self, monitor_before_connect, cap):
+        """Tests https://ircv3.net/specs/extensions/extended-monitor.html
+        does nothing when ``account-notify`` is not enabled by the watcher
+        """
+        self.controller.registerUser(self, "jilles", "sesame")
+
+        if cap:
+            self._setupExtendedMonitor(
+                monitor_before_connect,
+                ["account-notify"],
+                ["account-notify", "sasl", "cap-notify"],
+            )
+        else:
+            self._setupExtendedMonitor(
+                monitor_before_connect, ["account-notify"], ["sasl", "cap-notify"]
+            )
+
+        self.sendLine(2, "AUTHENTICATE PLAIN")
+        m = self.getRegistrationMessage(2)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        self.sendLine(2, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
+        m = self.getRegistrationMessage(2)
+        self.assertMessageMatch(
+            m,
+            command="900",
+            fail_msg="Did not send 900 after correct SASL authentication.",
+        )
+        self.getMessages(2)
+
+        self.assertMessageMatch(
+            self.getMessage(1), nick="bar", command="ACCOUNT", params=["jilles"]
+        )
+        self.assertEqual(self.getMessages(1), [], "watcher got unexpected messages")
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_capabilities("extended-monitor", "account-notify")
+    @pytest.mark.parametrize(
+        "monitor_before_connect,cap",
+        [
+            pytest.param(
+                monitor_before_connect,
+                cap,
+                id=("monitor_before_connect" if monitor_before_connect else "")
+                + "-"
+                + ("with-cap" if cap else ""),
+            )
+            for monitor_before_connect in [True, False]
+            for cap in [True, False]
+        ],
+    )
+    def testExtendedMonitorAccountNotifyNoCap(self, monitor_before_connect, cap):
+        """Tests https://ircv3.net/specs/extensions/extended-monitor.html
+        does nothing when ``account-notify`` is not enabled by the watcher
+        """
+        self.controller.registerUser(self, "jilles", "sesame")
+
+        if cap:
+            self._setupExtendedMonitor(
+                monitor_before_connect, [], ["account-notify", "sasl", "cap-notify"]
+            )
+        else:
+            self._setupExtendedMonitor(
+                monitor_before_connect, [], ["sasl", "cap-notify"]
+            )
+
+        self.sendLine(2, "AUTHENTICATE PLAIN")
+        m = self.getRegistrationMessage(2)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        self.sendLine(2, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
+        m = self.getRegistrationMessage(2)
+        self.assertMessageMatch(
+            m,
+            command="900",
+            fail_msg="Did not send 900 after correct SASL authentication.",
+        )
+        self.getMessages(2)
+
+        self.assertEqual(self.getMessages(1), [], "watcher got unexpected messages")
