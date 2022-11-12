@@ -292,7 +292,7 @@ def write_html_pages(
             for result in results
         )
         assert is_client != is_server, (job, is_client, is_server)
-        if job.endswith(("-atheme", "-anope")):
+        if job.endswith(("-atheme", "-anope", "-dlk")):
             assert is_server
             job_categories[job] = "server-with-services"
         elif is_server:
