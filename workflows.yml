@@ -328,7 +328,7 @@ software:
         separate_build_job: false
         path: Dlk-Services
         refs:
-            stable: &dlk_stable "c3fcc59bf37aa2ca5d0414557c5e0b4354cc18ba"
+            stable: &dlk_stable "fe3df2397bec5d4449d10a3e58349169476063c9"
             release: *dlk_stable
             devel: "main"
             devel_release: *dlk_stable
