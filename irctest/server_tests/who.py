@@ -37,8 +37,8 @@ class BaseWhoTestCase:
         self.sendLine(1, f"USER {self.username} 0 * :{self.realname}")
         if auth:
             self.sendLine(1, "CAP END")
-            self.getRegistrationMessage(1)
         self.skipToWelcome(1)
+        self.getMessages(1)
         self.sendLine(1, "JOIN #chan")
 
         self.getMessages(1)
