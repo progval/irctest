@@ -1307,7 +1307,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: Dlk-Services
-        ref: 8868473ad1ee03c56aac1e6a7f85ed11b8cb2ef7
+        ref: a515c65273d5c470a2605e884dc6ac07ec293178
         repository: DalekIRC/Dalek-Services
     - name: Build Dlk
       run: "sed -i \"s/^\\s+function is_autoop/\tstatic function is_autoop/\" $GITHUB_WORKSPACE/Dlk-Services/src/modules/ChanServ/cs_autoop.php\n\
