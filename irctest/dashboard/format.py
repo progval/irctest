@@ -173,6 +173,7 @@ def build_module_html(
 
 
 def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
+    multiple_modules = len({r.module_name for r in results}) > 1
     results_by_module_and_class = group_by(
         results, lambda r: (r.module_name, r.class_name)
     )
@@ -189,19 +190,29 @@ def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
     for ((module_name, class_name), class_results) in sorted(
         results_by_module_and_class.items()
     ):
+        if multiple_modules:
+            # if the page shows classes from various modules, use the fully-qualified
+            # name in order to disambiguate and be clearer (eg. show
+            # "irctest.server_tests.extended_join.MetadataTestCase" instead of just
+            # "MetadataTestCase" which looks like it's about IRCv3's METADATA spec.
+            qualified_class_name = f"{module_name}.{class_name}"
+        else:
+            # otherwise, it's not needed, so let's not display it
+            qualified_class_name = class_name
+
         module = importlib.import_module(module_name)
 
         # Header row: class name
         header_row = ET.SubElement(table, "tr")
         th = ET.SubElement(header_row, "th", colspan=str(len(jobs) + 1))
-        row_anchor = f"{class_name}"
+        row_anchor = f"{qualified_class_name}"
         section_header = ET.SubElement(
             ET.SubElement(th, "h2"),
             "a",
             href=f"#{row_anchor}",
             id=row_anchor,
         )
-        section_header.text = class_name
+        section_header.text = qualified_class_name
         append_docstring(th, getattr(module, class_name))
 
         # Header row: one column for each implementation
@@ -210,7 +221,7 @@ def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
         # One row for each test:
         results_by_test = group_by(class_results, key=lambda r: r.test_name)
         for (test_name, test_results) in sorted(results_by_test.items()):
-            row_anchor = f"{class_name}.{test_name}"
+            row_anchor = f"{qualified_class_name}.{test_name}"
             if len(row_anchor) >= 50:
                 # Too long; give up on generating readable URL
                 # TODO: only hash test parameter
