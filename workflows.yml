@@ -328,12 +328,11 @@ software:
         separate_build_job: false
         path: Dlk-Services
         refs:
-            stable: &dlk_stable "a515c65273d5c470a2605e884dc6ac07ec293178"
+            stable: &dlk_stable "c3fcc59bf37aa2ca5d0414557c5e0b4354cc18ba"
             release: *dlk_stable
             devel: "main"
             devel_release: *dlk_stable
         build_script: |
-            sed -i "s/^\s+function is_autoop/	static function is_autoop/" $GITHUB_WORKSPACE/Dlk-Services/src/modules/ChanServ/cs_autoop.php
             pip install pifpaf
             wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
             wget -q https://wordpress.org/latest.zip -O wordpress-latest.zip
