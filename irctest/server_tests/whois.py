@@ -71,7 +71,10 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
             last_message,
             command=RPL_ENDOFWHOIS,
             params=["nick1", "nick2", ANYSTR],
-            fail_msg=f"Last message was not RPL_ENDOFWHOIS ({RPL_ENDOFWHOIS})",
+            fail_msg=(
+                f"Expected RPL_ENDOFWHOIS ({RPL_ENDOFWHOIS}) as last message, "
+                f"got {{msg}}"
+            ),
         )
 
         unexpected_messages = []

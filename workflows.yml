@@ -304,6 +304,7 @@ software:
 
     #############################
     # Services:
+
     anope:
         name: Anope
         repository: anope/anope
@@ -321,6 +322,24 @@ software:
             make -C build -j 4
             make -C build install
 
+    dlk:
+        name: Dlk
+        repository: DalekIRC/Dalek-Services
+        separate_build_job: false
+        path: Dlk-Services
+        refs:
+            stable: &dlk_stable "effd18652fc1c847d1959089d9cca9ff9837a8c0"
+            release: *dlk_stable
+            devel: "main"
+            devel_release: *dlk_stable
+        build_script: |
+            pip install pifpaf
+            wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+            wget -q https://wordpress.org/latest.zip -O wordpress-latest.zip
+        env: >-
+            IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services"
+            IRCTEST_WP_CLI_PATH="${{ github.workspace }}/wp-cli.phar"
+            IRCTEST_WP_ZIP_PATH="${{ github.workspace }}/wordpress-latest.zip"
 
 
     #############################
@@ -424,6 +443,9 @@ tests:
 
     unrealircd-anope:
         software: [unrealircd, anope]
+
+    unrealircd-dlk:
+        software: [unrealircd, dlk]
 
 
     limnoria:

@@ -146,7 +146,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
     for software_id in test_config.get("software", []):
         software_config = config["software"][software_id]
 
-        env += test_config.get("env", {}).get(version_flavor.value, "") + " "
+        env += software_config.get("env", "") + " "
         if "prefix" in software_config:
             env += (
                 f"PATH={software_config['prefix']}/sbin"

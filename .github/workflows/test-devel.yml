@@ -400,6 +400,7 @@ jobs:
     - test-unrealircd-5
     - test-unrealircd-anope
     - test-unrealircd-atheme
+    - test-unrealircd-dlk
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -1126,6 +1127,52 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: pytest-results_unrealircd-atheme_devel
+        path: pytest.xml
+  test-unrealircd-dlk:
+    needs:
+    - build-unrealircd
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Download build artefacts
+      uses: actions/download-artifact@v2
+      with:
+        name: installed-unrealircd
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Checkout Dlk
+      uses: actions/checkout@v2
+      with:
+        path: Dlk-Services
+        ref: main
+        repository: DalekIRC/Dalek-Services
+    - name: Build Dlk
+      run: |
+        pip install pifpaf
+        wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+        wget -q https://wordpress.org/latest.zip -O wordpress-latest.zip
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:$PATH
+        IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services" IRCTEST_WP_CLI_PATH="${{
+        github.workspace }}/wp-cli.phar" IRCTEST_WP_ZIP_PATH="${{ github.workspace
+        }}/wordpress-latest.zip" make unrealircd-dlk
+      timeout-minutes: 30
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest-results_unrealircd-dlk_devel
         path: pytest.xml
 name: irctest with devel versions
 'on':
