@@ -1307,7 +1307,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: Dlk-Services
-        ref: fe3df2397bec5d4449d10a3e58349169476063c9
+        ref: 88396ce05f926f2017e649056054291dfc657058
         repository: DalekIRC/Dalek-Services
     - name: Build Dlk
       run: |
