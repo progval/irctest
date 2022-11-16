@@ -78,12 +78,12 @@ class BanModeTestCase(cases.BaseServerTestCase):
         self.getMessages("bar")
 
         self.sendLine("bar", "PRIVMSG #chan :hello again")
+        self.assertEqual(self.getMessages("bar"), [])
         self.assertMessageMatch(
             self.getMessage("chanop"),
             command="PRIVMSG",
             params=["#chan", "hello again"],
         )
-        self.assertEqual(self.getMessages("bar"), [])
 
     @cases.mark_specifications("Modern")
     def testBanList(self):
