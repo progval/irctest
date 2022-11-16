@@ -7,14 +7,18 @@ and ban exception (`Modern <https://modern.ircdocs.horse/#exception-channel-mode
 """
 
 from irctest import cases, runner
-from irctest.numerics import ERR_BANNEDFROMCHAN, RPL_BANLIST, RPL_ENDOFBANLIST
+from irctest.numerics import (
+    ERR_BANNEDFROMCHAN,
+    ERR_CANNOTSENDTOCHAN,
+    RPL_BANLIST,
+    RPL_ENDOFBANLIST,
+)
 from irctest.patma import ANYSTR, StrRe
 
 
 class BanModeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
-    def testBan(self):
-        """Basic ban operation"""
+    def testBanJoin(self):
         self.connectClient("chanop", name="chanop")
         self.joinChannel("chanop", "#chan")
         self.getMessages("chanop")
@@ -31,6 +35,55 @@ class BanModeTestCase(cases.BaseServerTestCase):
 
         self.sendLine("bar", "JOIN #chan")
         self.assertMessageMatch(self.getMessage("bar"), command="JOIN")
+
+    @cases.mark_specifications("Modern")
+    def testBanPrivmsg(self):
+        """
+        TODO: this checks the following quote is false:
+
+        "If `<target>` is a channel name and the client is [banned](#ban-channel-mode)
+        and not covered by a [ban exception](#ban-exception-channel-mode), the
+        message will not be delivered and the command will silently fail."
+        -- https://modern.ircdocs.horse/#privmsg-message
+
+        to check https://github.com/ircdocs/modern-irc/pull/201
+        """
+        self.connectClient("chanop", name="chanop")
+        self.joinChannel("chanop", "#chan")
+        self.getMessages("chanop")
+
+        self.connectClient("Bar", name="bar")
+        self.getMessages("bar")
+        self.sendLine("bar", "JOIN #chan")
+        self.getMessages("bar")
+        self.getMessages("chanop")
+
+        self.sendLine("chanop", "MODE #chan +b bar!*@*")
+        self.assertMessageMatch(self.getMessage("chanop"), command="MODE")
+        self.getMessages("chanop")
+        self.getMessages("bar")
+
+        self.sendLine("bar", "PRIVMSG #chan :hello world")
+        self.assertMessageMatch(
+            self.getMessage("bar"),
+            command=ERR_CANNOTSENDTOCHAN,
+            params=["Bar", "#chan", ANYSTR],
+        )
+        self.assertEqual(self.getMessages("bar"), [])
+        self.assertEqual(self.getMessages("chanop"), [])
+
+        self.sendLine("chanop", "MODE #chan -b bar!*@*")
+        self.assertMessageMatch(self.getMessage("chanop"), command="MODE")
+        self.getMessages("chanop")
+        self.getMessages("bar")
+
+        self.sendLine("bar", "PRIVMSG #chan :hello again")
+        self.assertMessageMatch(
+            self.getMessage("chanop"),
+            command="PRIVMSG",
+            params=["#chan", "hello again"],
+        )
+        self.assertEqual(self.getMessages("bar"), [])
 
     @cases.mark_specifications("Modern")
     def testBanList(self):
