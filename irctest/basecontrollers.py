@@ -7,6 +7,7 @@ import shutil
 import socket
 import subprocess
 import tempfile
+import textwrap
 import time
 from typing import IO, Any, Callable, Dict, List, Optional, Set, Tuple, Type
 
@@ -156,10 +157,18 @@ class DirectoryBasedController(_BaseController):
             ],
             stderr=subprocess.DEVNULL,
         )
-        subprocess.check_output(
-            [self.openssl_bin, "dhparam", "-out", self.dh_path, "128"],
-            stderr=subprocess.DEVNULL,
-        )
+        with self.dh_path.open("w") as fd:
+            fd.write(
+                textwrap.dedent(
+                    """
+                    -----BEGIN DH PARAMETERS-----
+                    MIGHAoGBAJICSyQAiLj1fw8b5xELcnpqBQ+wvOyKgim4IetWOgZnRQFkTgOeoRZD
+                    HksACRFJL/EqHxDKcy/2Ghwr2axhNxSJ+UOBmraP3WfodV/fCDPnZ+XnI9fjHsIr
+                    rjisPMqomjXeiTB1UeAHvLUmCK4yx6lpAJsCYwJjsqkycUfHiy1bAgEC
+                    -----END DH PARAMETERS-----
+                    """
+                )
+            )
 
 
 class BaseClientController(_BaseController):
