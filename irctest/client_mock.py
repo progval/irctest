@@ -120,6 +120,7 @@ class ClientMock:
         __tracebackhide__ = True  # Hide from pytest tracebacks on test failure.
         while True:
             if not self.inbuffer:
+                time.sleep(0.01)
                 self.inbuffer = self.getMessages(
                     synchronize=synchronize, assert_get_one=True, raw=raw
                 )
