@@ -18,8 +18,6 @@ EVENT_PLAYBACK_CAP = "draft/event-playback"
 # Keep this in sync with validate_chathistory()
 SUBCOMMANDS = ["LATEST", "BEFORE", "AFTER", "BETWEEN", "AROUND"]
 
-MYSQL_PASSWORD = ""
-
 
 def validate_chathistory_batch(msgs):
     batch_tag = None

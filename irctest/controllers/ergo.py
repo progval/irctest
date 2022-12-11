@@ -3,7 +3,7 @@ import json
 import os
 import shutil
 import subprocess
-from typing import Any, Dict, Optional, Set, Type, Union
+from typing import Any, Dict, List, Optional, Set, Type, Union
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -139,6 +139,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {"PLAIN", "SCRAM-SHA-256"}
     supports_sts = True
     extban_mute_char = "m"
+    mysql_proc: Optional[subprocess.Popen] = None
 
     def create_config(self) -> None:
         super().create_config()
@@ -173,7 +174,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         enable_chathistory = self.test_config.chathistory
         enable_roleplay = self.test_config.ergo_roleplay
         if enable_chathistory or enable_roleplay:
-            config = self.addMysqlToConfig(config)
+            self.addDatabaseToConfig(config)
 
         if enable_roleplay:
             config["roleplay"] = {"enabled": True}
@@ -212,6 +213,16 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         self.proc = subprocess.Popen(
             [*faketime_cmd, "ergo", "run", "--conf", self._config_path, "--quiet"]
         )
+
+    def terminate(self) -> None:
+        if self.mysql_proc is not None:
+            self.mysql_proc.terminate()
+        super().terminate()
+
+    def kill(self) -> None:
+        if self.mysql_proc is not None:
+            self.mysql_proc.kill()
+        super().kill()
 
     def wait_for_services(self) -> None:
         # Nothing to wait for, they start at the same time as Ergo.
@@ -264,32 +275,107 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         config.update(LOGGING_CONFIG)
         return config
 
-    def addMysqlToConfig(self, config: Optional[Dict] = None) -> Dict:
-        mysql_password = os.getenv("MYSQL_PASSWORD")
-        if config is None:
-            config = self.baseConfig()
-        if not mysql_password:
-            return config
-        config["datastore"]["mysql"] = {
-            "enabled": True,
-            "host": "localhost",
-            "user": "ergo",
-            "password": mysql_password,
-            "history-database": "ergo_history",
-            "timeout": "3s",
-        }
-        config["accounts"]["multiclient"] = {
-            "enabled": True,
-            "allowed-by-default": True,
-            "always-on": "disabled",
-        }
-        config["history"]["persistent"] = {
-            "enabled": True,
-            "unregistered-channels": True,
-            "registered-channels": "opt-out",
-            "direct-messages": "opt-out",
-        }
-        return config
+    def addDatabaseToConfig(self, config: Dict) -> None:
+        history_backend = os.environ.get("ERGO_HISTORY_BACKEND", "memory")
+        if history_backend == "memory":
+            # nothing to do, this is the default
+            pass
+        elif history_backend == "mysql":
+            socket_path = self.startMysql()
+            self.createMysqlDatabase(socket_path, "ergo_history")
+            config["datastore"]["mysql"] = {
+                "enabled": True,
+                "socket-path": socket_path,
+                "history-database": "ergo_history",
+                "timeout": "3s",
+            }
+            config["history"]["persistent"] = {
+                "enabled": True,
+                "unregistered-channels": True,
+                "registered-channels": "opt-out",
+                "direct-messages": "opt-out",
+            }
+        else:
+            raise ValueError(
+                f"Invalid $ERGO_HISTORY_BACKEND value: {history_backend}. "
+                f"It should be 'memory' (the default) or 'mysql'"
+            )
+
+    def startMysql(self) -> str:
+        """Starts a new MySQL server listening on a UNIX socket, returns the socket
+        path"""
+        # Function based on pifpaf's MySQL driver:
+        # https://github.com/jd/pifpaf/blob/3.1.5/pifpaf/drivers/mysql.py
+        assert self.directory
+        mysql_dir = os.path.join(self.directory, "mysql")
+        socket_path = os.path.join(mysql_dir, "mysql.socket")
+        os.mkdir(mysql_dir)
+
+        print("Starting MySQL...")
+        try:
+            subprocess.check_call(
+                [
+                    "mysqld",
+                    "--no-defaults",
+                    "--tmpdir=" + mysql_dir,
+                    "--initialize-insecure",
+                    "--datadir=" + mysql_dir,
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError:
+            # Initialize the old way
+            subprocess.check_call(
+                [
+                    "mysql_install_db",
+                    "--no-defaults",
+                    "--tmpdir=" + mysql_dir,
+                    "--datadir=" + mysql_dir,
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        self.mysql_proc = subprocess.Popen(
+            [
+                "mysqld",
+                "--no-defaults",
+                "--tmpdir=" + mysql_dir,
+                "--datadir=" + mysql_dir,
+                "--socket=" + socket_path,
+                "--skip-networking",
+                "--skip-grant-tables",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+
+        mysql_stdout = self.mysql_proc.stdout
+        assert mysql_stdout is not None  # for mypy...
+        lines: List[bytes] = []
+        while self.mysql_proc.returncode is None:
+            line = mysql_stdout.readline()
+            lines.append(lines)
+            if b"mysqld: ready for connections." in line:
+                break
+        assert self.mysql_proc.returncode is None, (
+            "MySQL unexpected stopped: " + b"\n".join(lines).decode()
+        )
+        print("MySQL started")
+
+        return socket_path
+
+    def createMysqlDatabase(self, socket_path: str, database_name: str) -> None:
+        subprocess.check_call(
+            [
+                "mysql",
+                "--no-defaults",
+                "-S",
+                socket_path,
+                "-e",
+                f"CREATE DATABASE {database_name};",
+            ]
+        )
 
     def rehash(self, case: BaseServerTestCase, config: Dict) -> None:
         self._config = config
