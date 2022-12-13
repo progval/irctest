@@ -1,4 +1,4 @@
-import os
+import shutil
 import subprocess
 from typing import Optional, Set, Type
 
@@ -10,7 +10,7 @@ from irctest.basecontrollers import (
 
 TEMPLATE_CONFIG = """
 # M:<Server NAME>:<YOUR Internet IP#>:<Geographic Location>:<Port>:<SID>:
-M:My.Little.Server:{hostname}:Somewhere:{port}:0042:
+M:My.Little.Server:{hostname}:test server:{port}:0042:
 
 # A:<Your Name/Location>:<Your E-Mail Addr>:<other info>::<network name>:
 A:Organization, IRC dept.:Daemon <ircd@example.irc.org>:Client Server::IRCnet:
@@ -29,8 +29,8 @@ O:*:operpassword:operuser::::
 """
 
 
-class Ircu2Controller(BaseServerController, DirectoryBasedController):
-    binary_name: str
+class Irc2Controller(BaseServerController, DirectoryBasedController):
+    software_name = "irc2"
     services_protocol: str
 
     supports_sts = False
@@ -51,6 +51,7 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
         run_services: bool,
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
     ) -> None:
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
@@ -66,7 +67,7 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
         self.create_config()
         password_field = password if password else ""
         assert self.directory
-        pidfile = os.path.join(self.directory, "ircd.pid")
+        pidfile = self.directory / "ircd.pid"
         with self.open_file("server.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -76,18 +77,26 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
                     pidfile=pidfile,
                 )
             )
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
         self.proc = subprocess.Popen(
             [
+                *faketime_cmd,
                 "ircd",
                 "-s",  # no iauth
                 "-p",
                 "on",
                 "-f",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
             ],
             # stderr=subprocess.DEVNULL,
         )
 
 
-def get_irctest_controller_class() -> Type[Ircu2Controller]:
-    return Ircu2Controller
+def get_irctest_controller_class() -> Type[Irc2Controller]:
+    return Irc2Controller

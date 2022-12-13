@@ -1,3 +1,5 @@
+"""Clients should validate certificates; either with a CA or fingerprints."""
+
 import socket
 import ssl
 
@@ -138,7 +140,7 @@ class TlsTestCase(cases.BaseClientTestCase):
             self.getMessage()
 
 
-class StsTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
+class StsTestCase(cases.BaseClientTestCase):
     def setUp(self):
         super().setUp()
         self.insecure_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -10,7 +10,6 @@ and keep them in sync.
 
 import enum
 import pathlib
-import textwrap
 
 import yaml
 
@@ -117,7 +116,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
         return None
 
     return {
-        "runs-on": "ubuntu-latest",
+        "runs-on": "ubuntu-20.04",
         "steps": [
             {
                 "name": "Create directories",
@@ -145,13 +144,9 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
     downloads = []
     install_steps = []
     for software_id in test_config.get("software", []):
-        if software_id == "anope":
-            # TODO: don't hardcode anope here
-            software_config = {"separate_build_job": True}
-        else:
-            software_config = config["software"][software_id]
+        software_config = config["software"][software_id]
 
-        env += test_config.get("env", {}).get(version_flavor.value, "") + " "
+        env += software_config.get("env", "") + " "
         if "prefix" in software_config:
             env += (
                 f"PATH={software_config['prefix']}/sbin"
@@ -196,7 +191,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
         unpack = []
 
     return {
-        "runs-on": "ubuntu-latest",
+        "runs-on": "ubuntu-20.04",
         "needs": needs,
         "steps": [
             {"uses": "actions/checkout@v2"},
@@ -209,8 +204,8 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
             *unpack,
             *install_steps,
             {
-                "name": "Install Atheme",
-                "run": "sudo apt-get install atheme-services",
+                "name": "Install system dependencies",
+                "run": "sudo apt-get install atheme-services faketime",
             },
             {
                 "name": "Install irctest dependencies",
@@ -226,6 +221,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
             },
             {
                 "name": "Test with pytest",
+                "timeout-minutes": 30,
                 "run": (
                     f"PYTEST_ARGS='--junit-xml pytest.xml' "
                     f"PATH=$HOME/.local/bin:$PATH "
@@ -237,51 +233,10 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
                 "if": "always()",
                 "uses": "actions/upload-artifact@v2",
                 "with": {
-                    "name": f"pytest results {test_id} ({version_flavor.value})",
+                    "name": f"pytest-results_{test_id}_{version_flavor.value}",
                     "path": "pytest.xml",
                 },
             },
-        ],
-    }
-
-
-def get_build_job_anope():
-    return {
-        "runs-on": "ubuntu-latest",
-        "steps": [
-            {"uses": "actions/checkout@v2"},
-            {
-                "name": "Create directories",
-                "run": "cd ~/; mkdir -p .local/ go/",
-            },
-            {
-                "name": "Cache Anope",
-                "uses": "actions/cache@v2",
-                "with": {
-                    "path": "~/.cache\n${{ github.workspace }}/anope\n",
-                    "key": "3-${{ runner.os }}-anope-2.0.9",
-                },
-            },
-            {
-                "name": "Checkout Anope",
-                "uses": "actions/checkout@v2",
-                "with": {
-                    "repository": "anope/anope",
-                    "ref": "2.0.9",
-                    "path": "anope",
-                },
-            },
-            {
-                "name": "Build Anope",
-                "run": script(
-                    "cd $GITHUB_WORKSPACE/anope/",
-                    "cp $GITHUB_WORKSPACE/data/anope/* .",
-                    "CFLAGS=-O0 ./Config -quick",
-                    "make -C build -j 4",
-                    "make -C build install",
-                ),
-            },
-            *upload_steps("anope"),
         ],
     }
 
@@ -326,7 +281,6 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         }
 
     jobs = {}
-    jobs["build-anope"] = get_build_job_anope()
 
     for software_id in config["software"]:
         software_config = config["software"][software_id]
@@ -351,9 +305,9 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
             jobs[f"test-{test_id}"] = test_job
 
     jobs["publish-test-results"] = {
-        "name": "Publish Unit Tests Results",
+        "name": "Publish Dashboard",
         "needs": sorted({f"test-{test_id}" for test_id in config["tests"]} & set(jobs)),
-        "runs-on": "ubuntu-latest",
+        "runs-on": "ubuntu-20.04",
         # the build-and-test job might be skipped, we don't need to run
         # this job then
         "if": "success() || failure()",
@@ -365,32 +319,31 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
                 "with": {"path": "artifacts"},
             },
             {
-                "name": "Publish Unit Test Results",
-                "uses": "actions/github-script@v4",
-                "if": "github.event_name == 'pull_request'",
-                "with": {
-                    "result-encoding": "string",
-                    "script": script(
-                        textwrap.dedent(
-                            """\
-                            let body = '';
-                            const options = {};
-                            options.listeners = {
-                                stdout: (data) => {
-                                    body += data.toString();
-                                }
-                            };
-                            await exec.exec('bash', ['-c', 'shopt -s globstar; python3 report.py artifacts/**/*.xml'], options);
-                            github.issues.createComment({
-                              issue_number: context.issue.number,
-                              owner: context.repo.owner,
-                              repo: context.repo.repo,
-                              body: body,
-                            });
-                            return body;
-                        """
-                        )
-                    ),
+                "name": "Install dashboard dependencies",
+                "run": script(
+                    "python -m pip install --upgrade pip",
+                    "pip install defusedxml docutils -r requirements.txt",
+                ),
+            },
+            {
+                "name": "Generate dashboard",
+                "run": script(
+                    "shopt -s globstar",
+                    "python3 -m irctest.dashboard.format dashboard/ artifacts/**/*.xml",
+                    "echo '/ /index.xhtml' > dashboard/_redirects",
+                ),
+            },
+            {
+                "name": "Install netlify-cli",
+                "run": "npm i -g netlify-cli",
+            },
+            {
+                "name": "Deploy to Netlify",
+                "run": "./.github/deploy_to_netlify.py",
+                "env": {
+                    "NETLIFY_SITE_ID": "${{ secrets.NETLIFY_SITE_ID }}",
+                    "NETLIFY_AUTH_TOKEN": "${{ secrets.NETLIFY_AUTH_TOKEN }}",
+                    "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN }}",
                 },
             },
         ],

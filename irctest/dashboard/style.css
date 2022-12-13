@@ -1,0 +1,67 @@
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: rgba(255, 255, 255, 0.87);
+    }
+    a {
+        filter: invert(0.85) hue-rotate(180deg);
+    }
+}
+
+dl.module-index {
+    column-width: 40em; /* Magic constant for 2 columns on average laptop/desktop */
+}
+
+/* Only 1px solid border between cells */
+table.test-matrix {
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+table.test-matrix td {
+    text-align: center;
+    border: 1px solid grey;
+}
+
+/* Make link take the whole cell */
+table.test-matrix td a {
+    display: block;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    color: black;
+    text-decoration: none;
+}
+
+/* Test matrix colors */
+table.test-matrix .deselected {
+    background-color: grey;
+}
+table.test-matrix .success {
+    background-color: green;
+}
+table.test-matrix .skipped {
+    background-color: yellow;
+}
+table.test-matrix .failure {
+    background-color: red;
+}
+table.test-matrix .expected-failure {
+    background-color: orange;
+}
+
+/* Rotate headers, thanks to https://css-tricks.com/rotated-table-column-headers/ */
+table.module-results th.job-name {
+  height: 140px;
+  white-space: nowrap;
+}
+table.module-results th.job-name > div {
+  transform:
+    translate(28px, 50px)
+    rotate(315deg);
+  width: 40px;
+}
+table.module-results th.job-name > div > span {
+  border-bottom: 1px solid grey;
+  padding-left: 0px;
+}

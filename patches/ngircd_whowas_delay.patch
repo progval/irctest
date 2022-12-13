@@ -1,0 +1,19 @@
+ngIRCd skips WHOWAS entries for users that were connected for less
+than 30 seconds.
+
+To avoid waiting 30s in every WHOWAS test, we need to remove this.
+
+diff --git a/src/ngircd/client.c b/src/ngircd/client.c
+index 67c02604..66e8e540 100644
+--- a/src/ngircd/client.c
++++ b/src/ngircd/client.c
+@@ -1490,9 +1490,6 @@ Client_RegisterWhowas( CLIENT *Client )
+		return;
+ 
+	now = time(NULL);
+-	/* Don't register clients that were connected less than 30 seconds. */
+-	if( now - Client->starttime < 30 )
+-		return;
+ 
+	slot = Last_Whowas + 1;
+	if( slot >= MAX_WHOWAS || slot < 0 ) slot = 0;

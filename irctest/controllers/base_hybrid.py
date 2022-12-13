@@ -1,4 +1,4 @@
-import os
+import shutil
 import subprocess
 from typing import Optional, Set
 
@@ -43,6 +43,7 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
         run_services: bool,
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
     ) -> None:
         if valid_metadata_keys or invalid_metadata_keys:
             raise NotImplementedByController(
@@ -73,14 +74,22 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
                 )
             )
         assert self.directory
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
         self.proc = subprocess.Popen(
             [
+                *faketime_cmd,
                 self.binary_name,
                 "-foreground",
                 "-configfile",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
                 "-pidfile",
-                os.path.join(self.directory, "server.pid"),
+                self.directory / "server.pid",
             ],
             # stderr=subprocess.DEVNULL,
         )

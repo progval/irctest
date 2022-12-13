@@ -1,3 +1,9 @@
+"""
+The WALLOPS command  (`RFC 2812
+<https://datatracker.ietf.org/doc/html/rfc2812#section-3.7>`__,
+`Modern <https://modern.ircdocs.horse/#wallops-message>`__)
+"""
+
 from irctest import cases, runner
 from irctest.numerics import ERR_NOPRIVILEGES, ERR_UNKNOWNCOMMAND, RPL_YOUREOPER
 from irctest.patma import ANYSTR, StrRe
@@ -38,7 +44,7 @@ class WallopsTestCase(cases.BaseServerTestCase):
 
         messages = self.getMessages(1)
         if ERR_UNKNOWNCOMMAND in (message.command for message in messages):
-            raise runner.NotImplementedByController("WALLOPS")
+            raise runner.OptionalCommandNotSupported("WALLOPS")
         for message in messages:
             self.assertMessageMatch(
                 message,
@@ -60,6 +66,9 @@ class WallopsTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(
+        ["irc2"], "irc2 ignores the command instead of replying ERR_UNKNOWNCOMMAND"
+    )
     def testWallopsPrivileges(self):
         """
         https://github.com/ircdocs/modern-irc/pull/118
@@ -68,7 +77,7 @@ class WallopsTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "WALLOPS :hi everyone")
         message = self.getMessage(1)
         if message.command == ERR_UNKNOWNCOMMAND:
-            raise runner.NotImplementedByController("WALLOPS")
+            raise runner.OptionalCommandNotSupported("WALLOPS")
         self.assertMessageMatch(
             message, command=ERR_NOPRIVILEGES, params=["nick1", ANYSTR]
         )

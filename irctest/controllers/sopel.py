@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import subprocess
 import tempfile
 from typing import Optional, TextIO, Type, cast
@@ -38,14 +38,14 @@ class SopelController(BaseClientController):
         super().kill()
         if self.filename:
             try:
-                os.unlink(os.path.join(os.path.expanduser("~/.sopel/"), self.filename))
-            except OSError:  #  File does not exist
+                (Path("~/.sopel/").expanduser() / self.filename).unlink()
+            except OSError:  # File does not exist
                 pass
 
     def open_file(self, filename: str, mode: str = "a") -> TextIO:
-        dir_path = os.path.expanduser("~/.sopel/")
-        os.makedirs(dir_path, exist_ok=True)
-        return cast(TextIO, open(os.path.join(dir_path, filename), mode))
+        dir_path = Path("~/.sopel/").expanduser()
+        dir_path.mkdir(parents=True, exist_ok=True)
+        return cast(TextIO, (dir_path / filename).open(mode))
 
     def create_config(self) -> None:
         with self.open_file(self.filename):

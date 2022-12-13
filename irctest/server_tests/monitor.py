@@ -1,9 +1,8 @@
 """
-<http://ircv3.net/specs/core/monitor-3.2.html>
+`IRCv3 MONITOR <https://ircv3.net/specs/extensions/monitor>`_
 """
 
-from irctest import cases
-from irctest.basecontrollers import NotImplementedByController
+from irctest import cases, runner
 from irctest.client_mock import NoMessageException
 from irctest.numerics import (
     RPL_ENDOFMONLIST,
@@ -17,7 +16,7 @@ from irctest.patma import ANYSTR, StrRe
 class MonitorTestCase(cases.BaseServerTestCase):
     def check_server_support(self):
         if "MONITOR" not in self.server_support:
-            raise NotImplementedByController("MONITOR")
+            raise runner.IsupportTokenNotSupported("MONITOR")
 
     def assertMononline(self, client, nick, m=None):
         if not m:

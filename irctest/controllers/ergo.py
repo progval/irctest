@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+import shutil
 import subprocess
 from typing import Any, Dict, Optional, Set, Type, Union
 
@@ -155,6 +156,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         valid_metadata_keys: Optional[Set[str]] = None,
         invalid_metadata_keys: Optional[Set[str]] = None,
         restricted_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
         config: Optional[Any] = None,
     ) -> None:
         if valid_metadata_keys or invalid_metadata_keys:
@@ -183,27 +185,32 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         bind_address = "127.0.0.1:%s" % (port,)
         listener_conf = None  # plaintext
         if ssl:
-            self.key_path = os.path.join(self.directory, "ssl.key")
-            self.pem_path = os.path.join(self.directory, "ssl.pem")
+            self.key_path = self.directory / "ssl.key"
+            self.pem_path = self.directory / "ssl.pem"
             listener_conf = {"tls": {"cert": self.pem_path, "key": self.key_path}}
         config["server"]["listeners"][bind_address] = listener_conf  # type: ignore
 
-        config["datastore"]["path"] = os.path.join(  # type: ignore
-            self.directory, "ircd.db"
-        )
+        config["datastore"]["path"] = str(self.directory / "ircd.db")  # type: ignore
 
         if password is not None:
             config["server"]["password"] = hash_password(password)  # type: ignore
 
         assert self.proc is None
 
-        self._config_path = os.path.join(self.directory, "server.yml")
+        self._config_path = self.directory / "server.yml"
         self._config = config
         self._write_config()
         subprocess.call(["ergo", "initdb", "--conf", self._config_path, "--quiet"])
         subprocess.call(["ergo", "mkcerts", "--conf", self._config_path, "--quiet"])
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
         self.proc = subprocess.Popen(
-            ["ergo", "run", "--conf", self._config_path, "--quiet"]
+            [*faketime_cmd, "ergo", "run", "--conf", self._config_path, "--quiet"]
         )
 
     def wait_for_services(self) -> None:

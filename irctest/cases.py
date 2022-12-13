@@ -69,6 +69,30 @@ TController = TypeVar("TController", bound=basecontrollers._BaseController)
 T = TypeVar("T")
 
 
+def retry(f: TCallable) -> TCallable:
+    """Retry the function if it raises ConnectionClosed; as a workaround for flaky
+    connection, such as::
+
+        1: connects to server.
+        1 -> S: NICK foo
+        1 -> S: USER username * * :Realname
+        S -> 1: :My.Little.Server NOTICE * :*** Found your hostname (cached)
+        S -> 1: :My.Little.Server NOTICE * :*** Checking Ident
+        S -> 1: :My.Little.Server NOTICE * :*** No Ident response
+        S -> 1: ERROR :Closing Link: cpu-pool.com (Use a different port)
+    """
+
+    @functools.wraps(f)
+    def newf(*args, **kwargs):  # type: ignore
+        try:
+            return f(*args, **kwargs)
+        except ConnectionClosed:
+            time.sleep(1)
+            return f(*args, **kwargs)
+
+    return newf  # type: ignore
+
+
 class ChannelJoinException(Exception):
     def __init__(self, code: str, params: List[str]):
         super().__init__(f"Failed to join channel ({code}): {params}")
@@ -508,6 +532,12 @@ class BaseServerTestCase(
     server_support: Optional[Dict[str, Optional[str]]]
     run_services = False
 
+    faketime: Optional[str] = None
+    """If not None and the controller supports it and libfaketime is available,
+    runs the server using faketime and this value set as the $FAKETIME env variable.
+    Tests must check ``self.controller.faketime_enabled`` is True before
+    relying on this."""
+
     __new__ = object.__new__  # pytest won't collect Generic[] subclasses otherwise
 
     def setUp(self) -> None:
@@ -522,6 +552,7 @@ class BaseServerTestCase(
             invalid_metadata_keys=self.invalid_metadata_keys,
             ssl=self.ssl,
             run_services=self.run_services,
+            faketime=self.faketime,
         )
         self.clients: Dict[TClientName, client_mock.ClientMock] = {}
 
@@ -539,13 +570,10 @@ class BaseServerTestCase(
         if self.run_services:
             self.controller.wait_for_services()
         if not name:
-            new_name: int = (
-                max(
-                    [int(name) for name in self.clients if isinstance(name, (int, str))]
-                    + [0]
-                )
-                + 1
-            )
+            used_ids: List[int] = [
+                int(name) for name in self.clients if isinstance(name, (int, str))
+            ]
+            new_name = max(used_ids + [0]) + 1
             name = cast(TClientName, new_name)
         show_io = show_io if show_io is not None else self.show_io
         self.clients[name] = client_mock.ClientMock(name=name, show_io=show_io)
@@ -657,6 +685,7 @@ class BaseServerTestCase(
         m = self.getRegistrationMessage(client)
         self.assertIn(m.command, ["900", "903"], str(m))
 
+    @retry
     def connectClient(
         self,
         nick: str,
@@ -675,7 +704,7 @@ class BaseServerTestCase(
         client = self.addClient(name, show_io=show_io)
         if capabilities:
             self.sendLine(client, "CAP LS 302")
-            m = self.getRegistrationMessage(client)
+            self.getCapLs(client)
             self.requestCapabilities(client, capabilities, skip_if_cap_nak)
         if password is not None:
             if "sasl" not in (capabilities or ()):
@@ -704,6 +733,12 @@ class BaseServerTestCase(
                     else:
                         self.server_support[param] = None
             welcome.append(m)
+
+        self.targmax: Dict[str, Optional[str]] = dict(
+            item.split(":", 1)  # type: ignore
+            for item in (self.server_support.get("TARGMAX") or "").split(",")
+            if item
+        )
 
         return welcome
 
@@ -735,49 +770,54 @@ class BaseServerTestCase(
                     raise ChannelJoinException(msg.command, msg.params)
 
 
-_TSelf = TypeVar("_TSelf", bound="OptionalityHelper")
+_TSelf = TypeVar("_TSelf", bound="_IrcTestCase")
 _TReturn = TypeVar("_TReturn")
 
 
-class OptionalityHelper(Generic[TController]):
-    controller: TController
-
-    def checkSaslSupport(self) -> None:
-        if self.controller.supported_sasl_mechanisms:
-            return
-        raise runner.NotImplementedByController("SASL")
-
-    def checkMechanismSupport(self, mechanism: str) -> None:
-        if mechanism in self.controller.supported_sasl_mechanisms:
-            return
-        raise runner.OptionalSaslMechanismNotSupported(mechanism)
-
-    @staticmethod
-    def skipUnlessHasMechanism(
-        mech: str,
-    ) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
-        # Just a function returning a function that takes functions and
-        # returns functions, nothing to see here.
-        # If Python didn't have such an awful syntax for callables, it would be:
-        # str -> ((TSelf -> TReturn) -> (TSelf -> TReturn))
-        def decorator(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
-            @functools.wraps(f)
-            def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
-                self.checkMechanismSupport(mech)
-                return f(self, *args, **kwargs)
-
-            return newf
-
-        return decorator
-
-    @staticmethod
-    def skipUnlessHasSasl(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
+def skipUnlessHasMechanism(
+    mech: str,
+) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
+    # Just a function returning a function that takes functions and
+    # returns functions, nothing to see here.
+    # If Python didn't have such an awful syntax for callables, it would be:
+    # str -> ((TSelf -> TReturn) -> (TSelf -> TReturn))
+    def decorator(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
         @functools.wraps(f)
         def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
-            self.checkSaslSupport()
+            if mech not in self.controller.supported_sasl_mechanisms:
+                raise runner.OptionalSaslMechanismNotSupported(mech)
             return f(self, *args, **kwargs)
 
         return newf
+
+    return decorator
+
+
+def xfailIf(
+    condition: Callable[..., bool], reason: str
+) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
+    # Works about the same as skipUnlessHasMechanism
+    def decorator(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
+        @functools.wraps(f)
+        def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
+            if condition(self):
+                try:
+                    return f(self, *args, **kwargs)
+                except Exception:
+                    pytest.xfail(reason)
+                    assert False  # make mypy happy
+            else:
+                return f(self, *args, **kwargs)
+
+        return newf
+
+    return decorator
+
+
+def xfailIfSoftware(
+    names: List[str], reason: str
+) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
+    return xfailIf(lambda testcase: testcase.controller.software_name in names, reason)
 
 
 def mark_services(cls: TClass) -> TClass:

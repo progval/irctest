@@ -3,20 +3,24 @@
 
 jobs:
   build-anope:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - name: Cache Anope
+    - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        key: 3-${{ runner.os }}-anope-2.0.9
+        key: 3-${{ runner.os }}-anope-devel_release
         path: '~/.cache
 
-          ${{ github.workspace }}/anope
+          ${ github.workspace }/anope
 
           '
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
     - name: Checkout Anope
       uses: actions/checkout@v2
       with:
@@ -24,7 +28,7 @@ jobs:
         ref: 2.0.9
         repository: anope/anope
     - name: Build Anope
-      run: |-
+      run: |
         cd $GITHUB_WORKSPACE/anope/
         cp $GITHUB_WORKSPACE/data/anope/* .
         CFLAGS=-O0 ./Config -quick
@@ -39,7 +43,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-inspircd:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -57,7 +61,7 @@ jobs:
     - name: Build InspIRCd
       run: |
         cd $GITHUB_WORKSPACE/inspircd/
-        patch src/inspircd.cpp < $GITHUB_WORKSPACE/inspircd_mainloop.patch
+        patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
         ./configure --prefix=$HOME/.local/inspircd --development
         make -j 4
         make install
@@ -71,43 +75,39 @@ jobs:
         retention-days: 1
   publish-test-results:
     if: success() || failure()
-    name: Publish Unit Tests Results
+    name: Publish Dashboard
     needs:
     - test-inspircd
     - test-inspircd-anope
     - test-inspircd-atheme
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - name: Download Artifacts
       uses: actions/download-artifact@v2
       with:
         path: artifacts
-    - if: github.event_name == 'pull_request'
-      name: Publish Unit Test Results
-      uses: actions/github-script@v4
-      with:
-        result-encoding: string
-        script: |
-          let body = '';
-          const options = {};
-          options.listeners = {
-              stdout: (data) => {
-                  body += data.toString();
-              }
-          };
-          await exec.exec('bash', ['-c', 'shopt -s globstar; python3 report.py artifacts/**/*.xml'], options);
-          github.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: body,
-          });
-          return body;
+    - name: Install dashboard dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install defusedxml docutils -r requirements.txt
+    - name: Generate dashboard
+      run: |-
+        shopt -s globstar
+        python3 -m irctest.dashboard.format dashboard/ artifacts/**/*.xml
+        echo '/ /index.xhtml' > dashboard/_redirects
+    - name: Install netlify-cli
+      run: npm i -g netlify-cli
+    - env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      name: Deploy to Netlify
+      run: ./.github/deploy_to_netlify.py
   test-inspircd:
     needs:
     - build-inspircd
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
@@ -121,8 +121,8 @@ jobs:
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -130,17 +130,18 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH
         make inspircd
+      timeout-minutes: 30
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd (devel_release)
+        name: pytest-results_inspircd_devel_release
         path: pytest.xml
   test-inspircd-anope:
     needs:
     - build-inspircd
     - build-anope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
@@ -159,8 +160,8 @@ jobs:
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -168,16 +169,17 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH  make
         inspircd-anope
+      timeout-minutes: 30
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd-anope (devel_release)
+        name: pytest-results_inspircd-anope_devel_release
         path: pytest.xml
   test-inspircd-atheme:
     needs:
     - build-inspircd
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
@@ -191,8 +193,8 @@ jobs:
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -200,11 +202,12 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH
         make inspircd-atheme
+      timeout-minutes: 30
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v2
       with:
-        name: pytest results inspircd-atheme (devel_release)
+        name: pytest-results_inspircd-atheme_devel_release
         path: pytest.xml
 name: irctest with devel_release versions
 'on':

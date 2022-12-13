@@ -1,3 +1,9 @@
+"""
+`Ergo <https://ergo.chat/>`_-specific tests of auditorium mode
+
+TODO: Should be extended to other servers, once a specification is written.
+"""
+
 import math
 import time
 

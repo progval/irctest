@@ -1,8 +1,8 @@
 """
+`IRCv3 labeled-response <https://ircv3.net/specs/extensions/labeled-response>`_
+
 This specification is a little hard to test because all labels are optional;
 so there may be many false positives.
-
-<https://ircv3.net/specs/extensions/labeled-response.html>
 """
 
 import re
@@ -14,7 +14,7 @@ from irctest.numerics import ERR_UNKNOWNCOMMAND
 from irctest.patma import ANYDICT, ANYOPTSTR, NotStrRe, RemainingKeys, StrRe
 
 
-class LabeledResponsesTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class LabeledResponsesTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("echo-message", "batch", "labeled-response")
     def testLabeledPrivmsgResponsesToMultipleClients(self):
         self.connectClient(

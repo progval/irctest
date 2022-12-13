@@ -1,8 +1,15 @@
+"""
+`Ergo <https://ergo.chat/>`_-specific tests of non-Unicode filtering
+
+TODO: turn this into a test of `IRCv3 UTF8ONLY
+<https://ircv3.net/specs/extensions/utf8-only>`_
+"""
+
 from irctest import cases
 from irctest.patma import ANYSTR
 
 
-class Utf8TestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class Utf8TestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
     def testUtf8Validation(self):
         self.connectClient(

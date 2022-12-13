@@ -1,5 +1,16 @@
+"""
+AWAY command (`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-4.1>`__,
+`Modern <https://modern.ircdocs.horse/#away-message>`__)
+"""
+
 from irctest import cases
-from irctest.numerics import RPL_AWAY, RPL_NOWAWAY, RPL_UNAWAY, RPL_USERHOST
+from irctest.numerics import (
+    RPL_AWAY,
+    RPL_NOWAWAY,
+    RPL_UNAWAY,
+    RPL_USERHOST,
+    RPL_WHOISUSER,
+)
 from irctest.patma import StrRe
 
 
@@ -32,7 +43,7 @@ class AwayTestCase(cases.BaseServerTestCase):
         """
         "The server acknowledges the change in away status by returning the
         `RPL_NOWAWAY` and `RPL_UNAWAY` numerics."
-        -- https://github.com/ircdocs/modern-irc/pull/100
+        -- https://modern.ircdocs.horse/#away-message
         """
         self.connectClient("bar")
         self.sendLine(1, "AWAY :I'm not here right now")
@@ -48,7 +59,7 @@ class AwayTestCase(cases.BaseServerTestCase):
         """
         "Servers SHOULD notify clients when a user they're interacting with
         is away when relevant"
-        -- https://github.com/ircdocs/modern-irc/pull/100
+        -- https://modern.ircdocs.horse/#away-message
 
         "<client> <nick> :<message>"
         -- https://modern.ircdocs.horse/#rplaway-301
@@ -75,7 +86,7 @@ class AwayTestCase(cases.BaseServerTestCase):
         """
         "Servers SHOULD notify clients when a user they're interacting with
         is away when relevant"
-        -- https://github.com/ircdocs/modern-irc/pull/100
+        -- https://modern.ircdocs.horse/#away-message
 
         "<client> <nick> :<message>"
         -- https://modern.ircdocs.horse/#rplaway-301
@@ -113,7 +124,7 @@ class AwayTestCase(cases.BaseServerTestCase):
         """
         "Servers SHOULD notify clients when a user they're interacting with
         is away when relevant"
-        -- https://github.com/ircdocs/modern-irc/pull/100
+        -- https://modern.ircdocs.horse/#away-message
 
         "<client> <nick> :<message>"
         -- https://modern.ircdocs.horse/#rplaway-301
@@ -134,3 +145,33 @@ class AwayTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             self.getMessage(2), command=RPL_USERHOST, params=["qux", StrRe(r"bar=-.*")]
         )
+
+    @cases.mark_specifications("Modern")
+    def testAwayEmptyMessage(self):
+        """
+        "If [AWAY] is sent with a nonempty parameter (the 'away message')
+        then the user is set to be away. If this command is sent with no
+        parameters, or with the empty string as the parameter, the user is no
+        longer away."
+        -- https://modern.ircdocs.horse/#away-message
+        """
+        self.connectClient("bar", name="bar")
+        self.connectClient("qux", name="qux")
+
+        self.sendLine("bar", "AWAY :I'm not here right now")
+        replies = self.getMessages("bar")
+        self.assertIn(RPL_NOWAWAY, [msg.command for msg in replies])
+        self.sendLine("qux", "WHOIS bar")
+        replies = self.getMessages("qux")
+        self.assertIn(RPL_WHOISUSER, [msg.command for msg in replies])
+        self.assertIn(RPL_AWAY, [msg.command for msg in replies])
+
+        # empty final parameter to AWAY is treated the same as no parameter,
+        # i.e., the client is considered to be no longer away
+        self.sendLine("bar", "AWAY :")
+        replies = self.getMessages("bar")
+        self.assertIn(RPL_UNAWAY, [msg.command for msg in replies])
+        self.sendLine("qux", "WHOIS bar")
+        replies = self.getMessages("qux")
+        self.assertIn(RPL_WHOISUSER, [msg.command for msg in replies])
+        self.assertNotIn(RPL_AWAY, [msg.command for msg in replies])

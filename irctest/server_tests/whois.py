@@ -1,3 +1,9 @@
+"""
+The WHOIS command  (`Modern <https://modern.ircdocs.horse/#whois-message>`__)
+
+TODO: cross-reference RFC 1459 and RFC 2812
+"""
+
 import pytest
 
 from irctest import cases
@@ -23,6 +29,9 @@ from irctest.patma import ANYSTR, StrRe
 
 class _WhoisTestMixin(cases.BaseServerTestCase):
     def _testWhoisNumerics(self, authenticate, away, oper):
+        if oper and self.controller.software_name == "Charybdis":
+            pytest.xfail("charybdis uses RPL_WHOISSPECIAL instead of RPL_WHOISOPERATOR")
+
         if authenticate:
             self.connectClient("nick1")
             self.controller.registerUser(self, "val", "sesame")
@@ -62,7 +71,10 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
             last_message,
             command=RPL_ENDOFWHOIS,
             params=["nick1", "nick2", ANYSTR],
-            fail_msg=f"Last message was not RPL_ENDOFWHOIS ({RPL_ENDOFWHOIS})",
+            fail_msg=(
+                f"Expected RPL_ENDOFWHOIS ({RPL_ENDOFWHOIS}) as last message, "
+                f"got {{msg}}"
+            ),
         )
 
         unexpected_messages = []
@@ -158,7 +170,7 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
         )
 
 
-class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase, cases.OptionalityHelper):
+class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase):
     @pytest.mark.parametrize(
         "server",
         ["", "My.Little.Server", "coolNick"],
@@ -204,11 +216,9 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase, cases.Optionality
 
 
 @cases.mark_services
-class ServicesWhoisTestCase(
-    _WhoisTestMixin, cases.BaseServerTestCase, cases.OptionalityHelper
-):
+class ServicesWhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase):
     @pytest.mark.parametrize("oper", [False, True], ids=["normal", "oper"])
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     @cases.mark_specifications("Modern")
     def testWhoisNumerics(self, oper):
         """Tests all numerics are in the exhaustive list defined in the Modern spec,
@@ -291,7 +301,7 @@ class ServicesWhoisTestCase(
             "RPL_WHOISCHANNELS should be sent for a non-invisible nick",
         )
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     @cases.mark_specifications("ircdocs")
     def testWhoisAccount(self):
         """Test numeric 330, RPL_WHOISACCOUNT.

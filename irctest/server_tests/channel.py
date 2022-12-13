@@ -1,3 +1,7 @@
+"""
+Channel casemapping
+"""
+
 import pytest
 
 from irctest import cases, client_mock, runner
@@ -18,7 +22,7 @@ class ChannelCaseSensitivityTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.connectClient("bar")
         if self.server_support["CASEMAPPING"] != casemapping:
-            raise runner.NotImplementedByController(
+            raise runner.ImplementationChoice(
                 "Casemapping {} not implemented".format(casemapping)
             )
         self.joinClient(1, name1)
@@ -43,7 +47,7 @@ class ChannelCaseSensitivityTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.connectClient("bar")
         if self.server_support["CASEMAPPING"] != casemapping:
-            raise runner.NotImplementedByController(
+            raise runner.ImplementationChoice(
                 "Casemapping {} not implemented".format(casemapping)
             )
         self.joinClient(1, name1)
