@@ -72,7 +72,7 @@ class TheLoungeController(BaseClientController, DirectoryBasedController):
                     config=json.dumps(
                         dict(
                             public=False,
-                            host="unix:" + self.directory + "/sock",  # prevents binding
+                            host=f"unix:{self.directory}/sock",  # prevents binding
                         )
                     )
                 )
@@ -98,7 +98,7 @@ class TheLoungeController(BaseClientController, DirectoryBasedController):
             print("config", json.load(fd)["networks"][0]["saslPassword"])
         self.proc = subprocess.Popen(
             [os.environ.get("THELOUNGE_BIN", "thelounge"), "start"],
-            env={**os.environ, "THELOUNGE_HOME": os.path.join(self.directory)},
+            env={**os.environ, "THELOUNGE_HOME": str(self.directory)},
         )
 
 
