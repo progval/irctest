@@ -99,6 +99,12 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
                     ],
                 )
             elif m.command == RPL_WHOISSPECIAL:
+                services_controller = self.controller.services_controller
+                if (
+                    services_controller is not None
+                    and services_controller.software_name == "Dlk-Services"
+                ):
+                    continue
                 # Technically allowed, but it's a bad style to use this without
                 # explicit configuration by the operators.
                 assert False, "RPL_WHOISSPECIAL in use with default configuration"
