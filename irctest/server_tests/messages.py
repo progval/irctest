@@ -33,6 +33,16 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         self.assertIn(msg.command, ("401", "403", "404"))
 
     @cases.mark_specifications("RFC1459", "RFC2812")
+    def testPrivmsgToUser(self):
+        """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
+        self.connectClient("foo")
+        self.connectClient("bar")
+        self.sendLine(1, "PRIVMSG bar :hey there!")
+        pms = [msg for msg in self.getMessages(2) if msg.command == "PRIVMSG"]
+        self.assertEqual(len(pms), 1)
+        self.assertMessageMatch(pms[0], command="PRIVMSG", params=["bar", "hey there!"])
+
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testPrivmsgNonexistentUser(self):
         """https://tools.ietf.org/html/rfc2812#section-3.3.1"""
         self.connectClient("foo")
@@ -40,7 +50,6 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         msg = self.getMessage(1)
         # ERR_NOSUCHNICK
         self.assertIn(msg.command, ("401"))
-
 
 class NoticeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
