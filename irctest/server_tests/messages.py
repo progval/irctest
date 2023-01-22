@@ -38,6 +38,7 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.connectClient("bar")
         self.sendLine(1, "PRIVMSG bar :hey there!")
+        self.getMessages(1)
         pms = [msg for msg in self.getMessages(2) if msg.command == "PRIVMSG"]
         self.assertEqual(len(pms), 1)
         self.assertMessageMatch(pms[0], command="PRIVMSG", params=["bar", "hey there!"])
