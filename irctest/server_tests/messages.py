@@ -52,6 +52,7 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         # ERR_NOSUCHNICK
         self.assertIn(msg.command, ("401"))
 
+
 class NoticeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testNotice(self):
