@@ -1,7 +1,6 @@
 """
 `Ergo <https://ergo.chat/>`_-specific tests of non-Unicode filtering
 
-TODO: turn this into a test of `IRCv3 UTF8ONLY
 <https://ircv3.net/specs/extensions/utf8-only>`_
 """
 
@@ -11,10 +10,26 @@ from irctest.patma import ANYSTR
 
 class Utf8TestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
-    def testUtf8Validation(self):
+    def testNonUnicodeFiltering(self):
         self.connectClient(
             "bar",
             capabilities=["batch", "echo-message", "labeled-response"],
+        )
+        self.joinChannel(1, "#qux")
+        self.sendLine(1, b"@label=xyz PRIVMSG #qux hi\xaa")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["PRIVMSG", "INVALID_UTF8", ANYSTR],
+            tags={"label": "xyz"},
+        )
+
+    @cases.mark_isupport("UTF8ONLY")
+    @cases.mark_capabilities("echo-message")
+    def testUtf8Validation(self):
+        self.connectClient(
+            "bar",
+            capabilities=["echo-message"],
         )
         self.joinChannel(1, "#qux")
         self.sendLine(1, "PRIVMSG #qux hi")
@@ -24,17 +39,9 @@ class Utf8TestCase(cases.BaseServerTestCase):
         )
 
         self.sendLine(1, b"PRIVMSG #qux hi\xaa")
-        self.assertMessageMatch(
-            self.getMessage(1),
-            command="FAIL",
-            params=["PRIVMSG", "INVALID_UTF8", ANYSTR],
-            tags={},
-        )
 
-        self.sendLine(1, b"@label=xyz PRIVMSG #qux hi\xaa")
-        self.assertMessageMatch(
-            self.getMessage(1),
-            command="FAIL",
-            params=["PRIVMSG", "INVALID_UTF8", ANYSTR],
-            tags={"label": "xyz"},
-        )
+        m = self.getMessage(1)
+        assert m.command in ("FAIL", "WARN", "ERROR")
+
+        if m.command in ("FAIL", "WARN"):
+            self.assertMessageMatch(m, params=["PRIVMSG", "INVALID_UTF8", ANYSTR])
