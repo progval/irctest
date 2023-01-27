@@ -4,13 +4,13 @@
 <https://ircv3.net/specs/extensions/utf8-only>`_
 """
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.patma import ANYSTR
 
 
 class Utf8TestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
-    def testNonUnicodeFiltering(self):
+    def testNonUtf8Filtering(self):
         self.connectClient(
             "bar",
             capabilities=["batch", "echo-message", "labeled-response"],
@@ -25,20 +25,20 @@ class Utf8TestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_isupport("UTF8ONLY")
-    @cases.mark_capabilities("echo-message")
     def testUtf8Validation(self):
-        self.connectClient(
-            "bar",
-            capabilities=["echo-message"],
-        )
-        self.joinChannel(1, "#qux")
-        self.sendLine(1, "PRIVMSG #qux hi")
-        ms = self.getMessages(1)
+        self.connectClient("foo")
+        self.connectClient("bar")
+
+        if "UTF8ONLY" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("UTF8ONLY")
+
+        self.sendLine(1, "PRIVMSG bar hi")
+        ms = self.getMessages(2)
         self.assertMessageMatch(
-            [m for m in ms if m.command == "PRIVMSG"][0], params=["#qux", "hi"]
+            [m for m in ms if m.command == "PRIVMSG"][0], params=["bar", "hi"]
         )
 
-        self.sendLine(1, b"PRIVMSG #qux hi\xaa")
+        self.sendLine(1, b"PRIVMSG bar hi\xaa")
 
         m = self.getMessage(1)
         assert m.command in ("FAIL", "WARN", "ERROR")
