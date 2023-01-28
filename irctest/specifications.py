@@ -56,6 +56,7 @@ class IsupportTokens(enum.Enum):
     MONITOR = "MONITOR"
     STATUSMSG = "STATUSMSG"
     TARGMAX = "TARGMAX"
+    UTF8ONLY = "UTF8ONLY"
     WHOX = "WHOX"
 
     @classmethod
