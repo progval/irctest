@@ -33,6 +33,7 @@ class Utf8TestCase(cases.BaseServerTestCase):
             raise runner.IsupportTokenNotSupported("UTF8ONLY")
 
         self.sendLine(1, "PRIVMSG bar hi")
+        self.getMessages(1)  # synchronize
         ms = self.getMessages(2)
         self.assertMessageMatch(
             [m for m in ms if m.command == "PRIVMSG"][0], params=["bar", "hi"]
