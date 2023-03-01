@@ -1,3 +1,4 @@
+import functools
 import shutil
 import subprocess
 from typing import Optional, Set, Type
@@ -80,8 +81,8 @@ TEMPLATE_CONFIG = """
 
 # HELP/HELPOP
 <module name="alias">  # for the HELP alias
-<module name="helpop">
-<include file="examples/helpop.conf.example">
+<module name="{help_module_name}">
+<include file="examples/{help_module_name}.conf.example">
 
 # Misc:
 <log method="file" type="*" level="debug" target="/tmp/ircd-{port}.log">
@@ -92,6 +93,17 @@ TEMPLATE_SSL_CONFIG = """
 <module name="ssl_openssl">
 <openssl certfile="{pem_path}" keyfile="{key_path}" dhfile="{dh_path}" hash="sha1">
 """
+
+
+@functools.lru_cache()
+def installed_version() -> int:
+    output = subprocess.check_output(["inspircd", "--version"], universal_newlines=True)
+    if output.startswith("InspIRCd-3"):
+        return 3
+    if output.startswith("InspIRCd-4"):
+        return 4
+    else:
+        assert False, f"unexpected version: {output}"
 
 
 class InspircdController(BaseServerController, DirectoryBasedController):
@@ -138,6 +150,13 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         else:
             ssl_config = ""
 
+        if installed_version() == 3:
+            help_module_name = "helpop"
+        elif installed_version() == 4:
+            help_module_name = "help"
+        else:
+            assert False, f"unexpected version: {installed_version()}"
+
         with self.open_file("server.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -147,6 +166,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                     services_port=services_port,
                     password_field=password_field,
                     ssl_config=ssl_config,
+                    help_module_name=help_module_name,
                 )
             )
         assert self.directory
