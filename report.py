@@ -42,7 +42,7 @@ def partial_compaction(d):
     # tests separate
     compacted_d = {}
     successes = []
-    for (k, v) in d.items():
+    for k, v in d.items():
         if isinstance(v, CompactedResult) and v.success and v.nb_skipped == 0:
             successes.append((k, v))
         else:

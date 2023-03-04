@@ -263,7 +263,6 @@ def upload_steps(software_id):
 
 
 def generate_workflow(config: dict, version_flavor: VersionFlavor):
-
     on: dict
     if version_flavor == VersionFlavor.STABLE:
         on = {"push": None, "pull_request": None}
