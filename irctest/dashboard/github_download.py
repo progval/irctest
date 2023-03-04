@@ -18,7 +18,7 @@ class Artifact:
     download_url: str
 
     @property
-    def public_download_url(self):
+    def public_download_url(self) -> str:
         # GitHub API is not available publicly for artifacts, we need to use
         # a third-party proxy to access it...
         name = urllib.parse.quote(self.name)

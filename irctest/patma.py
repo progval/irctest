@@ -152,7 +152,7 @@ def match_dict(
     # Set to not-None if we find a Keys() operator in the dict keys
     remaining_keys_wildcard = None
 
-    for (expected_key, expected_value) in expected.items():
+    for expected_key, expected_value in expected.items():
         if isinstance(expected_key, RemainingKeys):
             remaining_keys_wildcard = (expected_key.key, expected_value)
         else:
@@ -168,7 +168,7 @@ def match_dict(
 
     if remaining_keys_wildcard:
         (expected_key, expected_value) = remaining_keys_wildcard
-        for (key, value) in got.items():
+        for key, value in got.items():
             if not match_string(key, expected_key):
                 return False
             if not match_string(value, expected_value):
