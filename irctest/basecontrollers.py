@@ -69,9 +69,9 @@ class _BaseController:
     _port_lock = _manager.Lock()
     """Lock for access to ``_all_used_ports`` and ``_available_ports``."""
     _all_used_ports: Dict[Tuple[str, int], None] = _manager.dict()
-    """``(hostname, port))`` used by all controllers."""
+    """``(hostname, port)`` used by all controllers."""
     _available_ports: Dict[Tuple[str, int], None] = _manager.dict()
-    """``(hostname, port))`` available to any controller."""
+    """``(hostname, port)`` available to any controller."""
 
     def __init__(self, test_config: TestCaseControllerConfig):
         self.test_config = test_config
