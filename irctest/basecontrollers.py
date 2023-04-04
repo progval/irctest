@@ -120,7 +120,7 @@ class _BaseController:
             self.kill_proc()
 
         # move this controller's ports from _all_used_ports to _available_ports
-        for (hostname, port) in self._used_ports:
+        for hostname, port in self._used_ports:
             del self._all_used_ports[(hostname, port)]
             self._available_ports[(hostname, port)] = None
 
