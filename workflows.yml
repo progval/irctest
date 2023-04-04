@@ -268,8 +268,8 @@ software:
         name: UnrealIRCd 6
         repository: unrealircd/unrealircd
         refs:
-            stable: cedd23ae9cdd5985ce16e9869cbdb808479c3fc4  # 6.0.3
-            release: cedd23ae9cdd5985ce16e9869cbdb808479c3fc4  # 6.0.3
+            stable: 83d2498ec8ce5a5c6df64ec0c460ec655205e820  # 6.0.7
+            release: 83d2498ec8ce5a5c6df64ec0c460ec655205e820  # 6.0.7
             devel: unreal60_dev
             devel_release: null
         path: unrealircd

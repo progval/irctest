@@ -347,7 +347,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         path: unrealircd
-        ref: cedd23ae9cdd5985ce16e9869cbdb808479c3fc4
+        ref: 83d2498ec8ce5a5c6df64ec0c460ec655205e820
         repository: unrealircd/unrealircd
     - name: Build UnrealIRCd 6
       run: |
