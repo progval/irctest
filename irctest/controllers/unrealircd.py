@@ -12,7 +12,6 @@ from irctest.basecontrollers import (
     DirectoryBasedController,
     NotImplementedByController,
 )
-from irctest.irc_utils.junkdrawer import find_hostname_and_port
 
 TEMPLATE_CONFIG = """
 include "modules.default.conf";
@@ -228,8 +227,8 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         password_field = 'password "{}";'.format(password) if password else ""
 
         with _STARTSTOP_LOCK():
-            (services_hostname, services_port) = find_hostname_and_port()
-            (unused_hostname, unused_port) = find_hostname_and_port()
+            (services_hostname, services_port) = self.get_hostname_and_port()
+            (unused_hostname, unused_port) = self.get_hostname_and_port()
 
             self.gen_ssl()
             if ssl:
