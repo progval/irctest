@@ -10,7 +10,18 @@ import subprocess
 import tempfile
 import textwrap
 import time
-from typing import IO, Any, Callable, Dict, List, Optional, Set, Tuple, Type
+from typing import (
+    IO,
+    Any,
+    Callable,
+    Dict,
+    List,
+    MutableMapping,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+)
 
 import irctest
 
@@ -68,9 +79,9 @@ class _BaseController:
     _manager = multiprocessing.Manager()
     _port_lock = _manager.Lock()
     """Lock for access to ``_all_used_ports`` and ``_available_ports``."""
-    _all_used_ports: Dict[Tuple[str, int], None] = _manager.dict()
+    _all_used_ports: MutableMapping[Tuple[str, int], None] = _manager.dict()
     """``(hostname, port)`` used by all controllers."""
-    _available_ports: Dict[Tuple[str, int], None] = _manager.dict()
+    _available_ports: MutableMapping[Tuple[str, int], None] = _manager.dict()
     """``(hostname, port)`` available to any controller."""
 
     def __init__(self, test_config: TestCaseControllerConfig):
