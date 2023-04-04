@@ -7,7 +7,6 @@ from irctest.basecontrollers import (
     DirectoryBasedController,
     NotImplementedByController,
 )
-from irctest.irc_utils.junkdrawer import find_hostname_and_port
 
 TEMPLATE_CONFIG = """
 [Global]
@@ -66,7 +65,7 @@ class NgircdController(BaseServerController, DirectoryBasedController):
         self.port = port
         self.hostname = hostname
         self.create_config()
-        (unused_hostname, unused_port) = find_hostname_and_port()
+        (unused_hostname, unused_port) = self.get_hostname_and_port()
 
         password_field = "Password = {}".format(password) if password else ""
 

@@ -7,7 +7,6 @@ from irctest.basecontrollers import (
     DirectoryBasedController,
     NotImplementedByController,
 )
-from irctest.irc_utils.junkdrawer import find_hostname_and_port
 
 TEMPLATE_SSL_CONFIG = """
     ssl_private_key = "{key_path}";
@@ -53,7 +52,7 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
         self.port = port
         self.hostname = hostname
         self.create_config()
-        (services_hostname, services_port) = find_hostname_and_port()
+        (services_hostname, services_port) = self.get_hostname_and_port()
         password_field = 'password = "{}";'.format(password) if password else ""
         if ssl:
             self.gen_ssl()
