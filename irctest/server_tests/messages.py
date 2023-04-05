@@ -100,6 +100,14 @@ class NoticeTestCase(cases.BaseServerTestCase):
 
 class TagsTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("message-tags")
+    @cases.xfailIf(
+        lambda self: bool(
+            self.controller.software_name == "UnrealIRCd"
+            and self.controller.software_version == 5
+        ),
+        "UnrealIRCd <6.0.7 dropped messages with excessively large tags: "
+        "https://bugs.unrealircd.org/view.php?id=5947",
+    )
     def testLineTooLong(self):
         self.connectClient("bar", capabilities=["message-tags"], skip_if_cap_nak=True)
         self.connectClient(
