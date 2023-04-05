@@ -100,7 +100,7 @@ set {{
     }}
     modes-on-join "+H 100:1d";  // Enables CHATHISTORY
 
-    {set_extras}
+    {set_v6only}
 
 }}
 
@@ -121,6 +121,24 @@ oper "operuser" {{
     class clients;
     operclass netadmin;
 }}
+"""
+
+SET_V6ONLY = """
+// Remove RPL_WHOISSPECIAL used to advertise security groups
+whois-details {
+    security-groups { everyone none; self none; oper none; }
+}
+
+plaintext-policy {
+    server warn; // https://www.unrealircd.org/docs/FAQ#server-requires-tls
+    oper warn; // https://www.unrealircd.org/docs/FAQ#oper-requires-tls
+}
+
+anti-flood {
+    everyone {
+        connect-flood 255:10;
+    }
+}
 """
 
 
@@ -206,20 +224,10 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 loadmodule "cloak_md5";
                 """
             )
-            set_extras = textwrap.indent(
-                textwrap.dedent(
-                    """
-                    // Remove RPL_WHOISSPECIAL used to advertise security groups
-                    whois-details {
-                        security-groups { everyone none; self none; oper none; }
-                    }
-                    """
-                ),
-                "    ",
-            )
+            set_v6only = SET_V6ONLY
         else:
             extras = ""
-            set_extras = ""
+            set_v6only = ""
 
         with self.open_file("empty.txt") as fd:
             fd.write("\n")
@@ -253,8 +261,8 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                         key_path=self.key_path,
                         pem_path=self.pem_path,
                         empty_file=self.directory / "empty.txt",
+                        set_v6only=set_v6only,
                         extras=extras,
-                        set_extras=set_extras,
                     )
                 )
 
