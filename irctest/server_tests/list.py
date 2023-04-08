@@ -332,12 +332,6 @@ class ListTestCase(_BasedListTestCase):
         self.sendLine(3, "LIST #chan1 <1")
         self.assertEqual(self._parseChanList(3), set())
 
-        self.sendLine(3, "LIST #chan1,#chan2 >0")
-        self.assertEqual(self._parseChanList(3), {"#chan1", "#chan2"})
-
-        self.sendLine(3, "LIST #chan1,#chan2 <1")
-        self.assertEqual(self._parseChanList(3), set())
-
     @cases.mark_isupport("ELIST")
     @cases.mark_specifications("Modern")
     def testListTwoParamsTwoChannels(self):
