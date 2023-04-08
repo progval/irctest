@@ -272,6 +272,38 @@ class ListTestCase(_BasedListTestCase):
         self.assertEqual(self._parseChanList(3), {"#chan1", "#chan2"})
 
     @cases.mark_isupport("ELIST")
+    def testListTwoMasks(self):
+        self.connectClient("foo")
+
+        if "M" not in self.server_support.get("ELIST", ""):
+            raise runner.OptionalExtensionNotSupported("ELIST=M")
+
+        if "TARGMAX" in self.server_support:
+            for item in (self.server_support["TARGMAX"]).split(","):
+                (command, max_) = item.split(":", 1)
+                if command == "LIST" and int(max_ or "1000") < 2:
+                    raise runner.OptionalExtensionNotSupported("TARGMAX=LIST >= 2")
+
+        self.sendLine(1, "JOIN #chan1")
+        self.getMessages(1)
+        self.sendLine(1, "JOIN #chan2")
+        self.getMessages(1)
+        self.sendLine(1, "JOIN #chan3")
+        self.getMessages(1)
+
+        self.connectClient("bar")
+        self.sendLine(2, "JOIN #chan2")
+        self.getMessages(2)
+
+        self.connectClient("baz")
+
+        self.sendLine(3, "LIST")
+        self.assertEqual(self._parseChanList(3), {"#chan1", "#chan2", "#chan3"})
+
+        self.sendLine(3, "LIST *an1,*an2")
+        self.assertEqual(self._parseChanList(3), {"#chan1", "#chan2"})
+
+    @cases.mark_isupport("ELIST")
     @cases.mark_specifications("Modern")
     def testListTwoParams(self):
         """
