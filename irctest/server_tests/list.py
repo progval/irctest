@@ -246,9 +246,6 @@ class ListTestCase(_BasedListTestCase):
         """
         self.connectClient("foo")
 
-        if "U" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=U")
-
         if "TARGMAX" in self.server_support:
             for item in (self.server_support["TARGMAX"]).split(","):
                 (command, max_) = item.split(":", 1)
