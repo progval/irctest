@@ -203,7 +203,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertGetValue(2, "#chan", "valid_key1", "myvalue1")
 
     @cases.mark_specifications("IRCv3")
-    def testSetGetOtherUser(self):
+    def testGetOtherUser(self):
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
@@ -226,6 +226,66 @@ class MetadataTestCase(cases.BaseServerTestCase):
             fail_msg="Unexpected messages after other user used METADATA SET: {got}",
         )
         self.assertGetValue(2, "foo", "valid_key1", "myvalue1")
+
+    @cases.mark_specifications("IRCv3")
+    def testSetGetChannelNotOp(self):
+        self.connectClient(
+            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+
+        self.sendLine(1, "JOIN #chan")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.sendLine(2, "METADATA #chan SET valid_key1 myvalue")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="FAIL",
+            params=["METADATA", "KEY_NO_PERMISSION", "#chan", "valid_key1", ANYSTR],
+        )
+
+        self.assertEqual(
+            self.getMessages(1),
+            [],
+            fail_msg="Unexpected messages after other user used METADATA SET: {got}",
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testSetOtherUser(self):
+        """Not required by the spec, but it makes little sense to allow anyone to
+        write a channel's metadata"""
+        self.connectClient(
+            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+
+        # As of 2023-04-15, the Unreal module requires users to share a channel for
+        # metadata to be visible to each other.
+        self.sendLine(1, "JOIN #chan")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.sendLine(1, "METADATA bar SET valid_key1 myvalue")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["METADATA", "KEY_NO_PERMISSION", "bar", "valid_key1", ANYSTR],
+        )
+
+        self.assertEqual(
+            self.getMessages(2),
+            [],
+            fail_msg="Unexpected messages after other user used METADATA SET: {got}",
+        )
 
     @cases.mark_specifications("IRCv3")
     def testSetGetValidBeforeConnect(self):
