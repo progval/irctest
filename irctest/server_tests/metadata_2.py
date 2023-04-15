@@ -9,7 +9,7 @@ import itertools
 import pytest
 
 from irctest import cases, runner
-from irctest.patma import ANYDICT, ANYSTR, StrRe
+from irctest.patma import ANYDICT, ANYLIST, ANYSTR, StrRe
 
 CLIENT_NICKS = {
     1: "foo",
@@ -30,6 +30,22 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(last_msg, command="BATCH", params=["-" + batch_id])
 
         return (batch_id, messages)
+
+    def sub(self, client, keys):
+        self.sendLine(2, "METADATA * SUB " + " ".join(keys))
+        acknowledged_subs = []
+        for m in self.getMessages(2):
+            self.assertMessageMatch(
+                m,
+                command="770",  # RPL_METADATASUBOK
+                params=["bar", *ANYLIST],
+            )
+            acknowledged_subs.extend(m.params[1:])
+        self.assertEqual(
+            sorted(acknowledged_subs),
+            sorted(keys),
+            fail_msg="Expected RPL_METADATASUBOK to ack {expects}, got {got}",
+        )
 
     @cases.mark_specifications("IRCv3")
     def testGetOneUnsetValid(self):
@@ -63,8 +79,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(messages), 2, fail_msg="Expected two ERR_NOMATCHINGKEY")
         self.assertMessageMatch(
             messages[0],
-            command="766",  # RPL_NOMATCHINGKEY
-            fail_msg="Did not reply with 766 (RPL_NOMATCHINGKEY) to a "
+            command="766",  # RPL_KEYNOTSET
+            fail_msg="Did not reply with 766 (RPL_KEYNOTSET) to a "
             "request to two unset valid METADATA key: {msg}",
         )
         self.assertMessageMatch(
@@ -75,8 +91,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         self.assertMessageMatch(
             messages[1],
-            command="766",  # ERR_NOMATCHINGKEY
-            fail_msg="Did not reply with two 766 (ERR_NOMATCHINGKEY) to a "
+            command="766",  # RPL_KEYNOTSET
+            fail_msg="Did not reply with two 766 (RPL_KEYNOTSET) to a "
             "request to two unset valid METADATA key: {msg}",
         )
         self.assertMessageMatch(
@@ -137,6 +153,18 @@ class MetadataTestCase(cases.BaseServerTestCase):
             params=[CLIENT_NICKS[client], target, key, ANYSTR, value],
         )
 
+    def assertUnsetValue(self, client, target, key):
+        self.sendLine(client, "METADATA {} SET {}".format(target, key))
+
+        if target == "*":
+            target = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
+
+        self.assertMessageMatch(
+            self.getMessage(client),
+            command="766",  # RPL_KEYNOTSET
+            params=[CLIENT_NICKS[client], target, key, ANYSTR],
+        )
+
     def assertGetValue(self, client, target, key, value):
         self.sendLine(client, "METADATA {} GET {}".format(target, key))
 
@@ -151,24 +179,41 @@ class MetadataTestCase(cases.BaseServerTestCase):
             params=[CLIENT_NICKS[client], target, key, ANYSTR, value],
         )
 
+    def assertValueNotSet(self, client, target, key):
+        self.sendLine(client, "METADATA {} GET {}".format(target, key))
+
+        if target == "*":
+            target = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
+
+        (batch_id, messages) = self.getBatchMessages(client)
+        self.assertEqual(len(messages), 1, fail_msg="Expected one RPL_KEYVALUE")
+        self.assertMessageMatch(
+            messages[0],
+            command="766",  # RPL_KEYNOTSET
+            params=[CLIENT_NICKS[client], target, key, ANYSTR],
+        )
+
     def assertSetGetValue(self, client, target, key, value):
         self.assertSetValue(client, target, key, value)
         self.assertGetValue(client, target, key, value)
+
+    def assertUnsetGetValue(self, client, target, key):
+        self.assertUnsetValue(client, target, key)
+        self.assertValueNotSet(client, target, key)
 
     @pytest.mark.parametrize(
         "set_target,get_target", itertools.product(["*", "foo"], ["*", "foo"])
     )
     @cases.mark_specifications("IRCv3")
-    def testSetGet(self, set_target, get_target):
+    def testSetGetUser(self, set_target, get_target):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
-        self.assertSetValue(1, set_target, "display-name", "Foo The First")
-        self.assertGetValue(1, get_target, "display-name", "Foo The First")
+        self.assertSetGetValue(1, set_target, "display-name", "Foo The First")
 
     @cases.mark_specifications("IRCv3")
-    def testSetGetAgain(self):
+    def testSetGetUserAgain(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
@@ -177,27 +222,13 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertSetGetValue(1, "*", "display-name", "Foo The Second")
 
     @cases.mark_specifications("IRCv3")
-    def testSetGetChannel(self):
+    def testSetUnsetUser(self):
+        """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
-        self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
-        )
-
-        self.sendLine(1, "JOIN #chan")
-        self.sendLine(2, "JOIN #chan")
-        self.getMessages(1)
-        self.getMessages(2)
-        self.getMessages(1)
-
-        self.assertSetGetValue(1, "#chan", "display-name", "Hash Channel")
-        self.assertEqual(
-            self.getMessages(2),
-            [],
-            fail_msg="Unexpected messages after other user used METADATA SET: {got}",
-        )
-        self.assertGetValue(2, "#chan", "display-name", "Hash Channel")
+        self.assertSetGetValue(1, "*", "display-name", "Foo The First")
+        self.assertUnsetGetValue(1, "*", "display-name")
 
     @cases.mark_specifications("IRCv3")
     def testGetOtherUser(self):
@@ -223,34 +254,6 @@ class MetadataTestCase(cases.BaseServerTestCase):
             fail_msg="Unexpected messages after other user used METADATA SET: {got}",
         )
         self.assertGetValue(2, "foo", "display-name", "Foo The First")
-
-    @cases.mark_specifications("IRCv3")
-    def testSetGetChannelNotOp(self):
-        self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
-        )
-        self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
-        )
-
-        self.sendLine(1, "JOIN #chan")
-        self.sendLine(2, "JOIN #chan")
-        self.getMessages(1)
-        self.getMessages(2)
-        self.getMessages(1)
-
-        self.sendLine(2, "METADATA #chan SET display-name :Sharp Channel")
-        self.assertMessageMatch(
-            self.getMessage(2),
-            command="FAIL",
-            params=["METADATA", "KEY_NO_PERMISSION", "#chan", "display-name", ANYSTR],
-        )
-
-        self.assertEqual(
-            self.getMessages(1),
-            [],
-            fail_msg="Unexpected messages after other user used METADATA SET: {got}",
-        )
 
     @cases.mark_specifications("IRCv3")
     def testSetOtherUser(self):
@@ -282,6 +285,234 @@ class MetadataTestCase(cases.BaseServerTestCase):
             self.getMessages(2),
             [],
             fail_msg="Unexpected messages after other user used METADATA SET: {got}",
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testSubUser(self):
+        """<http://ircv3.net/specs/core/metadata-3.2.html>"""
+        self.connectClient(
+            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+
+        self.sub(2, ["avatar", "display-name"])
+
+        self.sendLine(1, "JOIN #chan")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.assertSetGetValue(1, "*", "display-name", "Foo The First")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="METADATA",
+            params=["foo", "display-name", ANYSTR, "Foo The First"],
+        )
+
+        self.assertSetGetValue(1, "*", "display-name", "Foo The Second")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="METADATA",
+            params=["foo", "display-name", ANYSTR, "Foo The Second"],
+        )
+
+        self.assertUnsetGetValue(1, "*", "display-name")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="METADATA",
+            params=["foo", "display-name", ANYSTR],
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testSubUserSetBeforeJoin(self):
+        """<http://ircv3.net/specs/core/metadata-3.2.html>"""
+        self.connectClient(
+            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+
+        self.sub(2, ["display-name", "avatar"])
+
+        self.assertSetGetValue(1, "*", "display-name", "Foo The First")
+        self.assertEqual(
+            self.getMessages(2),
+            [],
+            fail_msg="'bar' got message when 'foo' set its display-name even though "
+            "they don't share a channel",
+        )
+
+        self.sendLine(1, "JOIN #chan")
+        self.getMessages(1)
+        self.sendLine(2, "JOIN #chan")
+
+        messages = self.getMessages(2)
+        metadata_messages = [m for m in messages if m.command == "METADATA"]
+
+        self.assertEqual(
+            len(metadata_messages),
+            1,
+            fail_msg="Expected exactly one METADATA message when joining a channel, "
+            "got: {got}",
+        )
+
+        self.assertMessageMatch(
+            metadata_messages[0],
+            command="METADATA",
+            params=["foo", "display-name", ANYSTR, "Foo The First"],
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testSetGetChannel(self):
+        self.connectClient(
+            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+
+        self.sendLine(1, "JOIN #chan")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.assertSetGetValue(1, "#chan", "display-name", "Hash Channel")
+        self.assertEqual(
+            self.getMessages(2),
+            [],
+            fail_msg="Unexpected messages after other user used METADATA SET: {got}",
+        )
+        self.assertGetValue(2, "#chan", "display-name", "Hash Channel")
+
+    @cases.mark_specifications("IRCv3")
+    def testSetUnsetChannel(self):
+        """<http://ircv3.net/specs/core/metadata-3.2.html>"""
+        self.connectClient(
+            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+
+        self.sendLine(1, "JOIN #chan")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.assertSetGetValue(1, "#chan", "display-name", "Hash Channel")
+        self.assertUnsetGetValue(1, "#chan", "display-name")
+        self.assertEqual(
+            self.getMessages(2),
+            [],
+            fail_msg="Unexpected messages after other user used METADATA SET: {got}",
+        )
+        self.assertValueNotSet(2, "#chan", "display-name")
+
+    @cases.mark_specifications("IRCv3")
+    def testSetGetChannelNotOp(self):
+        self.connectClient(
+            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+
+        self.sendLine(1, "JOIN #chan")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.sendLine(2, "METADATA #chan SET display-name :Sharp Channel")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="FAIL",
+            params=["METADATA", "KEY_NO_PERMISSION", "#chan", "display-name", ANYSTR],
+        )
+
+        self.assertEqual(
+            self.getMessages(1),
+            [],
+            fail_msg="Unexpected messages after other user used METADATA SET: {got}",
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testSubChannel(self):
+        """<http://ircv3.net/specs/core/metadata-3.2.html>"""
+        self.connectClient(
+            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+
+        self.sub(2, ["avatar", "display-name"])
+
+        self.sendLine(1, "JOIN #chan")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(1)
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.assertSetGetValue(1, "#chan", "display-name", "Hash Channel")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="METADATA",
+            params=["#chan", "display-name", ANYSTR, "Hash Channel"],
+        )
+
+        self.assertSetGetValue(1, "#chan", "display-name", "Harsh Channel")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="METADATA",
+            params=["#chan", "display-name", ANYSTR, "Harsh Channel"],
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testSubChannelSetBeforeJoin(self):
+        """<http://ircv3.net/specs/core/metadata-3.2.html>"""
+        self.connectClient(
+            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+
+        self.sub(2, ["display-name", "avatar"])
+
+        self.sendLine(1, "JOIN #chan")
+        self.getMessages(1)
+
+        self.assertSetGetValue(1, "#chan", "display-name", "Hash Channel")
+        self.assertEqual(
+            self.getMessages(2),
+            [],
+            fail_msg="'bar' got message when 'foo' set #chan's display-name even "
+            "though they are not in it",
+        )
+
+        self.sendLine(2, "JOIN #chan")
+
+        messages = self.getMessages(2)
+        metadata_messages = [m for m in messages if m.command == "METADATA"]
+
+        self.assertEqual(
+            len(metadata_messages),
+            1,
+            fail_msg="Expected exactly one METADATA message when joining a channel, "
+            "got: {got}",
+        )
+
+        self.assertMessageMatch(
+            metadata_messages[0],
+            command="METADATA",
+            params=["#chan", "display-name", ANYSTR, "Hash Channel"],
         )
 
     @cases.mark_specifications("IRCv3")
