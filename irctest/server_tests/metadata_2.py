@@ -4,6 +4,10 @@
 <https://ircv3.net/specs/core/metadata-3.2>`_)
 """
 
+import itertools
+
+import pytest
+
 from irctest import cases
 from irctest.patma import ANYDICT, ANYSTR, StrRe
 
@@ -149,13 +153,17 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertSetValue(target, key, value)
         self.assertGetValue(target, key, value)
 
+    @pytest.mark.parametrize(
+        "set_target,get_target", itertools.product(["*", "foo"], ["*", "foo"])
+    )
     @cases.mark_specifications("IRCv3")
-    def testSetGetValid(self):
+    def testSetGetValid(self, set_target, get_target):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
-        self.assertSetGetValue("*", "valid_key1", "myvalue")
+        self.assertSetValue(set_target, "valid_key1", "myvalue")
+        self.assertGetValue(get_target, "valid_key1", "myvalue")
 
     @cases.mark_specifications("IRCv3")
     def testSetGetHeartInValue(self):
