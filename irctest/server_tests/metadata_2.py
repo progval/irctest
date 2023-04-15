@@ -172,14 +172,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "->{}<-".format(heart),
         )
 
-    @cases.xfailIfSoftware(
-        ["UnrealIRCd"], "UnrealIRCd does not validate UTF-8 in metadata values"
-    )
-    @cases.mark_specifications("IRCv3")
-    def testSetInvalidUtf8(self):
-        """“Values are unrestricted, except that they MUST be UTF-8.”
-        -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-restrictions>
-        """
+    def _testSetInvalidValue(self, value):
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
@@ -198,13 +191,45 @@ class MetadataTestCase(cases.BaseServerTestCase):
             fail_msg="Setting METADATA key to a value containing invalid "
             "UTF-8 was answered with 761 (RPL_KEYVALUE)",
         )
-        self.clients[1].conn.sendall(
-            b"METADATA * SET valid_key1 " b":invalid UTF-8: \xc3\r\n"
+        self.clients[1].conn.sendall(b"METADATA * SET valid_key1 :" + value + b"\r\n")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["METADATA", "INVALID_VALUE", ANYSTR],
         )
-        commands = {m.command for m in self.getMessages(1)}
+        messages = self.getMessages(1)
         self.assertNotIn(
-            "761",
-            commands,  # RPL_KEYVALUE
+            "761",  # RPL_KEYVALUE
+            {m.command for m in messages},
             fail_msg="Setting METADATA key to a value containing invalid "
             "UTF-8 was answered with 761 (RPL_KEYVALUE)",
         )
+        self.assertEqual(
+            messages,
+            [],
+            fail_msg="Unexpected response to METADATA SET with invalid value: {got}",
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testSetInvalidUtf8(self):
+        """“Values are unrestricted, except that they MUST be UTF-8.”
+        -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-restrictions>
+        """
+        self._testSetInvalidValue(b"invalid UTF-8: \xc3")
+
+    @cases.mark_specifications("IRCv3")
+    def testSetTooManyChars(self):
+        """Assumes all servers reject values over 480 bytes. This isn't required by the
+        spec, but makes them risk overflowing when printing the value, so they probably
+        won't allow that.
+        """
+        self._testSetInvalidValue(b"abcd" * 120)
+
+    @cases.mark_specifications("IRCv3")
+    def testSetTooManyBytes(self):
+        """Assumes all servers reject values over 480 bytes. This isn't required by the
+        spec, but makes them risk overflowing when printing the value, so they probably
+        won't allow that.
+        """
+        heart = b"\xf0\x9f\x92\x9c"
+        self._testSetInvalidValue(heart * 120)
