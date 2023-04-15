@@ -8,7 +8,7 @@ import itertools
 
 import pytest
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.patma import ANYDICT, ANYSTR, StrRe
 
 
@@ -164,6 +164,29 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         self.assertSetValue(set_target, "valid_key1", "myvalue")
         self.assertGetValue(get_target, "valid_key1", "myvalue")
+
+    @cases.mark_specifications("IRCv3")
+    def testSetGetValidBeforeConnect(self):
+        """<http://ircv3.net/specs/core/metadata-3.2.html>"""
+        self.addClient(1)
+
+        self.sendLine(1, "CAP LS 302")
+        caps = self.getCapLs(1)
+        if "before-connect" not in (caps["draft/metadata-2"] or "").split(","):
+            raise runner.OptionalExtensionNotSupported(
+                "draft/metadata-2=before-connect"
+            )
+
+        self.requestCapabilities(1, ["draft/metadata-2", "batch"], skip_if_cap_nak=True)
+
+        self.assertSetValue("*", "valid_key1", "myvalue")
+
+        self.sendLine(1, "NICK foo")
+        self.sendLine(1, "USER foo 0 * :foo")
+        self.sendLine(1, "CAP END")
+        self.skipToWelcome(1)
+
+        self.assertGetValue("*", "valid_key1", "myvalue")
 
     @cases.mark_specifications("IRCv3")
     def testSetGetHeartInValue(self):
