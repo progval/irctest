@@ -5,12 +5,25 @@
 """
 
 from irctest import cases
-from irctest.patma import ANYSTR, StrRe
+from irctest.patma import ANYDICT, ANYSTR, StrRe
 
 
 class MetadataTestCase(cases.BaseServerTestCase):
     valid_metadata_keys = {"valid_key1", "valid_key2"}
     invalid_metadata_keys = {"invalid_key1", "invalid_key2"}
+
+    def getBatchMessages(self, client):
+        messages = self.getMessages(1)
+
+        first_msg = messages.pop(0)
+        last_msg = messages.pop(-1)
+        self.assertMessageMatch(
+            first_msg, command="BATCH", params=[StrRe(r"\+.*"), "metadata"]
+        )
+        batch_id = first_msg.params[0][1:]
+        self.assertMessageMatch(last_msg, command="BATCH", params=["-" + batch_id])
+
+        return (batch_id, messages)
 
     @cases.mark_specifications("IRCv3")
     def testGetOneUnsetValid(self):
@@ -19,12 +32,15 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
         self.sendLine(1, "METADATA * GET valid_key1")
-        m = self.getMessage(1)
+
+        (batch_id, messages) = self.getBatchMessages(1)
+        self.assertEqual(len(messages), 1, fail_msg="Expected one ERR_NOMATCHINGKEY")
         self.assertMessageMatch(
-            m,
+            messages[0],
+            tags={"batch": batch_id, **ANYDICT},
             command="766",  # ERR_NOMATCHINGKEY
             fail_msg="Did not reply with 766 (ERR_NOMATCHINGKEY) to a "
-            "request to an unset valid METADATA key.",
+            "request to an unset valid METADATA key: {msg}",
         )
 
     @cases.mark_specifications("IRCv3")
@@ -37,28 +53,28 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
         self.sendLine(1, "METADATA * GET valid_key1 valid_key2")
-        m = self.getMessage(1)
+        (batch_id, messages) = self.getBatchMessages(1)
+        self.assertEqual(len(messages), 2, fail_msg="Expected two ERR_NOMATCHINGKEY")
         self.assertMessageMatch(
-            m,
+            messages[0],
             command="766",  # RPL_NOMATCHINGKEY
             fail_msg="Did not reply with 766 (RPL_NOMATCHINGKEY) to a "
             "request to two unset valid METADATA key: {msg}",
         )
         self.assertMessageMatch(
-            m,
+            messages[0],
             params=["foo", "foo", "valid_key1", ANYSTR],
             fail_msg="Response to “METADATA * GET valid_key1 valid_key2” "
             "did not respond to valid_key1 first: {msg}",
         )
-        m = self.getMessage(1)
         self.assertMessageMatch(
-            m,
+            messages[1],
             command="766",  # ERR_NOMATCHINGKEY
             fail_msg="Did not reply with two 766 (ERR_NOMATCHINGKEY) to a "
             "request to two unset valid METADATA key: {msg}",
         )
         self.assertMessageMatch(
-            m,
+            messages[1],
             params=["foo", "foo", "valid_key2", ANYSTR],
             fail_msg="Response to “METADATA * GET valid_key1 valid_key2” "
             "did not respond to valid_key2 as second response: {msg}",
@@ -75,12 +91,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
         self.sendLine(1, "METADATA * LIST")
-        m = self.getMessage(1)
-        self.assertMessageMatch(
-            m,
-            command="762",  # RPL_METADATAEND
-            params=["foo", ANYSTR],
-        )
+        (batch_id, messages) = self.getBatchMessages(1)
+        self.assertEqual(len(messages), 0, fail_msg="Expected empty batch")
 
     @cases.mark_specifications("IRCv3")
     def testListInvalidTarget(self):
@@ -125,8 +137,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
         if target == "*":
             target = StrRe(r"(\*|foo)")
 
+        (batch_id, messages) = self.getBatchMessages(1)
+        self.assertEqual(len(messages), 1, fail_msg="Expected one RPL_KEYVALUE")
         self.assertMessageMatch(
-            self.getMessage(1),
+            messages[0],
             command="761",  # RPL_KEYVALUE
             params=["foo", target, key, ANYSTR, value],
         )
