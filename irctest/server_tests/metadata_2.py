@@ -203,7 +203,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             self.getMessage(1),
             command="FAIL",
-            params=["METADATA", "INVALID_VALUE", ANYSTR],
+            params=["METADATA", "VALUE_INVALID", ANYSTR],
         )
         messages = self.getMessages(1)
         self.assertNotIn(
