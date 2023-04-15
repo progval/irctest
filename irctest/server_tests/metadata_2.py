@@ -18,9 +18,6 @@ CLIENT_NICKS = {
 
 
 class MetadataTestCase(cases.BaseServerTestCase):
-    valid_metadata_keys = {"valid_key1", "valid_key2"}
-    invalid_metadata_keys = {"invalid_key1", "invalid_key2"}
-
     def getBatchMessages(self, client):
         messages = self.getMessages(client)
 
@@ -40,7 +37,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
-        self.sendLine(1, "METADATA * GET valid_key1")
+        self.sendLine(1, "METADATA * GET display-name")
 
         (batch_id, messages) = self.getBatchMessages(1)
         self.assertEqual(len(messages), 1, fail_msg="Expected one ERR_NOMATCHINGKEY")
@@ -61,7 +58,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
-        self.sendLine(1, "METADATA * GET valid_key1 valid_key2")
+        self.sendLine(1, "METADATA * GET display-name avatar")
         (batch_id, messages) = self.getBatchMessages(1)
         self.assertEqual(len(messages), 2, fail_msg="Expected two ERR_NOMATCHINGKEY")
         self.assertMessageMatch(
@@ -72,9 +69,9 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         self.assertMessageMatch(
             messages[0],
-            params=["foo", "foo", "valid_key1", ANYSTR],
-            fail_msg="Response to “METADATA * GET valid_key1 valid_key2” "
-            "did not respond to valid_key1 first: {msg}",
+            params=["foo", "foo", "display-name", ANYSTR],
+            fail_msg="Response to “METADATA * GET display-name avatar” "
+            "did not respond to display-name first: {msg}",
         )
         self.assertMessageMatch(
             messages[1],
@@ -84,9 +81,9 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         self.assertMessageMatch(
             messages[1],
-            params=["foo", "foo", "valid_key2", ANYSTR],
-            fail_msg="Response to “METADATA * GET valid_key1 valid_key2” "
-            "did not respond to valid_key2 as second response: {msg}",
+            params=["foo", "foo", "avatar", ANYSTR],
+            fail_msg="Response to “METADATA * GET display-name avatar” "
+            "did not respond to avatar as second response: {msg}",
         )
 
     @cases.mark_specifications("IRCv3")
@@ -167,8 +164,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
-        self.assertSetValue(1, set_target, "valid_key1", "myvalue")
-        self.assertGetValue(1, get_target, "valid_key1", "myvalue")
+        self.assertSetValue(1, set_target, "display-name", "Foo The First")
+        self.assertGetValue(1, get_target, "display-name", "Foo The First")
 
     @cases.mark_specifications("IRCv3")
     def testSetGetAgain(self):
@@ -176,8 +173,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
-        self.assertSetGetValue(1, "*", "valid_key1", "myvalue1")
-        self.assertSetGetValue(1, "*", "valid_key1", "myvalue2")
+        self.assertSetGetValue(1, "*", "display-name", "Foo The First")
+        self.assertSetGetValue(1, "*", "display-name", "Foo The Second")
 
     @cases.mark_specifications("IRCv3")
     def testSetGetChannel(self):
@@ -194,13 +191,13 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
         self.getMessages(1)
 
-        self.assertSetGetValue(1, "#chan", "valid_key1", "myvalue1")
+        self.assertSetGetValue(1, "#chan", "display-name", "Hash Channel")
         self.assertEqual(
             self.getMessages(2),
             [],
             fail_msg="Unexpected messages after other user used METADATA SET: {got}",
         )
-        self.assertGetValue(2, "#chan", "valid_key1", "myvalue1")
+        self.assertGetValue(2, "#chan", "display-name", "Hash Channel")
 
     @cases.mark_specifications("IRCv3")
     def testGetOtherUser(self):
@@ -219,13 +216,13 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
         self.getMessages(1)
 
-        self.assertSetValue(1, "*", "valid_key1", "myvalue1")
+        self.assertSetValue(1, "*", "display-name", "Foo The First")
         self.assertEqual(
             self.getMessages(2),
             [],
             fail_msg="Unexpected messages after other user used METADATA SET: {got}",
         )
-        self.assertGetValue(2, "foo", "valid_key1", "myvalue1")
+        self.assertGetValue(2, "foo", "display-name", "Foo The First")
 
     @cases.mark_specifications("IRCv3")
     def testSetGetChannelNotOp(self):
@@ -242,11 +239,11 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
         self.getMessages(1)
 
-        self.sendLine(2, "METADATA #chan SET valid_key1 myvalue")
+        self.sendLine(2, "METADATA #chan SET display-name :Sharp Channel")
         self.assertMessageMatch(
             self.getMessage(2),
             command="FAIL",
-            params=["METADATA", "KEY_NO_PERMISSION", "#chan", "valid_key1", ANYSTR],
+            params=["METADATA", "KEY_NO_PERMISSION", "#chan", "display-name", ANYSTR],
         )
 
         self.assertEqual(
@@ -274,11 +271,11 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
         self.getMessages(1)
 
-        self.sendLine(1, "METADATA bar SET valid_key1 myvalue")
+        self.sendLine(1, "METADATA bar SET display-name :Totally Not Foo")
         self.assertMessageMatch(
             self.getMessage(1),
             command="FAIL",
-            params=["METADATA", "KEY_NO_PERMISSION", "bar", "valid_key1", ANYSTR],
+            params=["METADATA", "KEY_NO_PERMISSION", "bar", "display-name", ANYSTR],
         )
 
         self.assertEqual(
@@ -301,14 +298,14 @@ class MetadataTestCase(cases.BaseServerTestCase):
 
         self.requestCapabilities(1, ["draft/metadata-2", "batch"], skip_if_cap_nak=True)
 
-        self.assertSetValue(1, "*", "valid_key1", "myvalue")
+        self.assertSetValue(1, "*", "display-name", "Foo The First")
 
         self.sendLine(1, "NICK foo")
         self.sendLine(1, "USER foo 0 * :foo")
         self.sendLine(1, "CAP END")
         self.skipToWelcome(1)
 
-        self.assertGetValue(1, "*", "valid_key1", "myvalue")
+        self.assertGetValue(1, "*", "display-name", "Foo The First")
 
     @cases.mark_specifications("IRCv3")
     def testSetGetHeartInValue(self):
@@ -322,7 +319,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertSetGetValue(
             1,
             "*",
-            "valid_key1",
+            "display-name",
             "->{}<-".format(heart),
         )
 
@@ -333,7 +330,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         # Sending directly because it is not valid UTF-8 so Python would
         # not like it
         self.clients[1].conn.sendall(
-            b"METADATA * SET valid_key1 " b":invalid UTF-8 ->\xc3<-\r\n"
+            b"METADATA * SET display-name :invalid UTF-8 ->\xc3<-\r\n"
         )
         try:
             commands = {m.command for m in self.getMessages(1)}
@@ -345,7 +342,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             fail_msg="Setting METADATA key to a value containing invalid "
             "UTF-8 was answered with 761 (RPL_KEYVALUE)",
         )
-        self.clients[1].conn.sendall(b"METADATA * SET valid_key1 :" + value + b"\r\n")
+        self.clients[1].conn.sendall(b"METADATA * SET display-name :" + value + b"\r\n")
         self.assertMessageMatch(
             self.getMessage(1),
             command="FAIL",
