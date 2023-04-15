@@ -261,8 +261,6 @@ class BaseServerController(_BaseController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]],
-        invalid_metadata_keys: Optional[Set[str]],
         faketime: Optional[str],
     ) -> None:
         raise NotImplementedError()

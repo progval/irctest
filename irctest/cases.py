@@ -529,8 +529,6 @@ class BaseServerTestCase(
 
     password: Optional[str] = None
     ssl = False
-    valid_metadata_keys: Set[str] = set()
-    invalid_metadata_keys: Set[str] = set()
     server_support: Optional[Dict[str, Optional[str]]]
     run_services = False
 
@@ -550,8 +548,6 @@ class BaseServerTestCase(
             self.hostname,
             self.port,
             password=self.password,
-            valid_metadata_keys=self.valid_metadata_keys,
-            invalid_metadata_keys=self.invalid_metadata_keys,
             ssl=self.ssl,
             run_services=self.run_services,
             faketime=self.faketime,

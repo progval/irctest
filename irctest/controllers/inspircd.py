@@ -1,13 +1,9 @@
 import functools
 import shutil
 import subprocess
-from typing import Optional, Set, Type
+from typing import Optional, Type
 
-from irctest.basecontrollers import (
-    BaseServerController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
+from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
 # Clients:
@@ -124,15 +120,8 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-        restricted_metadata_keys: Optional[Set[str]] = None,
         faketime: Optional[str] = None,
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
         assert self.proc is None
         self.port = port
         self.hostname = hostname
