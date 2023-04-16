@@ -236,31 +236,31 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
 
         assert self.directory
 
-        with _STARTSTOP_LOCK():
-            with self.open_file("unrealircd.conf") as fd:
-                fd.write(
-                    TEMPLATE_CONFIG.format(
-                        hostname=hostname,
-                        port=port,
-                        services_hostname=services_hostname,
-                        services_port=services_port,
-                        tls_hostname=tls_hostname,
-                        tls_port=tls_port,
-                        password_field=password_field,
-                        key_path=self.key_path,
-                        pem_path=self.pem_path,
-                        empty_file=self.directory / "empty.txt",
-                        set_v6only=set_v6only,
-                        extras=extras,
-                    )
+        with self.open_file("unrealircd.conf") as fd:
+            fd.write(
+                TEMPLATE_CONFIG.format(
+                    hostname=hostname,
+                    port=port,
+                    services_hostname=services_hostname,
+                    services_port=services_port,
+                    tls_hostname=tls_hostname,
+                    tls_port=tls_port,
+                    password_field=password_field,
+                    key_path=self.key_path,
+                    pem_path=self.pem_path,
+                    empty_file=self.directory / "empty.txt",
+                    set_v6only=set_v6only,
+                    extras=extras,
                 )
+            )
 
-            if faketime and shutil.which("faketime"):
-                faketime_cmd = ["faketime", "-f", faketime]
-                self.faketime_enabled = True
-            else:
-                faketime_cmd = []
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
 
+        with _STARTSTOP_LOCK():
             self.proc = subprocess.Popen(
                 [
                     *faketime_cmd,
