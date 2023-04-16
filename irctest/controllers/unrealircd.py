@@ -223,11 +223,12 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
 
         password_field = 'password "{}";'.format(password) if password else ""
 
+        self.gen_ssl()
+
         with _STARTSTOP_LOCK():
             (services_hostname, services_port) = self.get_hostname_and_port()
             (unused_hostname, unused_port) = self.get_hostname_and_port()
 
-            self.gen_ssl()
             if ssl:
                 (tls_hostname, tls_port) = (hostname, port)
                 (hostname, port) = (unused_hostname, unused_port)
