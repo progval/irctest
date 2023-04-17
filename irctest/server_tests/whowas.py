@@ -201,10 +201,6 @@ class WhowasTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1967",
-    )
     def testWhowasMultiple(self):
         """
         "The history is searched backward, returning the most recent entry first."
@@ -215,10 +211,6 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2")
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
-    )
     def testWhowasCount1(self):
         """
         "If there are multiple entries, up to <count> replies will be returned"
@@ -229,10 +221,6 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=False, whowas_command="WHOWAS nick2 1")
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
-    )
     def testWhowasCount2(self):
         """
         "If there are multiple entries, up to <count> replies will be returned"
@@ -243,10 +231,6 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 2")
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
-    )
     def testWhowasCountNegative(self):
         """
         "If a non-positive number is passed as being <count>, then a full search
@@ -263,10 +247,6 @@ class WhowasTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     @cases.xfailIfSoftware(
         ["ircu2"], "Fix not released yet: https://github.com/UndernetIRC/ircu2/pull/19"
-    )
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1967",
     )
     def testWhowasCountZero(self):
         """
