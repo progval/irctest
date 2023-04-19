@@ -126,7 +126,7 @@ def hash_password(password: Union[str, bytes]) -> str:
         ["ergo", "genpasswd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
     out, _ = p.communicate(input_)
-    return out.decode("utf-8")
+    return out.decode("utf-8").strip()
 
 
 class ErgoController(BaseServerController, DirectoryBasedController):
