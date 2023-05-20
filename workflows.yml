@@ -153,8 +153,12 @@ software:
         separate_build_job: true
         build_script: &inspircd_build_script |
             cd $GITHUB_WORKSPACE/inspircd/
-            patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
-            ./configure --prefix=$HOME/.local/inspircd --development
+
+            # Insp3 <= 3.16.0 and Insp4 <= 4.0.0a21 don't support -DINSPIRCD_UNLIMITED_MAINLOOP
+            patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch || true
+
+            CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP ./configure --prefix=$HOME/.local/inspircd --development
+
             make -j 4
             make install
     irc2:
