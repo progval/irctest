@@ -1,5 +1,5 @@
 """
-Channel "no outside" mode (`RFC 1459
+Channel "no external messages" mode (`RFC 1459
 <https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.3.1>`__,
 `Modern <https://modern.ircdocs.horse/#no-external-messages-mode>`__)
 """
