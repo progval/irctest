@@ -8,9 +8,9 @@ from irctest import cases
 from irctest.numerics import ERR_CANNOTSENDTOCHAN
 
 
-class NoOutsideTestCase(cases.BaseServerTestCase):
+class NoExternalMessagesTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "Modern")
-    def testNoOutsideMode(self):
+    def testNoExternalMessagesMode(self):
         # test the +n channel mode
         self.connectClient("chanop", name="chanop")
         self.joinChannel("chanop", "#chan")
