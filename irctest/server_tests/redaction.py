@@ -2,6 +2,8 @@
 `IRCv3 draft message redaction <https://github.com/progval/ircv3-specifications/blob/redaction/extensions/message-redaction.md>`_
 """
 
+import uuid
+
 from irctest import cases
 from irctest.patma import ANYDICT, ANYSTR, StrRe
 
@@ -188,3 +190,18 @@ class RedactTestCase(cases.BaseServerTestCase):
             else:
                 # Server removed the message entirely
                 pass
+
+    def testOpRedactNonExistant(self):
+        """Channel op writes a message and redacts a random non-existant id."""
+        self._setupRedactTest(redacteeId=1, redacteeNick="chanop")
+
+        nonexistent_msgid = str(uuid.uuid4())
+
+        self.sendLine(1, f"REDACT #chan {nonexistent_msgid} :oops")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["REDACT", "UNKNOWN_MSGID", "#chan", nonexistent_msgid, ANYSTR],
+        )
+
+        self.assertEqual(self.getMessages(2), [])
