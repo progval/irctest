@@ -251,6 +251,23 @@ class MonitorTestCase(_BaseMonitorTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.mark_isupport("MONITOR")
+    def testMonitorClear(self):
+        """“Clears the list of targets being monitored. No output will be returned
+        for use of this command.“
+        -- <https://ircv3.net/specs/extensions/monitor#monitor-c>
+        """
+        self.connectClient("foo")
+        self.check_server_support()
+        self.sendLine(1, "MONITOR + bar")
+        self.getMessages(1)
+
+        self.sendLine(1, "MONITOR C")
+        self.sendLine(1, "MONITOR L")
+        m = self.getMessage(1)
+        self.assertEqual(m.command, RPL_ENDOFMONLIST)
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
     def testMonitorList(self):
         def checkMonitorSubjects(messages, client_nick, expected_targets):
             # collect all the RPL_MONLIST nicks into a set:
@@ -283,6 +300,35 @@ class MonitorTestCase(_BaseMonitorTestCase):
         self.getMessages(1)
         self.sendLine(1, "MONITOR L")
         checkMonitorSubjects(self.getMessages(1), "bar", {"bazbat"})
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_isupport("MONITOR")
+    def testMonitorStatus(self):
+        """“Outputs for each target in the list being monitored, whether
+        the client is online or offline. All targets that are online will
+        be sent using RPL_MONONLINE, all targets that are offline will be
+        sent using RPL_MONOFFLINE.“
+        -- <https://ircv3.net/specs/extensions/monitor#monitor-s>
+        """
+        self.connectClient("foo")
+        self.check_server_support()
+        self.connectClient("bar")
+        self.sendLine(1, "MONITOR + bar,baz")
+        self.getMessages(1)
+
+        self.sendLine(1, "MONITOR S")
+        msgs = self.getMessages(1)
+        self.assertEqual(
+            len(msgs),
+            2,
+            fail_msg="Expected one RPL_MONONLINE (730) and one RPL_MONOFFLINE (731), got: {}",
+            extra_format=(msgs,),
+        )
+
+        msgs.sort(key=lambda m: m.command)
+
+        self.assertMononline(1, "bar", m=msgs[0])
+        self.assertMonoffline(1, "baz", m=msgs[1])
 
     @cases.mark_specifications("IRCv3")
     @cases.mark_isupport("MONITOR")
