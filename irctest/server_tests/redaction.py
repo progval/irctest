@@ -16,10 +16,13 @@ CAPABILITIES = [
 @cases.mark_specifications("IRCv3")
 @cases.mark_capabilities(*CAPABILITIES)
 class RedactTestCase(cases.BaseServerTestCase):
-    def _setupRedactTest(self, redacteeId, redacteeNick):
-        self.connectClient("chanop", capabilities=CAPABILITIES, skip_if_cap_nak=True)
+    def _setupRedactTest(self, redacteeId, redacteeNick, chathistory=False):
+        capabilities = list(CAPABILITIES)
+        if chathistory:
+            capabilities.extend(["batch", "draft/chathistory"])
+        self.connectClient("chanop", capabilities=capabilities, skip_if_cap_nak=True)
         self.sendLine(1, "JOIN #chan")
-        self.connectClient("user", capabilities=CAPABILITIES, skip_if_cap_nak=True)
+        self.connectClient("user", capabilities=capabilities, skip_if_cap_nak=True)
         self.sendLine(2, "JOIN #chan")
         self.getMessages(2)  # synchronize
         self.getMessages(1)
@@ -130,3 +133,58 @@ class RedactTestCase(cases.BaseServerTestCase):
         )
 
         self.assertEqual(self.getMessages(1), [])
+
+    def testRelayOpSelfRedactChathistory(self):
+        """Channel op writes a message and redacts it themselves; both the op
+        and a regular user check the chathistory afterward.
+
+        https://github.com/progval/ircv3-specifications/blob/redaction/extensions/message-redaction.md#chat-history
+        """
+        msgid = self._setupRedactTest(
+            redacteeId=1, redacteeNick="chanop", chathistory=True
+        )
+
+        self.sendLine(1, f"REDACT #chan {msgid} :oops")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            prefix=StrRe("chanop!.*"),
+            command="REDACT",
+            params=["#chan", msgid, "oops"],
+        )
+
+        self.getMessages(1)
+        self.getMessages(2)
+
+        for i in (1, 2):
+            self.sendLine(i, "CHATHISTORY LATEST #chan * 10")
+
+            msg = self.getMessage(i)
+            self.assertMessageMatch(
+                msg, command="BATCH", params=[StrRe(r"\+.+"), "chathistory", "#chan"]
+            )
+            batch_tag = msg.params[0][1:]
+
+            msgs = self.getMessages(i)
+
+            # remove Ergo's event-playback fallback
+            msgs = [msg for msg in msgs if not msg.prefix.startswith("HistServ!")]
+
+            self.assertMessageMatch(msgs[-1], command="BATCH", params=["-" + batch_tag])
+
+            if len(msgs) >= 2:
+                # Server either replaced with or appended the REDACT
+                self.assertMessageMatch(
+                    msgs[-2], command="REDACT", params=["#chan", msgid, "oops"]
+                )
+
+                if len(msgs) >= 3 and msgs[-3].command == "PRIVMSG":
+                    # Server appended the react
+                    self.assertMessageMatch(
+                        msgs[-4],
+                        tags={"msgid": msgid, **ANYDICT},
+                        command="PRIVMSG",
+                        params=["#chan", msgid, "hello there"],
+                    )
+            else:
+                # Server removed the message entirely
+                pass
