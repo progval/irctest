@@ -35,6 +35,7 @@ class Capabilities(enum.Enum):
     EXTENDED_JOIN = "extended-join"
     EXTENDED_MONITOR = "extended-monitor"
     LABELED_RESPONSE = "labeled-response"
+    MESSAGE_REDACTION = "draft/message-redaction"
     MESSAGE_TAGS = "message-tags"
     MULTILINE = "draft/multiline"
     MULTI_PREFIX = "multi-prefix"
