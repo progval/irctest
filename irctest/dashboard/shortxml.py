@@ -70,12 +70,15 @@ attached to.
 Mixed content (elements containing both text and child elements) is not supported.
 """
 
-from typing import Dict, Optional, Sequence, Union
+from typing import Dict, Sequence, Union
 import xml.etree.ElementTree as ET
 
 
 def _namespacify(ns: str, s: str) -> str:
     return "{%s}%s" % (ns, s)
+
+
+_Children = Union[None, ET.Element, Sequence["_Children"]]
 
 
 class ElementFactory:
@@ -87,9 +90,7 @@ class ElementFactory:
         self,
         *args: Union[
             str,  # text
-            None,
-            ET.Element,
-            Sequence[Union[None, ET.Element, Sequence[Optional[ET.Element]]]],
+            _Children,
             Dict[str, str],  # attributes
         ],
         **kwargs: str,  # also attributes
@@ -110,13 +111,7 @@ class ElementFactory:
     def _append_child(
         self,
         e: ET.Element,
-        child: Union[
-            str,
-            None,
-            ET.Element,
-            Sequence[Union[None, ET.Element, Sequence[Optional[ET.Element]]]],
-            Dict[str, str],
-        ],
+        child: Union[str, _Children, Dict[str, str]],
     ) -> None:
         if isinstance(child, ET.Element):
             e.append(child)
