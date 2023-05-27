@@ -24,6 +24,7 @@
 For example:
 
 .. code-block:: python
+
     from .shortxml import Namespace
 
     HTML = Namespace("http://www.w3.org/1999/xhtml")
@@ -57,7 +58,7 @@ For example:
         ),
     )
 
-    print(ET.tostring(root, default_namespace=HTML.uri))
+    print(ET.tostring(page, default_namespace=HTML.uri))
 
 
 Attributes can be passed either as dictionaries or as kwargs, and can be mixed
