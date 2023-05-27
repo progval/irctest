@@ -78,7 +78,7 @@ def _namespacify(ns: str, s: str) -> str:
     return "{%s}%s" % (ns, s)
 
 
-_Children = Union[None, ET.Element, Sequence["_Children"]]
+_Children = Union[None, Dict[str, str], ET.Element, Sequence["_Children"]]
 
 
 class ElementFactory:
@@ -86,15 +86,7 @@ class ElementFactory:
         self._tag = _namespacify(namespace, tag)
         self._namespace = namespace
 
-    def __call__(
-        self,
-        *args: Union[
-            str,  # text
-            _Children,
-            Dict[str, str],  # attributes
-        ],
-        **kwargs: str,  # also attributes
-    ) -> ET.Element:
+    def __call__(self, *args: Union[str, _Children], **kwargs: str) -> ET.Element:
         e = ET.Element(self._tag)
 
         children = [*args, kwargs]  # append attributes
@@ -108,11 +100,7 @@ class ElementFactory:
 
         return e
 
-    def _append_child(
-        self,
-        e: ET.Element,
-        child: Union[str, _Children, Dict[str, str]],
-    ) -> None:
+    def _append_child(self, e: ET.Element, child: _Children) -> None:
         if isinstance(child, ET.Element):
             e.append(child)
         elif child is None:
