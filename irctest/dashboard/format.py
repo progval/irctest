@@ -195,7 +195,7 @@ def build_test_table(
 
     job_row = HTML.tr(
         HTML.th(),  # column of case name
-        [HTML.th(HTML.div(HTML.span(job)), {"class": "job-name"}) for job in jobs],
+        [HTML.th(HTML.div(HTML.span(job)), class_="job-name") for job in jobs],
     )
 
     rows = []
@@ -246,9 +246,7 @@ def build_test_table(
                 row_anchor = md5sum(row_anchor)
 
             row = HTML.tr(
-                HTML.th(
-                    HTML.a(test_name, href=f"#{row_anchor}"), {"class": "test-name"}
-                ),
+                HTML.th(HTML.a(test_name, href=f"#{row_anchor}"), class_="test-name"),
                 id=row_anchor,
             )
             rows.append(row)
@@ -258,7 +256,7 @@ def build_test_table(
                 try:
                     (result,) = results_by_job[job_name]
                 except KeyError:
-                    row.append(HTML.td("d", {"class": "deselected"}))
+                    row.append(HTML.td("d", class_="deselected"))
                     continue
 
                 text: Union[str, None, ET.Element]
@@ -298,7 +296,7 @@ def build_test_table(
 
                 row.append(HTML.td(text, attrib))
 
-    return HTML.table(*rows, {"class": class_})
+    return HTML.table(*rows, class_=class_)
 
 
 def write_html_pages(
@@ -393,7 +391,6 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str, str]]) -> Non
             HTML.h1("irctest dashboard"),
             HTML.h2("Tests by command/specification"),
             HTML.dl(
-                {"class": "module-index"},
                 [
                     (
                         HTML.dt(HTML.a(module_name, href=f"./{file_name}")),
@@ -401,14 +398,15 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str, str]]) -> Non
                     )
                     for module_name, file_name in sorted(module_pages)
                 ],
+                class_="module-index",
             ),
             HTML.h2("Tests by implementation"),
             HTML.ul(
-                {"class": "job-index"},
                 [
                     HTML.li(HTML.a(job, href=f"./{file_name}"))
                     for job, file_name in sorted(job_pages)
                 ],
+                class_="job-index",
             ),
         ),
     )

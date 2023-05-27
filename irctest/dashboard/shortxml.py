@@ -38,22 +38,22 @@ For example:
             HTML.h1("irctest dashboard"),
             HTML.h2("Tests by command/specification"),
             HTML.dl(
-                {"class": "module-index"},
                 [
-                    (
-                        HTML.dt(HTML.a(module_name, href=f"./{file_name}")),
-                        HTML.dd(docstring(importlib.import_module(module_name))),
+                    (  # elements can be arbitrarily nested in lists
+                        HTML.dt(HTML.a(title, href=f"./{title}.xhtml")),
+                        HTML.dd(defintion),
                     )
-                    for module_name, file_name in sorted(module_pages)
+                    for title, definition in sorted(definitions)
                 ],
+                class_="module-index",
             ),
             HTML.h2("Tests by implementation"),
             HTML.ul(
-                {"class": "job-index"},
                 [
                     HTML.li(HTML.a(job, href=f"./{file_name}"))
                     for job, file_name in sorted(job_pages)
                 ],
+                class_="job-index",
             ),
         ),
     )
@@ -63,6 +63,8 @@ For example:
 
 Attributes can be passed either as dictionaries or as kwargs, and can be mixed
 with child elements.
+Trailing underscores are stripped from attributes, which allows passing reserved
+Python keywords (eg. ``class_`` instead of ``class``)
 
 Attributes are always qualified, and share the namespace of the element they are
 attached to.
@@ -89,7 +91,8 @@ class ElementFactory:
     def __call__(self, *args: Union[str, _Children], **kwargs: str) -> ET.Element:
         e = ET.Element(self._tag)
 
-        children = [*args, kwargs]  # append attributes
+        attributes = {k.rstrip("_"): v for (k, v) in kwargs.items()}
+        children = [*args, attributes]
 
         if args and isinstance(children[0], str):
             e.text = children[0]
