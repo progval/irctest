@@ -706,7 +706,7 @@ class BaseServerTestCase(
             self.requestCapabilities(client, capabilities, skip_if_cap_nak)
         if password is not None:
             if "sasl" not in (capabilities or ()):
-                raise ValueError("Used 'password' option without sasl capbilitiy")
+                raise ValueError("Used 'password' option without sasl capbility")
             self.authenticateClient(client, account or nick, password)
 
         self.sendLine(client, "NICK {}".format(nick))
