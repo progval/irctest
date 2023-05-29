@@ -3,13 +3,9 @@ import json
 import os
 import shutil
 import subprocess
-from typing import Any, Dict, Optional, Set, Type, Union
+from typing import Any, Dict, Optional, Type, Union
 
-from irctest.basecontrollers import (
-    BaseServerController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
+from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 from irctest.cases import BaseServerTestCase
 
 BASE_CONFIG = {
@@ -130,7 +126,7 @@ def hash_password(password: Union[str, bytes]) -> str:
         ["ergo", "genpasswd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
     out, _ = p.communicate(input_)
-    return out.decode("utf-8")
+    return out.decode("utf-8").strip()
 
 
 class ErgoController(BaseServerController, DirectoryBasedController):
@@ -153,17 +149,9 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-        restricted_metadata_keys: Optional[Set[str]] = None,
         faketime: Optional[str],
         config: Optional[Any] = None,
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
-
         self.create_config()
         if config is None:
             config = copy.deepcopy(BASE_CONFIG)

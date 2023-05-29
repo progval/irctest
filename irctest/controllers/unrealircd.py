@@ -5,14 +5,9 @@ from pathlib import Path
 import shutil
 import subprocess
 import textwrap
-from typing import Callable, ContextManager, Iterator, Optional, Set, Type
+from typing import Callable, ContextManager, Iterator, Optional, Type
 
-from irctest.basecontrollers import (
-    BaseServerController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
-from irctest.irc_utils.junkdrawer import find_hostname_and_port
+from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
 include "modules.default.conf";
@@ -101,7 +96,7 @@ set {{
     }}
     modes-on-join "+H 100:1d";  // Enables CHATHISTORY
 
-    {set_extras}
+    {set_v6only}
 
 }}
 
@@ -122,6 +117,24 @@ oper "operuser" {{
     class clients;
     operclass netadmin;
 }}
+"""
+
+SET_V6ONLY = """
+// Remove RPL_WHOISSPECIAL used to advertise security groups
+whois-details {
+    security-groups { everyone none; self none; oper none; }
+}
+
+plaintext-policy {
+    server warn; // https://www.unrealircd.org/docs/FAQ#server-requires-tls
+    oper warn; // https://www.unrealircd.org/docs/FAQ#oper-requires-tls
+}
+
+anti-flood {
+    everyone {
+        connect-flood 255:10;
+    }
+}
 """
 
 
@@ -186,15 +199,8 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-        restricted_metadata_keys: Optional[Set[str]] = None,
         faketime: Optional[str],
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
         assert self.proc is None
         self.port = port
         self.hostname = hostname
@@ -207,64 +213,54 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 loadmodule "cloak_md5";
                 """
             )
-            set_extras = textwrap.indent(
-                textwrap.dedent(
-                    """
-                    // Remove RPL_WHOISSPECIAL used to advertise security groups
-                    whois-details {
-                        security-groups { everyone none; self none; oper none; }
-                    }
-                    """
-                ),
-                "    ",
-            )
+            set_v6only = SET_V6ONLY
         else:
             extras = ""
-            set_extras = ""
+            set_v6only = ""
 
         with self.open_file("empty.txt") as fd:
             fd.write("\n")
 
         password_field = 'password "{}";'.format(password) if password else ""
 
-        with _STARTSTOP_LOCK():
-            (services_hostname, services_port) = find_hostname_and_port()
-            (unused_hostname, unused_port) = find_hostname_and_port()
+        (services_hostname, services_port) = self.get_hostname_and_port()
+        (unused_hostname, unused_port) = self.get_hostname_and_port()
 
-            self.gen_ssl()
-            if ssl:
-                (tls_hostname, tls_port) = (hostname, port)
-                (hostname, port) = (unused_hostname, unused_port)
-            else:
-                # Unreal refuses to start without TLS enabled
-                (tls_hostname, tls_port) = (unused_hostname, unused_port)
+        self.gen_ssl()
+        if ssl:
+            (tls_hostname, tls_port) = (hostname, port)
+            (hostname, port) = (unused_hostname, unused_port)
+        else:
+            # Unreal refuses to start without TLS enabled
+            (tls_hostname, tls_port) = (unused_hostname, unused_port)
 
-            assert self.directory
+        assert self.directory
 
-            with self.open_file("unrealircd.conf") as fd:
-                fd.write(
-                    TEMPLATE_CONFIG.format(
-                        hostname=hostname,
-                        port=port,
-                        services_hostname=services_hostname,
-                        services_port=services_port,
-                        tls_hostname=tls_hostname,
-                        tls_port=tls_port,
-                        password_field=password_field,
-                        key_path=self.key_path,
-                        pem_path=self.pem_path,
-                        empty_file=self.directory / "empty.txt",
-                        extras=extras,
-                        set_extras=set_extras,
-                    )
+        with self.open_file("unrealircd.conf") as fd:
+            fd.write(
+                TEMPLATE_CONFIG.format(
+                    hostname=hostname,
+                    port=port,
+                    services_hostname=services_hostname,
+                    services_port=services_port,
+                    tls_hostname=tls_hostname,
+                    tls_port=tls_port,
+                    password_field=password_field,
+                    key_path=self.key_path,
+                    pem_path=self.pem_path,
+                    empty_file=self.directory / "empty.txt",
+                    set_v6only=set_v6only,
+                    extras=extras,
                 )
+            )
 
-            if faketime and shutil.which("faketime"):
-                faketime_cmd = ["faketime", "-f", faketime]
-                self.faketime_enabled = True
-            else:
-                faketime_cmd = []
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
 
+        with _STARTSTOP_LOCK():
             self.proc = subprocess.Popen(
                 [
                     *faketime_cmd,

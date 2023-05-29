@@ -143,7 +143,7 @@ software:
         name: InspIRCd
         repository: inspircd/inspircd
         refs: &inspircd_refs
-            stable: v3.12.0
+            stable: v3.15.0
             release: null
             devel: master
             devel_release: insp3
@@ -153,9 +153,13 @@ software:
         separate_build_job: true
         build_script: &inspircd_build_script |
             cd $GITHUB_WORKSPACE/inspircd/
-            patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
+
+            # Insp3 <= 3.16.0 and Insp4 <= 4.0.0a21 don't support -DINSPIRCD_UNLIMITED_MAINLOOP
+            patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch || true
+
             ./configure --prefix=$HOME/.local/inspircd --development
-            make -j 4
+
+            CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
             make install
     irc2:
         name: irc2
@@ -268,8 +272,8 @@ software:
         name: UnrealIRCd 6
         repository: unrealircd/unrealircd
         refs:
-            stable: cedd23ae9cdd5985ce16e9869cbdb808479c3fc4  # 6.0.3
-            release: cedd23ae9cdd5985ce16e9869cbdb808479c3fc4  # 6.0.3
+            stable: da3c1c654481a33035b9c703957e1c25d0158259  # 6.0.7
+            release: da3c1c654481a33035b9c703957e1c25d0158259  # 6.0.7
             devel: unreal60_dev
             devel_release: null
         path: unrealircd

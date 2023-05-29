@@ -73,7 +73,7 @@ class SopelController(BaseClientController):
                     auth_method="auth_method = sasl" if auth else "",
                 )
             )
-        self.proc = subprocess.Popen(["sopel", "--quiet", "-c", self.filename])
+        self.proc = subprocess.Popen(["sopel", "-c", self.filename])
 
 
 def get_irctest_controller_class() -> Type[SopelController]:

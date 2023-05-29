@@ -8,7 +8,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-anope-stable
         path: '~/.cache
@@ -16,13 +16,13 @@ jobs:
           ${ github.workspace }/anope
 
           '
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout Anope
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: anope
         ref: 2.0.9
@@ -37,7 +37,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-anope
         path: ~/artefacts-*.tar.gz
@@ -48,7 +48,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-bahamut-stable
         path: '~/.cache
@@ -56,13 +56,13 @@ jobs:
           ${ github.workspace }/Bahamut
 
           '
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout Bahamut
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: Bahamut
         ref: v2.2.1
@@ -86,7 +86,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-bahamut.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-bahamut
         path: ~/artefacts-*.tar.gz
@@ -97,7 +97,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-charybdis-stable
         path: '~/.cache
@@ -105,13 +105,13 @@ jobs:
           ${ github.workspace }/charybdis
 
           '
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout Charybdis
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: charybdis
         ref: charybdis-4.1.2
@@ -126,7 +126,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-charybdis.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-charybdis
         path: ~/artefacts-*.tar.gz
@@ -137,7 +137,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-hybrid-stable
         path: '~/.cache
@@ -145,13 +145,13 @@ jobs:
           ${ github.workspace }/ircd-hybrid
 
           '
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout Hybrid
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: ircd-hybrid
         ref: 8.2.39
@@ -165,7 +165,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-hybrid.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-hybrid
         path: ~/artefacts-*.tar.gz
@@ -175,28 +175,32 @@ jobs:
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout InspIRCd
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: inspircd
-        ref: v3.12.0
+        ref: v3.15.0
         repository: inspircd/inspircd
     - name: Build InspIRCd
       run: |
         cd $GITHUB_WORKSPACE/inspircd/
-        patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
+
+        # Insp3 <= 3.16.0 and Insp4 <= 4.0.0a21 don't support -DINSPIRCD_UNLIMITED_MAINLOOP
+        patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch || true
+
         ./configure --prefix=$HOME/.local/inspircd --development
-        make -j 4
+
+        CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
         make install
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-inspircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-inspircd
         path: ~/artefacts-*.tar.gz
@@ -207,7 +211,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-ngircd-stable
         path: '~/.cache
@@ -215,13 +219,13 @@ jobs:
           ${ github.workspace }/ngircd
 
           '
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout ngircd
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: ngircd
         ref: rel-26.1
@@ -237,7 +241,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-ngircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-ngircd
         path: ~/artefacts-*.tar.gz
@@ -248,7 +252,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-plexus4-stable
         path: '~/.cache
@@ -256,9 +260,9 @@ jobs:
           ${ github.workspace }/placeholder
 
           '
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: clone
@@ -279,7 +283,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-plexus4.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-plexus4
         path: ~/artefacts-*.tar.gz
@@ -290,7 +294,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-solanum-stable
         path: '~/.cache
@@ -298,13 +302,13 @@ jobs:
           ${ github.workspace }/solanum
 
           '
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout Solanum
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: solanum
         ref: 492d560ee13e71dc35403fd676e58c2d5bdcf2a9
@@ -319,7 +323,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-solanum.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-solanum
         path: ~/artefacts-*.tar.gz
@@ -330,7 +334,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-unrealircd-stable
         path: '~/.cache
@@ -338,16 +342,16 @@ jobs:
           ${ github.workspace }/unrealircd
 
           '
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout UnrealIRCd 6
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: unrealircd
-        ref: cedd23ae9cdd5985ce16e9869cbdb808479c3fc4
+        ref: da3c1c654481a33035b9c703957e1c25d0158259
         repository: unrealircd/unrealircd
     - name: Build UnrealIRCd 6
       run: |
@@ -365,7 +369,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-unrealircd
         path: ~/artefacts-*.tar.gz
@@ -376,7 +380,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-unrealircd-5-stable
         path: '~/.cache
@@ -384,13 +388,13 @@ jobs:
           ${ github.workspace }/unrealircd
 
           '
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout UnrealIRCd 5
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: unrealircd
         ref: 6604856973f713a494f83d38992d7d61ce6b9db4
@@ -411,7 +415,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd-5.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-unrealircd-5
         path: ~/artefacts-*.tar.gz
@@ -447,9 +451,9 @@ jobs:
     - test-unrealircd-dlk
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Download Artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         path: artifacts
     - name: Install dashboard dependencies
@@ -474,13 +478,13 @@ jobs:
     - build-bahamut
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-bahamut
         path: '~'
@@ -498,7 +502,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_bahamut_stable
         path: pytest.xml
@@ -508,18 +512,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-bahamut
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
@@ -537,7 +541,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_bahamut-anope_stable
         path: pytest.xml
@@ -546,13 +550,13 @@ jobs:
     - build-bahamut
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-bahamut
         path: '~'
@@ -570,7 +574,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_bahamut-atheme_stable
         path: pytest.xml
@@ -579,13 +583,13 @@ jobs:
     - build-charybdis
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-charybdis
         path: '~'
@@ -603,7 +607,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_charybdis_stable
         path: pytest.xml
@@ -611,13 +615,13 @@ jobs:
     needs: []
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout Ergo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: ergo
         ref: irctest_stable
@@ -643,7 +647,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_ergo_stable
         path: pytest.xml
@@ -653,18 +657,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-hybrid
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
@@ -682,7 +686,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_hybrid_stable
         path: pytest.xml
@@ -691,13 +695,13 @@ jobs:
     - build-inspircd
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-inspircd
         path: '~'
@@ -715,7 +719,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_inspircd_stable
         path: pytest.xml
@@ -725,18 +729,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-inspircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
@@ -754,7 +758,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_inspircd-anope_stable
         path: pytest.xml
@@ -763,13 +767,13 @@ jobs:
     - build-inspircd
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-inspircd
         path: '~'
@@ -787,7 +791,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_inspircd-atheme_stable
         path: pytest.xml
@@ -795,13 +799,13 @@ jobs:
     needs: []
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout irc2
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: irc2.11.2p3
         ref: 59649f24c3a5c27bad5648b48774f27475bccfd3
@@ -837,7 +841,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_irc2_stable
         path: pytest.xml
@@ -845,13 +849,13 @@ jobs:
     needs: []
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout ircu2
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: ircu2
         ref: u2.10.12.19
@@ -876,7 +880,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_ircu2_stable
         path: pytest.xml
@@ -884,9 +888,9 @@ jobs:
     needs: []
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Install dependencies
@@ -903,7 +907,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_limnoria_stable
         path: pytest.xml
@@ -911,13 +915,13 @@ jobs:
     needs: []
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Checkout nefarious
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: nefarious
         ref: 985704168ecada12d9e53b46df6087ef9d9fb40b
@@ -941,7 +945,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_nefarious_stable
         path: pytest.xml
@@ -950,13 +954,13 @@ jobs:
     - build-ngircd
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-ngircd
         path: '~'
@@ -974,7 +978,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_ngircd_stable
         path: pytest.xml
@@ -984,18 +988,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-ngircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
@@ -1013,7 +1017,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_ngircd-anope_stable
         path: pytest.xml
@@ -1022,13 +1026,13 @@ jobs:
     - build-ngircd
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-ngircd
         path: '~'
@@ -1046,7 +1050,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_ngircd-atheme_stable
         path: pytest.xml
@@ -1056,18 +1060,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-plexus4
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
@@ -1085,7 +1089,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_plexus4_stable
         path: pytest.xml
@@ -1094,13 +1098,13 @@ jobs:
     - build-solanum
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-solanum
         path: '~'
@@ -1118,7 +1122,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_solanum_stable
         path: pytest.xml
@@ -1126,9 +1130,9 @@ jobs:
     needs: []
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Install dependencies
@@ -1145,7 +1149,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_sopel_stable
         path: pytest.xml
@@ -1180,13 +1184,13 @@ jobs:
     - build-unrealircd
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-unrealircd
         path: '~'
@@ -1204,7 +1208,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_unrealircd_stable
         path: pytest.xml
@@ -1213,13 +1217,13 @@ jobs:
     - build-unrealircd-5
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-unrealircd-5
         path: '~'
@@ -1237,7 +1241,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_unrealircd-5_stable
         path: pytest.xml
@@ -1247,18 +1251,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-unrealircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
@@ -1276,7 +1280,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_unrealircd-anope_stable
         path: pytest.xml
@@ -1285,13 +1289,13 @@ jobs:
     - build-unrealircd
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-unrealircd
         path: '~'
@@ -1309,7 +1313,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_unrealircd-atheme_stable
         path: pytest.xml
@@ -1318,20 +1322,20 @@ jobs:
     - build-unrealircd
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.7
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-unrealircd
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Checkout Dlk
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: Dlk-Services
         ref: effd18652fc1c847d1959089d9cca9ff9837a8c0
@@ -1355,7 +1359,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results_unrealircd-dlk_stable
         path: pytest.xml

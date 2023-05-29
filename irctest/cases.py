@@ -173,7 +173,7 @@ class _IrcTestCase(Generic[TController]):
     ) -> Optional[str]:
         """Returns an error message if the message doesn't match the given arguments,
         or None if it matches."""
-        for (key, value) in kwargs.items():
+        for key, value in kwargs.items():
             if getattr(msg, key) != value:
                 fail_msg = (
                     fail_msg or "expected {param} to be {expects}, got {got}: {msg}"
@@ -351,8 +351,8 @@ class BaseClientTestCase(_IrcTestCase[basecontrollers.BaseClientController]):
     nick: Optional[str] = None
     user: Optional[List[str]] = None
     server: socket.socket
-    protocol_version = Optional[str]
-    acked_capabilities = Optional[Set[str]]
+    protocol_version: Optional[str]
+    acked_capabilities: Optional[Set[str]]
 
     __new__ = object.__new__  # pytest won't collect Generic[] subclasses otherwise
 
@@ -448,7 +448,9 @@ class BaseClientTestCase(_IrcTestCase[basecontrollers.BaseClientController]):
             print("{:.3f} S: {}".format(time.time(), line.strip()))
 
     def readCapLs(
-        self, auth: Optional[Authentication] = None, tls_config: tls.TlsConfig = None
+        self,
+        auth: Optional[Authentication] = None,
+        tls_config: Optional[tls.TlsConfig] = None,
     ) -> None:
         (hostname, port) = self.server.getsockname()
         self.controller.run(
@@ -458,9 +460,9 @@ class BaseClientTestCase(_IrcTestCase[basecontrollers.BaseClientController]):
         m = self.getMessage()
         self.assertEqual(m.command, "CAP", "First message is not CAP LS.")
         if m.params == ["LS"]:
-            self.protocol_version = 301
+            self.protocol_version = "301"
         elif m.params == ["LS", "302"]:
-            self.protocol_version = 302
+            self.protocol_version = "302"
         elif m.params == ["END"]:
             self.protocol_version = None
         else:
@@ -527,8 +529,6 @@ class BaseServerTestCase(
 
     password: Optional[str] = None
     ssl = False
-    valid_metadata_keys: Set[str] = set()
-    invalid_metadata_keys: Set[str] = set()
     server_support: Optional[Dict[str, Optional[str]]]
     run_services = False
 
@@ -548,8 +548,6 @@ class BaseServerTestCase(
             self.hostname,
             self.port,
             password=self.password,
-            valid_metadata_keys=self.valid_metadata_keys,
-            invalid_metadata_keys=self.invalid_metadata_keys,
             ssl=self.ssl,
             run_services=self.run_services,
             faketime=self.faketime,
@@ -689,7 +687,7 @@ class BaseServerTestCase(
     def connectClient(
         self,
         nick: str,
-        name: TClientName = None,
+        name: Optional[TClientName] = None,
         capabilities: Optional[List[str]] = None,
         skip_if_cap_nak: bool = False,
         show_io: Optional[bool] = None,
@@ -734,8 +732,8 @@ class BaseServerTestCase(
                         self.server_support[param] = None
             welcome.append(m)
 
-        self.targmax: Dict[str, Optional[str]] = dict(
-            item.split(":", 1)  # type: ignore
+        self.targmax: Dict[str, Optional[str]] = dict(  # type: ignore[assignment]
+            item.split(":", 1)
             for item in (self.server_support.get("TARGMAX") or "").split(",")
             if item
         )
