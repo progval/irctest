@@ -39,7 +39,7 @@ class CaseResult:
     type: Optional[str] = None
     message: Optional[str] = None
 
-    def output_filename(self):
+    def output_filename(self) -> str:
         test_name = self.test_name
         if len(test_name) > 50 or set(test_name) & NETLIFY_CHAR_BLACKLIST:
             # File name too long or otherwise invalid. This should be good enough:
@@ -75,7 +75,7 @@ def iter_job_results(job_file_name: Path, job: ET.ElementTree) -> Iterator[CaseR
         skipped = False
         details = None
         system_out = None
-        extra = {}
+        extra: Dict[str, str] = {}
         for child in case:
             if child.tag == "skipped":
                 success = True
@@ -173,6 +173,7 @@ def build_module_html(
 
 
 def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
+    multiple_modules = len({r.module_name for r in results}) > 1
     results_by_module_and_class = group_by(
         results, lambda r: (r.module_name, r.class_name)
     )
@@ -186,22 +187,32 @@ def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
         ET.SubElement(ET.SubElement(cell, "div"), "span").text = job
         cell.set("class", "job-name")
 
-    for ((module_name, class_name), class_results) in sorted(
+    for (module_name, class_name), class_results in sorted(
         results_by_module_and_class.items()
     ):
+        if multiple_modules:
+            # if the page shows classes from various modules, use the fully-qualified
+            # name in order to disambiguate and be clearer (eg. show
+            # "irctest.server_tests.extended_join.MetadataTestCase" instead of just
+            # "MetadataTestCase" which looks like it's about IRCv3's METADATA spec.
+            qualified_class_name = f"{module_name}.{class_name}"
+        else:
+            # otherwise, it's not needed, so let's not display it
+            qualified_class_name = class_name
+
         module = importlib.import_module(module_name)
 
         # Header row: class name
         header_row = ET.SubElement(table, "tr")
         th = ET.SubElement(header_row, "th", colspan=str(len(jobs) + 1))
-        row_anchor = f"{class_name}"
+        row_anchor = f"{qualified_class_name}"
         section_header = ET.SubElement(
             ET.SubElement(th, "h2"),
             "a",
             href=f"#{row_anchor}",
             id=row_anchor,
         )
-        section_header.text = class_name
+        section_header.text = qualified_class_name
         append_docstring(th, getattr(module, class_name))
 
         # Header row: one column for each implementation
@@ -209,8 +220,8 @@ def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
 
         # One row for each test:
         results_by_test = group_by(class_results, key=lambda r: r.test_name)
-        for (test_name, test_results) in sorted(results_by_test.items()):
-            row_anchor = f"{class_name}.{test_name}"
+        for test_name, test_results in sorted(results_by_test.items()):
+            row_anchor = f"{qualified_class_name}.{test_name}"
             if len(row_anchor) >= 50:
                 # Too long; give up on generating readable URL
                 # TODO: only hash test parameter
@@ -292,7 +303,7 @@ def write_html_pages(
             for result in results
         )
         assert is_client != is_server, (job, is_client, is_server)
-        if job.endswith(("-atheme", "-anope")):
+        if job.endswith(("-atheme", "-anope", "-dlk")):
             assert is_server
             job_categories[job] = "server-with-services"
         elif is_server:
@@ -303,7 +314,7 @@ def write_html_pages(
 
     pages = []
 
-    for (module_name, module_results) in sorted(results_by_module.items()):
+    for module_name, module_results in sorted(results_by_module.items()):
         # Filter out client jobs if this is a server test module, and vice versa
         module_categories = {
             job_categories[result.job]
@@ -355,7 +366,7 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str, str]]) -> Non
 
     module_pages = []
     job_pages = []
-    for (page_type, title, file_name) in sorted(pages):
+    for page_type, title, file_name in sorted(pages):
         if page_type == "module":
             module_pages.append((title, file_name))
         elif page_type == "job":
@@ -368,7 +379,7 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str, str]]) -> Non
     dl = ET.SubElement(body, "dl")
     dl.set("class", "module-index")
 
-    for (module_name, file_name) in sorted(module_pages):
+    for module_name, file_name in sorted(module_pages):
         module = importlib.import_module(module_name)
 
         link = ET.SubElement(ET.SubElement(dl, "dt"), "a", href=f"./{file_name}")
@@ -380,7 +391,7 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str, str]]) -> Non
     ul = ET.SubElement(body, "ul")
     ul.set("class", "job-index")
 
-    for (job, file_name) in sorted(job_pages):
+    for job, file_name in sorted(job_pages):
         link = ET.SubElement(ET.SubElement(ul, "li"), "a", href=f"./{file_name}")
         link.text = job
 

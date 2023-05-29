@@ -1,6 +1,6 @@
 import shutil
 import subprocess
-from typing import Optional, Set, Type
+from typing import Optional, Type
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -49,14 +49,8 @@ class Irc2Controller(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
         faketime: Optional[str],
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
         if ssl:
             raise NotImplementedByController("TLS")
         if run_services:
