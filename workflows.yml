@@ -385,7 +385,7 @@ software:
         install_steps:
             stable:
                 - name: Install dependencies
-                  run: yarn global add thelounge@4.3.0
+                  run: yarn global add thelounge@4.4.0
             release:
                 - name: Install dependencies
                   run: yarn global add thelounge
