@@ -98,6 +98,13 @@ SOPEL_SELECTORS := \
 	(foo or not foo) \
 	$(EXTRA_SELECTORS)
 
+# TheLounge can actually pass all the test so there is none to exclude.
+# `(foo or not foo)` serves as a `true` value so it doesn't break when
+# $(EXTRA_SELECTORS) is non-empty
+THELOUNGE_SELECTORS := \
+	(foo or not foo) \
+	$(EXTRA_SELECTORS)
+
 # Tests marked with arbitrary_client_tags can't pass because Unreal whitelists which tags it relays
 # Tests marked with react_tag can't pass because Unreal blocks +draft/react https://github.com/unrealircd/unrealircd/pull/149
 # Tests marked with private_chathistory can't pass because Unreal does not implement CHATHISTORY for DMs
@@ -252,6 +259,11 @@ sopel:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.sopel \
 		-k '$(SOPEL_SELECTORS)'
+
+thelounge:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.thelounge \
+		-k '$(THELOUNGE_SELECTORS)'
 
 unrealircd:
 	$(PYTEST) $(PYTEST_ARGS) \
