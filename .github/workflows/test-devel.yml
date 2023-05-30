@@ -1004,8 +1004,18 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: 3.7
-    - name: Install dependencies
-      run: yarn global add https://github.com/thelounge/thelounge.git
+    - name: Checkout TheLounge
+      uses: actions/checkout@v3
+      with:
+        path: thelounge
+        ref: master
+        repository: thelounge/thelounge
+    - name: Build TheLounge
+      run: |
+        cd $GITHUB_WORKSPACE/thelounge
+        yarn install
+        NODE_ENV=production yarn build
+        ln -s $(pwd)/index.js ~/.local/bin/thelounge
     - name: Install system dependencies
       run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies

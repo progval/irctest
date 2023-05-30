@@ -381,18 +381,19 @@ software:
 
     thelounge:
         name: TheLounge
+        repository: thelounge/thelounge
         separate_build_job: false
-        install_steps:
-            stable:
-                - name: Install dependencies
-                  run: yarn global add thelounge@4.4.0
-            release:
-                - name: Install dependencies
-                  run: yarn global add thelounge
-            devel:
-                - name: Install dependencies
-                  run: yarn global add https://github.com/thelounge/thelounge.git
+        refs:
+            stable: "v4.4.0"
+            release: "v4.4.0"
+            devel: "master"
             devel_release: null
+        path: thelounge
+        build_script: |
+            cd $GITHUB_WORKSPACE/thelounge
+            yarn install
+            NODE_ENV=production yarn build
+            ln -s $(pwd)/index.js ~/.local/bin/thelounge
 
 tests:
     bahamut:
