@@ -1173,6 +1173,7 @@ jobs:
         cd $GITHUB_WORKSPACE/thelounge
         yarn install
         NODE_ENV=production yarn build
+        mkdir -p ~/.local/bin/
         ln -s $(pwd)/index.js ~/.local/bin/thelounge
     - name: Install system dependencies
       run: sudo apt-get install atheme-services faketime
