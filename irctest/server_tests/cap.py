@@ -242,3 +242,31 @@ class CapTestCase(cases.BaseServerTestCase):
             fail_msg="Sending “CAP LIST” as first message got a reply "
             "that is not “CAP * LIST :”: {msg}",
         )
+
+    @cases.mark_specifications("IRCv3")
+    def testNoMultiline301Response(self):
+        """
+        Current version: "If the client supports CAP version 302, the server MAY send
+        multiple lines in response to CAP LS and CAP LIST." This should be read as
+        disallowing multiline responses to pre-302 clients.
+        -- <https://ircv3.net/specs/extensions/capability-negotiation#multiline-replies-to-cap-ls-and-cap-list>
+        """  # noqa
+        self.check301ResponsePreRegistration("bar", "CAP LS")
+        self.check301ResponsePreRegistration("qux", "CAP LS 301")
+        self.check301ResponsePostRegistration("baz", "CAP LS")
+        self.check301ResponsePostRegistration("bat", "CAP LS 301")
+
+    def check301ResponsePreRegistration(self, nick, cap_ls):
+        self.addClient(nick)
+        self.sendLine(nick, cap_ls)
+        self.sendLine(nick, "NICK " + nick)
+        self.sendLine(nick, "USER u s e r")
+        self.sendLine(nick, "CAP END")
+        responses = [msg for msg in self.skipToWelcome(nick) if msg.command == "CAP"]
+        self.assertLessEqual(len(responses), 1, responses)
+
+    def check301ResponsePostRegistration(self, nick, cap_ls):
+        self.connectClient(nick, name=nick)
+        self.sendLine(nick, cap_ls)
+        responses = [msg for msg in self.getMessages(nick) if msg.command == "CAP"]
+        self.assertLessEqual(len(responses), 1, responses)
