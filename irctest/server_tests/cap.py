@@ -251,12 +251,12 @@ class CapTestCase(cases.BaseServerTestCase):
         disallowing multiline responses to pre-302 clients.
         -- <https://ircv3.net/specs/extensions/capability-negotiation#multiline-replies-to-cap-ls-and-cap-list>
         """  # noqa
-        self.check301ResponsePreRegistration("bar")
+        self.check301ResponsePreRegistration("bar", "CAP LS")
         self.check301ResponsePreRegistration("qux", "CAP LS 301")
-        self.check301ResponsePostRegistration("baz")
+        self.check301ResponsePostRegistration("baz", "CAP LS")
         self.check301ResponsePostRegistration("bat", "CAP LS 301")
 
-    def check301ResponsePreRegistration(self, nick, cap_ls="CAP LS"):
+    def check301ResponsePreRegistration(self, nick, cap_ls):
         self.addClient(nick)
         self.sendLine(nick, cap_ls)
         self.sendLine(nick, "NICK " + nick)
@@ -265,7 +265,7 @@ class CapTestCase(cases.BaseServerTestCase):
         responses = [msg for msg in self.skipToWelcome(nick) if msg.command == "CAP"]
         self.assertLessEqual(len(responses), 1, responses)
 
-    def check301ResponsePostRegistration(self, nick, cap_ls="CAP LS"):
+    def check301ResponsePostRegistration(self, nick, cap_ls):
         self.connectClient(nick, name=nick)
         self.sendLine(nick, cap_ls)
         responses = [msg for msg in self.getMessages(nick) if msg.command == "CAP"]
