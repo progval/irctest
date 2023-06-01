@@ -373,7 +373,7 @@ class _BaseExtendedMonitorTestCase(_BaseMonitorTestCase):
         """Tests https://ircv3.net/specs/extensions/extended-monitor.html"""
         self.connectClient(
             "foo",
-            capabilities=["draft/extended-monitor", *watcher_caps],
+            capabilities=["extended-monitor", *watcher_caps],
             skip_if_cap_nak=True,
         )
 
