@@ -46,6 +46,11 @@ class SetnameMessageTestCase(cases.BaseServerTestCase):
         self.getMessages(3)
 
         self.sendLine(1, "SETNAME qux")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="SETNAME",
+            params=["qux"],
+        )
 
         self.assertMessageMatch(
             self.getMessage(2),
