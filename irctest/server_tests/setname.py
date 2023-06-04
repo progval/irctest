@@ -1,5 +1,5 @@
 """
-<https://ircv3.net/specs/extensions/setname>`_
+`IRCv3 SETNAME<https://ircv3.net/specs/extensions/setname>`_
 """
 
 from irctest import cases
