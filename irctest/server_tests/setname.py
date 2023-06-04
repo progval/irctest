@@ -38,9 +38,9 @@ class SetnameMessageTestCase(cases.BaseServerTestCase):
         self.connectClient("bar", capabilities=["setname"], skip_if_cap_nak=True)
         self.connectClient("baz")
 
-        self.sendLine(1, "JOIN #chan")
-        self.sendLine(2, "JOIN #chan")
-        self.sendLine(3, "JOIN #chan")
+        self.joinChannel(1, "#chan")
+        self.joinChannel(2, "#chan")
+        self.joinChannel(3, "#chan")
         self.getMessages(1)
         self.getMessages(2)
         self.getMessages(3)
