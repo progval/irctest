@@ -18,6 +18,7 @@ software:
         separate_build_job: true
         build_script: |
             cd $GITHUB_WORKSPACE/charybdis/
+            patch -p1 < $GITHUB_WORKSPACE/patches/charybdis_ubuntu22.patch
             ./autogen.sh
             ./configure --prefix=$HOME/.local/
             make -j 4
@@ -106,6 +107,7 @@ software:
             cd $GITHUB_WORKSPACE/Bahamut/
             patch src/s_user.c < $GITHUB_WORKSPACE/patches/bahamut_localhost.patch
             patch src/s_bsd.c < $GITHUB_WORKSPACE/patches/bahamut_mainloop.patch
+            patch -p1 < $GITHUB_WORKSPACE/patches/bahamut_ubuntu22.patch
             echo "#undef THROTTLE_ENABLE" >> include/config.h
             libtoolize --force
             aclocal

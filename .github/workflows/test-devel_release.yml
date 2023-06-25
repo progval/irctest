@@ -3,7 +3,7 @@
 
 jobs:
   build-anope:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -43,7 +43,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-inspircd:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -84,7 +84,7 @@ jobs:
     - test-inspircd
     - test-inspircd-anope
     - test-inspircd-atheme
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Download Artifacts
@@ -111,7 +111,7 @@ jobs:
   test-inspircd:
     needs:
     - build-inspircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -145,7 +145,7 @@ jobs:
     needs:
     - build-inspircd
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -183,7 +183,7 @@ jobs:
   test-inspircd-atheme:
     needs:
     - build-inspircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7

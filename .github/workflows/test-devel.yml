@@ -3,7 +3,7 @@
 
 jobs:
   build-anope:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -43,7 +43,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-bahamut:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -72,6 +72,7 @@ jobs:
         cd $GITHUB_WORKSPACE/Bahamut/
         patch src/s_user.c < $GITHUB_WORKSPACE/patches/bahamut_localhost.patch
         patch src/s_bsd.c < $GITHUB_WORKSPACE/patches/bahamut_mainloop.patch
+        patch -p1 < $GITHUB_WORKSPACE/patches/bahamut_ubuntu22.patch
         echo "#undef THROTTLE_ENABLE" >> include/config.h
         libtoolize --force
         aclocal
@@ -92,7 +93,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-hybrid:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -131,7 +132,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-inspircd:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -166,7 +167,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-ngircd:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -207,7 +208,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-plexus4:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -249,7 +250,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-solanum:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -289,7 +290,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -335,7 +336,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd-5:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -406,7 +407,7 @@ jobs:
     - test-unrealircd-anope
     - test-unrealircd-atheme
     - test-unrealircd-dlk
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Download Artifacts
@@ -433,7 +434,7 @@ jobs:
   test-bahamut:
     needs:
     - build-bahamut
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -467,7 +468,7 @@ jobs:
     needs:
     - build-bahamut
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -505,7 +506,7 @@ jobs:
   test-bahamut-atheme:
     needs:
     - build-bahamut
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -537,7 +538,7 @@ jobs:
         path: pytest.xml
   test-ergo:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -579,7 +580,7 @@ jobs:
     needs:
     - build-hybrid
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -617,7 +618,7 @@ jobs:
   test-inspircd:
     needs:
     - build-inspircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -651,7 +652,7 @@ jobs:
     needs:
     - build-inspircd
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -688,7 +689,7 @@ jobs:
         path: pytest.xml
   test-ircu2:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -727,7 +728,7 @@ jobs:
         path: pytest.xml
   test-limnoria:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -755,7 +756,7 @@ jobs:
         path: pytest.xml
   test-nefarious:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -794,7 +795,7 @@ jobs:
   test-ngircd:
     needs:
     - build-ngircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -828,7 +829,7 @@ jobs:
     needs:
     - build-ngircd
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -866,7 +867,7 @@ jobs:
   test-ngircd-atheme:
     needs:
     - build-ngircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -900,7 +901,7 @@ jobs:
     needs:
     - build-plexus4
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -938,7 +939,7 @@ jobs:
   test-solanum:
     needs:
     - build-solanum
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -970,7 +971,7 @@ jobs:
         path: pytest.xml
   test-sopel:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -997,7 +998,7 @@ jobs:
         path: pytest.xml
   test-thelounge:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -1036,7 +1037,7 @@ jobs:
   test-unrealircd:
     needs:
     - build-unrealircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -1069,7 +1070,7 @@ jobs:
   test-unrealircd-5:
     needs:
     - build-unrealircd-5
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -1103,7 +1104,7 @@ jobs:
     needs:
     - build-unrealircd
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -1141,7 +1142,7 @@ jobs:
   test-unrealircd-atheme:
     needs:
     - build-unrealircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
@@ -1174,7 +1175,7 @@ jobs:
   test-unrealircd-dlk:
     needs:
     - build-unrealircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python 3.7
