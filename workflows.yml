@@ -18,6 +18,7 @@ software:
         separate_build_job: true
         build_script: |
             cd $GITHUB_WORKSPACE/charybdis/
+            patch -p1 < $GITHUB_WORKSPACE/patches/charybdis_ubuntu22.patch
             ./autogen.sh
             ./configure --prefix=$HOME/.local/
             make -j 4
