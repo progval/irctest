@@ -12,6 +12,8 @@ from irctest.patma import ANYDICT, ANYSTR, StrRe
 CAPABILITIES = [
     "message-tags",
     "echo-message",
+    "batch",
+    "server-time",
     "labeled-response",
     "draft/message-redaction",
 ]
@@ -186,7 +188,7 @@ class ChannelRedactTestCase(cases.BaseServerTestCase):
         elif len(msgs) == 1:
             # Server replaced with the REDACT
             self.assertMessageMatch(
-                msgs[1],
+                msgs[0],
                 prefix=StrRe("sender!.*"),
                 command="REDACT",
                 params=["#chan", msgid, "oops"],
@@ -232,11 +234,25 @@ class ChannelRedactTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
 
         self.sendLine(1, f"REDACT #otherChan {msgid} :oops")
+
+        msg = self.getMessage(1)
+
         self.assertMessageMatch(
-            self.getMessage(1),
+            msg,
             command="FAIL",
-            params=["REDACT", "UNKNOWN_MSGID", "#otherChan", msgid, ANYSTR],
         )
+        if msg.params[1] == "UNKNOWN_MSGID":
+            self.assertMessageMatch(
+                msg,
+                command="FAIL",
+                params=["REDACT", "UNKNOWN_MSGID", "#otherChan", msgid, ANYSTR],
+            )
+        else:
+            self.assertMessageMatch(
+                msg,
+                command="FAIL",
+                params=["REDACT", "REDACT_FORBIDDEN", "#otherChan", ANYSTR],
+            )
 
         self.assertEqual(self.getMessages(2), [])
 
@@ -244,6 +260,7 @@ class ChannelRedactTestCase(cases.BaseServerTestCase):
 @cases.mark_specifications("IRCv3")
 @cases.mark_capabilities(*CAPABILITIES)
 @cases.mark_services
+@pytest.mark.private_chathistory
 class PmRedactTestCase(cases.BaseServerTestCase):
     """Tests REDACT command in private messages between authenticated accounts"""
 
