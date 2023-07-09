@@ -112,7 +112,7 @@ files {{
 }}
 
 oper "operuser" {{
-    password = "operpassword";
+    password "operpassword";
     mask *;
     class clients;
     operclass netadmin;
