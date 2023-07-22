@@ -112,7 +112,7 @@ class _BaseController:
         assert self.proc
         self.proc.poll()
         if self.proc.returncode is not None:
-            raise ProcessStopped()
+            raise ProcessStopped(f"process returned {self.proc.returncode}")
 
     def kill_proc(self) -> None:
         """Terminates the controlled process, waits for it to exit, and
