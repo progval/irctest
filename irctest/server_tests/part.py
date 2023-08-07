@@ -10,6 +10,7 @@ TODO: cross-reference Modern
 import time
 
 from irctest import cases
+from irctest.numerics import RPL_NAMREPLY
 
 
 class PartTestCase(cases.BaseServerTestCase):
@@ -84,6 +85,12 @@ class PartTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.getMessages(2)
 
+        self.sendLine(2, "PRIVMSG #chan :hi everyone")
+        self.getMessages(2)
+        self.assertMessageMatch(
+            self.getMessage(1), command="PRIVMSG", params=["#chan", "hi everyone"]
+        )
+
         self.sendLine(1, "PART #chan")
         # both the PART'ing client and the other channel member should receive
         # a PART line:
@@ -91,6 +98,21 @@ class PartTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(m, command="PART")
         m = self.getMessage(2)
         self.assertMessageMatch(m, command="PART")
+
+        self.sendLine(2, "PRIVMSG #chan :hi again everyone")
+        self.getMessages(2)
+        # client 1 has PART'ed and should not receive channel messages:
+        self.assertEqual(self.getMessages(1), [])
+
+        # client 1 should no longer appear in NAMES responses:
+        names = set()
+        self.sendLine(2, "NAMES #chan")
+        for reply in self.getMessages(2):
+            if reply.command != RPL_NAMREPLY:
+                continue
+            names.update(reply.params[-1].split())
+        self.assertNotIn("bar", names)
+        self.assertIn("baz", names)
 
     @cases.mark_specifications("RFC2812")
     def testBasicPartRfc2812(self):
