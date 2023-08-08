@@ -110,7 +110,7 @@ class PartTestCase(cases.BaseServerTestCase):
         for reply in self.getMessages(2):
             if reply.command != RPL_NAMREPLY:
                 continue
-            names.update(reply.params[-1].split())
+            names.update(reply.params[-1].replace("@", "").split())
         self.assertNotIn("bar", names)
         self.assertIn("baz", names)
 
