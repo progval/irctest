@@ -4,6 +4,7 @@ The PRIVMSG and NOTICE commands.
 
 from irctest import cases
 from irctest.numerics import ERR_INPUTTOOLONG
+from irctest.patma import ANYSTR
 
 
 class PrivmsgTestCase(cases.BaseServerTestCase):
@@ -45,12 +46,12 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testPrivmsgNonexistentUser(self):
-        """https://tools.ietf.org/html/rfc2812#section-3.3.1"""
+        """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
         self.connectClient("foo")
         self.sendLine(1, "PRIVMSG bar :hey there!")
         msg = self.getMessage(1)
-        # ERR_NOSUCHNICK
-        self.assertIn(msg.command, ("401"))
+        # ERR_NOSUCHNICK: 401 <sender> <recipient> :No such nick
+        self.assertMessageMatch(msg, command="401", params=["foo", "bar", ANYSTR])
 
 
 class NoticeTestCase(cases.BaseServerTestCase):
