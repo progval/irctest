@@ -361,6 +361,64 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
             params=["otherNick", InsensitiveStr(mask), ANYSTR],
         )
 
+    @cases.mark_specifications("Modern")
+    def testWhoMultiChan(self):
+        """https://github.com/ircdocs/modern-irc/issues/209"""
+        self._init()
+
+        self.sendLine(1, "JOIN #otherchan")
+        self.getMessages(1)
+
+        self.sendLine(2, "JOIN #otherchan")
+        self.getMessages(2)
+
+        for chan in ["#chan", "#otherchan"]:
+            self.sendLine(2, f"WHO {chan}")
+            messages = self.getMessages(2)
+
+            self.assertEqual(len(messages), 3, "Unexpected number of messages")
+
+            (*replies, end) = messages
+
+            # Get them in deterministic order
+            replies.sort(key=lambda msg: msg.params[5])
+
+            self.assertMessageMatch(
+                replies[0],
+                command=RPL_WHOREPLY,
+                params=[
+                    "otherNick",
+                    chan,
+                    ANYSTR,
+                    ANYSTR,
+                    "My.Little.Server",
+                    "coolNick",
+                    ANYSTR,
+                    ANYSTR,
+                ],
+            )
+
+            self.assertMessageMatch(
+                replies[1],
+                command=RPL_WHOREPLY,
+                params=[
+                    "otherNick",
+                    chan,
+                    ANYSTR,
+                    ANYSTR,
+                    "My.Little.Server",
+                    "otherNick",
+                    ANYSTR,
+                    ANYSTR,
+                ],
+            )
+
+            self.assertMessageMatch(
+                end,
+                command=RPL_ENDOFWHO,
+                params=["otherNick", InsensitiveStr(chan), ANYSTR],
+            )
+
     @cases.mark_specifications("IRCv3")
     @cases.mark_isupport("WHOX")
     def testWhoxFull(self):
