@@ -363,7 +363,11 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
 
     @cases.mark_specifications("Modern")
     def testWhoMultiChan(self):
-        """https://github.com/ircdocs/modern-irc/issues/209"""
+        """
+        When WHO <#chan> is sent, the second parameter of RPL_WHOREPLY must
+        be `#chan`. See discussion on Modern:
+        <https://github.com/ircdocs/modern-irc/issues/209>
+        """
         self._init()
 
         self.sendLine(1, "JOIN #otherchan")
