@@ -125,9 +125,9 @@ def get_build_job(*, software_config, software_id, version_flavor):
             *cache,
             {"uses": "actions/checkout@v3"},
             {
-                "name": "Set up Python 3.7",
+                "name": "Set up Python 3.11",
                 "uses": "actions/setup-python@v4",
-                "with": {"python-version": 3.7},
+                "with": {"python-version": 3.11},
             },
             *install_steps,
             *upload_steps(software_id),
