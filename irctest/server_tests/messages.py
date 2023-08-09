@@ -45,12 +45,14 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testPrivmsgNonexistentUser(self):
-        """https://tools.ietf.org/html/rfc2812#section-3.3.1"""
+        """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
         self.connectClient("foo")
         self.sendLine(1, "PRIVMSG bar :hey there!")
         msg = self.getMessage(1)
-        # ERR_NOSUCHNICK
-        self.assertIn(msg.command, ("401"))
+        # ERR_NOSUCHNICK: 401 <sender> <recipient> :No such nick
+        self.assertEqual(msg.command, "401")
+        self.assertEqual(len(msg.params), 3)
+        self.assertEqual(msg.params[:2], ["foo", "bar"])
 
 
 class NoticeTestCase(cases.BaseServerTestCase):
