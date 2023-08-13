@@ -440,10 +440,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -474,10 +474,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -512,10 +512,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -544,10 +544,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Ergo
       uses: actions/checkout@v3
       with:
@@ -586,10 +586,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -624,10 +624,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -658,10 +658,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -695,10 +695,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout ircu2
       uses: actions/checkout@v3
       with:
@@ -734,10 +734,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Install dependencies
       run: pip install git+https://github.com/ProgVal/Limnoria.git@testing cryptography
         pyxmpp2-scram
@@ -762,10 +762,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout nefarious
       uses: actions/checkout@v3
       with:
@@ -801,10 +801,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -835,10 +835,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -873,10 +873,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -907,10 +907,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -945,10 +945,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -977,10 +977,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Install dependencies
       run: pip install git+https://github.com/sopel-irc/sopel.git
     - name: Install system dependencies
@@ -1004,10 +1004,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout TheLounge
       uses: actions/checkout@v3
       with:
@@ -1043,10 +1043,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -1076,10 +1076,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -1110,10 +1110,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -1148,10 +1148,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:
@@ -1181,10 +1181,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.7
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
       uses: actions/download-artifact@v3
       with:

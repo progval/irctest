@@ -196,9 +196,9 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
         "steps": [
             {"uses": "actions/checkout@v3"},
             {
-                "name": "Set up Python 3.7",
+                "name": "Set up Python 3.11",
                 "uses": "actions/setup-python@v4",
-                "with": {"python-version": 3.7},
+                "with": {"python-version": 3.11},
             },
             *downloads,
             *unpack,
