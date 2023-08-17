@@ -423,6 +423,25 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
                 params=["otherNick", InsensitiveStr(chan), ANYSTR],
             )
 
+    @cases.mark_specifications("Modern")
+    def testWhoNickNotExists(self):
+        """
+        When WHO is sent with a non-existing nickname, the server must reply
+        with a single RPL_ENDOFWHO. See:
+        <https://github.com/ircdocs/modern-irc/pull/216>
+        """
+
+        self._init()
+
+        self.sendLine(2, "WHO idontexist")
+        (end,) = self.getMessages(2)
+
+        self.assertMessageMatch(
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr("idontexist"), ANYSTR],
+        )
+
     @cases.mark_specifications("IRCv3")
     @cases.mark_isupport("WHOX")
     def testWhoxFull(self):
