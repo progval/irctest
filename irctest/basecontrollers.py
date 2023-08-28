@@ -68,6 +68,7 @@ class _BaseController:
 
     supports_sts: bool
     supported_sasl_mechanisms: Set[str]
+
     proc: Optional[subprocess.Popen]
 
     _used_ports: Set[Tuple[str, int]]
@@ -248,6 +249,12 @@ class BaseServerController(_BaseController):
     extban_mute_char: Optional[str] = None
     """Character used for the 'mute' extban"""
     nickserv = "NickServ"
+    sync_sleep_time = 0.0
+    """How many seconds to sleep before clients synchronously get messages.
+
+    This can be 0 for servers answering all commands in order (all but Sable as of
+    this writing), as irctest emits a PING, waits for a PONG, and captures all messages
+    between the two."""
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
