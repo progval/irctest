@@ -10,6 +10,27 @@ from irctest.runner import CapabilityNotSupported, ImplementationChoice
 
 class CapTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("IRCv3")
+    def testInvalidCapSubcommand(self):
+        """“If no capabilities are active, an empty parameter must be sent.”
+        -- <http://ircv3.net/specs/core/capability-negotiation-3.1.html#the-cap-list-subcommand>
+        """  # noqa
+        self.addClient()
+        self.sendLine(1, "CAP NOTACOMMAND")
+        self.sendLine(1, "PING test123")
+        m = self.getRegistrationMessage(1)
+        self.assertTrue(
+            self.messageDiffers(m, command="PONG", params=[ANYSTR, "test123"]),
+            "Sending “CAP NOTACOMMAND” as first message got no reply"
+        )
+        self.assertMessageMatch(
+            m,
+            command="410",
+            params=["*", "NOTACOMMAND", ANYSTR],
+            fail_msg="Sending “CAP NOTACOMMAND” as first message got a reply "
+            "that is not ERR_INVALIDCAPCMD: {msg}",
+        )
+
+    @cases.mark_specifications("IRCv3")
     def testNoReq(self):
         """Test the server handles gracefully clients which do not send
         REQs.
@@ -23,10 +44,162 @@ class CapTestCase(cases.BaseServerTestCase):
         self.getCapLs(1)
         self.sendLine(1, "USER foo foo foo :foo")
         self.sendLine(1, "NICK foo")
+
+        # Make sure the server didn't send anything yet
+        self.sendLine(1, "CAP LS 302")
+        self.getCapLs(1)
+
         self.sendLine(1, "CAP END")
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m, command="001", fail_msg="Expected 001 after sending CAP END, got {msg}."
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testReqOne(self):
+        """Tests requesting a single capability"""
+        self.addClient(1)
+        self.sendLine(1, "CAP LS 302")
+        self.getCapLs(1)
+        self.sendLine(1, "USER foo foo foo :foo")
+        self.sendLine(1, "NICK foo")
+        self.sendLine(1, "CAP REQ :server-time")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m, command="CAP", params=[ANYSTR, "ACK", "server-time"],
+            fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}."
+        )
+
+        self.sendLine(1, "CAP LIST")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="CAP",
+            params=[ANYSTR, "LIST", "server-time"],
+        fail_msg="Expected CAP LIST after sending CAP LIST, got {msg}."
+        )
+
+        self.sendLine(1, "CAP END")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m, command="001", fail_msg="Expected 001 after sending CAP END, got {msg}."
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testReqTwo(self):
+        """Tests requesting two capabilities at once"""
+        self.addClient(1)
+        self.sendLine(1, "CAP LS 302")
+        self.getCapLs(1)
+        self.sendLine(1, "USER foo foo foo :foo")
+        self.sendLine(1, "NICK foo")
+        self.sendLine(1, "CAP REQ :server-time userhost-in-names")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m, command="CAP", params=[ANYSTR, "ACK", "server-time userhost-in-names"],
+            fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}."
+        )
+
+        self.sendLine(1, "CAP LIST")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="CAP",
+            params=[ANYSTR, "LIST", "server-time userhost-in-names"],
+            fail_msg="Expected CAP LIST after sending CAP LIST, got {msg}."
+        )
+
+        self.sendLine(1, "CAP END")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m, command="001", fail_msg="Expected 001 after sending CAP END, got {msg}."
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testReqOneThenOne(self):
+        """Tests requesting two capabilities in different messages"""
+        self.addClient(1)
+        self.sendLine(1, "CAP LS 302")
+        self.getCapLs(1)
+        self.sendLine(1, "USER foo foo foo :foo")
+        self.sendLine(1, "NICK foo")
+
+        self.sendLine(1, "CAP REQ :server-time")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m, command="CAP", params=[ANYSTR, "ACK", "server-time"],
+            fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}."
+        )
+
+        self.sendLine(1, "CAP REQ :userhost-in-names")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m, command="CAP", params=[ANYSTR, "ACK", "userhost-in-names"],
+            fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}."
+        )
+
+        self.sendLine(1, "CAP LIST")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="CAP",
+            params=[ANYSTR, "LIST", "server-time userhost-in-names"],
+            fail_msg="Expected CAP LIST after sending CAP LIST, got {msg}."
+        )
+
+        self.sendLine(1, "CAP END")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m, command="001", fail_msg="Expected 001 after sending CAP END, got {msg}."
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testReqPostRegistration(self):
+        """Tests requesting more capabilities after CAP END"""
+        self.addClient(1)
+        self.sendLine(1, "CAP LS 302")
+        self.getCapLs(1)
+        self.sendLine(1, "USER foo foo foo :foo")
+        self.sendLine(1, "NICK foo")
+
+        self.sendLine(1, "CAP REQ :server-time")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m, command="CAP", params=[ANYSTR, "ACK", "server-time"],
+            fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}."
+        )
+
+        self.sendLine(1, "CAP LIST")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="CAP",
+            params=[ANYSTR, "LIST", "server-time"],
+            fail_msg="Expected CAP LIST after sending CAP LIST, got {msg}."
+        )
+
+        self.sendLine(1, "CAP END")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m, command="001", fail_msg="Expected 001 after sending CAP END, got {msg}."
+        )
+
+        self.getMessages(1)
+
+        self.sendLine(1, "CAP REQ :userhost-in-names")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m, command="CAP", params=[ANYSTR, "ACK", "userhost-in-names"],
+            fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}."
+        )
+
+        self.sendLine(1, "CAP LIST")
+        m = self.getMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="CAP",
+            params=[ANYSTR, "LIST", "server-time userhost-in-names"],
+            fail_msg="Expected CAP LIST after sending CAP LIST, got {msg}."
         )
 
     @cases.mark_specifications("IRCv3")
