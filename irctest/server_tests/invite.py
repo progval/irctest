@@ -360,8 +360,8 @@ class InviteTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
 
         self.sendLine(1, "JOIN #chan")
-        self.sendLine(2, "JOIN #chan")
         self.getMessages(1)
+        self.sendLine(2, "JOIN #chan")
         self.getMessages(2)
         self.getMessages(1)
 
