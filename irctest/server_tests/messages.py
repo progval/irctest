@@ -53,6 +53,23 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         # ERR_NOSUCHNICK: 401 <sender> <recipient> :No such nick
         self.assertMessageMatch(msg, command="401", params=["foo", "bar", ANYSTR])
 
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testEmptyPrivmsg(self):
+        self.connectClient("foo")
+        self.sendLine(1, "JOIN #chan")
+        self.connectClient("bar")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(1)  # synchronize
+        self.getMessages(2)  # synchronize
+        self.sendLine(1, "PRIVMSG #chan :")
+
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="412",  # ERR_NOTEXTTOSEND
+            params=["foo", ANYSTR],
+        )
+        self.assertEqual(self.getMessages(2), [])
+
 
 class NoticeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
