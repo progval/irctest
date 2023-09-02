@@ -22,23 +22,17 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("echo-message")
     def testEchoMessage(self, command, solo, server_time):
         """<http://ircv3.net/specs/extensions/echo-message-3.2.html>"""
-        if server_time:
-            self.connectClient(
-                "baz",
-                capabilities=["echo-message", "server-time"],
-                skip_if_cap_nak=True,
-            )
-        else:
-            self.connectClient(
-                "baz",
-                capabilities=["echo-message", "server-time"],
-                skip_if_cap_nak=True,
-            )
+        capabilities = ["server-time"] if server_time else []
+
+        self.connectClient(
+            "baz",
+            capabilities=["echo-message", *capabilities],
+            skip_if_cap_nak=True,
+        )
 
         self.sendLine(1, "JOIN #chan")
 
         if not solo:
-            capabilities = ["server-time"] if server_time else None
             self.connectClient("qux", capabilities=capabilities)
             self.sendLine(2, "JOIN #chan")
 
