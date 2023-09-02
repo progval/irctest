@@ -4,7 +4,7 @@
 """
 
 from irctest import cases
-from irctest.patma import ANYSTR
+from irctest.patma import ANYSTR, StrRe
 from irctest.runner import CapabilityNotSupported, ImplementationChoice
 
 
@@ -56,10 +56,6 @@ class CapTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.xfailIfSoftware(
-        ["UnrealIRCd"],
-        "UnrealIRCd sends a trailing space on CAP ACK: https://github.com/unrealircd/unrealircd/pull/148",
-    )
     def testReqOne(self):
         """Tests requesting a single capability"""
         self.addClient(1)
@@ -72,7 +68,7 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "ACK", "multi-prefix"],
+            params=[ANYSTR, "ACK", StrRe("multi-prefix ?")],
             fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}.",
         )
 
@@ -81,7 +77,7 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "LIST", "multi-prefix"],
+            params=[ANYSTR, "LIST", StrRe("multi-prefix ?")],
             fail_msg="Expected CAP LIST after sending CAP LIST, got {msg}.",
         )
 
@@ -92,10 +88,6 @@ class CapTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.xfailIfSoftware(
-        ["UnrealIRCd"],
-        "UnrealIRCd sends a trailing space on CAP ACK: https://github.com/unrealircd/unrealircd/pull/148",
-    )
     def testReqTwo(self):
         """Tests requesting two capabilities at once"""
         self.addClient(1)
@@ -108,7 +100,7 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "ACK", "multi-prefix userhost-in-names"],
+            params=[ANYSTR, "ACK", StrRe("multi-prefix userhost-in-names ?")],
             fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}.",
         )
 
@@ -117,7 +109,13 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "LIST", "multi-prefix userhost-in-names"],
+            params=[
+                ANYSTR,
+                "LIST",
+                StrRe(
+                    "(multi-prefix userhost-in-names|userhost-in-names multi-prefix) ?"
+                ),
+            ],
             fail_msg="Expected CAP LIST after sending CAP LIST, got {msg}.",
         )
 
@@ -128,10 +126,6 @@ class CapTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.xfailIfSoftware(
-        ["UnrealIRCd"],
-        "UnrealIRCd sends a trailing space on CAP ACK: https://github.com/unrealircd/unrealircd/pull/148",
-    )
     def testReqOneThenOne(self):
         """Tests requesting two capabilities in different messages"""
         self.addClient(1)
@@ -145,7 +139,7 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "ACK", "multi-prefix"],
+            params=[ANYSTR, "ACK", StrRe("multi-prefix ?")],
             fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}.",
         )
 
@@ -154,7 +148,7 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "ACK", "userhost-in-names"],
+            params=[ANYSTR, "ACK", StrRe("userhost-in-names ?")],
             fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}.",
         )
 
@@ -163,7 +157,13 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "LIST", "multi-prefix userhost-in-names"],
+            params=[
+                ANYSTR,
+                "LIST",
+                StrRe(
+                    "(multi-prefix userhost-in-names|userhost-in-names multi-prefix) ?"
+                ),
+            ],
             fail_msg="Expected CAP LIST after sending CAP LIST, got {msg}.",
         )
 
@@ -174,10 +174,6 @@ class CapTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.xfailIfSoftware(
-        ["UnrealIRCd"],
-        "UnrealIRCd sends a trailing space on CAP ACK: https://github.com/unrealircd/unrealircd/pull/148",
-    )
     def testReqPostRegistration(self):
         """Tests requesting more capabilities after CAP END"""
         self.addClient(1)
@@ -191,7 +187,7 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "ACK", "multi-prefix"],
+            params=[ANYSTR, "ACK", StrRe("multi-prefix ?")],
             fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}.",
         )
 
@@ -200,7 +196,7 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "LIST", "multi-prefix"],
+            params=[ANYSTR, "LIST", StrRe("multi-prefix ?")],
             fail_msg="Expected CAP LIST after sending CAP LIST, got {msg}.",
         )
 
@@ -217,7 +213,7 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "ACK", "userhost-in-names"],
+            params=[ANYSTR, "ACK", StrRe("userhost-in-names ?")],
             fail_msg="Expected CAP ACK after sending CAP REQ, got {msg}.",
         )
 
@@ -226,7 +222,13 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "LIST", "multi-prefix userhost-in-names"],
+            params=[
+                ANYSTR,
+                "LIST",
+                StrRe(
+                    "(multi-prefix userhost-in-names|userhost-in-names multi-prefix) ?"
+                ),
+            ],
             fail_msg="Expected CAP LIST after sending CAP LIST, got {msg}.",
         )
 
@@ -246,7 +248,7 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "NAK", "foo"],
+            params=[ANYSTR, "NAK", StrRe("foo ?")],
             fail_msg="Expected CAP NAK after requesting non-existing "
             "capability, got {msg}.",
         )
@@ -279,10 +281,6 @@ class CapTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.xfailIfSoftware(
-        ["UnrealIRCd"],
-        "UnrealIRCd sends a trailing space on CAP NAK: https://github.com/unrealircd/unrealircd/pull/148",
-    )
     def testNakWhole(self):
         """“The capability identifier set must be accepted as a whole, or
         rejected entirely.”
@@ -324,16 +322,12 @@ class CapTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             m,
             command="CAP",
-            params=[ANYSTR, "ACK", "multi-prefix"],
+            params=[ANYSTR, "ACK", StrRe("multi-prefix ?")],
             fail_msg="Expected “CAP ACK :multi-prefix” after "
             "sending “CAP REQ :multi-prefix”, but got {msg}.",
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.xfailIfSoftware(
-        ["UnrealIRCd"],
-        "UnrealIRCd sends a trailing space on CAP NAK: https://github.com/unrealircd/unrealircd/pull/148",
-    )
     def testCapRemovalByClient(self):
         """Test CAP LIST and removal of caps via CAP REQ :-tagname."""
         cap1 = "echo-message"
@@ -372,9 +366,11 @@ class CapTestCase(cases.BaseServerTestCase):
         self.sendLine(1, f"CAP REQ :-{cap2}")
         m = self.getMessage(1)
         # Must be either ACK or NAK
-        if self.messageDiffers(m, command="CAP", params=[ANYSTR, "ACK", f"-{cap2}"]):
+        if self.messageDiffers(
+            m, command="CAP", params=[ANYSTR, "ACK", StrRe(f"-{cap2} ?")]
+        ):
             self.assertMessageMatch(
-                m, command="CAP", params=[ANYSTR, "NAK", f"-{cap2}"]
+                m, command="CAP", params=[ANYSTR, "NAK", StrRe(f"-{cap2} ?")]
             )
             raise ImplementationChoice(f"Does not support CAP REQ -{cap2}")
 
