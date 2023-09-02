@@ -337,7 +337,7 @@ class CapTestCase(cases.BaseServerTestCase):
     def testCapRemovalByClient(self):
         """Test CAP LIST and removal of caps via CAP REQ :-tagname."""
         cap1 = "echo-message"
-        cap2 = "multi-prefix"
+        cap2 = "server-time"
         self.addClient(1)
         self.connectClient("sender")
         self.sendLine(1, "CAP LS 302")
