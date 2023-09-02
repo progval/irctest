@@ -347,8 +347,13 @@ class CapTestCase(cases.BaseServerTestCase):
         self.addClient(1)
         self.connectClient("sender")
         self.sendLine(1, "CAP LS 302")
-        m = self.getRegistrationMessage(1)
-        if not ({cap1, cap2} <= set(m.params[2].split())):
+        caps = set()
+        while True:
+            m = self.getRegistrationMessage(1)
+            caps.update(m.params[-1].split())
+            if m.params[2] != "*":
+                break
+        if not ({cap1, cap2} <= caps):
             raise CapabilityNotSupported(f"{cap1} or {cap2}")
         self.sendLine(1, f"CAP REQ :{cap1} {cap2}")
         self.sendLine(1, "nick bar")
