@@ -1,4 +1,6 @@
+import os
 import shutil
+import signal
 import subprocess
 from typing import Optional, Type
 
@@ -243,11 +245,9 @@ NETWORK_CONFIG_CONFIG = """
             "always_send",
             "voice_self",
             "receive_voice",
-            "invite_self", "invite_other",
             "ban_view", "quiet_view"
         ],
         "builtin:all": [
-            "invite_self", "invite_other",
             "ban_view", "quiet_view"
         ]
     },
@@ -468,7 +468,9 @@ class SableController(BaseServerController, DirectoryBasedController):
                 self.directory / "configs/network_config.conf",
             ],
             cwd=self.directory,
+            preexec_fn=os.setsid,
         )
+        self.pgroup_id = os.getpgid(self.proc.pid)
 
         if run_services:
             self.services_controller = self.services_controller_class(
@@ -479,6 +481,10 @@ class SableController(BaseServerController, DirectoryBasedController):
                 server_hostname=services_hostname,
                 server_port=services_port,
             )
+
+    def kill_proc(self) -> None:
+        os.killpg(self.pgroup_id, signal.SIGKILL)
+        super().kill_proc()
 
 
 class SableServicesController(BaseServicesController):
@@ -503,7 +509,9 @@ class SableServicesController(BaseServicesController):
                 self.server_controller.directory / "configs/services.conf",
                 "--network-conf",
                 self.server_controller.directory / "configs/network.conf",
-            ]
+            ],
+            cwd=self.directory,
+            preexec_fn=os.setsid,
         )
 
 
