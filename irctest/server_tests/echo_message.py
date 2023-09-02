@@ -32,6 +32,9 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
 
         self.sendLine(1, "JOIN #chan")
 
+        # Synchronize
+        self.getMessages(1)
+
         if not solo:
             self.connectClient("qux", capabilities=capabilities)
             self.sendLine(2, "JOIN #chan")
