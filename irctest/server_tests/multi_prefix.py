@@ -15,7 +15,7 @@ class MultiPrefixTestCase(cases.BaseServerTestCase):
 
         These prefixes MUST be in order of ‘rank’, from highest to lowest.
         """
-        self.connectClient("foo", capabilities=["multi-prefix"])
+        self.connectClient("foo", capabilities=["multi-prefix"], skip_if_cap_nak=True)
         self.joinChannel(1, "#chan")
         self.sendLine(1, "MODE #chan +v foo")
         self.getMessages(1)
