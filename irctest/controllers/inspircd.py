@@ -73,6 +73,7 @@ TEMPLATE_CONFIG = """
 <module name="m_muteban">  # for testing mute extbans
 <module name="namesx"> # For multi-prefix
 <module name="sasl">
+<module name="uhnames">  # For userhost-in-names
 
 # HELP/HELPOP
 <module name="alias">  # for the HELP alias
