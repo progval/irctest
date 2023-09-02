@@ -44,8 +44,8 @@ class KeyTestCase(cases.BaseServerTestCase):
 
     @pytest.mark.parametrize(
         "key",
-        ["passphrase with spaces", "long" * 100, ""],
-        ids=["spaces", "long", "empty"],
+        ["passphrase with spaces", "long" * 100, "", " "],
+        ids=["spaces", "long", "empty", "only-space"],
     )
     @cases.mark_specifications("RFC2812", "Modern")
     def testKeyValidation(self, key):
