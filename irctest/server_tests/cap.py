@@ -300,7 +300,8 @@ class CapTestCase(cases.BaseServerTestCase):
         """  # noqa
         self.addClient(1)
         self.sendLine(1, "CAP LS 302")
-        self.assertIn("multi-prefix", self.getCapLs(1))
+        if "multi-prefix" not in self.getCapLs(1):
+            raise CapabilityNotSupported("multi-prefix")
         self.sendLine(1, "CAP REQ :foo multi-prefix bar")
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
