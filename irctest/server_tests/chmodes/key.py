@@ -84,6 +84,8 @@ class KeyTestCase(cases.BaseServerTestCase):
                 "ngIRCd does not validate channel keys: "
                 "https://github.com/ngircd/ngircd/issues/290"
             )
+        if key == " " and self.controller.software_name == "irc2":
+            pytest.xfail("irc2 rewrites non-empty keys that contain only spaces")
 
         self.connectClient("bar")
         self.joinChannel(1, "#chan")

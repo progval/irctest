@@ -54,6 +54,10 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(msg, command="401", params=["foo", "bar", ANYSTR])
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["irc2"],
+        "replies with ERR_NEEDMOREPARAMS instead of ERR_NOTEXTTOSEND",
+    )
     def testEmptyPrivmsg(self):
         self.connectClient("foo")
         self.sendLine(1, "JOIN #chan")

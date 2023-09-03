@@ -233,6 +233,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         else:
             self.assertTrue(False, "stuck waiting")
         self.sendLine(1, "WHOIS foo")
+        time.sleep(3)  # for ngIRCd
         d = self.clients[1].conn.recv(10000)
         print("S -> 1 (repr): " + repr(d))
         self.assertIn(b"username", d)
