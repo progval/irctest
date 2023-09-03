@@ -259,7 +259,7 @@ software:
             devel: master
             devel_release: null
         path: sable
-        prefix: ~/.local/
+        prefix: ~/sable/target/debug/
         pre_deps:
             - name: Install rust toolchain
               uses: actions-rs/toolchain@v1
@@ -274,10 +274,6 @@ software:
         build_script: |
             cd $GITHUB_WORKSPACE/sable/
             cargo build
-            cargo install --debug --path auth_client
-            cargo install --debug --path client_listener
-            cargo install --debug --path sable_ircd
-            cargo install --debug --path sable_services
 
     snircd:
         name: snircd

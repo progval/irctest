@@ -482,10 +482,6 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/sable/
         cargo build
-        cargo install --debug --path auth_client
-        cargo install --debug --path client_listener
-        cargo install --debug --path sable_ircd
-        cargo install --debug --path sable_services
     - name: Install system dependencies
       run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
@@ -493,7 +489,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/sable/target/debug//sbin:~/sable/target/debug//bin:$PATH
         make sable
       timeout-minutes: 30
     - if: always()
