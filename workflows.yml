@@ -269,6 +269,9 @@ software:
                   override: true
             - name: Enable Cargo cache
               uses: Swatinem/rust-cache@v2
+              with:
+                workspaces: "sable -> sable/target"
+                cache-on-failure: true
             - run: rustc --version
         separate_build_job: false
         build_script: |
