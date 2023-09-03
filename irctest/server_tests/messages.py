@@ -72,7 +72,6 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         self.assertEqual(self.getMessages(2), [])
 
 
-
 class NoticeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testNotice(self):

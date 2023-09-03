@@ -222,7 +222,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             print("S -> 1 (repr): " + repr(d))
             if b" 001 " in d:
                 break
-            if b"ERROR " in d:
+            if b"ERROR " in d or b" FAIL " in d:
                 # Rejected; nothing more to test.
                 return
             if d.startswith(b"PING "):
