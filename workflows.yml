@@ -270,7 +270,7 @@ software:
             - name: Enable Cargo cache
               uses: Swatinem/rust-cache@v2
               with:
-                workspaces: "sable -> sable/target"
+                workspaces: "sable -> target"
                 cache-on-failure: true
             - run: rustc --version
         separate_build_job: false

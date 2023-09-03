@@ -479,7 +479,7 @@ jobs:
       uses: Swatinem/rust-cache@v2
       with:
         cache-on-failure: true
-        workspaces: sable -> sable/target
+        workspaces: sable -> target
     - run: rustc --version
     - name: Build Sable
       run: |
