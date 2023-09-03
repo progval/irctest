@@ -275,6 +275,10 @@ SERVER_CONFIG = """
         ],
     },
 
+    "event_log": {
+        "event_expiry": 300, // five minutes, for local testing
+    },
+
     "tls_config": {
         "key_file": "configs/server1.key",
         "cert_file": "configs/server1.pem",
@@ -353,6 +357,10 @@ SERVICES_CONFIG = """
                 "always_send", "voice_self", "receive_voice"
             ]
         }
+    },
+
+    "event_log": {
+        "event_expiry": 300, // five minutes, for local testing
     },
 
     "tls_config": {
