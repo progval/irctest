@@ -477,9 +477,9 @@ jobs:
     - run: rustc --version
     - name: Build Sable
       run: |
-        cd $GITHUB_WORKSPACE/ergo/
-        make build
-        make install
+        cd $GITHUB_WORKSPACE/sable/
+        cargo build
+        cargo install
     - name: Install system dependencies
       run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies

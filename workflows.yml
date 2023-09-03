@@ -269,9 +269,9 @@ software:
             - run: rustc --version
         separate_build_job: false
         build_script: |
-            cd $GITHUB_WORKSPACE/ergo/
-            make build
-            make install
+            cd $GITHUB_WORKSPACE/sable/
+            cargo build
+            cargo install
 
     snircd:
         name: snircd
