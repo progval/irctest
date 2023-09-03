@@ -48,21 +48,29 @@ class Utf8TestCase(cases.BaseServerTestCase):
             self.assertMessageMatch(m, params=["PRIVMSG", "INVALID_UTF8", ANYSTR])
 
     def testNonutf8Realname(self):
+        self.connectClient("foo")
+        if "UTF8ONLY" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("UTF8ONLY")
+
         self.addClient()
-        self.sendLine(1, "NICK foo")
-        self.clients[1].conn.sendall(b"USER username * * :i\xe8rc\xe9\r\n")
-        self.assertIn(b" 001 ", self.clients[1].conn.recv(1024))
-        self.sendLine(1, "WHOIS foo")
-        self.getMessages(1)
+        self.sendLine(2, "NICK foo")
+        self.clients[2].conn.sendall(b"USER username * * :i\xe8rc\xe9\r\n")
+        self.assertIn(b" 001 ", self.clients[2].conn.recv(1024))
+        self.sendLine(2, "WHOIS foo")
+        self.getMessages(2)
 
     def testNonutf8Username(self):
+        self.connectClient("foo")
+        if "UTF8ONLY" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("UTF8ONLY")
+
         self.addClient()
-        self.sendLine(1, "NICK foo")
-        self.sendLine(1, "USER 😊😊😊😊😊😊😊😊😊😊 * * :realname")
-        m = self.getRegistrationMessage(1)
+        self.sendLine(2, "NICK foo")
+        self.sendLine(2, "USER 😊😊😊😊😊😊😊😊😊😊 * * :realname")
+        m = self.getRegistrationMessage(2)
         self.assertMessageMatch(
             m,
             command="001",
         )
-        self.sendLine(1, "WHOIS foo")
-        self.getMessages(1)
+        self.sendLine(2, "WHOIS foo")
+        self.getMessages(2)
