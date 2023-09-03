@@ -87,6 +87,13 @@ LIMNORIA_SELECTORS := \
 	(foo or not foo) \
 	$(EXTRA_SELECTORS)
 
+SABLE_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	and not whowas and not list and not lusers and not kick and not userhost and not time and not info \
+	$(EXTRA_SELECTORS)
+
 SOLANUM_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -248,6 +255,12 @@ ngircd-atheme:
 		--services-controller=irctest.controllers.atheme_services \
 		-m 'services' \
 		-k "$(NGIRCD_SELECTORS)"
+
+sable:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.sable \
+		-m 'not services' \
+		-k '$(SOLANUM_SELECTORS)'
 
 solanum:
 	$(PYTEST) $(PYTEST_ARGS) \

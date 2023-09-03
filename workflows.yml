@@ -250,6 +250,31 @@ software:
             make -j 4
             make install
 
+    sable:
+        name: Sable
+        repository: Libera-Chat/sable
+        refs:
+            stable: irctest_stable
+            release: Libera-Chat/sable
+            devel: master
+            devel_release: null
+        path: sable
+        prefix: ~/.local/
+        pre_deps:
+            - name: Install rust toolchain
+              uses: actions-rs/toolchain@v1
+              working-directory: sable/
+              # install the version required by sable/rust-toolchain.toml
+              # with:
+              #   toolchain: nightly
+              #   override: true
+            - run: rustc --version
+        separate_build_job: false
+        build_script: |
+            cd $GITHUB_WORKSPACE/ergo/
+            make build
+            make install
+
     snircd:
         name: snircd
         repository: quakenet/snircd
@@ -402,83 +427,5 @@ software:
             ln -s $(pwd)/index.js ~/.local/bin/thelounge
 
 tests:
-    bahamut:
-        software: [bahamut]
-
-    bahamut-atheme:
-        software: [bahamut]
-
-    bahamut-anope:
-        software: [bahamut, anope]
-
-    charybdis:
-        software: [charybdis]
-
-    hybrid:
-        software: [hybrid, anope]
-
-    solanum:
-        software: [solanum]
-
-    ergo:
-        software: [ergo]
-
-    inspircd:
-        software: [inspircd]
-
-    inspircd-atheme:
-        software: [inspircd]
-        exclude_versions: [devel] # Atheme does not support Insp4 yet, so it fails to connect
-
-    inspircd-anope:
-        software: [inspircd, anope]
-
-    ngircd:
-        software: [ngircd]
-
-    ngircd-atheme:
-        software: [ngircd]
-
-    ngircd-anope:
-        software: [ngircd, anope]
-
-    plexus4:
-        software: [plexus4, anope]
-
-    irc2:
-        software: [irc2]
-
-    ircu2:
-        software: [ircu2]
-
-    nefarious:
-        software: [nefarious]
-
-    # doesn't build because it can't find liblex for some reason
-    #snircd:
-    #    software: [snircd]
-
-    unrealircd-5:
-        software: [unrealircd-5]
-
-    unrealircd:
-        software: [unrealircd]
-
-    unrealircd-atheme:
-        software: [unrealircd]
-
-    unrealircd-anope:
-        software: [unrealircd, anope]
-
-    unrealircd-dlk:
-        software: [unrealircd, dlk]
-
-
-    limnoria:
-        software: [limnoria]
-
-    sopel:
-        software: [sopel]
-
-    thelounge:
-        software: [thelounge]
+    sable:
+        software: [sable]
