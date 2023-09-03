@@ -125,9 +125,9 @@ UNREALIRCD_SELECTORS := \
 	and not private_chathistory \
 	$(EXTRA_SELECTORS)
 
-.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sopel solanum unrealircd
+.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sable sopel solanum unrealircd
 
-all: flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sopel solanum unrealircd
+all: flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sable sopel solanum unrealircd
 
 flakes:
 	find irctest/ -name "*.py" -not -path "irctest/scram/*" -print0 | xargs -0 pyflakes3
