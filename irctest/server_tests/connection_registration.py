@@ -225,10 +225,11 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             if b"ERROR " in d or b" FAIL " in d:
                 # Rejected; nothing more to test.
                 return
-            if d.startswith(b"PING "):
-                line = d.split(b"\r\n")[0].replace(b"PING", b"PONG") + b"\r\n"
-                print("1 -> S (repr): " + repr(line))
-                self.clients[1].conn.sendall(line)
+            for line in d.split(b"\r\n"):
+                if line.startswith(b"PING "):
+                    line = line.replace(b"PING", b"PONG") + b"\r\n"
+                    print("1 -> S (repr): " + repr(line))
+                    self.clients[1].conn.sendall(line)
         else:
             self.assertTrue(False, "stuck waiting")
         self.sendLine(1, "WHOIS foo")
@@ -250,10 +251,11 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             if b" 468" in d or b"ERROR " in d:
                 # Rejected; nothing more to test.
                 return
-            if d.startswith(b"PING "):
-                line = d.split(b"\r\n")[0].replace(b"PING", b"PONG") + b"\r\n"
-                print("1 -> S (repr): " + repr(line))
-                self.clients[1].conn.sendall(line)
+            for line in d.split(b"\r\n"):
+                if line.startswith(b"PING "):
+                    line = line.replace(b"PING", b"PONG") + b"\r\n"
+                    print("1 -> S (repr): " + repr(line))
+                    self.clients[1].conn.sendall(line)
         else:
             self.assertTrue(False, "stuck waiting")
         self.sendLine(1, "WHOIS foo")
