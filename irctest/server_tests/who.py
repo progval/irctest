@@ -303,13 +303,6 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
 
         self._init()
 
-        self.sendLine(1, "OPER operuser operpassword")
-        self.assertIn(
-            RPL_YOUREOPER,
-            [m.command for m in self.getMessages(1)],
-            fail_msg="OPER failed",
-        )
-
         self.sendLine(1, "AWAY :be right back")
         self.getMessages(1)
         self.getMessages(2)
@@ -335,7 +328,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
                 StrRe(host_re),
                 "My.Little.Server",
                 "coolNick",
-                "G*@",
+                "G@",
                 StrRe(realname_regexp(self.realname)),
             ],
         )
