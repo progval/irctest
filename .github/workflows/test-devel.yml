@@ -441,7 +441,10 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/sable/
         cargo build
-        cargo install
+        cargo install --debug --path auth_client
+        cargo install --debug --path client_listener
+        cargo install --debug --path sable_ircd
+        cargo install --debug --path sable_services
     - name: Install system dependencies
       run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies

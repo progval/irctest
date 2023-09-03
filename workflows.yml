@@ -274,7 +274,10 @@ software:
         build_script: |
             cd $GITHUB_WORKSPACE/sable/
             cargo build
-            cargo install
+            cargo install --debug --path auth_client
+            cargo install --debug --path client_listener
+            cargo install --debug --path sable_ircd
+            cargo install --debug --path sable_services
 
     snircd:
         name: snircd
