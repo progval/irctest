@@ -263,11 +263,9 @@ software:
         pre_deps:
             - name: Install rust toolchain
               uses: actions-rs/toolchain@v1
-              working-directory: sable/
-              # install the version required by sable/rust-toolchain.toml
-              # with:
-              #   toolchain: nightly
-              #   override: true
+              with:
+                  toolchain: nightly
+                  override: true
             - run: rustc --version
         separate_build_job: false
         build_script: |
