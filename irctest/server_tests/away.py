@@ -11,13 +11,14 @@ from irctest.numerics import (
     RPL_USERHOST,
     RPL_WHOISUSER,
 )
-from irctest.patma import StrRe
+from irctest.patma import ANYSTR, StrRe
 
 
 class AwayTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC2812", "Modern")
     def testAway(self):
         self.connectClient("bar")
+        self.getMessages(1)
         self.sendLine(1, "AWAY :I'm not here right now")
         replies = self.getMessages(1)
         self.assertIn(RPL_NOWAWAY, [msg.command for msg in replies])
@@ -29,6 +30,7 @@ class AwayTestCase(cases.BaseServerTestCase):
             command=RPL_AWAY,
             params=["qux", "bar", "I'm not here right now"],
         )
+        self.getMessages(1)
 
         self.sendLine(1, "AWAY")
         replies = self.getMessages(1)
@@ -47,12 +49,18 @@ class AwayTestCase(cases.BaseServerTestCase):
         """
         self.connectClient("bar")
         self.sendLine(1, "AWAY :I'm not here right now")
-        replies = self.getMessages(1)
-        self.assertIn(RPL_NOWAWAY, [msg.command for msg in replies])
+        self.assertMessageMatch(
+                self.getMessage(1),
+                command=RPL_NOWAWAY,
+                params=["bar", ANYSTR])
+        self.assertEqual(self.getMessages(1), [])
 
         self.sendLine(1, "AWAY")
-        replies = self.getMessages(1)
-        self.assertIn(RPL_UNAWAY, [msg.command for msg in replies])
+        self.assertMessageMatch(
+                self.getMessage(1),
+                command=RPL_UNAWAY,
+                params=["bar", ANYSTR])
+        self.assertEqual(self.getMessages(1), [])
 
     @cases.mark_specifications("Modern")
     def testAwayPrivmsg(self):

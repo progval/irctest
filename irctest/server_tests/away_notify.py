@@ -3,6 +3,11 @@
 """
 
 from irctest import cases
+from irctest.patma import ANYSTR, StrRe
+from irctest.numerics import (
+    RPL_NOWAWAY,
+    RPL_UNAWAY,
+)
 
 
 class AwayNotifyTestCase(cases.BaseServerTestCase):
@@ -20,14 +25,24 @@ class AwayNotifyTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
 
         self.sendLine(2, "AWAY :i'm going away")
-        self.getMessages(2)
+        self.assertMessageMatch(
+                self.getMessage(2),
+                command=RPL_NOWAWAY,
+                params=["bar", ANYSTR])
+        self.assertEqual(self.getMessages(2), [])
 
         awayNotify = self.getMessage(1)
-        self.assertMessageMatch(awayNotify, command="AWAY", params=["i'm going away"])
-        self.assertTrue(
-            awayNotify.prefix.startswith("bar!"),
-            "Unexpected away-notify source: %s" % (awayNotify.prefix,),
-        )
+        self.assertMessageMatch(awayNotify, prefix=StrRe("bar!.*"), command="AWAY", params=["i'm going away"])
+
+        self.sendLine(2, "AWAY")
+        self.assertMessageMatch(
+                self.getMessage(2),
+                command=RPL_UNAWAY,
+                params=["bar", ANYSTR])
+        self.assertEqual(self.getMessages(2), [])
+
+        awayNotify = self.getMessage(1)
+        self.assertMessageMatch(awayNotify, prefix=StrRe("bar!.*"), command="AWAY", params=[])
 
     @cases.mark_capabilities("away-notify")
     def testAwayNotifyOnJoin(self):
