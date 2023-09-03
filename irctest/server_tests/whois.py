@@ -195,18 +195,19 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase):
 
         self.connectClient("otherNick")
         self.getMessages(2)
-        self.sendLine(2, f"WHOIS {server} coolnick")
+        self.sendLine(2, f"WHOIS {server} {nick}")
         messages = self.getMessages(2)
         whois_user = messages[0]
-        self.assertEqual(whois_user.command, RPL_WHOISUSER)
-        #  "<client> <nick> <username> <host> * :<realname>"
-        self.assertEqual(whois_user.params[1], nick)
-        self.assertIn(whois_user.params[2], ("~" + username, username))
+        self.assertMessageMatch(
+            whois_user,
+            command=RPL_WHOISUSER,
+            # "<client> <nick> <username> <host> * :<realname>"
+            params=["otherNick", nick, StrRe("~?" + username), ANYSTR, ANYSTR, realname]
+        )
         # dumb regression test for oragono/oragono#355:
         self.assertNotIn(
             whois_user.params[3], [nick, username, "~" + username, realname]
         )
-        self.assertEqual(whois_user.params[5], realname)
 
     @pytest.mark.parametrize(
         "away,oper",
