@@ -432,7 +432,10 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         override: true
+        profile: minimal
         toolchain: nightly
+    - name: Enable Cargo cache
+      uses: Swatinem/rust-cache@v2
     - run: rustc --version
     - name: Build Sable
       run: |

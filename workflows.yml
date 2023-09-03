@@ -265,7 +265,10 @@ software:
               uses: actions-rs/toolchain@v1
               with:
                   toolchain: nightly
+                  profile: minimal
                   override: true
+            - name: Enable Cargo cache
+              uses: Swatinem/rust-cache@v2
             - run: rustc --version
         separate_build_job: false
         build_script: |
