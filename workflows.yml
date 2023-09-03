@@ -259,7 +259,7 @@ software:
             devel: master
             devel_release: null
         path: sable
-        prefix: ~/sable/target/debug/
+        prefix: ~/sable/target/debug
         pre_deps:
             - name: Install rust toolchain
               uses: actions-rs/toolchain@v1
