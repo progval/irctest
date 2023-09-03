@@ -202,7 +202,14 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase):
             whois_user,
             command=RPL_WHOISUSER,
             # "<client> <nick> <username> <host> * :<realname>"
-            params=["otherNick", nick, StrRe("~?" + username), ANYSTR, ANYSTR, realname]
+            params=[
+                "otherNick",
+                nick,
+                StrRe("~?" + username),
+                ANYSTR,
+                ANYSTR,
+                realname,
+            ],
         )
         # dumb regression test for oragono/oragono#355:
         self.assertNotIn(

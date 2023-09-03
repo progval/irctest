@@ -4,9 +4,8 @@ import signal
 import subprocess
 from typing import Optional, Type
 
-from irctest.basecontrollers import (
+from irctest.basecontrollers import (  # BaseServicesController,
     BaseServerController,
-    BaseServicesController,
     DirectoryBasedController,
     NotImplementedByController,
 )
@@ -428,8 +427,14 @@ class SableController(BaseServerController, DirectoryBasedController):
 
         (server1_hostname, server1_port) = self.get_hostname_and_port()
         (services_hostname, services_port) = self.get_hostname_and_port()
-        (server1_management_hostname, server1_management_port) = self.get_hostname_and_port()
-        (services_management_hostname, services_management_port) = self.get_hostname_and_port()
+        (
+            server1_management_hostname,
+            server1_management_port,
+        ) = self.get_hostname_and_port()
+        (
+            services_management_hostname,
+            services_management_port,
+        ) = self.get_hostname_and_port()
 
         self.template_vars = dict(
             c2s_hostname=c2s_hostname,
@@ -495,6 +500,7 @@ class SableController(BaseServerController, DirectoryBasedController):
         super().kill_proc()
 
 
+"""
 class SableServicesController(BaseServicesController):
     server_controller: SableController
 
@@ -521,6 +527,7 @@ class SableServicesController(BaseServicesController):
             cwd=self.directory,
             preexec_fn=os.setsid,
         )
+"""
 
 
 def get_irctest_controller_class() -> Type[SableController]:
