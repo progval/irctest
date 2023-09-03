@@ -62,7 +62,11 @@ class AwayNotifyTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
 
         self.joinChannel(2, "#chan")
-        self.getMessages(2)
+        self.assertNotIn(
+            "AWAY",
+            [m.command for m in self.getMessages(2)],
+            "joining user got their own away status when they joined",
+        )
 
         messages = [msg for msg in self.getMessages(1) if msg.command == "AWAY"]
         self.assertEqual(
