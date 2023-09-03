@@ -50,16 +50,14 @@ class AwayTestCase(cases.BaseServerTestCase):
         self.connectClient("bar")
         self.sendLine(1, "AWAY :I'm not here right now")
         self.assertMessageMatch(
-                self.getMessage(1),
-                command=RPL_NOWAWAY,
-                params=["bar", ANYSTR])
+            self.getMessage(1), command=RPL_NOWAWAY, params=["bar", ANYSTR]
+        )
         self.assertEqual(self.getMessages(1), [])
 
         self.sendLine(1, "AWAY")
         self.assertMessageMatch(
-                self.getMessage(1),
-                command=RPL_UNAWAY,
-                params=["bar", ANYSTR])
+            self.getMessage(1), command=RPL_UNAWAY, params=["bar", ANYSTR]
+        )
         self.assertEqual(self.getMessages(1), [])
 
     @cases.mark_specifications("Modern")
