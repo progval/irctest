@@ -211,9 +211,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         username: str,
         password: Optional[str] = None,
     ) -> None:
-        # XXX: Move this somewhere else when
-        # https://github.com/ircv3/ircv3-specifications/pull/152 becomes
-        # part of the specification
         if not case.run_services:
             # Ergo does not actually need this, but other controllers do, so we
             # are checking it here as well for tests that aren't tested with other

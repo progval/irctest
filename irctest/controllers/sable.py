@@ -4,6 +4,7 @@ import shutil
 import signal
 import subprocess
 import tempfile
+import time
 from typing import Optional, Type
 
 from irctest.basecontrollers import (
@@ -12,6 +13,9 @@ from irctest.basecontrollers import (
     DirectoryBasedController,
     NotImplementedByController,
 )
+from irctest.cases import BaseServerTestCase
+from irctest.exceptions import NoMessageException
+from irctest.patma import ANYSTR
 
 GEN_CERTS = """
 mkdir -p useless_openssl_data/
@@ -399,9 +403,47 @@ class SableController(BaseServerController, DirectoryBasedController):
         os.killpg(self.pgroup_id, signal.SIGKILL)
         super().kill_proc()
 
+    def registerUser(
+        self,
+        case: BaseServerTestCase,  # type: ignore
+        username: str,
+        password: Optional[str] = None,
+    ) -> None:
+        # XXX: Move this somewhere else when
+        # https://github.com/ircv3/ircv3-specifications/pull/152 becomes
+        # part of the specification
+        if not case.run_services:
+            raise ValueError(
+                "Attempted to register a nick, but `run_services` it not True."
+            )
+        assert password
+        client = case.addClient(show_io=True)
+        case.sendLine(client, "NICK " + username)
+        case.sendLine(client, "USER r e g :user")
+        while case.getRegistrationMessage(client).command != "001":
+            pass
+        case.getMessages(client)
+        case.sendLine(
+            client,
+            f"REGISTER * * {password}",
+        )
+        for _ in range(100):
+            time.sleep(0.1)
+            try:
+                msg = case.getMessage(client)
+            except NoMessageException:
+                continue
+            case.assertMessageMatch(msg, command="REGISTER", params=["SUCCESS", username, ANYSTR])
+            break
+        else:
+            raise NoMessageException()
+        case.sendLine(client, "QUIT")
+        case.assertDisconnected(client)
+
 
 class SableServicesController(BaseServicesController):
     server_controller: SableController
+    software_name = "Sable Services"
 
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         assert protocol == "sable"
