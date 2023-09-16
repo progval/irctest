@@ -13,7 +13,7 @@ def ircv3_timestamp_to_unixtime(timestamp: str) -> float:
 
 
 def random_name(base: str) -> str:
-    return base + "-" + secrets.token_hex(8)
+    return base + "-" + secrets.token_hex(5)
 
 
 def find_hostname_and_port() -> Tuple[str, int]:

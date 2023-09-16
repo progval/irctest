@@ -6,8 +6,9 @@ import subprocess
 import tempfile
 from typing import Optional, Type
 
-from irctest.basecontrollers import (  # BaseServicesController,
+from irctest.basecontrollers import (
     BaseServerController,
+    BaseServicesController,
     DirectoryBasedController,
     NotImplementedByController,
 )
@@ -317,9 +318,18 @@ class SableController(BaseServerController, DirectoryBasedController):
         c2s_hostname = hostname
         c2s_port = port
         del hostname, port
+        # base controller expects this to check for NickServ presence itself
+        self.hostname = c2s_hostname
+        self.port = c2s_port
+
 
         (server1_hostname, server1_port) = self.get_hostname_and_port()
         (services_hostname, services_port) = self.get_hostname_and_port()
+
+        # Sable requires inbound connections to match the configured hostname,
+        # so we can't configure 0.0.0.0
+        server1_hostname = services_hostname = "127.0.0.1"
+
         (
             server1_management_hostname,
             server1_management_port,
@@ -376,7 +386,7 @@ class SableController(BaseServerController, DirectoryBasedController):
         self.pgroup_id = os.getpgid(self.proc.pid)
 
         if run_services:
-            self.services_controller = self.services_controller_class(
+            self.services_controller = SableServicesController(
                 self.test_config, self
             )
             self.services_controller.run(
@@ -390,7 +400,6 @@ class SableController(BaseServerController, DirectoryBasedController):
         super().kill_proc()
 
 
-"""
 class SableServicesController(BaseServicesController):
     server_controller: SableController
 
@@ -410,10 +419,9 @@ class SableServicesController(BaseServicesController):
                 "--network-conf",
                 self.server_controller.directory / "configs/network.conf",
             ],
-            cwd=self.directory,
+            cwd=self.server_controller.directory,
             preexec_fn=os.setsid,
         )
-"""
 
 
 def get_irctest_controller_class() -> Type[SableController]:

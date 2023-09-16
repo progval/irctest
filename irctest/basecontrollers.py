@@ -357,6 +357,7 @@ class BaseServicesController(_BaseController):
         c.connect(self.server_controller.hostname, self.server_controller.port)
         c.sendLine("NICK chkNS")
         c.sendLine("USER chk chk chk chk")
+        time.sleep(self.server_controller.sync_sleep_time)
         for msg in c.getMessages(synchronize=False):
             if msg.command == "PING":
                 # Hi Unreal

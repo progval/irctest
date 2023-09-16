@@ -304,8 +304,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     @pytest.mark.private_chathistory
     @skip_ngircd
     def testChathistoryDMs(self, subcommand):
-        c1 = "foo" + secrets.token_hex(12)
-        c2 = "bar" + secrets.token_hex(12)
+        c1 = random_name("foo")
+        c2 = random_name("bar")
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(
@@ -360,7 +360,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.validate_chathistory(subcommand, echo_messages, 1, c2)
         self.validate_chathistory(subcommand, echo_messages, 2, c1)
 
-        c3 = "baz" + secrets.token_hex(12)
+        c3 = random_name("baz")
         self.connectClient(
             c3,
             capabilities=[
@@ -630,8 +630,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     @pytest.mark.arbitrary_client_tags
     @skip_ngircd
     def testChathistoryTagmsg(self):
-        c1 = "foo" + secrets.token_hex(12)
-        c2 = "bar" + secrets.token_hex(12)
+        c1 = random_name("foo")
+        c2 = random_name("bar")
         chname = "#chan" + secrets.token_hex(12)
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
@@ -730,8 +730,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     @skip_ngircd
     def testChathistoryDMClientOnlyTags(self):
         # regression test for Ergo #1411
-        c1 = "foo" + secrets.token_hex(12)
-        c2 = "bar" + secrets.token_hex(12)
+        c1 = random_name("foo")
+        c2 = random_name("bar")
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(
