@@ -11,13 +11,29 @@ from irctest.numerics import ERR_CHANOPRIVSNEEDED, RPL_NOTOPIC, RPL_TOPIC, RPL_T
 
 class TopicTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
-    def testTopic(self):
+    def testTopicRfc(self):
         """“Once a user has joined a channel, he receives information about
         all commands his server receives affecting the channel.  This
         includes […] TOPIC”
         -- <https://tools.ietf.org/html/rfc1459#section-4.2.1>
         and <https://tools.ietf.org/html/rfc2812#section-3.2.1>
         """
+        self._testTopic(assert_echo=False)
+
+    @cases.mark_specifications("Modern")
+    def testTopicModern(self):
+        """"If the topic of a channel is changed or cleared, every client in that
+        channel (including the author of the topic change) will receive a TOPIC command
+        with the new topic as argument (or an empty argument if the topic was cleared)
+        alerting them to how the topic has changed.
+
+        Clients joining the channel in the future will receive a RPL_TOPIC numeric (or
+        lack thereof) accordingly."
+        -- https://modern.ircdocs.horse/#topic-message
+        """
+        self._testTopic(assert_echo=True)
+
+    def _testTopic(self, assert_echo: bool):
         self.connectClient("foo")
         self.joinChannel(1, "#chan")
 
@@ -41,6 +57,7 @@ class TopicTestCase(cases.BaseServerTestCase):
                 )
             self.assertMessageMatch(m, command="TOPIC")
         except client_mock.NoMessageException:
+            self.assertFalse(assert_echo, "TOPIC was not echoed back to the author")
             # The RFCs do not say TOPIC must be echoed
             pass
         m = self.getMessage(2)
