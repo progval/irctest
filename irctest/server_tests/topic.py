@@ -46,6 +46,30 @@ class TopicTestCase(cases.BaseServerTestCase):
         m = self.getMessage(2)
         self.assertMessageMatch(m, command="TOPIC", params=["#chan", "T0P1C"])
 
+    @cases.mark_specifications("Modern")
+    def testTopicUnchanged(self):
+        """"If the topic of a channel is changed or cleared, every client in that
+        channel (including the author of the topic change) will receive a TOPIC command"
+        -- https://modern.ircdocs.horse/#topic-message
+        """
+        self.connectClient("foo")
+        self.joinChannel(1, "#chan")
+
+        self.connectClient("bar")
+        self.joinChannel(2, "#chan")
+
+        # clear waiting msgs about cli 2 joining the channel
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(1, "TOPIC #chan :T0P1C")
+        self.getMessages(1)
+        self.getMessages(2)
+
+        self.sendLine(1, "TOPIC #chan :T0P1C")
+        self.assertEqual(self.getMessages(2), [], "Unchanged topic was transmitted")
+        self.assertEqual(self.getMessages(1), [], "Unchanged topic was echoed")
+
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testTopicMode(self):
         """“Once a user has joined a channel, he receives information about
