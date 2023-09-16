@@ -22,7 +22,7 @@ class TopicTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("Modern")
     def testTopicModern(self):
-        """"If the topic of a channel is changed or cleared, every client in that
+        """ "If the topic of a channel is changed or cleared, every client in that
         channel (including the author of the topic change) will receive a TOPIC command
         with the new topic as argument (or an empty argument if the topic was cleared)
         alerting them to how the topic has changed.
