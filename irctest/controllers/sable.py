@@ -191,7 +191,8 @@ SERVER_CONFIG = """
         "dir": "log/server1/",
 
         "module-levels": {
-            "": "trace",
+            "": "debug",
+            "sable_ircd": "trace",
         },
 
         "targets": [
@@ -200,13 +201,6 @@ SERVER_CONFIG = """
                 "level": "trace",
                 "modules": [ "sable", "audit", "client_listener" ],
             },
-            /*
-            {
-                "target": { "filename": "client_listener.log" },
-                "level": "trace",
-                "modules": [ "client_listener" ],
-            },
-            */
         ],
     },
 }
@@ -275,13 +269,13 @@ SERVICES_CONFIG = """
         "dir": "log/services/",
 
         "module-levels": {
-            "": "trace"
+            "": "debug"
         },
 
         "targets": [
             {
                 "target": "stdout",
-                "level": "trace",
+                "level": "debug",
                 "modules": [ "sable_services" ]
             }
         ]
