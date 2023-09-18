@@ -5,6 +5,8 @@ Tests section 4.1 of RFC 1459.
 TODO: cross-reference Modern and RFC 2812 too
 """
 
+import time
+
 from irctest import cases
 from irctest.client_mock import ConnectionClosed
 from irctest.numerics import ERR_NEEDMOREPARAMS, ERR_PASSWDMISMATCH
@@ -133,7 +135,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.assertNotEqual(
             m.command,
             "001",
-            "Received 001 after registering with the nick of a " "registered user.",
+            "Received 001 after registering with the nick of a registered user.",
         )
 
     def testEarlyNickCollision(self):
@@ -206,3 +208,58 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             command=ERR_NEEDMOREPARAMS,
             params=[StrRe(r"(\*|foo)"), "USER", ANYSTR],
         )
+
+    def testNonutf8Realname(self):
+        self.addClient()
+        self.sendLine(1, "NICK foo")
+        line = b"USER username * * :i\xe8rc\xe9\r\n"
+        print("1 -> S (repr): " + repr(line))
+        self.clients[1].conn.sendall(line)
+        for _ in range(10):
+            time.sleep(1)
+            d = self.clients[1].conn.recv(10000)
+            self.assertTrue(d, "Server closed connection")
+            print("S -> 1 (repr): " + repr(d))
+            if b" 001 " in d:
+                break
+            if b"ERROR " in d or b" FAIL " in d:
+                # Rejected; nothing more to test.
+                return
+            for line in d.split(b"\r\n"):
+                if line.startswith(b"PING "):
+                    line = line.replace(b"PING", b"PONG") + b"\r\n"
+                    print("1 -> S (repr): " + repr(line))
+                    self.clients[1].conn.sendall(line)
+        else:
+            self.assertTrue(False, "stuck waiting")
+        self.sendLine(1, "WHOIS foo")
+        time.sleep(3)  # for ngIRCd
+        d = self.clients[1].conn.recv(10000)
+        print("S -> 1 (repr): " + repr(d))
+        self.assertIn(b"username", d)
+
+    def testNonutf8Username(self):
+        self.addClient()
+        self.sendLine(1, "NICK foo")
+        self.sendLine(1, "USER 😊😊😊😊😊😊😊😊😊😊 * * :realname")
+        for _ in range(10):
+            time.sleep(1)
+            d = self.clients[1].conn.recv(10000)
+            self.assertTrue(d, "Server closed connection")
+            print("S -> 1 (repr): " + repr(d))
+            if b" 001 " in d:
+                break
+            if b" 468" in d or b"ERROR " in d:
+                # Rejected; nothing more to test.
+                return
+            for line in d.split(b"\r\n"):
+                if line.startswith(b"PING "):
+                    line = line.replace(b"PING", b"PONG") + b"\r\n"
+                    print("1 -> S (repr): " + repr(line))
+                    self.clients[1].conn.sendall(line)
+        else:
+            self.assertTrue(False, "stuck waiting")
+        self.sendLine(1, "WHOIS foo")
+        d = self.clients[1].conn.recv(10000)
+        print("S -> 1 (repr): " + repr(d))
+        self.assertIn(b"realname", d)
