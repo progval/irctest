@@ -235,7 +235,7 @@ software:
         name: ngircd
         repository: ngircd/ngircd
         refs:
-            stable: rel-26.1
+            stable: 0714466af88d71d6c395629cd7fb624b099507d4 # two years ahead of rel-26.1
             release: null
             devel: master
             devel_release: null
