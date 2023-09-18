@@ -470,6 +470,11 @@ class SableServicesController(BaseServicesController):
             cwd=self.server_controller.directory,
             preexec_fn=os.setsid,
         )
+        self.pgroup_id = os.getpgid(self.proc.pid)
+
+    def kill_proc(self) -> None:
+        os.killpg(self.pgroup_id, signal.SIGKILL)
+        super().kill_proc()
 
 
 def get_irctest_controller_class() -> Type[SableController]:
