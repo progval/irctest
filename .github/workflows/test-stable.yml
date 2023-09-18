@@ -446,6 +446,7 @@ jobs:
     - test-ngircd-anope
     - test-ngircd-atheme
     - test-plexus4
+    - test-sable
     - test-solanum
     - test-sopel
     - test-thelounge
@@ -1097,6 +1098,53 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: pytest-results_plexus4_stable
+        path: pytest.xml
+  test-sable:
+    needs: []
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    - name: Checkout Sable
+      uses: actions/checkout@v3
+      with:
+        path: sable
+        ref: 8350f87b0719070a1f4439a2c4761e735b587c17
+        repository: Libera-Chat/sable
+    - name: Install rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        override: true
+        profile: minimal
+        toolchain: nightly
+    - name: Enable Cargo cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: true
+        workspaces: sable -> target
+    - run: rustc --version
+    - name: Build Sable
+      run: |
+        cd $GITHUB_WORKSPACE/sable/
+        cargo build
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=$GITHUB_WORKSPACE/sable/target/debug/sbin:$GITHUB_WORKSPACE/sable/target/debug/bin:$GITHUB_WORKSPACE/sable/target/debug:$PATH
+        make sable
+      timeout-minutes: 30
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v3
+      with:
+        name: pytest-results_sable_stable
         path: pytest.xml
   test-solanum:
     needs:

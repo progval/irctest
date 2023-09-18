@@ -91,7 +91,7 @@ SABLE_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
-	and not whowas and not list and not lusers and not kick and not userhost and not time and not info \
+	and not whowas and not list and not lusers and not time and not info \
 	$(EXTRA_SELECTORS)
 
 SOLANUM_SELECTORS := \
