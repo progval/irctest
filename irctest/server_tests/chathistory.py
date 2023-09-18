@@ -297,7 +297,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             )
             time.sleep(0.002)
 
-        self.validate_echo_messages(NUM_MESSAGES*2, echo_messages)
+        self.validate_echo_messages(NUM_MESSAGES * 2, echo_messages)
         self.validate_chathistory(subcommand, echo_messages, 1, chname)
 
     @pytest.mark.parametrize("subcommand", SUBCOMMANDS)

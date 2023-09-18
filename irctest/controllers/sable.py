@@ -77,14 +77,21 @@ rm -r useless_openssl_data/
 """
 
 _certs_dir = None
-def certs_dir():
+
+
+def certs_dir() -> Path:
     global _certs_dir
     if _certs_dir is None:
         certs_dir = tempfile.TemporaryDirectory()
         (Path(certs_dir.name) / "gen_certs.sh").write_text(GEN_CERTS)
-        subprocess.run(["bash", "gen_certs.sh", "My.Little.Server", "My.Little.Services"], cwd=certs_dir.name, check=True)
+        subprocess.run(
+            ["bash", "gen_certs.sh", "My.Little.Server", "My.Little.Services"],
+            cwd=certs_dir.name,
+            check=True,
+        )
         _certs_dir = certs_dir
     return Path(_certs_dir.name)
+
 
 NETWORK_CONFIG = """
 {
@@ -320,7 +327,6 @@ class SableController(BaseServerController, DirectoryBasedController):
         self.hostname = c2s_hostname
         self.port = c2s_port
 
-
         (server1_hostname, server1_port) = self.get_hostname_and_port()
         (services_hostname, services_port) = self.get_hostname_and_port()
 
@@ -343,12 +349,16 @@ class SableController(BaseServerController, DirectoryBasedController):
             c2s_port=c2s_port,
             server1_hostname=server1_hostname,
             server1_port=server1_port,
-            server1_cert_sha1=(certs_dir() / "My.Little.Server.pem.sha1").read_text().strip(),
+            server1_cert_sha1=(certs_dir() / "My.Little.Server.pem.sha1")
+            .read_text()
+            .strip(),
             server1_management_hostname=server1_management_hostname,
             server1_management_port=server1_management_port,
             services_hostname=services_hostname,
             services_port=services_port,
-            services_cert_sha1=(certs_dir() / "My.Little.Services.pem.sha1").read_text().strip(),
+            services_cert_sha1=(certs_dir() / "My.Little.Services.pem.sha1")
+            .read_text()
+            .strip(),
             services_management_hostname=services_management_hostname,
             services_management_port=services_management_port,
         )
@@ -384,9 +394,7 @@ class SableController(BaseServerController, DirectoryBasedController):
         self.pgroup_id = os.getpgid(self.proc.pid)
 
         if run_services:
-            self.services_controller = SableServicesController(
-                self.test_config, self
-            )
+            self.services_controller = SableServicesController(self.test_config, self)
             self.services_controller.run(
                 protocol="sable",
                 server_hostname=services_hostname,
@@ -427,7 +435,9 @@ class SableController(BaseServerController, DirectoryBasedController):
                 msg = case.getMessage(client)
             except NoMessageException:
                 continue
-            case.assertMessageMatch(msg, command="REGISTER", params=["SUCCESS", username, ANYSTR])
+            case.assertMessageMatch(
+                msg, command="REGISTER", params=["SUCCESS", username, ANYSTR]
+            )
             break
         else:
             raise NoMessageException()
