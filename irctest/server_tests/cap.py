@@ -56,6 +56,10 @@ class CapTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
+    @cases.xfailIfSoftware(
+        ["Sable"],
+        "does not support multi-prefix",
+    )
     def testReqOne(self):
         """Tests requesting a single capability"""
         self.addClient(1)
@@ -89,8 +93,8 @@ class CapTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.xfailIfSoftware(
-        ["ngIRCd"],
-        "ngIRCd does not support userhost-in-names",
+        ["ngIRCd", "Sable"],
+        "does not support userhost-in-names",
     )
     def testReqTwo(self):
         """Tests requesting two capabilities at once"""
@@ -131,8 +135,8 @@ class CapTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.xfailIfSoftware(
-        ["ngIRCd"],
-        "ngIRCd does not support userhost-in-names",
+        ["ngIRCd", "Sable"],
+        "does not support userhost-in-names",
     )
     def testReqOneThenOne(self):
         """Tests requesting two capabilities in different messages"""
@@ -183,8 +187,8 @@ class CapTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.xfailIfSoftware(
-        ["ngIRCd"],
-        "ngIRCd does not support userhost-in-names",
+        ["ngIRCd", "Sable"],
+        "does not support userhost-in-names",
     )
     def testReqPostRegistration(self):
         """Tests requesting more capabilities after CAP END"""
