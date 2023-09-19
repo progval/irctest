@@ -40,31 +40,3 @@ class ChannelQuitTestCase(cases.BaseServerTestCase):
         m = self.getMessage(1)
         self.assertMessageMatch(m, command="QUIT", params=[StrRe(".*qux out.*")])
         self.assertTrue(m.prefix.startswith("qux"))  # nickmask of quitter
-
-
-class NoCTCPTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("Ergo")
-    def testQuit(self):
-        self.connectClient("bar")
-        self.joinChannel(1, "#chan")
-        self.sendLine(1, "MODE #chan +C")
-        self.getMessages(1)
-
-        self.connectClient("qux")
-        self.joinChannel(2, "#chan")
-        self.getMessages(2)
-
-        self.sendLine(1, "PRIVMSG #chan :\x01ACTION hi\x01")
-        self.getMessages(1)
-        ms = self.getMessages(2)
-        self.assertEqual(len(ms), 1)
-        self.assertMessageMatch(
-            ms[0], command="PRIVMSG", params=["#chan", "\x01ACTION hi\x01"]
-        )
-
-        self.sendLine(1, "PRIVMSG #chan :\x01PING 1473523796 918320\x01")
-        ms = self.getMessages(1)
-        self.assertEqual(len(ms), 1)
-        self.assertMessageMatch(ms[0], command=ERR_CANNOTSENDTOCHAN)
-        ms = self.getMessages(2)
-        self.assertEqual(ms, [])
