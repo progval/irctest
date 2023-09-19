@@ -365,8 +365,8 @@ software:
         separate_build_job: false
         path: Dlk-Services
         refs:
-            stable: &dlk_stable "6db51ea03f039c48fd20427c04cec8ff98df7878"
-            release: *dlk_stable
+            stable: null  # disabled because flaky, and hard to debug with all the PHP 8 warnings
+            release: &dlk_stable "6db51ea03f039c48fd20427c04cec8ff98df7878"
             devel: "main"
             devel_release: *dlk_stable
         build_script: |
