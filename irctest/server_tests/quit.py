@@ -10,7 +10,6 @@ TODO: cross-reference RFC 1459 and Modern
 import time
 
 from irctest import cases
-from irctest.numerics import ERR_CANNOTSENDTOCHAN
 from irctest.patma import StrRe
 
 
