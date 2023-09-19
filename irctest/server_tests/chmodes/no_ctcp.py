@@ -4,7 +4,7 @@ from irctest.numerics import ERR_CANNOTSENDTOCHAN
 
 class NoCTCPChannelModeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
-    def testQuit(self):
+    def testNoCTCPChannelMode(self):
         """Test Ergo's +C channel mode that blocks CTCPs."""
         self.connectClient("bar")
         self.joinChannel(1, "#chan")
