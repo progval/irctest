@@ -132,7 +132,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
         make inspircd
       timeout-minutes: 30
     - if: always()
@@ -171,7 +171,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH  make
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH  make
         inspircd-anope
       timeout-minutes: 30
     - if: always()
@@ -204,7 +204,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
         make inspircd-atheme
       timeout-minutes: 30
     - if: always()

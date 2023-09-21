@@ -151,6 +151,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
             env += (
                 f"PATH={software_config['prefix']}/sbin"
                 f":{software_config['prefix']}/bin"
+                f":{software_config['prefix']}"
                 f":$PATH "
             )
 
