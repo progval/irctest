@@ -122,7 +122,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
             if m.command != "005":
                 break
 
-        if m.command == "396":  # RPL_VISIBLEHOST, non-standard
+        if m.command in ("042", "396"):  # RPL_YOURID / RPL_VISIBLEHOST, non-standard
             m = self.getRegistrationMessage(1)
 
         # LUSERS
