@@ -46,7 +46,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         result = []
         for msg in inner_msgs:
             if (
-                msg.command == "PRIVMSG"
+                msg.command in ("PRIVMSG", "TOPIC")
                 and batch_tag is not None
                 and msg.tags.get("batch") == batch_tag
             ):
@@ -220,6 +220,47 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
         self.validate_chathistory(subcommand, echo_messages, 1, chname)
 
+    @skip_ngircd
+    def testChathistoryNoEventPlayback(self):
+        """Tests that non-messages don't appear in the chat history when event-playback
+        is not enabled."""
+
+        self.connectClient(
+            "bar",
+            capabilities=[
+                "message-tags",
+                "server-time",
+                "echo-message",
+                "batch",
+                "labeled-response",
+                "sasl",
+                CHATHISTORY_CAP,
+            ],
+            skip_if_cap_nak=True,
+        )
+        chname = "#chan" + secrets.token_hex(12)
+        self.joinChannel(1, chname)
+        self.getMessages(1)
+        self.getMessages(1)
+
+        NUM_MESSAGES = 10
+        echo_messages = []
+        for i in range(NUM_MESSAGES):
+            self.sendLine(1, "TOPIC %s :this is topic %d" % (chname, i))
+            self.getMessages(1)
+            self.sendLine(1, "PRIVMSG %s :this is message %d" % (chname, i))
+            echo_messages.extend(
+                msg.to_history_message() for msg in self.getMessages(1)
+            )
+            time.sleep(0.002)
+
+        self.validate_echo_messages(NUM_MESSAGES, echo_messages)
+        self.sendLine(1, "CHATHISTORY LATEST %s * 100" % chname)
+        (batch_open, *messages, batch_close) = self.getMessages(1)
+        self.assertMessageMatch(batch_open, command="BATCH")
+        self.assertMessageMatch(batch_close, command="BATCH")
+        self.assertEqual([msg for msg in messages if msg.command != "PRIVMSG"], [])
+
     @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
     @skip_ngircd
     def testChathistoryEventPlayback(self, subcommand):
@@ -244,21 +285,27 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         NUM_MESSAGES = 10
         echo_messages = []
         for i in range(NUM_MESSAGES):
+            self.sendLine(1, "TOPIC %s :this is topic %d" % (chname, i))
+            echo_messages.extend(
+                msg.to_history_message() for msg in self.getMessages(1)
+            )
+            time.sleep(0.002)
+
             self.sendLine(1, "PRIVMSG %s :this is message %d" % (chname, i))
             echo_messages.extend(
                 msg.to_history_message() for msg in self.getMessages(1)
             )
             time.sleep(0.002)
 
-        self.validate_echo_messages(NUM_MESSAGES, echo_messages)
+        self.validate_echo_messages(NUM_MESSAGES * 2, echo_messages)
         self.validate_chathistory(subcommand, echo_messages, 1, chname)
 
     @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
     @pytest.mark.private_chathistory
     @skip_ngircd
     def testChathistoryDMs(self, subcommand):
-        c1 = "foo" + secrets.token_hex(12)
-        c2 = "bar" + secrets.token_hex(12)
+        c1 = random_name("foo")
+        c2 = random_name("bar")
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(
@@ -313,7 +360,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.validate_chathistory(subcommand, echo_messages, 1, c2)
         self.validate_chathistory(subcommand, echo_messages, 2, c1)
 
-        c3 = "baz" + secrets.token_hex(12)
+        c3 = random_name("baz")
         self.connectClient(
             c3,
             capabilities=[
@@ -583,8 +630,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     @pytest.mark.arbitrary_client_tags
     @skip_ngircd
     def testChathistoryTagmsg(self):
-        c1 = "foo" + secrets.token_hex(12)
-        c2 = "bar" + secrets.token_hex(12)
+        c1 = random_name("foo")
+        c2 = random_name("bar")
         chname = "#chan" + secrets.token_hex(12)
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
@@ -683,8 +730,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     @skip_ngircd
     def testChathistoryDMClientOnlyTags(self):
         # regression test for Ergo #1411
-        c1 = "foo" + secrets.token_hex(12)
-        c2 = "bar" + secrets.token_hex(12)
+        c1 = random_name("foo")
+        c2 = random_name("bar")
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(

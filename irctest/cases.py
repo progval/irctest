@@ -585,9 +585,13 @@ class BaseServerTestCase(
         del self.clients[name]
 
     def getMessages(self, client: TClientName, **kwargs: Any) -> List[Message]:
+        if kwargs.get("synchronize", True):
+            time.sleep(self.controller.sync_sleep_time)
         return self.clients[client].getMessages(**kwargs)
 
     def getMessage(self, client: TClientName, **kwargs: Any) -> Message:
+        if kwargs.get("synchronize", True):
+            time.sleep(self.controller.sync_sleep_time)
         return self.clients[client].getMessage(**kwargs)
 
     def getRegistrationMessage(self, client: TClientName) -> Message:

@@ -13,6 +13,7 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
         self.connectClient("foo")
         self.sendLine(1, "JOIN #chan")
+        self.getMessages(1)  # synchronize
         self.connectClient("bar")
         self.sendLine(2, "JOIN #chan")
         self.getMessages(2)  # synchronize

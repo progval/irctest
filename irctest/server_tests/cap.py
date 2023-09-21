@@ -56,6 +56,10 @@ class CapTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
+    @cases.xfailIfSoftware(
+        ["Sable"],
+        "does not support multi-prefix",
+    )
     def testReqOne(self):
         """Tests requesting a single capability"""
         self.addClient(1)
@@ -89,8 +93,8 @@ class CapTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.xfailIfSoftware(
-        ["ngIRCd"],
-        "ngIRCd does not support userhost-in-names",
+        ["ngIRCd", "Sable"],
+        "does not support userhost-in-names",
     )
     def testReqTwo(self):
         """Tests requesting two capabilities at once"""
@@ -131,8 +135,8 @@ class CapTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.xfailIfSoftware(
-        ["ngIRCd"],
-        "ngIRCd does not support userhost-in-names",
+        ["ngIRCd", "Sable"],
+        "does not support userhost-in-names",
     )
     def testReqOneThenOne(self):
         """Tests requesting two capabilities in different messages"""
@@ -183,8 +187,8 @@ class CapTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.xfailIfSoftware(
-        ["ngIRCd"],
-        "ngIRCd does not support userhost-in-names",
+        ["ngIRCd", "Sable"],
+        "does not support userhost-in-names",
     )
     def testReqPostRegistration(self):
         """Tests requesting more capabilities after CAP END"""
@@ -300,7 +304,8 @@ class CapTestCase(cases.BaseServerTestCase):
         """  # noqa
         self.addClient(1)
         self.sendLine(1, "CAP LS 302")
-        self.assertIn("multi-prefix", self.getCapLs(1))
+        if "multi-prefix" not in self.getCapLs(1):
+            raise CapabilityNotSupported("multi-prefix")
         self.sendLine(1, "CAP REQ :foo multi-prefix bar")
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
