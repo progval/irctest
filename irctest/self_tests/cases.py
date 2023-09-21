@@ -13,6 +13,7 @@ from irctest.patma import (
     ANYSTR,
     ListRemainder,
     NotStrRe,
+    OptStrRe,
     RemainingKeys,
     StrRe,
 )
@@ -238,6 +239,28 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
             "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): ANYOPTSTR}, got {'tag1': 'value1'}",
             "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): ANYOPTSTR}, got {'tag1': 'bar', 'tag2': ''}",
             "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): ANYOPTSTR}, got {'tag1': 'bar', 'tag2': 'baz'}",
+        ]
+    ),
+    (
+        # the specification:
+        dict(
+            command="004",
+            params=["nick", "...", OptStrRe("[a-zA-Z]+")],
+        ),
+        # matches:
+        [
+            "004 nick ... abc",
+            "004 nick ...",
+        ],
+        # and does not match:
+        [
+            "004 nick ... 123",
+            "004 nick ... :",
+        ],
+        # and they each error with:
+        [
+            "expected params to match ['nick', '...', OptStrRe(r'[a-zA-Z]+')], got ['nick', '...', '123']",
+            "expected params to match ['nick', '...', OptStrRe(r'[a-zA-Z]+')], got ['nick', '...', '']",
         ]
     ),
     (
