@@ -1,0 +1,15 @@
+Lower Bahamut's delay between processing incoming commands
+
+diff --git a/src/s_bsd.c b/src/s_bsd.c
+index fcc1d02..951fd8c 100644
+--- a/src/s_bsd.c
++++ b/src/s_bsd.c
+@@ -1458,7 +1458,7 @@ int do_client_queue(aClient *cptr)
+     int dolen = 0, done;
+     
+     while (SBufLength(&cptr->recvQ) && !NoNewLine(cptr) &&
+-       ((cptr->status < STAT_UNKNOWN) || (cptr->since - timeofday < 10) ||
++       ((cptr->status < STAT_UNKNOWN) || (cptr->since - timeofday < 20) ||
+         IsNegoServer(cptr))) 
+     {
+         /* If it's become registered as a server, just parse the whole block */

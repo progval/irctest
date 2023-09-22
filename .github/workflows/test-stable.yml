@@ -3,28 +3,32 @@
 
 jobs:
   build-anope:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - name: Cache Anope
-      uses: actions/cache@v2
+    - name: Cache dependencies
+      uses: actions/cache@v3
       with:
-        key: 3-${{ runner.os }}-anope-2.0.9
+        key: 3-${{ runner.os }}-anope-stable
         path: '~/.cache
 
-          ${{ github.workspace }}/anope
+          ${ github.workspace }/anope
 
           '
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
     - name: Checkout Anope
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: anope
         ref: 2.0.9
         repository: anope/anope
     - name: Build Anope
-      run: |-
+      run: |
         cd $GITHUB_WORKSPACE/anope/
         cp $GITHUB_WORKSPACE/data/anope/* .
         CFLAGS=-O0 ./Config -quick
@@ -33,18 +37,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-anope
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-bahamut:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-bahamut-stable
         path: '~/.cache
@@ -52,13 +56,13 @@ jobs:
           ${ github.workspace }/Bahamut
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Bahamut
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: Bahamut
         ref: v2.2.1
@@ -67,6 +71,11 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/Bahamut/
         patch src/s_user.c < $GITHUB_WORKSPACE/patches/bahamut_localhost.patch
+        patch src/s_bsd.c < $GITHUB_WORKSPACE/patches/bahamut_mainloop.patch
+
+        # <= v2.2.2
+        patch -p1 < $GITHUB_WORKSPACE/patches/bahamut_ubuntu22.patch || true
+
         echo "#undef THROTTLE_ENABLE" >> include/config.h
         libtoolize --force
         aclocal
@@ -81,18 +90,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-bahamut.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-bahamut
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-charybdis:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-charybdis-stable
         path: '~/.cache
@@ -100,13 +109,13 @@ jobs:
           ${ github.workspace }/charybdis
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Charybdis
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: charybdis
         ref: charybdis-4.1.2
@@ -114,6 +123,7 @@ jobs:
     - name: Build Charybdis
       run: |
         cd $GITHUB_WORKSPACE/charybdis/
+        patch -p1 < $GITHUB_WORKSPACE/patches/charybdis_ubuntu22.patch
         ./autogen.sh
         ./configure --prefix=$HOME/.local/
         make -j 4
@@ -121,18 +131,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-charybdis.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-charybdis
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-hybrid:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-hybrid-stable
         path: '~/.cache
@@ -140,13 +150,13 @@ jobs:
           ${ github.workspace }/ircd-hybrid
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Hybrid
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: ircd-hybrid
         ref: 8.2.39
@@ -160,49 +170,53 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-hybrid.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-hybrid
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-inspircd:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout InspIRCd
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: inspircd
-        ref: v3.12.0
+        ref: v3.15.0
         repository: inspircd/inspircd
     - name: Build InspIRCd
       run: |
         cd $GITHUB_WORKSPACE/inspircd/
-        patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
+
+        # Insp3 <= 3.16.0 and Insp4 <= 4.0.0a21 don't support -DINSPIRCD_UNLIMITED_MAINLOOP
+        patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch || true
+
         ./configure --prefix=$HOME/.local/inspircd --development
-        make -j 4
+
+        CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
         make install
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-inspircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-inspircd
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-ngircd:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-ngircd-stable
         path: '~/.cache
@@ -210,16 +224,16 @@ jobs:
           ${ github.workspace }/ngircd
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout ngircd
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: ngircd
-        ref: rel-26.1
+        ref: 0714466af88d71d6c395629cd7fb624b099507d4
         repository: ngircd/ngircd
     - name: Build ngircd
       run: |
@@ -232,18 +246,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-ngircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-ngircd
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-plexus4:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-plexus4-stable
         path: '~/.cache
@@ -251,11 +265,11 @@ jobs:
           ${ github.workspace }/placeholder
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: clone
       run: 'curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar
         | tar -x
@@ -274,18 +288,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-plexus4.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-plexus4
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-solanum:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-solanum-stable
         path: '~/.cache
@@ -293,13 +307,13 @@ jobs:
           ${ github.workspace }/solanum
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Solanum
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: solanum
         ref: 492d560ee13e71dc35403fd676e58c2d5bdcf2a9
@@ -314,18 +328,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-solanum.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-solanum
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-unrealircd-stable
         path: '~/.cache
@@ -333,16 +347,16 @@ jobs:
           ${ github.workspace }/unrealircd
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout UnrealIRCd 6
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: unrealircd
-        ref: daa0c11f285c7123ba9fa2966dee2d1a17729f1e
+        ref: da3c1c654481a33035b9c703957e1c25d0158259
         repository: unrealircd/unrealircd
     - name: Build UnrealIRCd 6
       run: |
@@ -355,21 +369,23 @@ jobs:
         CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
         make -j 4
         make install
+        # Prevent download of geoIP database on first startup
+        sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-unrealircd
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd-5:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         key: 3-${{ runner.os }}-unrealircd-5-stable
         path: '~/.cache
@@ -377,13 +393,13 @@ jobs:
           ${ github.workspace }/unrealircd
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout UnrealIRCd 5
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: unrealircd
         ref: 6604856973f713a494f83d38992d7d61ce6b9db4
@@ -399,17 +415,19 @@ jobs:
         CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
         make -j 4
         make install
+        # Prevent download of geoIP database on first startup
+        sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd-5.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: installed-unrealircd-5
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   publish-test-results:
     if: success() || failure()
-    name: Publish Unit Tests Results
+    name: Publish Dashboard
     needs:
     - test-bahamut
     - test-bahamut-anope
@@ -423,63 +441,62 @@ jobs:
     - test-irc2
     - test-ircu2
     - test-limnoria
+    - test-nefarious
     - test-ngircd
     - test-ngircd-anope
     - test-ngircd-atheme
     - test-plexus4
+    - test-sable
     - test-solanum
     - test-sopel
+    - test-thelounge
     - test-unrealircd
     - test-unrealircd-5
     - test-unrealircd-anope
     - test-unrealircd-atheme
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Download Artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         path: artifacts
-    - if: github.event_name == 'pull_request'
-      name: Publish Unit Test Results
-      uses: actions/github-script@v4
-      with:
-        result-encoding: string
-        script: |
-          let body = '';
-          const options = {};
-          options.listeners = {
-              stdout: (data) => {
-                  body += data.toString();
-              }
-          };
-          await exec.exec('bash', ['-c', 'shopt -s globstar; python3 report.py artifacts/**/*.xml'], options);
-          github.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: body,
-          });
-          return body;
+    - name: Install dashboard dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install defusedxml docutils -r requirements.txt
+    - name: Generate dashboard
+      run: |-
+        shopt -s globstar
+        python3 -m irctest.dashboard.format dashboard/ artifacts/**/*.xml
+        echo '/ /index.xhtml' > dashboard/_redirects
+    - name: Install netlify-cli
+      run: npm i -g netlify-cli
+    - env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      name: Deploy to Netlify
+      run: ./.github/deploy_to_netlify.py
   test-bahamut:
     needs:
     - build-bahamut
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-bahamut
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -487,37 +504,38 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         bahamut
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results bahamut (stable)
+        name: pytest-results_bahamut_stable
         path: pytest.xml
   test-bahamut-anope:
     needs:
     - build-bahamut
     - build-anope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-bahamut
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -525,31 +543,32 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
         bahamut-anope
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results bahamut-anope (stable)
+        name: pytest-results_bahamut-anope_stable
         path: pytest.xml
   test-bahamut-atheme:
     needs:
     - build-bahamut
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-bahamut
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -557,31 +576,32 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         bahamut-atheme
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results bahamut-atheme (stable)
+        name: pytest-results_bahamut-atheme_stable
         path: pytest.xml
   test-charybdis:
     needs:
     - build-charybdis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-charybdis
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -589,76 +609,78 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         charybdis
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results charybdis (stable)
+        name: pytest-results_charybdis_stable
         path: pytest.xml
   test-ergo:
     needs: []
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Ergo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: ergo
         ref: irctest_stable
         repository: ergochat/ergo
     - uses: actions/setup-go@v2
       with:
-        go-version: ^1.17.0
+        go-version: ^1.21.0
     - run: go version
     - name: Build Ergo
       run: |
         cd $GITHUB_WORKSPACE/ergo/
         make build
         make install
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/go/sbin:~/go/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/go/sbin:~/go/bin:~/go:$PATH
         make ergo
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results ergo (stable)
+        name: pytest-results_ergo_stable
         path: pytest.xml
   test-hybrid:
     needs:
     - build-hybrid
     - build-anope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-hybrid
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -666,155 +688,154 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
         hybrid
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results hybrid (stable)
+        name: pytest-results_hybrid_stable
         path: pytest.xml
   test-inspircd:
     needs:
     - build-inspircd
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-inspircd
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
         make inspircd
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results inspircd (stable)
+        name: pytest-results_inspircd_stable
         path: pytest.xml
   test-inspircd-anope:
     needs:
     - build-inspircd
     - build-anope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-inspircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH  make
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH  make
         inspircd-anope
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results inspircd-anope (stable)
+        name: pytest-results_inspircd-anope_stable
         path: pytest.xml
   test-inspircd-atheme:
     needs:
     - build-inspircd
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-inspircd
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
         make inspircd-atheme
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results inspircd-atheme (stable)
+        name: pytest-results_inspircd-atheme_stable
         path: pytest.xml
   test-irc2:
     needs: []
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
-    - name: Get source code
-      run: curl http://ftp.irc.org/ftp/irc/server/irc2.11.2p3.tgz | tar -zx
-    - name: Configure
-      run: 'cd $GITHUB_WORKSPACE/irc2.11.2p3
-
+        python-version: 3.11
+    - name: Checkout irc2
+      uses: actions/checkout@v3
+      with:
+        path: irc2.11.2p3
+        ref: 59649f24c3a5c27bad5648b48774f27475bccfd3
+        repository: irc-archive/irc2-mirror
+    - name: Build irc2
+      run: |
+        # Configure
+        cd $GITHUB_WORKSPACE/irc2.11.2p3
         ./configure --prefix=$HOME/.local/
-
         cd x86*
-
         echo "#define CMDLINE_CONFIG/" >> config.h
-
         echo "#define DEFAULT_SPLIT_USERS 0" >> config.h
-
         echo "#define DEFAULT_SPLIT_SERVERS 0" >> config.h
-
         #echo "#undef LIST_ALIS_NOTE" >> config.h
-
         # TODO: find a better way to make it not fork...
+        echo "#define fork() (0)" >> config.h
 
-        echo "#define fork() (0)" >> config.h'
-    - name: Compile and install
-      run: 'cd $GITHUB_WORKSPACE/irc2.11.2p3/x86*
-
+        # Compile and install
+        cd $GITHUB_WORKSPACE/irc2.11.2p3/x86*
         make -j 4 all
-
         make install
-
         mkdir -p $HOME/.local/bin
-
-        cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd'
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+        cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -822,23 +843,24 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         irc2
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results irc2 (stable)
+        name: pytest-results_irc2_stable
         path: pytest.xml
   test-ircu2:
     needs: []
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout ircu2
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         path: ircu2
         ref: u2.10.12.19
@@ -851,8 +873,8 @@ jobs:
         ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
         make -j 4
         make install
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -860,25 +882,26 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         ircu2
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results ircu2 (stable)
+        name: pytest-results_ircu2_stable
         path: pytest.xml
   test-limnoria:
     needs: []
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Install dependencies
-      run: pip install limnoria==2022.03.17 cryptography pyxmpp2-scram
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+      run: pip install limnoria==2023.5.27 cryptography pyxmpp2-scram
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -886,139 +909,181 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         limnoria
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results limnoria (stable)
+        name: pytest-results_limnoria_stable
         path: pytest.xml
-  test-ngircd:
-    needs:
-    - build-ngircd
-    runs-on: ubuntu-latest
+  test-nefarious:
+    needs: []
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
+        python-version: 3.11
+    - name: Checkout nefarious
+      uses: actions/checkout@v3
       with:
-        name: installed-ngircd
-        path: '~'
-    - name: Unpack artefacts
-      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+        path: nefarious
+        ref: 985704168ecada12d9e53b46df6087ef9d9fb40b
+        repository: evilnet/nefarious2
+    - name: Build nefarious
+      run: |
+        cd $GITHUB_WORKSPACE/nefarious
+        ./configure --prefix=$HOME/.local/ --enable-debug
+        make -j 4
+        make install
+        cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:$PATH
-        make ngircd
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        nefarious
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results ngircd (stable)
+        name: pytest-results_nefarious_stable
+        path: pytest.xml
+  test-ngircd:
+    needs:
+    - build-ngircd
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    - name: Download build artefacts
+      uses: actions/download-artifact@v3
+      with:
+        name: installed-ngircd
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH
+        make ngircd
+      timeout-minutes: 30
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v3
+      with:
+        name: pytest-results_ngircd_stable
         path: pytest.xml
   test-ngircd-anope:
     needs:
     - build-ngircd
     - build-anope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-ngircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:$PATH  make
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH  make
         ngircd-anope
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results ngircd-anope (stable)
+        name: pytest-results_ngircd-anope_stable
         path: pytest.xml
   test-ngircd-atheme:
     needs:
     - build-ngircd
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-ngircd
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH
         make ngircd-atheme
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results ngircd-atheme (stable)
+        name: pytest-results_ngircd-atheme_stable
         path: pytest.xml
   test-plexus4:
     needs:
     - build-plexus4
     - build-anope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-plexus4
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1026,31 +1091,79 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
         plexus4
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results plexus4 (stable)
+        name: pytest-results_plexus4_stable
+        path: pytest.xml
+  test-sable:
+    needs: []
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    - name: Checkout Sable
+      uses: actions/checkout@v3
+      with:
+        path: sable
+        ref: ff1179512a79eba57ca468a5f83af84ecce08a5b
+        repository: Libera-Chat/sable
+    - name: Install rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        override: true
+        profile: minimal
+        toolchain: nightly
+    - name: Enable Cargo cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: true
+        workspaces: sable -> target
+    - run: rustc --version
+    - name: Build Sable
+      run: |
+        cd $GITHUB_WORKSPACE/sable/
+        cargo build
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=$GITHUB_WORKSPACE/sable/target/debug/sbin:$GITHUB_WORKSPACE/sable/target/debug/bin:$GITHUB_WORKSPACE/sable/target/debug:$PATH
+        make sable
+      timeout-minutes: 30
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v3
+      with:
+        name: pytest-results_sable_stable
         path: pytest.xml
   test-solanum:
     needs:
     - build-solanum
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-solanum
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1058,25 +1171,26 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         solanum
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results solanum (stable)
+        name: pytest-results_solanum_stable
         path: pytest.xml
   test-sopel:
     needs: []
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Install dependencies
       run: pip install sopel==7.1.8
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1084,145 +1198,188 @@ jobs:
     - name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
         sopel
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results sopel (stable)
+        name: pytest-results_sopel_stable
         path: pytest.xml
-  test-unrealircd:
-    needs:
-    - build-unrealircd
-    runs-on: ubuntu-latest
+  test-thelounge:
+    needs: []
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
+        python-version: 3.11
+    - name: Checkout TheLounge
+      uses: actions/checkout@v3
       with:
-        name: installed-unrealircd
-        path: '~'
-    - name: Unpack artefacts
-      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+        path: thelounge
+        ref: v4.4.0
+        repository: thelounge/thelounge
+    - name: Build TheLounge
+      run: |
+        cd $GITHUB_WORKSPACE/thelounge
+        yarn install
+        NODE_ENV=production yarn build
+        mkdir -p ~/.local/bin/
+        ln -s $(pwd)/index.js ~/.local/bin/thelounge
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:$PATH
-        make unrealircd
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        thelounge
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results unrealircd (stable)
+        name: pytest-results_thelounge_stable
+        path: pytest.xml
+  test-unrealircd:
+    needs:
+    - build-unrealircd
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    - name: Download build artefacts
+      uses: actions/download-artifact@v3
+      with:
+        name: installed-unrealircd
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist -r requirements.txt
+    - name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
+        make unrealircd
+      timeout-minutes: 30
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v3
+      with:
+        name: pytest-results_unrealircd_stable
         path: pytest.xml
   test-unrealircd-5:
     needs:
     - build-unrealircd-5
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-unrealircd-5
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         make unrealircd-5
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results unrealircd-5 (stable)
+        name: pytest-results_unrealircd-5_stable
         path: pytest.xml
   test-unrealircd-anope:
     needs:
     - build-unrealircd
     - build-anope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-unrealircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-anope
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:$PATH  make
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH  make
         unrealircd-anope
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results unrealircd-anope (stable)
+        name: pytest-results_unrealircd-anope_stable
         path: pytest.xml
   test-unrealircd-atheme:
     needs:
     - build-unrealircd
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: installed-unrealircd
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install Atheme
-      run: sudo apt-get install atheme-services
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist -r requirements.txt
     - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         make unrealircd-atheme
+      timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
-        name: pytest results unrealircd-atheme (stable)
+        name: pytest-results_unrealircd-atheme_stable
         path: pytest.xml
 name: irctest with stable versions
 'on':

@@ -152,21 +152,23 @@ def match_dict(
     # Set to not-None if we find a Keys() operator in the dict keys
     remaining_keys_wildcard = None
 
-    for (expected_key, expected_value) in expected.items():
+    for expected_key, expected_value in expected.items():
         if isinstance(expected_key, RemainingKeys):
             remaining_keys_wildcard = (expected_key.key, expected_value)
-        elif isinstance(expected_key, Operator):
-            raise NotImplementedError(f"Unsupported operator: {expected_key}")
         else:
-            if expected_key not in got:
-                return False
-            got_value = got.pop(expected_key)
-            if not match_string(got_value, expected_value):
+            for key in got:
+                if match_string(key, expected_key) and match_string(
+                    got[key], expected_value
+                ):
+                    got.pop(key)
+                    break
+            else:
+                # Found no (key, value) pair matching the request
                 return False
 
     if remaining_keys_wildcard:
         (expected_key, expected_value) = remaining_keys_wildcard
-        for (key, value) in got.items():
+        for key, value in got.items():
             if not match_string(key, expected_key):
                 return False
             if not match_string(value, expected_value):

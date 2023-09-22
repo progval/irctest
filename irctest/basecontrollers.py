@@ -1,13 +1,27 @@
 from __future__ import annotations
 
 import dataclasses
+import multiprocessing
 import os
+from pathlib import Path
 import shutil
 import socket
 import subprocess
 import tempfile
+import textwrap
 import time
-from typing import IO, Any, Callable, Dict, List, Optional, Set, Tuple, Type
+from typing import (
+    IO,
+    Any,
+    Callable,
+    Dict,
+    List,
+    MutableMapping,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+)
 
 import irctest
 
@@ -54,17 +68,52 @@ class _BaseController:
 
     supports_sts: bool
     supported_sasl_mechanisms: Set[str]
+
     proc: Optional[subprocess.Popen]
+
+    _used_ports: Set[Tuple[str, int]]
+    """``(hostname, port))`` used by this controller."""
+    # the following need to be shared between processes in case we are running in
+    # parallel (with pytest-xdist)
+    # The dicts are used as a set of (hostname, port), because _manager.set() doesn't
+    # exist.
+    _manager = multiprocessing.Manager()
+    _port_lock = _manager.Lock()
+    """Lock for access to ``_all_used_ports`` and ``_available_ports``."""
+    _all_used_ports: MutableMapping[Tuple[str, int], None] = _manager.dict()
+    """``(hostname, port)`` used by all controllers."""
+    _available_ports: MutableMapping[Tuple[str, int], None] = _manager.dict()
+    """``(hostname, port)`` available to any controller."""
 
     def __init__(self, test_config: TestCaseControllerConfig):
         self.test_config = test_config
         self.proc = None
+        self._used_ports = set()
+
+    def get_hostname_and_port(self) -> Tuple[str, int]:
+        with self._port_lock:
+            try:
+                # try to get a known available port
+                ((hostname, port), _) = self._available_ports.popitem()
+            except KeyError:
+                # if there aren't any, iterate while we get a fresh one.
+                while True:
+                    (hostname, port) = find_hostname_and_port()
+                    if (hostname, port) not in self._all_used_ports:
+                        # double-checking in self._used_ports to prevent collisions
+                        # between controllers starting at the same time.
+                        break
+
+            # Make this port unavailable to other processes
+            self._all_used_ports[(hostname, port)] = None
+
+        return (hostname, port)
 
     def check_is_alive(self) -> None:
         assert self.proc
         self.proc.poll()
         if self.proc.returncode is not None:
-            raise ProcessStopped()
+            raise ProcessStopped(f"process returned {self.proc.returncode}")
 
     def kill_proc(self) -> None:
         """Terminates the controlled process, waits for it to exit, and
@@ -82,12 +131,17 @@ class _BaseController:
         if self.proc:
             self.kill_proc()
 
+        # move this controller's ports from _all_used_ports to _available_ports
+        for hostname, port in self._used_ports:
+            del self._all_used_ports[(hostname, port)]
+            self._available_ports[(hostname, port)] = None
+
 
 class DirectoryBasedController(_BaseController):
     """Helper for controllers whose software configuration is based on an
     arbitrary directory."""
 
-    directory: Optional[str]
+    directory: Optional[Path]
 
     def __init__(self, test_config: TestCaseControllerConfig):
         super().__init__(test_config)
@@ -110,22 +164,21 @@ class DirectoryBasedController(_BaseController):
         """Open a file in the configuration directory."""
         assert self.directory
         if os.sep in name:
-            dir_ = os.path.join(self.directory, os.path.dirname(name))
-            if not os.path.isdir(dir_):
-                os.makedirs(dir_)
-            assert os.path.isdir(dir_)
-        return open(os.path.join(self.directory, name), mode)
+            dir_ = self.directory / os.path.dirname(name)
+            dir_.mkdir(parents=True, exist_ok=True)
+            assert dir_.is_dir()
+        return (self.directory / name).open(mode)
 
     def create_config(self) -> None:
         if not self.directory:
-            self.directory = tempfile.mkdtemp()
+            self.directory = Path(tempfile.mkdtemp())
 
     def gen_ssl(self) -> None:
         assert self.directory
-        self.csr_path = os.path.join(self.directory, "ssl.csr")
-        self.key_path = os.path.join(self.directory, "ssl.key")
-        self.pem_path = os.path.join(self.directory, "ssl.pem")
-        self.dh_path = os.path.join(self.directory, "dh.pem")
+        self.csr_path = self.directory / "ssl.csr"
+        self.key_path = self.directory / "ssl.key"
+        self.pem_path = self.directory / "ssl.pem"
+        self.dh_path = self.directory / "dh.pem"
         subprocess.check_output(
             [
                 self.openssl_bin,
@@ -156,10 +209,18 @@ class DirectoryBasedController(_BaseController):
             ],
             stderr=subprocess.DEVNULL,
         )
-        subprocess.check_output(
-            [self.openssl_bin, "dhparam", "-out", self.dh_path, "128"],
-            stderr=subprocess.DEVNULL,
-        )
+        with self.dh_path.open("w") as fd:
+            fd.write(
+                textwrap.dedent(
+                    """
+                    -----BEGIN DH PARAMETERS-----
+                    MIGHAoGBAJICSyQAiLj1fw8b5xELcnpqBQ+wvOyKgim4IetWOgZnRQFkTgOeoRZD
+                    HksACRFJL/EqHxDKcy/2Ghwr2axhNxSJ+UOBmraP3WfodV/fCDPnZ+XnI9fjHsIr
+                    rjisPMqomjXeiTB1UeAHvLUmCK4yx6lpAJsCYwJjsqkycUfHiy1bAgEC
+                    -----END DH PARAMETERS-----
+                    """
+                )
+            )
 
 
 class BaseClientController(_BaseController):
@@ -188,9 +249,16 @@ class BaseServerController(_BaseController):
     extban_mute_char: Optional[str] = None
     """Character used for the 'mute' extban"""
     nickserv = "NickServ"
+    sync_sleep_time = 0.0
+    """How many seconds to sleep before clients synchronously get messages.
 
-    def get_hostname_and_port(self) -> Tuple[str, int]:
-        return find_hostname_and_port()
+    This can be 0 for servers answering all commands in order (all but Sable as of
+    this writing), as irctest emits a PING, waits for a PONG, and captures all messages
+    between the two."""
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.faketime_enabled = False
 
     def run(
         self,
@@ -200,8 +268,7 @@ class BaseServerController(_BaseController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]],
-        invalid_metadata_keys: Optional[Set[str]],
+        faketime: Optional[str],
     ) -> None:
         raise NotImplementedError()
 
@@ -217,6 +284,7 @@ class BaseServerController(_BaseController):
             raise NotImplementedByController("account registration")
 
     def wait_for_port(self) -> None:
+        started_at = time.time()
         while not self.port_open:
             self.check_is_alive()
             time.sleep(self._port_wait_interval)
@@ -239,11 +307,16 @@ class BaseServerController(_BaseController):
                     # ircu2 cuts the connection without a message if registration
                     # is not complete.
                     pass
+                except socket.timeout:
+                    # irc2 just keeps it open
+                    pass
 
                 c.close()
                 self.port_open = True
-            except Exception:
-                continue
+            except ConnectionRefusedError:
+                if time.time() - started_at >= 60:
+                    # waited for 60 seconds, giving up
+                    raise
 
     def wait_for_services(self) -> None:
         assert self.services_controller
@@ -284,16 +357,18 @@ class BaseServicesController(_BaseController):
         c.connect(self.server_controller.hostname, self.server_controller.port)
         c.sendLine("NICK chkNS")
         c.sendLine("USER chk chk chk chk")
+        time.sleep(self.server_controller.sync_sleep_time)
         for msg in c.getMessages(synchronize=False):
             if msg.command == "PING":
                 # Hi Unreal
                 c.sendLine("PONG :" + msg.params[0])
         c.getMessages()
 
-        timeout = time.time() + 5
+        timeout = time.time() + 3
         while True:
-            c.sendLine(f"PRIVMSG {self.server_controller.nickserv} :HELP")
-            msgs = self.getNickServResponse(c)
+            c.sendLine(f"PRIVMSG {self.server_controller.nickserv} :help")
+
+            msgs = self.getNickServResponse(c, timeout=1)
             for msg in msgs:
                 if msg.command == "401":
                     # NickServ not available yet
@@ -319,11 +394,12 @@ class BaseServicesController(_BaseController):
         c.disconnect()
         self.services_up = True
 
-    def getNickServResponse(self, client: Any) -> List[Message]:
+    def getNickServResponse(self, client: Any, timeout: int = 0) -> List[Message]:
         """Wrapper aroung getMessages() that waits longer, because NickServ
         is queried asynchronously."""
         msgs: List[Message] = []
-        while not msgs:
+        start_time = time.time()
+        while not msgs and (not timeout or start_time + timeout > time.time()):
             time.sleep(0.05)
             msgs = client.getMessages()
         return msgs

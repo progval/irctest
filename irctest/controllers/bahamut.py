@@ -1,14 +1,9 @@
-import os
+from pathlib import Path
 import shutil
 import subprocess
 from typing import Optional, Set, Type
 
-from irctest.basecontrollers import (
-    BaseServerController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
-from irctest.irc_utils.junkdrawer import find_hostname_and_port
+from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
 global {{
@@ -80,6 +75,19 @@ oper {{
 """
 
 
+def initialize_entropy(directory: Path) -> None:
+    # https://github.com/DALnet/bahamut/blob/7fc039d403f66a954225c5dc4ad1fe683aedd794/include/dh.h#L35-L38
+    nb_rand_bytes = 512 // 8
+    # https://github.com/DALnet/bahamut/blob/7fc039d403f66a954225c5dc4ad1fe683aedd794/src/dh.c#L186
+    entropy_file_size = nb_rand_bytes * 4
+
+    # Not actually random; but we don't care.
+    entropy = b"\x00" * entropy_file_size
+
+    with (directory / ".ircd.entropy").open("wb") as fd:
+        fd.write(entropy)
+
+
 class BahamutController(BaseServerController, DirectoryBasedController):
     software_name = "Bahamut"
     supported_sasl_mechanisms: Set[str] = set()
@@ -99,20 +107,14 @@ class BahamutController(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-        restricted_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
         assert self.proc is None
         self.port = port
         self.hostname = hostname
         self.create_config()
-        (unused_hostname, unused_port) = find_hostname_and_port()
-        (services_hostname, services_port) = find_hostname_and_port()
+        (unused_hostname, unused_port) = self.get_hostname_and_port()
+        (services_hostname, services_port) = self.get_hostname_and_port()
 
         password_field = "passwd {};".format(password) if password else ""
 
@@ -120,9 +122,14 @@ class BahamutController(BaseServerController, DirectoryBasedController):
 
         assert self.directory
 
+        # Bahamut reads some bytes from /dev/urandom on startup, which causes
+        # GitHub Actions to sometimes freeze and timeout.
+        # This initializes the entropy file so Bahamut does not need to do it itself.
+        initialize_entropy(self.directory)
+
         # they are hardcoded... thankfully Bahamut reads them from the CWD.
-        shutil.copy(self.pem_path, os.path.join(self.directory, "ircd.crt"))
-        shutil.copy(self.key_path, os.path.join(self.directory, "ircd.key"))
+        shutil.copy(self.pem_path, self.directory / "ircd.crt")
+        shutil.copy(self.key_path, self.directory / "ircd.key")
 
         with self.open_file("server.conf") as fd:
             fd.write(
@@ -136,15 +143,21 @@ class BahamutController(BaseServerController, DirectoryBasedController):
                     # pem_path=self.pem_path,
                 )
             )
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
         self.proc = subprocess.Popen(
             [
-                # "strace", "-f", "-e", "file",
+                *faketime_cmd,
                 "ircd",
                 "-t",  # don't fork
                 "-f",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
             ],
-            # stdout=subprocess.DEVNULL,
         )
 
         if run_services:

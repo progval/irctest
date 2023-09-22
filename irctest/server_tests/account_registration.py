@@ -1,9 +1,15 @@
+"""
+`Draft IRCv3 account-registration
+<https://ircv3.net/specs/extensions/account-registration>`_
+"""
+
 from irctest import cases
 from irctest.patma import ANYSTR
 
 REGISTER_CAP_NAME = "draft/account-registration"
 
 
+@cases.mark_services
 @cases.mark_specifications("IRCv3")
 class RegisterBeforeConnectTestCase(cases.BaseServerTestCase):
     @staticmethod
@@ -28,6 +34,7 @@ class RegisterBeforeConnectTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(register_response, params=["SUCCESS", ANYSTR, ANYSTR])
 
 
+@cases.mark_services
 @cases.mark_specifications("IRCv3")
 class RegisterBeforeConnectDisallowedTestCase(cases.BaseServerTestCase):
     @staticmethod
@@ -55,6 +62,7 @@ class RegisterBeforeConnectDisallowedTestCase(cases.BaseServerTestCase):
         )
 
 
+@cases.mark_services
 @cases.mark_specifications("IRCv3")
 class RegisterEmailVerifiedTestCase(cases.BaseServerTestCase):
     @staticmethod
@@ -105,6 +113,7 @@ class RegisterEmailVerifiedTestCase(cases.BaseServerTestCase):
         )
 
 
+@cases.mark_services
 @cases.mark_specifications("IRCv3", "Ergo")
 class RegisterNoLandGrabsTestCase(cases.BaseServerTestCase):
     @staticmethod

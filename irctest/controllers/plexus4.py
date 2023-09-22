@@ -74,7 +74,7 @@ operator {{
 
 
 class Plexus4Controller(BaseHybridController):
-    software_name = "Hybrid"
+    software_name = "Plexus4"
     binary_name = "ircd"
     services_protocol = "plexus"
 

@@ -1,3 +1,10 @@
+"""
+The KICK command  (`RFC 1459
+<https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.1>`__,
+`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.>`__,
+`Modern <https://modern.ircdocs.horse/#kick-message>`__)
+"""
+
 import pytest
 
 from irctest import cases, client_mock, runner
@@ -89,6 +96,10 @@ class KickTestCase(cases.BaseServerTestCase):
             self.assertMessageMatch(m3, command="KICK", params=["#chan", "bar", ANYSTR])
 
     @cases.mark_specifications("RFC2812")
+    @cases.xfailIfSoftware(
+        ["Charybdis", "ircu2", "irc2", "Solanum"],
+        "uses the nick of the kickee rather than the kicker.",
+    )
     def testKickDefaultComment(self):
         """
         "If a "comment" is
@@ -219,13 +230,8 @@ class KickTestCase(cases.BaseServerTestCase):
         self.connectClient("qux")
         self.joinChannel(4, "#chan")
 
-        targmax = dict(
-            item.split(":", 1)
-            for item in self.server_support.get("TARGMAX", "").split(",")
-            if item
-        )
-        if targmax.get("KICK", "1") == "1":
-            raise runner.NotImplementedByController("Multi-target KICK")
+        if self.targmax.get("KICK", "1") == "1":
+            raise runner.OptionalExtensionNotSupported("Multi-target KICK")
 
         # TODO: check foo is an operator
 

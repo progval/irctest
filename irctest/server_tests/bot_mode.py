@@ -1,6 +1,5 @@
 """
-Draft bot mode specification, as defined in
-<https://ircv3.net/specs/extensions/bot-mode>
+`IRCv3 bot mode <https://ircv3.net/specs/extensions/bot-mode>`_
 """
 
 from irctest import cases, runner
@@ -68,6 +67,10 @@ class BotModeTestCase(cases.BaseServerTestCase):
             message, command=RPL_WHOISBOT, params=["usernick", "botnick", ANYSTR]
         )
 
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "Uses only vendor tags for now: https://github.com/inspircd/inspircd/pull/1910",
+    )
     def testBotPrivateMessage(self):
         self._initBot()
 
@@ -82,9 +85,13 @@ class BotModeTestCase(cases.BaseServerTestCase):
             self.getMessage("user"),
             command="PRIVMSG",
             params=["usernick", "beep boop"],
-            tags={"draft/bot": None, **ANYDICT},
+            tags={StrRe("(draft/)?bot"): None, **ANYDICT},
         )
 
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "Uses only vendor tags for now: https://github.com/inspircd/inspircd/pull/1910",
+    )
     def testBotChannelMessage(self):
         self._initBot()
 
@@ -104,7 +111,7 @@ class BotModeTestCase(cases.BaseServerTestCase):
             self.getMessage("user"),
             command="PRIVMSG",
             params=["#chan", "beep boop"],
-            tags={"draft/bot": None, **ANYDICT},
+            tags={StrRe("(draft/)?bot"): None, **ANYDICT},
         )
 
     def testBotWhox(self):

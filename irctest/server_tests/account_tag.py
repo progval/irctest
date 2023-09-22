@@ -1,12 +1,12 @@
 """
-<http://ircv3.net/specs/extensions/account-tag-3.2.html>
+`IRCv3 account-tag <https://ircv3.net/specs/extensions/account-tag>`_
 """
 
 from irctest import cases
 
 
 @cases.mark_services
-class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class AccountTagTestCase(cases.BaseServerTestCase):
     def connectRegisteredClient(self, nick):
         self.addClient()
         self.sendLine(2, "CAP LS 302")
@@ -40,7 +40,7 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.skipToWelcome(2)
 
     @cases.mark_capabilities("account-tag")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPrivmsg(self):
         self.connectClient("foo", capabilities=["account-tag"], skip_if_cap_nak=True)
         self.getMessages(1)
@@ -54,7 +54,10 @@ class AccountTagTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
 
     @cases.mark_capabilities("account-tag")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    @cases.xfailIfSoftware(
+        ["Charybdis"], "https://github.com/solanum-ircd/solanum/issues/166"
+    )
     def testInvite(self):
         self.connectClient("foo", capabilities=["account-tag"], skip_if_cap_nak=True)
         self.getMessages(1)

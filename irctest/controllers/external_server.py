@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Set, Tuple, Type
+from typing import Optional, Tuple, Type
 
 from irctest.basecontrollers import BaseServerController
 
@@ -39,9 +39,7 @@ class ExternalServerController(BaseServerController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-        restricted_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
     ) -> None:
         pass
 

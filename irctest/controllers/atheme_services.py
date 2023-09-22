@@ -1,4 +1,3 @@
-import os
 import subprocess
 from typing import Optional, Type
 
@@ -56,6 +55,8 @@ saslserv {{
 class AthemeController(BaseServicesController, DirectoryBasedController):
     """Mixin for server controllers that rely on Atheme"""
 
+    software_name = "Atheme"
+
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
 
@@ -79,11 +80,11 @@ class AthemeController(BaseServicesController, DirectoryBasedController):
                 "atheme-services",
                 "-n",  # don't fork
                 "-c",
-                os.path.join(self.directory, "services.conf"),
+                self.directory / "services.conf",
                 "-l",
                 f"/tmp/services-{server_port}.log",
                 "-p",
-                os.path.join(self.directory, "services.pid"),
+                self.directory / "services.pid",
                 "-D",
                 self.directory,
             ],

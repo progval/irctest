@@ -18,6 +18,7 @@ software:
         separate_build_job: true
         build_script: |
             cd $GITHUB_WORKSPACE/charybdis/
+            patch -p1 < $GITHUB_WORKSPACE/patches/charybdis_ubuntu22.patch
             ./autogen.sh
             ./configure --prefix=$HOME/.local/
             make -j 4
@@ -105,6 +106,11 @@ software:
         build_script: |
             cd $GITHUB_WORKSPACE/Bahamut/
             patch src/s_user.c < $GITHUB_WORKSPACE/patches/bahamut_localhost.patch
+            patch src/s_bsd.c < $GITHUB_WORKSPACE/patches/bahamut_mainloop.patch
+
+            # <= v2.2.2
+            patch -p1 < $GITHUB_WORKSPACE/patches/bahamut_ubuntu22.patch || true
+
             echo "#undef THROTTLE_ENABLE" >> include/config.h
             libtoolize --force
             aclocal
@@ -130,7 +136,7 @@ software:
         pre_deps:
             - uses: actions/setup-go@v2
               with:
-                  go-version: '^1.17.0'
+                  go-version: '^1.21.0'
             - run: go version
         separate_build_job: false
         build_script: |
@@ -142,7 +148,7 @@ software:
         name: InspIRCd
         repository: inspircd/inspircd
         refs: &inspircd_refs
-            stable: v3.12.0
+            stable: v3.15.0
             release: null
             devel: master
             devel_release: insp3
@@ -152,39 +158,43 @@ software:
         separate_build_job: true
         build_script: &inspircd_build_script |
             cd $GITHUB_WORKSPACE/inspircd/
-            patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
+
+            # Insp3 <= 3.16.0 and Insp4 <= 4.0.0a21 don't support -DINSPIRCD_UNLIMITED_MAINLOOP
+            patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch || true
+
             ./configure --prefix=$HOME/.local/inspircd --development
-            make -j 4
+
+            CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
             make install
     irc2:
         name: irc2
         separate_build_job: false
-        install_steps:
-            stable:
-                - name: Get source code
-                  run: |-
-                      curl http://ftp.irc.org/ftp/irc/server/irc2.11.2p3.tgz | tar -zx
-                - name: Configure
-                  run: |-
-                      cd $GITHUB_WORKSPACE/irc2.11.2p3
-                      ./configure --prefix=$HOME/.local/
-                      cd x86*
-                      echo "#define CMDLINE_CONFIG/" >> config.h
-                      echo "#define DEFAULT_SPLIT_USERS 0" >> config.h
-                      echo "#define DEFAULT_SPLIT_SERVERS 0" >> config.h
-                      #echo "#undef LIST_ALIS_NOTE" >> config.h
-                      # TODO: find a better way to make it not fork...
-                      echo "#define fork() (0)" >> config.h
-                - name: Compile and install
-                  run: |-
-                      cd $GITHUB_WORKSPACE/irc2.11.2p3/x86*
-                      make -j 4 all
-                      make install
-                      mkdir -p $HOME/.local/bin
-                      cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
+        repository : irc-archive/irc2-mirror
+        path: irc2.11.2p3
+        cache: true
+        refs:
+            stable: 59649f24c3a5c27bad5648b48774f27475bccfd3  #  irc2.11.2p3
             release: null
             devel: null
             devel_release: null
+        build_script: |
+            # Configure
+            cd $GITHUB_WORKSPACE/irc2.11.2p3
+            ./configure --prefix=$HOME/.local/
+            cd x86*
+            echo "#define CMDLINE_CONFIG/" >> config.h
+            echo "#define DEFAULT_SPLIT_USERS 0" >> config.h
+            echo "#define DEFAULT_SPLIT_SERVERS 0" >> config.h
+            #echo "#undef LIST_ALIS_NOTE" >> config.h
+            # TODO: find a better way to make it not fork...
+            echo "#define fork() (0)" >> config.h
+
+            # Compile and install
+            cd $GITHUB_WORKSPACE/irc2.11.2p3/x86*
+            make -j 4 all
+            make install
+            mkdir -p $HOME/.local/bin
+            cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
 
     ircu2:
         name: ircu2
@@ -204,11 +214,28 @@ software:
             make -j 4
             make install
 
+    nefarious:
+        name: nefarious
+        repository: evilnet/nefarious2
+        refs:
+            stable: "985704168ecada12d9e53b46df6087ef9d9fb40b"
+            release: null
+            devel: "master"
+            devel_release: null
+        path: nefarious
+        separate_build_job: false
+        build_script: |
+            cd $GITHUB_WORKSPACE/nefarious
+            ./configure --prefix=$HOME/.local/ --enable-debug
+            make -j 4
+            make install
+            cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
+
     ngircd:
         name: ngircd
         repository: ngircd/ngircd
         refs:
-            stable: rel-26.1
+            stable: 0714466af88d71d6c395629cd7fb624b099507d4 # two years ahead of rel-26.1
             release: null
             devel: master
             devel_release: null
@@ -222,6 +249,34 @@ software:
             ./configure --prefix=$HOME/.local/
             make -j 4
             make install
+
+    sable:
+        name: Sable
+        repository: Libera-Chat/sable
+        refs:
+            stable: ff1179512a79eba57ca468a5f83af84ecce08a5b
+            release: null
+            devel: master
+            devel_release: null
+        path: sable
+        prefix: "$GITHUB_WORKSPACE/sable/target/debug"
+        pre_deps:
+            - name: Install rust toolchain
+              uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: nightly
+                  profile: minimal
+                  override: true
+            - name: Enable Cargo cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                workspaces: "sable -> target"
+                cache-on-failure: true
+            - run: rustc --version
+        separate_build_job: false
+        build_script: |
+            cd $GITHUB_WORKSPACE/sable/
+            cargo build
 
     snircd:
         name: snircd
@@ -250,8 +305,8 @@ software:
         name: UnrealIRCd 6
         repository: unrealircd/unrealircd
         refs:
-            stable: daa0c11f285c7123ba9fa2966dee2d1a17729f1e  # 6.0.2 + a few commits
-            release: 29fd2e772a6b4b9107daa4e3c237df454b055810  # 6.0.2
+            stable: da3c1c654481a33035b9c703957e1c25d0158259  # 6.0.7
+            release: da3c1c654481a33035b9c703957e1c25d0158259  # 6.0.7
             devel: unreal60_dev
             devel_release: null
         path: unrealircd
@@ -267,6 +322,8 @@ software:
             CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
             make -j 4
             make install
+            # Prevent download of geoIP database on first startup
+            sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
 
     unrealircd-5:
         name: UnrealIRCd 5
@@ -281,6 +338,47 @@ software:
         separate_build_job: true
         build_script: *unrealircd_build_script
 
+
+    #############################
+    # Services:
+
+    anope:
+        name: Anope
+        repository: anope/anope
+        separate_build_job: true
+        path: anope
+        refs:
+            stable: "2.0.9"
+            release: "2.0.9"
+            devel: "2.0.9"
+            devel_release: "2.0.9"
+        build_script: |
+            cd $GITHUB_WORKSPACE/anope/
+            cp $GITHUB_WORKSPACE/data/anope/* .
+            CFLAGS=-O0 ./Config -quick
+            make -C build -j 4
+            make -C build install
+
+    dlk:
+        name: Dlk
+        repository: DalekIRC/Dalek-Services
+        separate_build_job: false
+        path: Dlk-Services
+        refs:
+            stable: null  # disabled because flaky, and hard to debug with all the PHP 8 warnings
+            release: &dlk_stable "6db51ea03f039c48fd20427c04cec8ff98df7878"
+            devel: "main"
+            devel_release: *dlk_stable
+        build_script: |
+            pip install pifpaf
+            wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+            wget -q https://wordpress.org/latest.zip -O wordpress-latest.zip
+        env: >-
+            IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services"
+            IRCTEST_WP_CLI_PATH="${{ github.workspace }}/wp-cli.phar"
+            IRCTEST_WP_ZIP_PATH="${{ github.workspace }}/wordpress-latest.zip"
+
+
     #############################
     # Clients:
 
@@ -290,7 +388,7 @@ software:
         install_steps:
             stable:
                 - name: Install dependencies
-                  run: pip install limnoria==2022.03.17 cryptography pyxmpp2-scram
+                  run: pip install limnoria==2023.5.27 cryptography pyxmpp2-scram
             release:
                 - name: Install dependencies
                   run: pip install limnoria cryptography pyxmpp2-scram
@@ -313,6 +411,23 @@ software:
                 - name: Install dependencies
                   run: pip install git+https://github.com/sopel-irc/sopel.git
             devel_release: null
+
+    thelounge:
+        name: TheLounge
+        repository: thelounge/thelounge
+        separate_build_job: false
+        refs:
+            stable: "v4.4.0"
+            release: "v4.4.0"
+            devel: "master"
+            devel_release: null
+        path: thelounge
+        build_script: |
+            cd $GITHUB_WORKSPACE/thelounge
+            yarn install
+            NODE_ENV=production yarn build
+            mkdir -p ~/.local/bin/
+            ln -s $(pwd)/index.js ~/.local/bin/thelounge
 
 tests:
     bahamut:
@@ -358,15 +473,21 @@ tests:
     plexus4:
         software: [plexus4, anope]
 
-    # doesn't build because it can't find liblex for some reason
-    #snircd:
-    #    software: [snircd]
-
     irc2:
         software: [irc2]
 
     ircu2:
         software: [ircu2]
+
+    nefarious:
+        software: [nefarious]
+
+    sable:
+        software: [sable]
+
+    # doesn't build because it can't find liblex for some reason
+    #snircd:
+    #    software: [snircd]
 
     unrealircd-5:
         software: [unrealircd-5]
@@ -380,9 +501,15 @@ tests:
     unrealircd-anope:
         software: [unrealircd, anope]
 
+    unrealircd-dlk:
+        software: [unrealircd, dlk]
+
 
     limnoria:
         software: [limnoria]
 
     sopel:
         software: [sopel]
+
+    thelounge:
+        software: [thelounge]

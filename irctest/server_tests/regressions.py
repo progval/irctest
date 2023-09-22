@@ -1,11 +1,14 @@
 """
-Regression tests for bugs in oragono.
+Regression tests for bugs in `Ergo <https://ergo.chat/>`_.
 """
 
-import time
-
-from irctest import cases
-from irctest.numerics import ERR_ERRONEUSNICKNAME, ERR_NICKNAMEINUSE, RPL_WELCOME
+from irctest import cases, runner
+from irctest.numerics import (
+    ERR_ERRONEUSNICKNAME,
+    ERR_NICKNAMEINUSE,
+    RPL_HELLO,
+    RPL_WELCOME,
+)
 from irctest.patma import ANYDICT
 
 
@@ -57,6 +60,12 @@ class RegressionsTestCase(cases.BaseServerTestCase):
 
     @cases.mark_capabilities("message-tags", "batch", "echo-message", "server-time")
     def testTagCap(self):
+        if self.controller.software_name == "UnrealIRCd":
+            raise runner.ImplementationChoice(
+                "Arbitrary +draft/reply values (TODO: adapt this test to use real "
+                "values so their pass Unreal's validation) "
+                "https://bugs.unrealircd.org/view.php?id=5948"
+            )
         # regression test for oragono #754
         self.connectClient(
             "alice",
@@ -99,13 +108,13 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC1459")
+    @cases.xfailIfSoftware(["ngIRCd"], "wat")
     def testStarNick(self):
         self.addClient(1)
         self.sendLine(1, "NICK *")
         self.sendLine(1, "USER u s e r")
         replies = {"NOTICE"}
-        time.sleep(2)  # give time to slow servers, like irc2 to reply
-        while replies == {"NOTICE"}:
+        while replies <= {"NOTICE", RPL_HELLO}:
             replies = set(msg.command for msg in self.getMessages(1, synchronize=False))
         self.assertIn(ERR_ERRONEUSNICKNAME, replies)
         self.assertNotIn(RPL_WELCOME, replies)
