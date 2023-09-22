@@ -503,6 +503,12 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
         ),
         "https://github.com/UndernetIRC/ircu2/commit/17c539103abbd0055b2297e17854cd0756c85d62",
     )
+    @cases.xfailIf(
+        lambda self, char: bool(
+            char == "l" and self.controller.software_name == "Nefarious"
+        ),
+        "https://github.com/evilnet/nefarious2/pull/73",
+    )
     def testWhoxOneChar(self, char):
         self._init()
         if "WHOX" not in self.server_support:
