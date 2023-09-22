@@ -35,22 +35,18 @@ INSPIRCD_SELECTORS := \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
-# HelpTestCase fails because it returns NOTICEs instead of numerics
 IRCU2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
-# same justification as ircu2
-# lusers "unregistered" tests fail because 
 NEFARIOUS_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
-# same justification as ircu2
 SNIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \

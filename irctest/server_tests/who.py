@@ -496,6 +496,46 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
             params=["otherNick", InsensitiveStr("coolNick"), ANYSTR],
         )
 
+    @pytest.mark.parametrize("char", "cuihsnfdlaor")
+    @cases.xfailIf(
+        lambda self, char: bool(
+            char == "l" and self.controller.software_name == "ircu2"
+        ),
+        "https://github.com/UndernetIRC/ircu2/commit/17c539103abbd0055b2297e17854cd0756c85d62",
+    )
+    @cases.xfailIf(
+        lambda self, char: bool(
+            char == "l" and self.controller.software_name == "Nefarious"
+        ),
+        "https://github.com/evilnet/nefarious2/pull/73",
+    )
+    def testWhoxOneChar(self, char):
+        self._init()
+        if "WHOX" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("WHOX")
+
+        self.sendLine(2, f"WHO coolNick %{char}")
+        messages = self.getMessages(2)
+
+        self.assertEqual(len(messages), 2, "Unexpected number of messages")
+
+        (reply, end) = messages
+
+        self.assertMessageMatch(
+            reply,
+            command=RPL_WHOSPCRPL,
+            params=[
+                "otherNick",
+                StrRe(".+"),
+            ],
+        )
+
+        self.assertMessageMatch(
+            end,
+            command=RPL_ENDOFWHO,
+            params=["otherNick", InsensitiveStr("coolNick"), ANYSTR],
+        )
+
     def testWhoxToken(self):
         """https://github.com/ircv3/ircv3-specifications/pull/482"""
         self._init()
