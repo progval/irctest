@@ -260,7 +260,6 @@ sable:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.sable \
 		-n 20 \
-		-m 'not services' \
 		-k '$(SABLE_SELECTORS)'
 
 solanum:
