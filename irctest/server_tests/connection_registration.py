@@ -129,24 +129,6 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         while m.command in ("250", "251", "252", "253", "254", "255", "265", "266"):
             m = self.getRegistrationMessage(1)
 
-        # User mode
-        if m.command == "MODE":
-            self.assertMessageMatch(
-                m,
-                command="MODE",
-                params=["foo", ANYSTR, *ANYLIST],
-            )
-            m = self.getRegistrationMessage(1)
-        elif m.command == "221":  # RPL_UMODEIS
-            self.assertMessageMatch(
-                m,
-                command="221",
-                params=["foo", ANYSTR, *ANYLIST],
-            )
-            m = self.getRegistrationMessage(1)
-        else:
-            print("Warning: missing MODE")
-
         if m.command == "375":  # RPL_MOTDSTART
             self.assertMessageMatch(
                 m,
@@ -170,6 +152,24 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
                 command="422",  # ERR_NOMOTD
                 params=["foo", ANYSTR],
             )
+
+        # User mode
+        if m.command == "MODE":
+            self.assertMessageMatch(
+                m,
+                command="MODE",
+                params=["foo", ANYSTR, *ANYLIST],
+            )
+            m = self.getRegistrationMessage(1)
+        elif m.command == "221":  # RPL_UMODEIS
+            self.assertMessageMatch(
+                m,
+                command="221",
+                params=["foo", ANYSTR, *ANYLIST],
+            )
+            m = self.getRegistrationMessage(1)
+        else:
+            print("Warning: missing MODE")
 
     @cases.mark_specifications("RFC1459")
     def testQuitDisconnects(self):
