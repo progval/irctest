@@ -303,7 +303,7 @@ class BaseServerController(_BaseController):
                         time.sleep(0.01)
 
                         c.send(b" ")  # Triggers BrokenPipeError
-                except BrokenPipeError:
+                except (BrokenPipeError, ConnectionResetError):
                     # ircu2 cuts the connection without a message if registration
                     # is not complete.
                     pass
@@ -358,11 +358,14 @@ class BaseServicesController(_BaseController):
         c.sendLine("NICK chkNS")
         c.sendLine("USER chk chk chk chk")
         time.sleep(self.server_controller.sync_sleep_time)
-        for msg in c.getMessages(synchronize=False):
-            if msg.command == "PING":
-                # Hi Unreal
-                c.sendLine("PONG :" + msg.params[0])
-        c.getMessages()
+        got_end_of_motd = False
+        while not got_end_of_motd:
+            for msg in c.getMessages(synchronize=False):
+                if msg.command == "PING":
+                    # Hi Unreal
+                    c.sendLine("PONG :" + msg.params[0])
+                if msg.command in ("376", "422"):  # RPL_ENDOFMOTD / ERR_NOMOTD
+                    got_end_of_motd = True
 
         timeout = time.time() + 3
         while True:
@@ -373,11 +376,16 @@ class BaseServicesController(_BaseController):
                 if msg.command == "401":
                     # NickServ not available yet
                     pass
+                elif msg.command in ("MODE", "221"):  # RPL_UMODEIS
+                    pass
                 elif msg.command == "NOTICE":
-                    # NickServ is available
-                    assert "nickserv" in (msg.prefix or "").lower(), msg
-                    print("breaking")
-                    break
+                    if "!" not in msg.prefix and "." in msg.prefix:
+                        # Server notice
+                        pass
+                    else:
+                        # NickServ is available
+                        assert "nickserv" in (msg.prefix or "").lower(), msg
+                        break
                 else:
                     assert False, f"unexpected reply from NickServ: {msg}"
             else:
