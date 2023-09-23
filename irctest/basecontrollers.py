@@ -367,9 +367,7 @@ class BaseServicesController(_BaseController):
                 if msg.command in ("376", "422"):  # RPL_ENDOFMOTD / ERR_NOMOTD
                     got_end_of_motd = True
 
-        self.getMessages(1)  # adds a small delay needed by ngIRCd to finish peering
-
-        timeout = time.time() + 3
+        timeout = time.time() + 10
         while True:
             c.sendLine(f"PRIVMSG {self.server_controller.nickserv} :help")
 
