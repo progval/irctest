@@ -63,8 +63,8 @@ class _BaseController:
 
     proc: Optional[subprocess.Popen]
 
-    _used_ports_path = Path("/tmp/irctest_ports.json")
-    _port_lock = FileLock(f"{_used_ports_path}.lock")
+    _used_ports_path = Path(tempfile.gettempdir()) / "irctest_ports.json"
+    _port_lock = FileLock( Path(tempfile.gettempdir()) / "irctest_ports.json.lock")
 
     def __init__(self, test_config: TestCaseControllerConfig):
         self.test_config = test_config

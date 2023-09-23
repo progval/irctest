@@ -1,3 +1,5 @@
+filelock
+pytest
+
 # The following dependencies are actually optional:
 ecdsa
-pytest
