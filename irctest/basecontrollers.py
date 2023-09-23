@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import dataclasses
-import multiprocessing
+import json
 import os
 from pathlib import Path
 import shutil
@@ -10,18 +11,9 @@ import subprocess
 import tempfile
 import textwrap
 import time
-from typing import (
-    IO,
-    Any,
-    Callable,
-    Dict,
-    List,
-    MutableMapping,
-    Optional,
-    Set,
-    Tuple,
-    Type,
-)
+from typing import IO, Any, Callable, Dict, Iterator, List, Optional, Set, Tuple, Type
+
+from filelock import FileLock
 
 import irctest
 
@@ -71,41 +63,36 @@ class _BaseController:
 
     proc: Optional[subprocess.Popen]
 
-    _used_ports: Set[Tuple[str, int]]
-    """``(hostname, port))`` used by this controller."""
-    # the following need to be shared between processes in case we are running in
-    # parallel (with pytest-xdist)
-    # The dicts are used as a set of (hostname, port), because _manager.set() doesn't
-    # exist.
-    _manager = multiprocessing.Manager()
-    _port_lock = _manager.Lock()
-    """Lock for access to ``_all_used_ports`` and ``_available_ports``."""
-    _all_used_ports: MutableMapping[Tuple[str, int], None] = _manager.dict()
-    """``(hostname, port)`` used by all controllers."""
-    _available_ports: MutableMapping[Tuple[str, int], None] = _manager.dict()
-    """``(hostname, port)`` available to any controller."""
+    _used_ports_path = Path("/tmp/irctest_ports.json")
+    _port_lock = FileLock(f"{_used_ports_path}.lock")
 
     def __init__(self, test_config: TestCaseControllerConfig):
         self.test_config = test_config
         self.proc = None
-        self._used_ports = set()
+        self._own_ports: Set[Tuple[str, int]] = set()
+
+    @contextlib.contextmanager
+    def _used_ports(self) -> Iterator[Set[Tuple[str, int]]]:
+        with self._port_lock:
+            if not self._used_ports_path.exists():
+                self._used_ports_path.write_text("[]")
+            used_ports = {
+                (h, p) for (h, p) in json.loads(self._used_ports_path.read_text())
+            }
+            yield used_ports
+            self._used_ports_path.write_text(json.dumps(list(used_ports)))
 
     def get_hostname_and_port(self) -> Tuple[str, int]:
-        with self._port_lock:
-            try:
-                # try to get a known available port
-                ((hostname, port), _) = self._available_ports.popitem()
-            except KeyError:
-                # if there aren't any, iterate while we get a fresh one.
-                while True:
-                    (hostname, port) = find_hostname_and_port()
-                    if (hostname, port) not in self._all_used_ports:
-                        # double-checking in self._used_ports to prevent collisions
-                        # between controllers starting at the same time.
-                        break
+        with self._used_ports() as used_ports:
+            while True:
+                (hostname, port) = find_hostname_and_port()
+                if (hostname, port) not in used_ports:
+                    # double-checking in self._used_ports to prevent collisions
+                    # between controllers starting at the same time.
+                    break
 
-            # Make this port unavailable to other processes
-            self._all_used_ports[(hostname, port)] = None
+            used_ports.add((hostname, port))
+            self._own_ports.add((hostname, port))
 
         return (hostname, port)
 
@@ -131,10 +118,10 @@ class _BaseController:
         if self.proc:
             self.kill_proc()
 
-        # move this controller's ports from _all_used_ports to _available_ports
-        for hostname, port in self._used_ports:
-            del self._all_used_ports[(hostname, port)]
-            self._available_ports[(hostname, port)] = None
+        with self._used_ports() as used_ports:
+            for hostname, port in list(self._own_ports):
+                used_ports.remove((hostname, port))
+                self._own_ports.remove((hostname, port))
 
 
 class DirectoryBasedController(_BaseController):
