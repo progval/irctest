@@ -379,6 +379,7 @@ class BaseServicesController(_BaseController):
                 elif msg.command in ("MODE", "221"):  # RPL_UMODEIS
                     pass
                 elif msg.command == "NOTICE":
+                    assert msg.prefix is not None
                     if "!" not in msg.prefix and "." in msg.prefix:
                         # Server notice
                         pass
