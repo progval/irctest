@@ -1,10 +1,10 @@
 """
-Section 3.2 of RFC 2812
-<https://tools.ietf.org/html/rfc2812#section-3.3>
+The PRIVMSG and NOTICE commands.
 """
 
 from irctest import cases
 from irctest.numerics import ERR_INPUTTOOLONG
+from irctest.patma import ANYSTR
 
 
 class PrivmsgTestCase(cases.BaseServerTestCase):
@@ -13,6 +13,7 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
         self.connectClient("foo")
         self.sendLine(1, "JOIN #chan")
+        self.getMessages(1)  # synchronize
         self.connectClient("bar")
         self.sendLine(2, "JOIN #chan")
         self.getMessages(2)  # synchronize
@@ -33,6 +34,48 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         # ERR_NOSUCHNICK, ERR_NOSUCHCHANNEL, or ERR_CANNOTSENDTOCHAN
         self.assertIn(msg.command, ("401", "403", "404"))
 
+    @cases.mark_specifications("RFC1459", "RFC2812")
+    def testPrivmsgToUser(self):
+        """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
+        self.connectClient("foo")
+        self.connectClient("bar")
+        self.sendLine(1, "PRIVMSG bar :hey there!")
+        self.getMessages(1)
+        pms = [msg for msg in self.getMessages(2) if msg.command == "PRIVMSG"]
+        self.assertEqual(len(pms), 1)
+        self.assertMessageMatch(pms[0], command="PRIVMSG", params=["bar", "hey there!"])
+
+    @cases.mark_specifications("RFC1459", "RFC2812")
+    def testPrivmsgNonexistentUser(self):
+        """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
+        self.connectClient("foo")
+        self.sendLine(1, "PRIVMSG bar :hey there!")
+        msg = self.getMessage(1)
+        # ERR_NOSUCHNICK: 401 <sender> <recipient> :No such nick
+        self.assertMessageMatch(msg, command="401", params=["foo", "bar", ANYSTR])
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["irc2"],
+        "replies with ERR_NEEDMOREPARAMS instead of ERR_NOTEXTTOSEND",
+    )
+    def testEmptyPrivmsg(self):
+        self.connectClient("foo")
+        self.sendLine(1, "JOIN #chan")
+        self.getMessages(1)  # synchronize
+        self.connectClient("bar")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(2)  # synchronize
+        self.getMessages(1)  # synchronize
+        self.sendLine(1, "PRIVMSG #chan :")
+
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="412",  # ERR_NOTEXTTOSEND
+            params=["foo", ANYSTR],
+        )
+        self.assertEqual(self.getMessages(2), [])
+
 
 class NoticeTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812")
@@ -52,6 +95,15 @@ class NoticeTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.xfailIfSoftware(
+        ["InspIRCd"],
+        "replies with ERR_NOSUCHCHANNEL to NOTICE to non-existent channels",
+    )
+    @cases.xfailIfSoftware(
+        ["UnrealIRCd"],
+        "replies with ERR_NOSUCHCHANNEL to NOTICE to non-existent channels: "
+        "https://bugs.unrealircd.org/view.php?id=5949",
+    )
     def testNoticeNonexistentChannel(self):
         """
         "automatic replies must never be
@@ -72,6 +124,14 @@ class NoticeTestCase(cases.BaseServerTestCase):
 
 class TagsTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("message-tags")
+    @cases.xfailIf(
+        lambda self: bool(
+            self.controller.software_name == "UnrealIRCd"
+            and self.controller.software_version == 5
+        ),
+        "UnrealIRCd <6.0.7 dropped messages with excessively large tags: "
+        "https://bugs.unrealircd.org/view.php?id=5947",
+    )
     def testLineTooLong(self):
         self.connectClient("bar", capabilities=["message-tags"], skip_if_cap_nak=True)
         self.connectClient(

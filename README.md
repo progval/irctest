@@ -18,11 +18,11 @@ have no side effect.
 Install irctest and dependencies:
 
 ```
+sudo apt install faketime  # Optional, but greatly speeds up irctest/server_tests/list.py
 cd ~
 git clone https://github.com/ProgVal/irctest.git
 cd irctest
 pip3 install --user -r requirements.txt
-python3 setup.py install --user
 ```
 
 Add `~/.local/bin/` (and/or `~/go/bin/` for Ergo)
@@ -110,8 +110,11 @@ cd /tmp/
 git clone https://github.com/inspircd/inspircd.git
 cd inspircd
 
-# optional, makes tests run considerably faster
-patch src/inspircd.cpp < ~/irctest/inspircd_mainloop.patch
+# Optional, makes tests run considerably faster. Pick one depending on the InspIRCd version:
+# on Insp3 <= 3.16.0 and Insp4 <= 4.0.0a21:
+patch src/inspircd.cpp < ~/irctest/patches/inspircd_mainloop.patch
+# on Insp3 >= 3.17.0 and Insp4 >= 4.0.0a22:
+export CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP
 
 # third-party module, used in named-modes tests because the spec is not implemented upstream
 wget https://raw.githubusercontent.com/progval/inspircd-contrib/namedmodes/4.0/m_ircv3_namedmodes.cpp -O src/modules/m_ircv3_namedmodes.cpp

@@ -1,3 +1,8 @@
+"""SASL authentication from clients, for all known mechanisms.
+
+For now, only `SASLv3.1 <https://ircv3.net/specs/extensions/sasl-3.1>`_
+is tested, not `SASLv3.2 <https://ircv3.net/specs/extensions/sasl-3.2>`_."""
+
 import base64
 
 import pytest
@@ -34,8 +39,8 @@ class IdentityHash:
         return self._data
 
 
-class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+class SaslTestCase(cases.BaseClientTestCase):
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlain(self):
         """Test PLAIN authentication with correct username/password."""
         auth = authentication.Authentication(
@@ -55,7 +60,8 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         m = self.negotiateCapabilities(["sasl"], False)
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    @cases.xfailIfSoftware(["Sopel"], "Sopel requests SASL PLAIN even if not available")
     def testPlainNotAvailable(self):
         """`sasl=EXTERNAL` is advertized, whereas the client is configured
         to use PLAIN.
@@ -84,8 +90,9 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         m = self.getMessage()
         self.assertMessageMatch(m, command="CAP")
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
-    def testPlainLarge(self):
+    @pytest.mark.parametrize("pattern", ["barbaz", "éèà"])
+    @cases.skipUnlessHasMechanism("PLAIN")
+    def testPlainLarge(self, pattern):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400.
         <http://ircv3.net/specs/extensions/sasl-3.1.html#the-authenticate-command>
@@ -94,10 +101,10 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         auth = authentication.Authentication(
             mechanisms=[authentication.Mechanisms.plain],
             username="foo",
-            password="bar" * 200,
+            password=pattern * 100,
         )
         authstring = base64.b64encode(
-            b"\x00".join([b"foo", b"foo", b"bar" * 200])
+            b"\x00".join([b"foo", b"foo", pattern.encode() * 100])
         ).decode()
         m = self.negotiateCapabilities(["sasl"], auth=auth)
         self.assertEqual(m, Message({}, None, "AUTHENTICATE", ["PLAIN"]))
@@ -113,8 +120,9 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         m = self.negotiateCapabilities(["sasl"], False)
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
-    def testPlainLargeMultiple(self):
+    @cases.skipUnlessHasMechanism("PLAIN")
+    @pytest.mark.parametrize("pattern", ["quux", "éè"])
+    def testPlainLargeMultiple(self, pattern):
         """Test the client splits large AUTHENTICATE messages whose payload
         is a multiple of 400.
         <http://ircv3.net/specs/extensions/sasl-3.1.html#the-authenticate-command>
@@ -123,10 +131,10 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         auth = authentication.Authentication(
             mechanisms=[authentication.Mechanisms.plain],
             username="foo",
-            password="quux" * 148,
+            password=pattern * 148,
         )
         authstring = base64.b64encode(
-            b"\x00".join([b"foo", b"foo", b"quux" * 148])
+            b"\x00".join([b"foo", b"foo", pattern.encode() * 148])
         ).decode()
         m = self.negotiateCapabilities(["sasl"], auth=auth)
         self.assertEqual(m, Message({}, None, "AUTHENTICATE", ["PLAIN"]))
@@ -143,7 +151,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
     @pytest.mark.skipif(ecdsa is None, reason="python3-ecdsa is not available")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("ECDSA-NIST256P-CHALLENGE")
+    @cases.skipUnlessHasMechanism("ECDSA-NIST256P-CHALLENGE")
     def testEcdsa(self):
         """Test ECDSA authentication."""
         auth = authentication.Authentication(
@@ -177,7 +185,7 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         m = self.negotiateCapabilities(["sasl"], False)
         self.assertEqual(m, Message({}, None, "CAP", ["END"]))
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
+    @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
     def testScram(self):
         """Test SCRAM-SHA-256 authentication."""
         auth = authentication.Authentication(
@@ -219,8 +227,8 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         self.assertEqual(m.command, "AUTHENTICATE", m)
         self.assertEqual(m.params, ["+"], m)
 
-    @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
-    def testScramBadPassword(self):
+    @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
+    def testScramBadPassword(self, server_fakes_success=False, fake_response=None):
         """Test SCRAM-SHA-256 authentication with a bad password."""
         auth = authentication.Authentication(
             mechanisms=[authentication.Mechanisms.scram_sha_256],
@@ -253,9 +261,39 @@ class SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
         with self.assertRaises(scram.NotAuthorizedException):
             authenticator.response(msg)
 
+        if server_fakes_success:
+            self.sendLine(f"AUTHENTICATE :{fake_response}")
 
-class Irc302SaslTestCase(cases.BaseClientTestCase, cases.OptionalityHelper):
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+            m = self.getMessage()
+            while m.command == "PING":
+                self.sendLine(f"PONG server. {m.params[-1]}")
+                m = self.getMessage()
+            self.assertMessageMatch(
+                m,
+                command="AUTHENTICATE",
+                params=["*"],
+                fail_msg="Client did not abort: {msg}",
+            )
+
+    @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
+    @pytest.mark.parametrize(
+        "fake_response",
+        [
+            "",
+            "AAAA",
+            "dj1ubU1mM1FIV2NKUWk5cE1ndHFLU0tQclZueUk2c3FOTzZJN3BFLzBveUdjPQ==",
+        ],
+    )
+    def testScramMaliciousServer(self, fake_response):
+        """Test SCRAM-SHA-256 authentication to a server which pretends to know
+        the password"""
+        self.testScramBadPassword(
+            server_fakes_success=True, fake_response=fake_response
+        )
+
+
+class Irc302SaslTestCase(cases.BaseClientTestCase):
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainNotAvailable(self):
         """Test the client does not try to authenticate using a mechanism the
         server does not advertise.

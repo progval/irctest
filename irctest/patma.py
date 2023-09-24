@@ -13,18 +13,18 @@ class Operator:
         pass
 
 
-class AnyStr(Operator):
+class _AnyStr(Operator):
     """Wildcard matching any string"""
 
     def __repr__(self) -> str:
-        return "AnyStr"
+        return "ANYSTR"
 
 
-class AnyOptStr(Operator):
+class _AnyOptStr(Operator):
     """Wildcard matching any string as well as None"""
 
     def __repr__(self) -> str:
-        return "AnyOptStr"
+        return "ANYOPTSTR"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -59,13 +59,16 @@ class RemainingKeys(Operator):
     key: Operator
 
     def __repr__(self) -> str:
-        return f"Keys({self.key!r})"
+        return f"RemainingKeys({self.key!r})"
 
 
-ANYSTR = AnyStr()
+ANYSTR = _AnyStr()
 """Singleton, spares two characters"""
 
-ANYDICT = {RemainingKeys(ANYSTR): AnyOptStr()}
+ANYOPTSTR = _AnyOptStr()
+"""Singleton, spares two characters"""
+
+ANYDICT = {RemainingKeys(ANYSTR): ANYOPTSTR}
 """Matches any dictionary; useful to compare tags dict, eg.
 `match_dict(got_tags, {"label": "foo", **ANYDICT})`"""
 
@@ -77,9 +80,11 @@ class ListRemainder:
 
     def __repr__(self) -> str:
         if self.min_length:
-            return f"*ListRemainder({self.item!r}, min_length={self.min_length})"
+            return f"ListRemainder({self.item!r}, min_length={self.min_length})"
+        elif self.item is ANYSTR:
+            return "*ANYLIST"
         else:
-            return f"*ListRemainder({self.item!r})"
+            return f"ListRemainder({self.item!r})"
 
 
 ANYLIST = [ListRemainder(ANYSTR)]
@@ -87,9 +92,9 @@ ANYLIST = [ListRemainder(ANYSTR)]
 
 
 def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bool:
-    if isinstance(expected, AnyOptStr):
+    if isinstance(expected, _AnyOptStr):
         return True
-    elif isinstance(expected, AnyStr) and got is not None:
+    elif isinstance(expected, _AnyStr) and got is not None:
         return True
     elif isinstance(expected, StrRe):
         if got is None or not re.match(expected.regexp, got):
@@ -147,21 +152,23 @@ def match_dict(
     # Set to not-None if we find a Keys() operator in the dict keys
     remaining_keys_wildcard = None
 
-    for (expected_key, expected_value) in expected.items():
+    for expected_key, expected_value in expected.items():
         if isinstance(expected_key, RemainingKeys):
             remaining_keys_wildcard = (expected_key.key, expected_value)
-        elif isinstance(expected_key, Operator):
-            raise NotImplementedError(f"Unsupported operator: {expected_key}")
         else:
-            if expected_key not in got:
-                return False
-            got_value = got.pop(expected_key)
-            if not match_string(got_value, expected_value):
+            for key in got:
+                if match_string(key, expected_key) and match_string(
+                    got[key], expected_value
+                ):
+                    got.pop(key)
+                    break
+            else:
+                # Found no (key, value) pair matching the request
                 return False
 
     if remaining_keys_wildcard:
         (expected_key, expected_value) = remaining_keys_wildcard
-        for (key, value) in got.items():
+        for key, value in got.items():
             if not match_string(key, expected_key):
                 return False
             if not match_string(value, expected_value):

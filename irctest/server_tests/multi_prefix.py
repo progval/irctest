@@ -1,6 +1,5 @@
 """
-Tests multi-prefix.
-<http://ircv3.net/specs/extensions/multi-prefix-3.1.html>
+`IRCv3 multi-prefix <https://ircv3.net/specs/extensions/multi-prefix>`_
 """
 
 from irctest import cases
@@ -16,7 +15,7 @@ class MultiPrefixTestCase(cases.BaseServerTestCase):
 
         These prefixes MUST be in order of ‘rank’, from highest to lowest.
         """
-        self.connectClient("foo", capabilities=["multi-prefix"])
+        self.connectClient("foo", capabilities=["multi-prefix"], skip_if_cap_nak=True)
         self.joinChannel(1, "#chan")
         self.sendLine(1, "MODE #chan +v foo")
         self.getMessages(1)

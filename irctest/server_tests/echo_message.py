@@ -1,11 +1,10 @@
 """
-<http://ircv3.net/specs/extensions/echo-message-3.2.html>
+`IRCv3 echo-message <https://ircv3.net/specs/extensions/echo-message>`_
 """
 
 import pytest
 
 from irctest import cases
-from irctest.basecontrollers import NotImplementedByController
 from irctest.irc_utils.junkdrawer import random_name
 from irctest.patma import ANYDICT
 
@@ -23,36 +22,20 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("echo-message")
     def testEchoMessage(self, command, solo, server_time):
         """<http://ircv3.net/specs/extensions/echo-message-3.2.html>"""
-        self.addClient()
-        self.sendLine(1, "CAP LS 302")
-        capabilities = self.getCapLs(1)
-        if "echo-message" not in capabilities:
-            raise NotImplementedByController("echo-message")
-        if server_time and "server-time" not in capabilities:
-            raise NotImplementedByController("server-time")
+        capabilities = ["server-time"] if server_time else []
 
-        # TODO: check also without this
-        self.sendLine(
-            1,
-            "CAP REQ :echo-message{}".format(" server-time" if server_time else ""),
+        self.connectClient(
+            "baz",
+            capabilities=["echo-message", *capabilities],
+            skip_if_cap_nak=True,
         )
-        self.getRegistrationMessage(1)
-        # TODO: Remove this one the trailing space issue is fixed in Charybdis
-        # and Mammon:
-        # self.assertMessageMatch(m, command='CAP',
-        #        params=['*', 'ACK', 'echo-message'] +
-        #        (['server-time'] if server_time else []),
-        #        fail_msg='Did not ACK advertised capabilities: {msg}')
-        self.sendLine(1, "USER f * * :foo")
-        self.sendLine(1, "NICK baz")
-        self.sendLine(1, "CAP END")
-        self.skipToWelcome(1)
-        self.getMessages(1)
 
         self.sendLine(1, "JOIN #chan")
 
+        # Synchronize
+        self.getMessages(1)
+
         if not solo:
-            capabilities = ["server-time"] if server_time else None
             self.connectClient("qux", capabilities=capabilities)
             self.sendLine(2, "JOIN #chan")
 

@@ -1,6 +1,6 @@
-import os
+import shutil
 import subprocess
-from typing import Optional, Set, Type
+from typing import Optional, Type
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -51,6 +51,7 @@ features {{
 
 
 class Ircu2Controller(BaseServerController, DirectoryBasedController):
+    software_name = "ircu2"
     supports_sts = False
     extban_mute_char = None
 
@@ -67,13 +68,8 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
         if ssl:
             raise NotImplementedByController("TLS")
         if run_services:
@@ -84,7 +80,7 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
         self.create_config()
         password_field = 'password = "{}";'.format(password) if password else ""
         assert self.directory
-        pidfile = os.path.join(self.directory, "ircd.pid")
+        pidfile = self.directory / "ircd.pid"
         with self.open_file("server.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -94,12 +90,20 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
                     pidfile=pidfile,
                 )
             )
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
         self.proc = subprocess.Popen(
             [
+                *faketime_cmd,
                 "ircd",
                 "-n",  # don't detach
                 "-f",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
                 "-x",
                 "DEBUG",
             ],

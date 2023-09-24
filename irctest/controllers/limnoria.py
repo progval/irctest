@@ -1,4 +1,3 @@
-import os
 import subprocess
 from typing import Optional, Type
 
@@ -55,13 +54,19 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
         # Runs a client with the config given as arguments
         assert self.proc is None
         self.create_config()
+
+        username = password = ""
+        mechanisms = ""
         if auth:
             mechanisms = " ".join(mech.to_string() for mech in auth.mechanisms)
             if auth.ecdsa_key:
                 with self.open_file("ecdsa_key.pem") as fd:
                     fd.write(auth.ecdsa_key)
-        else:
-            mechanisms = ""
+
+            if auth.username:
+                username = auth.username.encode("unicode_escape").decode()
+            if auth.password:
+                password = auth.password.encode("unicode_escape").decode()
         with self.open_file("bot.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -69,8 +74,8 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
                     loglevel="CRITICAL",
                     hostname=hostname,
                     port=port,
-                    username=auth.username if auth else "",
-                    password=auth.password if auth else "",
+                    username=username,
+                    password=password,
                     mechanisms=mechanisms.lower(),
                     enable_tls=tls_config.enable if tls_config else "False",
                     trusted_fingerprints=" ".join(tls_config.trusted_fingerprints)
@@ -79,9 +84,7 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
                 )
             )
         assert self.directory
-        self.proc = subprocess.Popen(
-            ["supybot", os.path.join(self.directory, "bot.conf")]
-        )
+        self.proc = subprocess.Popen(["supybot", self.directory / "bot.conf"])
 
 
 def get_irctest_controller_class() -> Type[LimnoriaController]:

@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import shutil
 import subprocess
 from typing import Type
@@ -73,6 +73,8 @@ module {{ name = "ns_cert" }}
 class AnopeController(BaseServicesController, DirectoryBasedController):
     """Collaborator for server controllers that rely on Anope"""
 
+    software_name = "Anope"
+
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
 
@@ -99,14 +101,11 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
             pass
 
         assert self.directory
+        services_path = shutil.which("services")
+        assert services_path
 
         # Config and code need to be in the same directory, *obviously*
-        os.symlink(
-            os.path.join(
-                os.path.dirname(shutil.which("services")), "..", "lib"  # type: ignore
-            ),
-            os.path.join(self.directory, "lib"),
-        )
+        (self.directory / "lib").symlink_to(Path(services_path).parent.parent / "lib")
 
         self.proc = subprocess.Popen(
             [
