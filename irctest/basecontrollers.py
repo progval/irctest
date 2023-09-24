@@ -38,6 +38,14 @@ class TestCaseControllerConfig:
     chathistory: bool = False
     """Whether to enable chathistory features."""
 
+    account_registration_before_connect: bool = False
+    """Whether draft/account-registration should be allowed before completing
+    connection registration (NICK + USER + CAP END)"""
+
+    account_registration_requires_email: bool = False
+    """Whether an email address must be provided when using draft/account-registration.
+    This does not imply servers must validate it."""
+
     ergo_roleplay: bool = False
     """Whether to enable the Ergo role-play commands."""
 
