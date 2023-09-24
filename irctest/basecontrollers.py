@@ -13,12 +13,11 @@ import textwrap
 import time
 from typing import IO, Any, Callable, Dict, Iterator, List, Optional, Set, Tuple, Type
 
-from filelock import FileLock
-
 import irctest
 
 from . import authentication, tls
 from .client_mock import ClientMock
+from .irc_utils.filelock import FileLock
 from .irc_utils.junkdrawer import find_hostname_and_port
 from .irc_utils.message_parser import Message
 from .runner import NotImplementedByController
