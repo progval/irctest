@@ -10,7 +10,7 @@ import time
 from irctest import cases
 from irctest.client_mock import ConnectionClosed
 from irctest.numerics import ERR_NEEDMOREPARAMS, ERR_PASSWDMISMATCH
-from irctest.patma import ANYSTR, StrRe
+from irctest.patma import ANYLIST, ANYSTR, OptStrRe, StrRe
 
 
 class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
@@ -85,6 +85,92 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
 
 
 class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
+    def testConnectionRegistration(self):
+        self.addClient()
+        self.sendLine(1, "NICK foo")
+        self.sendLine(1, "USER foo * * :foo")
+
+        for numeric in ("001", "002", "003"):
+            self.assertMessageMatch(
+                self.getRegistrationMessage(1),
+                command=numeric,
+                params=["foo", ANYSTR],
+            )
+
+        self.assertMessageMatch(
+            self.getRegistrationMessage(1),
+            command="004",  # RPL_MYINFO
+            params=[
+                "foo",
+                "My.Little.Server",
+                ANYSTR,  # version
+                StrRe("[a-zA-Z]+"),  # user modes
+                StrRe("[a-zA-Z]+"),  # channel modes
+                OptStrRe("[a-zA-Z]+"),  # channel modes with parameter
+            ],
+        )
+
+        # ISUPPORT
+        m = self.getRegistrationMessage(1)
+        while True:
+            self.assertMessageMatch(
+                m,
+                command="005",
+                params=["foo", *ANYLIST],
+            )
+            m = self.getRegistrationMessage(1)
+            if m.command != "005":
+                break
+
+        if m.command in ("042", "396"):  # RPL_YOURID / RPL_VISIBLEHOST, non-standard
+            m = self.getRegistrationMessage(1)
+
+        # LUSERS
+        while m.command in ("250", "251", "252", "253", "254", "255", "265", "266"):
+            m = self.getRegistrationMessage(1)
+
+        if m.command == "375":  # RPL_MOTDSTART
+            self.assertMessageMatch(
+                m,
+                command="375",
+                params=["foo", ANYSTR],
+            )
+            while (m := self.getRegistrationMessage(1)).command == "372":
+                self.assertMessageMatch(
+                    m,
+                    command="372",  # RPL_MOTD
+                    params=["foo", ANYSTR],
+                )
+            self.assertMessageMatch(
+                m,
+                command="376",  # RPL_ENDOFMOTD
+                params=["foo", ANYSTR],
+            )
+        else:
+            self.assertMessageMatch(
+                m,
+                command="422",  # ERR_NOMOTD
+                params=["foo", ANYSTR],
+            )
+
+        # User mode
+        if m.command == "MODE":
+            self.assertMessageMatch(
+                m,
+                command="MODE",
+                params=["foo", ANYSTR, *ANYLIST],
+            )
+            m = self.getRegistrationMessage(1)
+        elif m.command == "221":  # RPL_UMODEIS
+            self.assertMessageMatch(
+                m,
+                command="221",
+                params=["foo", ANYSTR, *ANYLIST],
+            )
+            m = self.getRegistrationMessage(1)
+        else:
+            print("Warning: missing MODE")
+
     @cases.mark_specifications("RFC1459")
     def testQuitDisconnects(self):
         """“The server must close the connection to a client which sends a
