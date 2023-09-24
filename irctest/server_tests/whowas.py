@@ -7,6 +7,7 @@ The WHOSWAS command  (`RFC 1459
 TODO: cross-reference Modern
 """
 
+import time
 
 import pytest
 
@@ -143,6 +144,8 @@ class WhowasTestCase(cases.BaseServerTestCase):
             self.getMessages(2)
         except ConnectionClosed:
             pass
+
+        time.sleep(1)  # Ergo may take a little while to record the nick as free
 
         self.connectClient("nick2", ident="ident3")
         self.sendLine(3, "QUIT :bye")
