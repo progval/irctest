@@ -166,6 +166,16 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         if enable_roleplay:
             config["roleplay"] = {"enabled": True}
 
+        if self.test_config.account_registration_before_connect:
+            config["accounts"]["registration"]["allow-before-connect"] = True  # type: ignore
+        if self.test_config.account_registration_requires_email:
+            config["accounts"]["registration"]["email-verification"] = {  # type: ignore
+                "enabled": True,
+                "sender": "test@example.com",
+                "require-tls": True,
+                "helo-domain": "example.com",
+            }
+
         if self.test_config.ergo_config:
             self.test_config.ergo_config(config)
 

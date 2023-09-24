@@ -1,6 +1,7 @@
 """Pattern-matching utilities"""
 
 import dataclasses
+import itertools
 import re
 from typing import Dict, List, Optional, Union
 
@@ -25,6 +26,14 @@ class _AnyOptStr(Operator):
 
     def __repr__(self) -> str:
         return "ANYOPTSTR"
+
+
+@dataclasses.dataclass(frozen=True)
+class OptStrRe(Operator):
+    regexp: str
+
+    def __repr__(self) -> str:
+        return f"OptStrRe(r'{self.regexp}')"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -99,6 +108,11 @@ def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bo
     elif isinstance(expected, StrRe):
         if got is None or not re.match(expected.regexp, got):
             return False
+    elif isinstance(expected, OptStrRe):
+        if got is None:
+            return True
+        if not re.match(expected.regexp, got):
+            return False
     elif isinstance(expected, NotStrRe):
         if got is None or re.match(expected.regexp, got):
             return False
@@ -128,11 +142,19 @@ def match_list(
         nb_remaining_items = len(got) - len(expected)
         expected += [remainder.item] * max(nb_remaining_items, remainder.min_length)
 
-    if len(got) != len(expected):
+    nb_optionals = 0
+    for expected_value in expected:
+        if isinstance(expected_value, (_AnyOptStr, OptStrRe)):
+            nb_optionals += 1
+        else:
+            if nb_optionals > 0:
+                raise NotImplementedError("Optional values in non-final position")
+
+    if not (len(expected) - nb_optionals <= len(got) <= len(expected)):
         return False
     return all(
         match_string(got_value, expected_value)
-        for (got_value, expected_value) in zip(got, expected)
+        for (got_value, expected_value) in itertools.zip_longest(got, expected)
     )
 
 
