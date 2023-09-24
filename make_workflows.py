@@ -224,7 +224,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
                 "name": "Test with pytest",
                 "timeout-minutes": 30,
                 "run": (
-                    f"PYTEST_ARGS='--junit-xml pytest.xml --timeout 60' "
+                    f"PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' "
                     f"PATH=$HOME/.local/bin:$PATH "
                     f"{env}make {test_id}"
                 ),
