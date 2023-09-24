@@ -15,9 +15,8 @@ class RegisterBeforeConnectTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            ergo_config=lambda config: config["accounts"]["registration"].update(
-                {"allow-before-connect": True}
-            )
+            account_registration_requires_email=False,
+            account_registration_before_connect=True,
         )
 
     def testBeforeConnect(self):
@@ -26,7 +25,7 @@ class RegisterBeforeConnectTestCase(cases.BaseServerTestCase):
         self.sendLine("bar", "CAP LS 302")
         caps = self.getCapLs("bar")
         self.assertIn(REGISTER_CAP_NAME, caps)
-        self.assertIn("before-connect", caps[REGISTER_CAP_NAME])
+        self.assertIn("before-connect", caps[REGISTER_CAP_NAME] or "")
         self.sendLine("bar", "NICK bar")
         self.sendLine("bar", "REGISTER * * shivarampassphrase")
         msgs = self.getMessages("bar")
@@ -40,9 +39,8 @@ class RegisterBeforeConnectDisallowedTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            ergo_config=lambda config: config["accounts"]["registration"].update(
-                {"allow-before-connect": False}
-            )
+            account_registration_requires_email=False,
+            account_registration_before_connect=False,
         )
 
     def testBeforeConnect(self):
@@ -51,7 +49,7 @@ class RegisterBeforeConnectDisallowedTestCase(cases.BaseServerTestCase):
         self.sendLine("bar", "CAP LS 302")
         caps = self.getCapLs("bar")
         self.assertIn(REGISTER_CAP_NAME, caps)
-        self.assertEqual(caps[REGISTER_CAP_NAME], None)
+        self.assertNotIn("before-connect", caps[REGISTER_CAP_NAME] or "")
         self.sendLine("bar", "NICK bar")
         self.sendLine("bar", "REGISTER * * shivarampassphrase")
         msgs = self.getMessages("bar")
@@ -64,21 +62,12 @@ class RegisterBeforeConnectDisallowedTestCase(cases.BaseServerTestCase):
 
 @cases.mark_services
 @cases.mark_specifications("IRCv3")
-class RegisterEmailVerifiedTestCase(cases.BaseServerTestCase):
+class RegisterEmailVerifiedBeforeConnectTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            ergo_config=lambda config: config["accounts"]["registration"].update(
-                {
-                    "email-verification": {
-                        "enabled": True,
-                        "sender": "test@example.com",
-                        "require-tls": True,
-                        "helo-domain": "example.com",
-                    },
-                    "allow-before-connect": True,
-                }
-            )
+            account_registration_requires_email=True,
+            account_registration_before_connect=True,
         )
 
     def testBeforeConnect(self):
@@ -89,10 +78,8 @@ class RegisterEmailVerifiedTestCase(cases.BaseServerTestCase):
         self.sendLine("bar", "CAP LS 302")
         caps = self.getCapLs("bar")
         self.assertIn(REGISTER_CAP_NAME, caps)
-        self.assertEqual(
-            set(caps[REGISTER_CAP_NAME].split(",")),
-            {"before-connect", "email-required"},
-        )
+        self.assertIn("email-required", caps[REGISTER_CAP_NAME] or "")
+        self.assertIn("before-connect", caps[REGISTER_CAP_NAME] or "")
         self.sendLine("bar", "NICK bar")
         self.sendLine("bar", "REGISTER * * shivarampassphrase")
         msgs = self.getMessages("bar")
@@ -101,10 +88,25 @@ class RegisterEmailVerifiedTestCase(cases.BaseServerTestCase):
             fail_response, params=["REGISTER", "INVALID_EMAIL", ANYSTR, ANYSTR]
         )
 
+
+@cases.mark_services
+@cases.mark_specifications("IRCv3")
+class RegisterEmailVerifiedAfterConnectTestCase(cases.BaseServerTestCase):
+    @staticmethod
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(
+            account_registration_before_connect=False,
+            account_registration_requires_email=True,
+        )
+
     def testAfterConnect(self):
         self.connectClient(
             "bar", name="bar", capabilities=[REGISTER_CAP_NAME], skip_if_cap_nak=True
         )
+        self.sendLine("bar", "CAP LS 302")
+        caps = self.getCapLs("bar")
+        self.assertIn(REGISTER_CAP_NAME, caps)
+        self.assertIn("email-required", caps[REGISTER_CAP_NAME] or "")
         self.sendLine("bar", "REGISTER * * shivarampassphrase")
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
@@ -119,9 +121,8 @@ class RegisterNoLandGrabsTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            ergo_config=lambda config: config["accounts"]["registration"].update(
-                {"allow-before-connect": True}
-            )
+            account_registration_requires_email=False,
+            account_registration_before_connect=True,
         )
 
     def testBeforeConnect(self):

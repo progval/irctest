@@ -314,6 +314,11 @@ class SableController(BaseServerController, DirectoryBasedController):
             raise NotImplementedByController("PASS command")
         if ssl:
             raise NotImplementedByController("SSL")
+        if self.test_config.account_registration_before_connect:
+            raise NotImplementedByController("account-registration with before-connect")
+        if self.test_config.account_registration_requires_email:
+            raise NotImplementedByController("account-registration with email-required")
+
         assert self.proc is None
         self.port = port
         self.create_config()
