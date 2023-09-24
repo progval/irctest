@@ -13,6 +13,7 @@ if os.getenv("PYTEST_XDIST_WORKER"):
 else:
     # normal test execution, no port races
     import contextlib
+    from typing import Any
 
-    def FileLock() -> ContextManager[None]:
+    def FileLock(*args: Any, **kwargs: Any) -> ContextManager[None]:
         return contextlib.nullcontext()
