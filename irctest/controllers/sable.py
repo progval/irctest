@@ -256,7 +256,13 @@ SERVICES_CONFIG = """
             "builtin:voice": [
                 "always_send", "voice_self", "receive_voice"
             ]
-        }
+        },
+
+        "password_hash": {
+            "algorithm": "bcrypt", // Only "bcrypt" is supported for now
+            "cost": 4,  // Exponentially faster than the default 12
+        },
+
     },
 
     "event_log": {
