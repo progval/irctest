@@ -802,7 +802,7 @@ def xfailIf(
     def decorator(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
         @functools.wraps(f)
         def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
-            if condition(self):
+            if condition(self, *args, **kwargs):
                 try:
                     return f(self, *args, **kwargs)
                 except Exception:
@@ -819,7 +819,10 @@ def xfailIf(
 def xfailIfSoftware(
     names: List[str], reason: str
 ) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
-    return xfailIf(lambda testcase: testcase.controller.software_name in names, reason)
+    def pred(testcase: _IrcTestCase, *args: Any, **kwargs: Any) -> bool:
+        return testcase.controller.software_name in names
+
+    return xfailIf(pred, reason)
 
 
 def mark_services(cls: TClass) -> TClass:
