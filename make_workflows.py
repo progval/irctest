@@ -212,7 +212,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
                 "name": "Install irctest dependencies",
                 "run": script(
                     "python -m pip install --upgrade pip",
-                    "pip install pytest pytest-xdist -r requirements.txt",
+                    "pip install pytest pytest-xdist pytest-timeout -r requirements.txt",
                     *(
                         software_config["extra_deps"]
                         if "extra_deps" in software_config
@@ -224,7 +224,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
                 "name": "Test with pytest",
                 "timeout-minutes": 30,
                 "run": (
-                    f"PYTEST_ARGS='--junit-xml pytest.xml' "
+                    f"PYTEST_ARGS='--junit-xml pytest.xml --timeout 60' "
                     f"PATH=$HOME/.local/bin:$PATH "
                     f"{env}make {test_id}"
                 ),
