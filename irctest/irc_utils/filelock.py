@@ -5,6 +5,7 @@ in some environments.
 """
 
 import os
+from typing import ContextManager
 
 if os.getenv("PYTEST_XDIST_WORKER"):
     # running under pytest-xdist; filelock is required for reliability
@@ -13,5 +14,5 @@ else:
     # normal test execution, no port races
     import contextlib
 
-    def FileLock(*args, **kwargs):
+    def FileLock() -> ContextManager[None]:
         return contextlib.nullcontext()
