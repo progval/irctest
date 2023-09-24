@@ -88,6 +88,7 @@ class RegisterEmailVerifiedBeforeConnectTestCase(cases.BaseServerTestCase):
             fail_response, params=["REGISTER", "INVALID_EMAIL", ANYSTR, ANYSTR]
         )
 
+
 @cases.mark_services
 @cases.mark_specifications("IRCv3")
 class RegisterEmailVerifiedAfterConnectTestCase(cases.BaseServerTestCase):
