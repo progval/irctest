@@ -11,6 +11,67 @@ REGISTER_CAP_NAME = "draft/account-registration"
 
 @cases.mark_services
 @cases.mark_specifications("IRCv3")
+class RegisterTestCase(cases.BaseServerTestCase):
+    def testRegisterDefaultName(self):
+        """
+        "If <account> is *, then this value is the user’s current nickname."
+        """
+        self.connectClient(
+            "bar", name="bar", capabilities=[REGISTER_CAP_NAME], skip_if_cap_nak=True
+        )
+        self.sendLine("bar", "CAP LS 302")
+        caps = self.getCapLs("bar")
+        self.assertIn(REGISTER_CAP_NAME, caps)
+        self.assertNotIn("email-required", (caps[REGISTER_CAP_NAME] or "").split(","))
+        self.sendLine("bar", "REGISTER * * shivarampassphrase")
+        msgs = self.getMessages("bar")
+        register_response = [msg for msg in msgs if msg.command == "REGISTER"][0]
+        self.assertMessageMatch(register_response, params=["SUCCESS", ANYSTR, ANYSTR])
+
+    def testRegisterSameName(self):
+        """
+        Requested account name is the same as the nick
+        """
+        self.connectClient(
+            "bar", name="bar", capabilities=[REGISTER_CAP_NAME], skip_if_cap_nak=True
+        )
+        self.sendLine("bar", "CAP LS 302")
+        caps = self.getCapLs("bar")
+        self.assertIn(REGISTER_CAP_NAME, caps)
+        self.assertNotIn("email-required", (caps[REGISTER_CAP_NAME] or "").split(","))
+        self.sendLine("bar", "REGISTER bar * shivarampassphrase")
+        msgs = self.getMessages("bar")
+        register_response = [msg for msg in msgs if msg.command == "REGISTER"][0]
+        self.assertMessageMatch(register_response, params=["SUCCESS", ANYSTR, ANYSTR])
+
+    def testRegisterDifferentName(self):
+        """
+        Requested account name differs from the nick
+        """
+        self.connectClient(
+            "bar", name="bar", capabilities=[REGISTER_CAP_NAME], skip_if_cap_nak=True
+        )
+        self.sendLine("bar", "CAP LS 302")
+        caps = self.getCapLs("bar")
+        self.assertIn(REGISTER_CAP_NAME, caps)
+        self.assertNotIn("email-required", (caps[REGISTER_CAP_NAME] or "").split(","))
+        self.sendLine("bar", "REGISTER foo * shivarampassphrase")
+        if "custom-account-name" in (caps[REGISTER_CAP_NAME] or "").split(","):
+            msgs = self.getMessages("bar")
+            register_response = [msg for msg in msgs if msg.command == "REGISTER"][0]
+            self.assertMessageMatch(
+                register_response, params=["SUCCESS", ANYSTR, ANYSTR]
+            )
+        else:
+            self.assertMessageMatch(
+                self.getMessage("bar"),
+                command="FAIL",
+                params=["REGISTER", "ACCOUNT_NAME_MUST_BE_NICK", "foo", ANYSTR],
+            )
+
+
+@cases.mark_services
+@cases.mark_specifications("IRCv3")
 class RegisterBeforeConnectTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
