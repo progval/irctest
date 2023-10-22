@@ -56,6 +56,7 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
                 [m.command for m in self.getMessages(1)],
                 fail_msg="OPER failed",
             )
+            self.getMessages(1)  # make sure we did get all oper-up messages
 
         self.sendLine(1, "WHOIS nick2")
 
