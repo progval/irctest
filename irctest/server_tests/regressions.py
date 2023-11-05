@@ -191,16 +191,9 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         reply = self.getRegistrationMessage(2)
         self.assertMessageMatch(reply, command=RPL_WELCOME)
 
-    @cases.xfailIf(
-        lambda self: bool(
-            self.controller.software_name == "InspIRCd"
-            and self.controller.software_version == 3
-        ),
-        "InspIRCd < 3.17.0 used the wrong source of labeled NICK messages",
-    )
     def testLabeledNick(self):
         """
-        InspIRCd used the new nick as source of NICK changes
+        InspIRCd up to 3.16.1 used the new nick as source of NICK changes
 
         https://github.com/inspircd/inspircd/issues/2067
 
