@@ -191,6 +191,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         reply = self.getRegistrationMessage(2)
         self.assertMessageMatch(reply, command=RPL_WELCOME)
 
+    @cases.mark_specifications("IRCv3")
     def testLabeledNick(self):
         """
         InspIRCd up to 3.16.1 used the new nick as source of NICK changes
