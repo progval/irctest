@@ -104,6 +104,7 @@ def installed_version() -> int:
 
 class InspircdController(BaseServerController, DirectoryBasedController):
     software_name = "InspIRCd"
+    software_version = installed_version()
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
     extban_mute_char = "m"
