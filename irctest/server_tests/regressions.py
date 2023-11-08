@@ -42,7 +42,14 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.getMessages(2)
 
-        # case change: both alice and bob should get a successful nick line
+        # 'alice' is claimed, so 'Alice' is reserved and Bob cannot take it:
+        self.sendLine(2, "NICK Alice")
+        ms = self.getMessages(2)
+        self.assertEqual(len(ms), 1)
+        self.assertMessageMatch(ms[0], command=ERR_NICKNAMEINUSE)
+
+        # but alice can change case to 'Alice'; both alice and bob should get
+        # a successful NICK line
         self.sendLine(1, "NICK Alice")
         ms = self.getMessages(1)
         self.assertEqual(len(ms), 1)
