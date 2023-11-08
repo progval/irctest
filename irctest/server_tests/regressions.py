@@ -54,9 +54,17 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         ms = self.getMessages(1)
         self.assertEqual(len(ms), 1)
         self.assertMessageMatch(ms[0], command="NICK", params=["Alice"])
+        self.assertTrue(
+            ms[0].prefix == "alice" or ms[0].prefix.startswith("alice!"),
+            f"invalid NICK source {ms[0].prefix}",
+        )
         ms = self.getMessages(2)
         self.assertEqual(len(ms), 1)
         self.assertMessageMatch(ms[0], command="NICK", params=["Alice"])
+        self.assertTrue(
+            ms[0].prefix == "alice" or ms[0].prefix.startswith("alice!"),
+            f"invalid NICK source {ms[0].prefix}",
+        )
 
         # no responses, either to the user or to friends, from a no-op nick change
         self.sendLine(1, "NICK Alice")
