@@ -198,6 +198,7 @@ jobs:
         # Insp3 <= 3.16.0 and Insp4 <= 4.0.0a21 don't support -DINSPIRCD_UNLIMITED_MAINLOOP
         patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch || true
 
+        wget https://raw.githubusercontent.com/progval/inspircd-contrib/namedmodes/4.0/m_ircv3_namedmodes.cpp -O src/modules/m_ircv3_namedmodes.cpp
         ./configure --prefix=$HOME/.local/inspircd --development
 
         CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4

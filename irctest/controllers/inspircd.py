@@ -68,6 +68,7 @@ TEMPLATE_CONFIG = """
 <module name="ircv3_invitenotify">
 <module name="ircv3_labeledresponse">
 <module name="ircv3_msgid">
+<module name="ircv3_namedmodes">  # third-party, https://github.com/progval/inspircd-contrib/blob/namedmodes/4.0/m_ircv3_namedmodes.cpp
 <module name="ircv3_servertime">
 <module name="monitor">
 <module name="m_muteban">  # for testing mute extbans

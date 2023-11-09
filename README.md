@@ -116,6 +116,9 @@ patch src/inspircd.cpp < ~/irctest/patches/inspircd_mainloop.patch
 # on Insp3 >= 3.17.0 and Insp4 >= 4.0.0a22:
 export CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP
 
+# third-party module, used in named-modes tests because the spec is not implemented upstream
+wget https://raw.githubusercontent.com/progval/inspircd-contrib/namedmodes/4.0/m_ircv3_namedmodes.cpp -O src/modules/m_ircv3_namedmodes.cpp
+
 ./configure --prefix=$HOME/.local/ --development
 make -j 4
 make install
