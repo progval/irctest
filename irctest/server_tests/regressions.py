@@ -53,11 +53,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "NICK Alice")
         ms = self.getMessages(1)
         self.assertEqual(len(ms), 1)
-        self.assertMessageMatch(ms[0], command="NICK", params=["Alice"])
-        self.assertTrue(
-            ms[0].prefix == "alice" or ms[0].prefix.startswith("alice!"),
-            f"invalid NICK source {ms[0].prefix}",
-        )
+        self.assertMessageMatch(ms[0], nick="alice", command="NICK", params=["Alice"])
         ms = self.getMessages(2)
         self.assertEqual(len(ms), 1)
         self.assertMessageMatch(ms[0], command="NICK", params=["Alice"])
