@@ -289,6 +289,7 @@ software:
             CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
             make -j 4
             make install
+            ~/.local/unrealircd/unrealircd module install third/react
             # Prevent download of geoIP database on first startup
             sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
 
