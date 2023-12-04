@@ -53,15 +53,15 @@ class Utf8TestCase(cases.BaseServerTestCase):
             raise runner.IsupportTokenNotSupported("UTF8ONLY")
 
         self.addClient()
-        self.sendLine(2, "NICK foo")
+        self.sendLine(2, "NICK bar")
         self.clients[2].conn.sendall(b"USER username * * :i\xe8rc\xe9\r\n")
 
         d = self.clients[2].conn.recv(1024)
-        if b" FAIL " in d or b" 468 " in d:  # ERR_INVALIDUSERNAME
+        if b"FAIL " in d or b"468 " in d:  # ERR_INVALIDUSERNAME
             return  # nothing more to test
-        self.assertIn(b" 001 ", d)
+        self.assertIn(b"001 ", d)
 
-        self.sendLine(2, "WHOIS foo")
+        self.sendLine(2, "WHOIS bar")
         self.getMessages(2)
 
     def testNonutf8Username(self):
@@ -70,7 +70,7 @@ class Utf8TestCase(cases.BaseServerTestCase):
             raise runner.IsupportTokenNotSupported("UTF8ONLY")
 
         self.addClient()
-        self.sendLine(2, "NICK foo")
+        self.sendLine(2, "NICK bar")
         self.sendLine(2, "USER 😊😊😊😊😊😊😊😊😊😊 * * :realname")
         m = self.getRegistrationMessage(2)
         if m.command in ("FAIL", "468"):  # ERR_INVALIDUSERNAME
@@ -79,5 +79,5 @@ class Utf8TestCase(cases.BaseServerTestCase):
             m,
             command="001",
         )
-        self.sendLine(2, "WHOIS foo")
+        self.sendLine(2, "WHOIS bar")
         self.getMessages(2)
