@@ -14,6 +14,7 @@ BASE_CONFIG = {
         "name": "My.Little.Server",
         "listeners": {},
         "max-sendq": "16k",
+        "casemapping": "ascii",
         "connection-limits": {
             "enabled": True,
             "cidr-len-ipv4": 32,

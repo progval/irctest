@@ -5,6 +5,7 @@
 """
 
 from irctest import cases, runner
+from irctest.numerics import ERR_ERRONEUSNICKNAME
 from irctest.patma import ANYSTR
 
 
@@ -81,3 +82,37 @@ class Utf8TestCase(cases.BaseServerTestCase):
         )
         self.sendLine(2, "WHOIS foo")
         self.getMessages(2)
+
+
+class ErgoUtf8NickEnabledTestCase(cases.BaseServerTestCase):
+    @staticmethod
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(
+            ergo_config=lambda config: config["server"].update(
+                {"casemapping": "precis"},
+            )
+        )
+
+    @cases.mark_specifications("Ergo")
+    def testUtf8NonAsciiNick(self):
+        """Ergo accepts certain non-ASCII UTF8 nicknames if PRECIS is enabled."""
+        self.connectClient("Işıl")
+        self.joinChannel(1, "#test")
+
+        self.connectClient("Claire")
+        self.joinChannel(2, "#test")
+
+        self.sendLine(1, "PRIVMSG #test :hi there")
+        self.assertMessageMatch(
+            self.getMessage(2), nick="Işıl", params=["#test", "hi there"]
+        )
+
+
+class ErgoUtf8NickDisabledTestCase(cases.BaseServerTestCase):
+    @cases.mark_specifications("Ergo")
+    def testUtf8NonAsciiNick(self):
+        """Ergo rejects non-ASCII nicknames in its default configuration."""
+        self.addClient(1)
+        self.sendLine(1, "USER u s e r")
+        self.sendLine(1, "NICK Işıl")
+        self.assertMessageMatch(self.getMessage(1), command=ERR_ERRONEUSNICKNAME)
