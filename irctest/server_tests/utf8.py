@@ -103,6 +103,7 @@ class ErgoUtf8NickEnabledTestCase(cases.BaseServerTestCase):
         self.joinChannel(2, "#test")
 
         self.sendLine(1, "PRIVMSG #test :hi there")
+        self.getMessages(1)
         self.assertMessageMatch(
             self.getMessage(2), nick="Işıl", params=["#test", "hi there"]
         )
