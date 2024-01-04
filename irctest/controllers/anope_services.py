@@ -78,7 +78,7 @@ def installed_version() -> int:
     ).stdout
     if output.startswith("Anope-2.0"):
         return 20
-    if output.startswith("Anope-2.1"):
+    elif output.startswith("Anope-2.1"):
         return 21
     else:
         assert False, f"unexpected version: {output}"
