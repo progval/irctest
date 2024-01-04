@@ -49,6 +49,8 @@ module {{
     client = "NickServ"
     forceemail = no
     passlen = 1000  # Some tests need long passwords
+    maxpasslen = 1000
+    minpasslen = 1
 }}
 command {{ service = "NickServ"; name = "HELP"; command = "generic/help"; }}
 
