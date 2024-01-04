@@ -101,7 +101,7 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
             pass
 
         assert self.directory
-        services_path = shutil.which("services")
+        services_path = shutil.which("anope")
         assert services_path
 
         # Config and code need to be in the same directory, *obviously*
@@ -109,7 +109,7 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
 
         self.proc = subprocess.Popen(
             [
-                "services",
+                "anope",
                 "-n",  # don't fork
                 "--config=services.conf",  # can't be an absolute path
                 # "--logdir",
