@@ -343,16 +343,16 @@ software:
         separate_build_job: true
         path: anope
         refs:
-            stable: "2.0.9"
-            release: "2.0.9"
-            devel: "2.0.9"
-            devel_release: "2.0.9"
+            stable: "2.0.14"
+            release: "2.1.1"
+            devel: "2.1"
+            devel_release: "2.0"
         build_script: |
             cd $GITHUB_WORKSPACE/anope/
-            cp $GITHUB_WORKSPACE/data/anope/* .
-            CFLAGS=-O0 ./Config -quick
-            make -C build -j 4
-            make -C build install
+            sudo apt-get install ninja-build --no-install-recommends
+            mkdir build && cd build
+            cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
+            ninja install
 
     dlk:
         name: Dlk
