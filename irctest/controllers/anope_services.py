@@ -1,3 +1,4 @@
+import functools
 from pathlib import Path
 import shutil
 import subprocess
@@ -70,10 +71,24 @@ module {{ name = "ns_cert" }}
 """
 
 
+@functools.lru_cache()
+def installed_version() -> int:
+    output = subprocess.run(
+        ["anope", "--version"], stdout=subprocess.PIPE, universal_newlines=True
+    ).stdout
+    if output.startswith("Anope-2.0"):
+        return 20
+    elif output.startswith("Anope-2.1"):
+        return 21
+    else:
+        assert False, f"unexpected version: {output}"
+
+
 class AnopeController(BaseServicesController, DirectoryBasedController):
     """Collaborator for server controllers that rely on Anope"""
 
     software_name = "Anope"
+    software_version = None
 
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
@@ -88,6 +103,21 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
             "ngircd",
         )
 
+        assert self.directory
+        services_path = shutil.which("anope")
+        assert services_path
+
+        # Rewrite Anope 2.0 module names for 2.1
+        if not self.software_version:
+            self.software_version = installed_version()
+        if self.software_version >= 21:
+            if protocol == "charybdis":
+                protocol = "solanum"
+            elif protocol == "inspircd3":
+                protocol = "inspircd"
+            elif protocol == "unreal4":
+                protocol = "unrealircd"
+
         with self.open_file("conf/services.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -99,10 +129,6 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
 
         with self.open_file("conf/empty_file") as fd:
             pass
-
-        assert self.directory
-        services_path = shutil.which("anope")
-        assert services_path
 
         # Config and code need to be in the same directory, *obviously*
         (self.directory / "lib").symlink_to(Path(services_path).parent.parent / "lib")
