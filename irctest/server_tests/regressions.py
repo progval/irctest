@@ -197,3 +197,27 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "USER u s e r")
         reply = self.getRegistrationMessage(2)
         self.assertMessageMatch(reply, command=RPL_WELCOME)
+
+    @cases.mark_specifications("IRCv3")
+    def testLabeledNick(self):
+        """
+        InspIRCd up to 3.16.1 used the new nick as source of NICK changes
+
+        https://github.com/inspircd/inspircd/issues/2067
+
+        https://github.com/inspircd/inspircd/commit/83f01b36a11734fd91a4e7aad99c15463858fe4a
+        """
+        self.connectClient(
+            "alice",
+            capabilities=["batch", "labeled-response"],
+            skip_if_cap_nak=True,
+        )
+
+        self.sendLine(1, "@label=abc NICK alice2")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            nick="alice",
+            command="NICK",
+            params=["alice2"],
+            tags={"label": "abc", **ANYDICT},
+        )
