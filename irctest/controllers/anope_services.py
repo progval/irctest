@@ -2,7 +2,7 @@ import functools
 from pathlib import Path
 import shutil
 import subprocess
-from typing import Type
+from typing import Tuple, Type
 
 from irctest.basecontrollers import BaseServicesController, DirectoryBasedController
 
@@ -66,7 +66,7 @@ options {{
     warningtimeout = 4h
 }}
 
-module {{ name = "m_sasl" }}
+module {{ name = "{module_prefix}sasl" }}
 module {{ name = "enc_sha256" }}
 module {{ name = "ns_cert" }}
 
@@ -74,16 +74,13 @@ module {{ name = "ns_cert" }}
 
 
 @functools.lru_cache()
-def installed_version() -> int:
+def installed_version() -> Tuple[int, ...]:
     output = subprocess.run(
         ["anope", "--version"], stdout=subprocess.PIPE, universal_newlines=True
     ).stdout
-    if output.startswith("Anope-2.0"):
-        return 20
-    elif output.startswith("Anope-2.1"):
-        return 21
-    else:
-        assert False, f"unexpected version: {output}"
+    (anope, version, *trailing) = output.split()[0].split("-")
+    assert anope == "Anope"
+    return tuple(map(int, version.split(".")))
 
 
 class AnopeController(BaseServicesController, DirectoryBasedController):
@@ -112,7 +109,7 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
         # Rewrite Anope 2.0 module names for 2.1
         if not self.software_version:
             self.software_version = installed_version()
-        if self.software_version >= 21:
+        if self.software_version >= (2, 1, 0):
             if protocol == "charybdis":
                 protocol = "solanum"
             elif protocol == "inspircd3":
@@ -126,6 +123,7 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
                     protocol=protocol,
                     server_hostname=server_hostname,
                     server_port=server_port,
+                    module_prefix="" if self.software_version >= (2, 1, 2) else "m_",
                 )
             )
 
