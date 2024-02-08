@@ -1,7 +1,7 @@
 import base64
 
 from irctest import cases, runner, scram
-from irctest.numerics import ERR_SASLFAIL
+from irctest.numerics import ERR_SASLFAIL, RPL_LOGGEDIN, RPL_SASLMECHS
 from irctest.patma import ANYSTR
 
 
@@ -48,9 +48,34 @@ class SaslTestCase(cases.BaseServerTestCase):
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
-            command="900",
+            command=RPL_LOGGEDIN,
             params=[ANYSTR, ANYSTR, "jilles", ANYSTR],
             fail_msg="Unexpected reply to correct SASL authentication: {msg}",
+        )
+
+    @cases.mark_specifications("IRCv3")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    def testPlainFailure(self):
+        """PLAIN authentication with incorrect username/password."""
+        self.controller.registerUser(self, "jilles", "sesame")
+        self.addClient()
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
+        # password 'millet'
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBtaWxsZXQ=")
+        self.sendLine(1, "NICK jilles_")
+        self.sendLine(1, "USER u s e r")
+        self.sendLine(1, "CAP END")
+        numerics = set(m.command for m in self.skipToWelcome(1))
+        self.assertIn(
+            ERR_SASLFAIL,
+            numerics,
+            fail_msg="Incorrect authentication must receive ERR_SASLFAIL",
+        )
+        self.assertNotIn(
+            RPL_LOGGEDIN,
+            numerics,
+            fail_msg="Incorrect authentication must not receive RPL_LOGGEDIN",
         )
 
     @cases.mark_specifications("IRCv3")
@@ -161,11 +186,11 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
         self.sendLine(1, "AUTHENTICATE FOO")
         m = self.getRegistrationMessage(1)
-        while m.command == "908":  # RPL_SASLMECHS
+        while m.command == RPL_SASLMECHS:
             m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
-            command="904",
+            command=ERR_SASLFAIL,
             fail_msg="Did not reply with 904 to “AUTHENTICATE FOO”: {msg}",
         )
 
