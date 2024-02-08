@@ -60,22 +60,23 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.controller.registerUser(self, "jilles", "sesame")
         self.addClient()
         self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
-        # password 'millet'
         self.sendLine(1, "AUTHENTICATE PLAIN")
-        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBtaWxsZXQ=")
-        self.sendLine(1, "NICK jilles_")
-        self.sendLine(1, "USER u s e r")
-        self.sendLine(1, "CAP END")
-        numerics = set(m.command for m in self.skipToWelcome(1))
-        self.assertIn(
-            ERR_SASLFAIL,
-            numerics,
-            fail_msg="Incorrect authentication must receive ERR_SASLFAIL",
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
-        self.assertNotIn(
-            RPL_LOGGEDIN,
-            numerics,
-            fail_msg="Incorrect authentication must not receive RPL_LOGGEDIN",
+        # password 'millet'
+        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBtaWxsZXQ=")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command=ERR_SASLFAIL,
+            params=[ANYSTR, ANYSTR],
+            fail_msg="Unexpected reply to incorrect SASL authentication: {msg}",
         )
 
     @cases.mark_specifications("IRCv3")
