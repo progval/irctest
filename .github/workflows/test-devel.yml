@@ -550,7 +550,7 @@ jobs:
         path: ergo
         ref: master
         repository: ergochat/ergo
-    - uses: actions/setup-go@v2
+    - uses: actions/setup-go@v3
       with:
         go-version: ^1.22.0
     - run: go version
