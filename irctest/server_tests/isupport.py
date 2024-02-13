@@ -37,9 +37,7 @@ class IsupportTestCase(cases.BaseServerTestCase):
                 self.validateIsupportParam(param)
 
     def validateIsupportParam(self, param):
-        try:
-            param.encode("ascii")
-        except UnicodeEncodeError:
+        if not param.isascii():
             raise ValueError("Invalid non-ASCII 005 parameter", param)
         # TODO add more validation
 
