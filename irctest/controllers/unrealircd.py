@@ -11,6 +11,7 @@ from irctest.basecontrollers import BaseServerController, DirectoryBasedControll
 
 TEMPLATE_CONFIG = """
 include "modules.default.conf";
+loadmodule "third/metadata2";
 include "operclass.default.conf";
 {extras}
 include "help/help.conf";
