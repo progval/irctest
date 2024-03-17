@@ -372,6 +372,8 @@ class BaseServicesController(_BaseController):
                     pass
                 elif msg.command in ("MODE", "221"):  # RPL_UMODEIS
                     pass
+                elif msg.command == "396":  # RPL_VISIBLEHOST
+                    pass
                 elif msg.command == "NOTICE":
                     assert msg.prefix is not None
                     if "!" not in msg.prefix and "." in msg.prefix:
