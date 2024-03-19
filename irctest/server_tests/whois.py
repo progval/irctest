@@ -219,6 +219,7 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC2812")
+    @cases.xfailIfSoftware(["Sable"], "https://github.com/Libera-Chat/sable/issues/101")
     def testWhoisMissingUser(self):
         """Test WHOIS on a nonexistent nickname."""
         self.connectClient("qux", name="qux")
