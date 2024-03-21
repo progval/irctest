@@ -136,10 +136,9 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
         self.proc = subprocess.Popen(
             [
                 "anope",
-                "-n",  # don't fork
-                "--config=services.conf",  # can't be an absolute path
-                # "--logdir",
-                # f"/tmp/services-{server_port}.log",
+                "--config=services.conf",  # can't be an absolute path in 2.0
+                "--nofork",  # don't fork
+                "--nopid",  # don't write a pid
             ],
             cwd=self.directory,
             # stdout=subprocess.DEVNULL,
