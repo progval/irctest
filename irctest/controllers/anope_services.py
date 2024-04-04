@@ -132,6 +132,9 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
 
         # Config and code need to be in the same directory, *obviously*
         (self.directory / "lib").symlink_to(Path(services_path).parent.parent / "lib")
+        (self.directory / "modules").symlink_to(
+            Path(services_path).parent.parent / "modules"
+        )
 
         self.proc = subprocess.Popen(
             [
