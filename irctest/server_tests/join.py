@@ -6,7 +6,6 @@ The JOIN command  (`RFC 1459
 """
 
 from irctest import cases, runner
-from irctest.irc_utils import ambiguities
 from irctest.numerics import (
     ERR_BADCHANMASK,
     ERR_FORBIDDENCHANNEL,
@@ -75,33 +74,23 @@ class JoinTestCase(cases.BaseServerTestCase):
 
         for m in self.getMessages(1):
             if m.command == "353":
-                self.assertIn(
-                    len(m.params),
-                    (3, 4),
-                    m,
-                    fail_msg="RPL_NAM_REPLY with number of arguments "
-                    "<3 or >4: {msg}",
+                self.assertMessageMatch(
+                    m, params=["foo", StrRe(r"[=\*@]"), "#chan", StrRe("[@+]?foo")]
                 )
-                params = ambiguities.normalize_namreply_params(m.params)
-                self.assertIn(
-                    params[1],
-                    "=*@",
+
+        self.connectClient("bar")
+        self.sendLine(2, "JOIN #chan")
+
+        for m in self.getMessages(2):
+            if m.command == "353":
+                self.assertMessageMatch(
                     m,
-                    fail_msg="Bad channel prefix: {item} not in {list}: {msg}",
-                )
-                self.assertEqual(
-                    params[2],
-                    "#chan",
-                    m,
-                    fail_msg="Bad channel name: {got} instead of " "{expects}: {msg}",
-                )
-                self.assertIn(
-                    params[3],
-                    {"foo", "@foo", "+foo"},
-                    m,
-                    fail_msg="Bad user list: should contain only user "
-                    '"foo" with an optional "+" or "@" prefix, but got: '
-                    "{msg}",
+                    params=[
+                        "bar",
+                        StrRe(r"[=\*@]"),
+                        "#chan",
+                        StrRe("([@+]?foo bar|bar [@+]?foo)"),
+                    ],
                 )
 
     def testJoinTwice(self):
@@ -115,34 +104,8 @@ class JoinTestCase(cases.BaseServerTestCase):
         # if the join is successful, or has an error among the given set.
         for m in self.getMessages(1):
             if m.command == "353":
-                self.assertIn(
-                    len(m.params),
-                    (3, 4),
-                    m,
-                    fail_msg="RPL_NAM_REPLY with number of arguments "
-                    "<3 or >4: {msg}",
-                )
-                params = ambiguities.normalize_namreply_params(m.params)
-                self.assertIn(
-                    params[1],
-                    "=*@",
-                    m,
-                    fail_msg="Bad channel prefix: {item} not in {list}: {msg}",
-                )
-                self.assertEqual(
-                    params[2],
-                    "#chan",
-                    m,
-                    fail_msg="Bad channel name: {got} instead of " "{expects}: {msg}",
-                )
-                self.assertIn(
-                    params[3],
-                    {"foo", "@foo", "+foo"},
-                    m,
-                    fail_msg='Bad user list after user "foo" joined twice '
-                    "the same channel: should contain only user "
-                    '"foo" with an optional "+" or "@" prefix, but got: '
-                    "{msg}",
+                self.assertMessageMatch(
+                    m, params=["foo", StrRe(r"[=\*@]"), "#chan", StrRe("[@+]?foo")]
                 )
 
     def testJoinPartiallyInvalid(self):
