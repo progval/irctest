@@ -27,11 +27,6 @@ class MultiPrefixTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             reply,
             command="353",
-            fail_msg="Expected NAMES response (353) with @+foo, got: {msg}",
-        )
-        self.assertMessageMatch(
-            reply,
-            command="353",
             params=["foo", ANYSTR, "#chan", "@+foo"],
             fail_msg="Expected NAMES response (353) with @+foo, got: {msg}",
         )
@@ -47,8 +42,9 @@ class MultiPrefixTestCase(cases.BaseServerTestCase):
             8,
             "Expected WHO response (352) with 8 params, got: {msg}".format(msg=msg),
         )
-        self.assertTrue(
-            "@+" in msg.params[6],
+        self.assertIn(
+            "@+",
+            msg.params[6],
             'Expected WHO response (352) with "@+" in param 7, got: {msg}'.format(
                 msg=msg
             ),
