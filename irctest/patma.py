@@ -106,15 +106,15 @@ def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bo
     elif isinstance(expected, _AnyStr) and got is not None:
         return True
     elif isinstance(expected, StrRe):
-        if got is None or not re.match(expected.regexp, got):
+        if got is None or not re.match(expected.regexp + "$", got):
             return False
     elif isinstance(expected, OptStrRe):
         if got is None:
             return True
-        if not re.match(expected.regexp, got):
+        if not re.match(expected.regexp + "$", got):
             return False
     elif isinstance(expected, NotStrRe):
-        if got is None or re.match(expected.regexp, got):
+        if got is None or re.match(expected.regexp + "$", got):
             return False
     elif isinstance(expected, InsensitiveStr):
         if got is None or got.lower() != expected.string.lower():
