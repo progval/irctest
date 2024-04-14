@@ -160,6 +160,7 @@ class _IrcTestCase(Generic[TController]):
     def messageDiffers(
         self,
         msg: Message,
+        command: Union[str, None, patma.Operator] = None,
         params: Optional[List[Union[str, None, patma.Operator]]] = None,
         target: Optional[str] = None,
         tags: Optional[
@@ -185,6 +186,14 @@ class _IrcTestCase(Generic[TController]):
                     param=key,
                     msg=msg,
                 )
+
+        if command is not None and not patma.match_string(msg.command, command):
+            fail_msg = (
+                fail_msg or "expected command to match {expects}, got {got}: {msg}"
+            )
+            return fail_msg.format(
+                *extra_format, got=msg.command, expects=command, msg=msg
+            )
 
         if prefix is not None and not patma.match_string(msg.prefix, prefix):
             fail_msg = (
