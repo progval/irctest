@@ -8,6 +8,7 @@ import pytest
 from irctest import cases, runner
 from irctest.client_mock import NoMessageException
 from irctest.numerics import (
+    ERR_ERRONEUSNICKNAME,
     RPL_ENDOFMONLIST,
     RPL_MONLIST,
     RPL_MONOFFLINE,
@@ -190,14 +191,15 @@ class MonitorTestCase(_BaseMonitorTestCase):
         self.check_server_support()
         self.sendLine(1, "MONITOR + *!username@localhost")
         self.sendLine(1, "MONITOR + *!username@127.0.0.1")
+        expected_command = StrRe(f"({RPL_MONOFFLINE}|{ERR_ERRONEUSNICKNAME})")
         try:
             m = self.getMessage(1)
-            self.assertMessageMatch(m, command="731")
+            self.assertMessageMatch(m, command=expected_command)
         except NoMessageException:
             pass
         else:
             m = self.getMessage(1)
-            self.assertMessageMatch(m, command="731")
+            self.assertMessageMatch(m, command=expected_command)
         self.connectClient("bar")
         try:
             m = self.getMessage(1)
