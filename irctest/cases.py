@@ -223,7 +223,7 @@ class _IrcTestCase(Generic[TController]):
                     or "expected nick to be {expects}, got {got} instead: {msg}"
                 )
                 return fail_msg.format(
-                    *extra_format, got=got_nick, expects=nick, param=key, msg=msg
+                    *extra_format, got=got_nick, expects=nick, msg=msg
                 )
 
         return None
