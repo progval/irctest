@@ -132,14 +132,16 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
 
         # Config and code need to be in the same directory, *obviously*
         (self.directory / "lib").symlink_to(Path(services_path).parent.parent / "lib")
+        (self.directory / "modules").symlink_to(
+            Path(services_path).parent.parent / "modules"
+        )
 
         self.proc = subprocess.Popen(
             [
                 "anope",
-                "-n",  # don't fork
-                "--config=services.conf",  # can't be an absolute path
-                # "--logdir",
-                # f"/tmp/services-{server_port}.log",
+                "--config=services.conf",  # can't be an absolute path in 2.0
+                "--nofork",  # don't fork
+                "--nopid",  # don't write a pid
             ],
             cwd=self.directory,
             # stdout=subprocess.DEVNULL,

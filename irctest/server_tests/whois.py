@@ -8,6 +8,7 @@ import pytest
 
 from irctest import cases
 from irctest.numerics import (
+    ERR_NOSUCHNICK,
     RPL_AWAY,
     RPL_ENDOFWHOIS,
     RPL_WHOISACCOUNT,
@@ -217,6 +218,25 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase):
         # dumb regression test for oragono/oragono#355:
         self.assertNotIn(
             whois_user.params[3], [nick, username, "~" + username, realname]
+        )
+
+    @cases.mark_specifications("RFC2812")
+    @cases.xfailIfSoftware(["Sable"], "https://github.com/Libera-Chat/sable/issues/101")
+    def testWhoisMissingUser(self):
+        """Test WHOIS on a nonexistent nickname."""
+        self.connectClient("qux", name="qux")
+        self.sendLine("qux", "WHOIS bar")
+        messages = self.getMessages("qux")
+        self.assertEqual(len(messages), 2)
+        self.assertMessageMatch(
+            messages[0],
+            command=ERR_NOSUCHNICK,
+            params=["qux", "bar", ANYSTR],
+        )
+        self.assertMessageMatch(
+            messages[1],
+            command=RPL_ENDOFWHOIS,
+            params=["qux", "bar", ANYSTR],
         )
 
     @pytest.mark.parametrize(
