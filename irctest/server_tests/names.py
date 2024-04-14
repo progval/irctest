@@ -60,7 +60,7 @@ class NamesTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("Modern")
     @cases.xfailIfSoftware(
-        ["Bahamut"], "Bahamut sends a trailing space in RPL_NAMREPLY"
+        ["Bahamut", "irc2"], "Bahamut and irc2 send a trailing space in RPL_NAMREPLY"
     )
     def testNamesModern(self):
         """
