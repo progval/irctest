@@ -75,7 +75,7 @@ class NamesTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             messages[0],
             command=RPL_NAMREPLY,
-            params=["nick1", "@", "#chan", "@nick1"],
+            params=["nick1", "@", "#chan", StrRe("@nick1 ?")],
         )
         self.assertMessageMatch(
             messages[1],
