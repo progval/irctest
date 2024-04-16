@@ -23,6 +23,7 @@ TEMPLATE_CONFIG = """
 
 [Options]
     MorePrivacy = no  # by default, always replies to WHOWAS with ERR_WASNOSUCHNICK
+    PAM = no
 
 [Operator]
     Name = operuser
