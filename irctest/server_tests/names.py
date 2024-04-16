@@ -11,7 +11,7 @@ from irctest.patma import ANYSTR, StrRe
 
 
 class NamesTestCase(cases.BaseServerTestCase):
-    def _testNames(self, symbol):
+    def _testNames(self, symbol: bool, allow_trailing_space: bool):
         self.connectClient("nick1")
         self.sendLine(1, "JOIN #chan")
         self.getMessages(1)
@@ -31,7 +31,10 @@ class NamesTestCase(cases.BaseServerTestCase):
                 "nick1",
                 *(["="] if symbol else []),
                 "#chan",
-                StrRe("(nick2 @nick1|@nick1 nick2)"),
+                StrRe(
+                    "(nick2 @nick1|@nick1 nick2)"
+                    + (" ?" if allow_trailing_space else "")
+                ),
             ],
         )
 
@@ -44,20 +47,26 @@ class NamesTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", deprecated=True)
     def testNames1459(self):
         """
-        https://modern.ircdocs.horse/#names-message
         https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.5
-        https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5
         """
-        self._testNames(symbol=False)
+        self._testNames(symbol=False, allow_trailing_space=True)
 
-    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.mark_specifications("RFC2812", "Modern")
     def testNames2812(self):
         """
-        https://modern.ircdocs.horse/#names-message
-        https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.5
         https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5
         """
-        self._testNames(symbol=True)
+        self._testNames(symbol=True, allow_trailing_space=True)
+
+    @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(
+        ["Bahamut", "irc2"], "Bahamut and irc2 send a trailing space in RPL_NAMREPLY"
+    )
+    def testNamesModern(self):
+        """
+        https://modern.ircdocs.horse/#names-message
+        """
+        self._testNames(symbol=True, allow_trailing_space=False)
 
     def _testNamesMultipleChannels(self, symbol):
         self.connectClient("nick1")

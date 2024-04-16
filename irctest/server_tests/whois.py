@@ -97,7 +97,9 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
                     params=[
                         "nick1",
                         "nick2",
-                        StrRe("(@#chan1 @#chan2|@#chan2 @#chan1)"),
+                        # trailing space was required by the RFCs, and Modern explicitly
+                        # allows it
+                        StrRe("(@#chan1 @#chan2|@#chan2 @#chan1) ?"),
                     ],
                 )
             elif m.command == RPL_WHOISSPECIAL:

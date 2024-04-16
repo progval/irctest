@@ -56,7 +56,8 @@ class IsupportTestCase(cases.BaseServerTestCase):
             return
 
         m = re.match(
-            r"\((?P<modes>[a-zA-Z]+)\)(?P<prefixes>\S+)", self.server_support["PREFIX"]
+            r"^\((?P<modes>[a-zA-Z]+)\)(?P<prefixes>\S+)$",
+            self.server_support["PREFIX"],
         )
         self.assertTrue(
             m,
@@ -117,5 +118,5 @@ class IsupportTestCase(cases.BaseServerTestCase):
         parts = self.server_support["TARGMAX"].split(",")
         for part in parts:
             self.assertTrue(
-                re.match("[A-Z]+:[0-9]*", part), "Invalid TARGMAX key:value: %r", part
+                re.match("^[A-Z]+:[0-9]*$", part), "Invalid TARGMAX key:value: %r", part
             )
