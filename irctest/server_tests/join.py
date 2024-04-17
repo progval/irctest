@@ -60,6 +60,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             ),
         )
 
+    @cases.xfailIfSoftware(["Bahamut", "irc2"], "trailing space on RPL_NAMREPLY")
     @cases.mark_specifications("RFC2812")
     def testJoinNamreply(self):
         """“353    RPL_NAMREPLY
