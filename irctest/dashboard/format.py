@@ -249,7 +249,11 @@ def build_test_table(
                 HTML.th(
                     HTML.details(
                         HTML.summary(HTML.a(test_name, href=f"#{row_anchor}")),
-                        docstring(getattr(getattr(module, class_name), test_name)),
+                        docstring(
+                            getattr(
+                                getattr(module, class_name), test_name.split("[")[0]
+                            )
+                        ),
                     ),
                     class_="test-name",
                 ),
