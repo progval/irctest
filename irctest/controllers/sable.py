@@ -378,7 +378,7 @@ class SableController(BaseServerController, DirectoryBasedController):
             .strip(),
             services_management_hostname=services_management_hostname,
             services_management_port=services_management_port,
-            services_alias_users=SERVICES_ALIAS_USERS if run_services else ""
+            services_alias_users=SERVICES_ALIAS_USERS if run_services else "",
         )
 
         with self.open_file("configs/network.conf") as fd:
