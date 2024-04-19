@@ -246,7 +246,13 @@ def build_test_table(
                 row_anchor = md5sum(row_anchor)
 
             row = HTML.tr(
-                HTML.th(HTML.a(test_name, href=f"#{row_anchor}"), class_="test-name"),
+                HTML.th(
+                    HTML.details(
+                        HTML.summary(HTML.a(test_name, href=f"#{row_anchor}")),
+                        docstring(getattr(getattr(module, class_name), test_name)),
+                    ),
+                    class_="test-name",
+                ),
                 id=row_anchor,
             )
             rows.append(row)
