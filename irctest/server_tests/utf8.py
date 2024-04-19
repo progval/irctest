@@ -72,14 +72,13 @@ class Utf8TestCase(cases.BaseServerTestCase):
 
         self.addClient()
         self.sendLine(2, "NICK bar")
-        self.sendLine(2, "USER 😊😊😊😊😊😊😊😊😊😊 * * :realname")
-        m = self.getRegistrationMessage(2)
-        if m.command in ("FAIL", "468"):  # ERR_INVALIDUSERNAME
+        self.clients[2].conn.sendall(b"USER \xe8rc\xe9 * * :readlname\r\n")
+
+        d = self.clients[2].conn.recv(1024)
+        if b"FAIL " in d or b"468 " in d:  # ERR_INVALIDUSERNAME
             return  # nothing more to test
-        self.assertMessageMatch(
-            m,
-            command="001",
-        )
+        self.assertIn(b"001 ", d)
+
         self.sendLine(2, "WHOIS bar")
         self.getMessages(2)
 
