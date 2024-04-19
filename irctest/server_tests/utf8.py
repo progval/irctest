@@ -57,8 +57,16 @@ class Utf8TestCase(cases.BaseServerTestCase):
         self.sendLine(2, "NICK bar")
         self.clients[2].conn.sendall(b"USER username * * :i\xe8rc\xe9\r\n")
 
-        d = self.clients[2].conn.recv(1024)
-        if b"FAIL " in d or b"468 " in d:  # ERR_INVALIDUSERNAME
+        d = b""
+        while True:
+            try:
+                buf = self.clients[2].conn.recv(1024)
+            except TimeoutError:
+                break
+            if d and not buf:
+                break
+            d += buf
+        if b"FAIL " in d or b"ERROR " in d or b"468 " in d:  # ERR_INVALIDUSERNAME
             return  # nothing more to test
         self.assertIn(b"001 ", d)
 
@@ -74,8 +82,16 @@ class Utf8TestCase(cases.BaseServerTestCase):
         self.sendLine(2, "NICK bar")
         self.clients[2].conn.sendall(b"USER \xe8rc\xe9 * * :readlname\r\n")
 
-        d = self.clients[2].conn.recv(1024)
-        if b"FAIL " in d or b"468 " in d:  # ERR_INVALIDUSERNAME
+        d = b""
+        while True:
+            try:
+                buf = self.clients[2].conn.recv(1024)
+            except TimeoutError:
+                break
+            if d and not buf:
+                break
+            d += buf
+        if b"FAIL " in d or b"ERROR " in d or b"468 " in d:  # ERR_INVALIDUSERNAME
             return  # nothing more to test
         self.assertIn(b"001 ", d)
 
