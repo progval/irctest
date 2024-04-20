@@ -228,7 +228,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         path: ngircd
-        ref: 0714466af88d71d6c395629cd7fb624b099507d4
+        ref: 3e3f6cbeceefd9357b53b27c2386bb39306ab353
         repository: ngircd/ngircd
     - name: Build ngircd
       run: |
