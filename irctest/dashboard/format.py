@@ -245,16 +245,17 @@ def build_test_table(
                 # TODO: only hash test parameter
                 row_anchor = md5sum(row_anchor)
 
+            doc = docstring(
+                getattr(getattr(module, class_name), test_name.split("[")[0])
+            )
             row = HTML.tr(
                 HTML.th(
                     HTML.details(
                         HTML.summary(HTML.a(test_name, href=f"#{row_anchor}")),
-                        docstring(
-                            getattr(
-                                getattr(module, class_name), test_name.split("[")[0]
-                            )
-                        ),
-                    ),
+                        doc,
+                    )
+                    if doc
+                    else HTML.a(test_name, href=f"#{row_anchor}"),
                     class_="test-name",
                 ),
                 id=row_anchor,
