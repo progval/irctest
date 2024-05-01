@@ -83,6 +83,15 @@ class NamesTestCase(cases.BaseServerTestCase):
             params=["nick1", "#chan", ANYSTR],
         )
 
+        self.connectClient("nick2")
+        self.sendLine(2, "JOIN #chan")
+        namreplies = [msg for msg in self.getMessages(2) if msg.command == RPL_NAMREPLY]
+        self.assertNotEqual(len(namreplies), 0)
+        for msg in namreplies:
+            self.assertMessageMatch(
+                msg, command=RPL_NAMREPLY, params=["nick2", "@", "#chan", ANYSTR]
+            )
+
     def _testNamesMultipleChannels(self, symbol):
         self.connectClient("nick1")
 
