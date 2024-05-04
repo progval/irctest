@@ -93,7 +93,7 @@ SABLE_SELECTORS := \
 	and not arbitrary_client_tags \
 	and not react_tag \
 	and not private_chathistory \
-	and not whowas and not list and not lusers and not userhost and not time and not info \
+	and not list and not lusers and not time and not info \
 	$(EXTRA_SELECTORS)
 
 SOLANUM_SELECTORS := \

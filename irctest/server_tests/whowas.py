@@ -154,6 +154,9 @@ class WhowasTestCase(cases.BaseServerTestCase):
         except ConnectionClosed:
             pass
 
+        if self.controller.software_name == "Sable":
+            time.sleep(1)  # may take a little while to record the historical user
+
         self.sendLine(1, whowas_command)
 
         messages = self.getMessages(1)
