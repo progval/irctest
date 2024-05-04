@@ -116,20 +116,7 @@ NETWORK_CONFIG_CONFIG = """
     ],
 
     "alias_users": [
-        {
-            "nick": "ChanServ",
-            "user": "ChanServ",
-            "host": "services.",
-            "realname": "Channel services compatibility layer",
-            "command_alias": "CS"
-        },
-        {
-            "nick": "NickServ",
-            "user": "NickServ",
-            "host": "services.",
-            "realname": "Account services compatibility layer",
-            "command_alias": "NS"
-        }
+        %(services_alias_users)s
     ],
 
     "default_roles": {
@@ -158,6 +145,23 @@ NETWORK_CONFIG_CONFIG = """
 
     "debug_mode": true
 }
+"""
+
+SERVICES_ALIAS_USERS = """
+        {
+            "nick": "ChanServ",
+            "user": "ChanServ",
+            "host": "services.",
+            "realname": "Channel services compatibility layer",
+            "command_alias": "CS"
+        },
+        {
+            "nick": "NickServ",
+            "user": "NickServ",
+            "host": "services.",
+            "realname": "Account services compatibility layer",
+            "command_alias": "NS"
+        }
 """
 
 SERVER_CONFIG = """
@@ -374,6 +378,7 @@ class SableController(BaseServerController, DirectoryBasedController):
             .strip(),
             services_management_hostname=services_management_hostname,
             services_management_port=services_management_port,
+            services_alias_users=SERVICES_ALIAS_USERS if run_services else "",
         )
 
         with self.open_file("configs/network.conf") as fd:

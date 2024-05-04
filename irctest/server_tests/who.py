@@ -87,7 +87,7 @@ class BaseWhoTestCase:
 class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoStar(self):
-        if self.controller.software_name in ("Bahamut", "Sable"):
+        if self.controller.software_name in ("Bahamut",):
             raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
@@ -118,7 +118,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     )
     @cases.mark_specifications("Modern")
     def testWhoNick(self, mask):
-        if "*" in mask and self.controller.software_name in ("Bahamut", "Sable"):
+        if "*" in mask and self.controller.software_name in ("Bahamut",):
             raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
@@ -148,7 +148,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
         ids=["username", "realname-mask", "hostname"],
     )
     def testWhoUsernameRealName(self, mask):
-        if "*" in mask and self.controller.software_name in ("Bahamut", "Sable"):
+        if "*" in mask and self.controller.software_name in ("Bahamut",):
             raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
@@ -201,7 +201,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     )
     @cases.mark_specifications("Modern")
     def testWhoNickAway(self, mask):
-        if "*" in mask and self.controller.software_name in ("Bahamut", "Sable"):
+        if "*" in mask and self.controller.software_name in ("Bahamut",):
             raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
@@ -235,7 +235,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     )
     @cases.mark_specifications("Modern")
     def testWhoNickOper(self, mask):
-        if "*" in mask and self.controller.software_name in ("Bahamut", "Sable"):
+        if "*" in mask and self.controller.software_name in ("Bahamut",):
             raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
@@ -274,7 +274,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     )
     @cases.mark_specifications("Modern")
     def testWhoNickAwayAndOper(self, mask):
-        if "*" in mask and self.controller.software_name in ("Bahamut", "Sable"):
+        if "*" in mask and self.controller.software_name in ("Bahamut",):
             raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
@@ -308,7 +308,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @pytest.mark.parametrize("mask", ["#chan", "#CHAN"], ids=["exact", "casefolded"])
     @cases.mark_specifications("Modern")
     def testWhoChan(self, mask):
-        if "*" in mask and self.controller.software_name in ("Bahamut", "Sable"):
+        if "*" in mask and self.controller.software_name in ("Bahamut",):
             raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self._init()
@@ -632,7 +632,7 @@ class WhoServicesTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
 class WhoInvisibleTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoInvisible(self):
-        if self.controller.software_name in ("Bahamut", "Sable"):
+        if self.controller.software_name in ("Bahamut",):
             raise runner.OptionalExtensionNotSupported("WHO mask")
 
         self.connectClient("evan", name="evan")
