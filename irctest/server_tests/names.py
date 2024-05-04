@@ -68,6 +68,39 @@ class NamesTestCase(cases.BaseServerTestCase):
         """
         self._testNames(symbol=True, allow_trailing_space=False)
 
+    @cases.mark_specifications("RFC2812", "Modern")
+    def testNames2812Secret(self):
+        """The symbol sent for a secret channel is `@` instead of `=`:
+        https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5
+        https://modern.ircdocs.horse/#rplnamreply-353
+        """
+        self.connectClient("nick1")
+        self.sendLine(1, "JOIN #chan")
+        # enable secret channel mode
+        self.sendLine(1, "MODE #chan +s")
+        self.getMessages(1)
+        self.sendLine(1, "NAMES #chan")
+        messages = self.getMessages(1)
+        self.assertMessageMatch(
+            messages[0],
+            command=RPL_NAMREPLY,
+            params=["nick1", "@", "#chan", StrRe("@nick1 ?")],
+        )
+        self.assertMessageMatch(
+            messages[1],
+            command=RPL_ENDOFNAMES,
+            params=["nick1", "#chan", ANYSTR],
+        )
+
+        self.connectClient("nick2")
+        self.sendLine(2, "JOIN #chan")
+        namreplies = [msg for msg in self.getMessages(2) if msg.command == RPL_NAMREPLY]
+        self.assertNotEqual(len(namreplies), 0)
+        for msg in namreplies:
+            self.assertMessageMatch(
+                msg, command=RPL_NAMREPLY, params=["nick2", "@", "#chan", ANYSTR]
+            )
+
     def _testNamesMultipleChannels(self, symbol):
         self.connectClient("nick1")
 
