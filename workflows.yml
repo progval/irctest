@@ -389,7 +389,7 @@ software:
                   run: pip install limnoria cryptography pyxmpp2-scram
             devel:
                 - name: Install dependencies
-                  run: pip install git+https://github.com/ProgVal/Limnoria.git@testing cryptography pyxmpp2-scram
+                  run: pip install git+https://github.com/progval/Limnoria.git@master cryptography pyxmpp2-scram
             devel_release: null
 
     sopel:

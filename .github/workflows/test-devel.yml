@@ -735,7 +735,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install dependencies
-      run: pip install git+https://github.com/ProgVal/Limnoria.git@testing cryptography
+      run: pip install git+https://github.com/progval/Limnoria.git@master cryptography
         pyxmpp2-scram
     - name: Install system dependencies
       run: sudo apt-get install atheme-services faketime
