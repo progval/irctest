@@ -3,7 +3,7 @@
 """
 
 from irctest import cases
-from irctest.patma import ANYDICT, StrRe
+from irctest.patma import ANYDICT, ANYSTR, StrRe
 
 CAP_NAME = "draft/multiline"
 BATCH_TYPE = "draft/multiline"
@@ -135,3 +135,29 @@ class MultilineTestCase(cases.BaseServerTestCase):
         self.assertIn("+client-only-tag", fallback_relay[0].tags)
         self.assertIn("+client-only-tag", fallback_relay[1].tags)
         self.assertEqual(fallback_relay[0].tags["msgid"], msgid)
+
+    @cases.mark_capabilities("draft/multiline")
+    def testErrors(self):
+        self.connectClient(
+            "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
+        )
+        self.joinChannel(1, "#test")
+
+        # invalid batch tag:
+        self.sendLine(1, "BATCH +123 %s #test" % (BATCH_TYPE,))
+        self.sendLine(1, "@batch=231 PRIVMSG #test :hi")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["BATCH", "MULTILINE_INVALID", ANYSTR],
+        )
+
+        # cannot send the concat tag with a blank message:
+        self.sendLine(1, "BATCH +123 %s #test" % (BATCH_TYPE,))
+        self.sendLine(1, "@batch=123 PRIVMSG #test :hi")
+        self.sendLine(1, "@batch=123;%s PRIVMSG #test :" % (CONCAT_TAG,))
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["BATCH", "MULTILINE_INVALID", ANYSTR],
+        )
