@@ -20,19 +20,19 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.connectClient("chanop", name="chanop")
         self.joinChannel("chanop", "#chan")
 
-        self.connectClient("unprivileged", name="unprivileged")
-        self.joinChannel("unprivileged", "#chan")
+        self.connectClient("unprivd", name="unprivd")
+        self.joinChannel("unprivd", "#chan")
         self.getMessages("chanop")
 
-        self.connectClient("unrelated", name="unrelated")
-        self.joinChannel("unrelated", "#unrelated")
+        self.connectClient("otherguy", name="otherguy")
+        self.joinChannel("otherguy", "#otherguy")
 
-        self.sendLine("unprivileged", "MODE #chan +o unprivileged")
-        messages = self.getMessages("unprivileged")
+        self.sendLine("unprivd", "MODE #chan +o unprivd")
+        messages = self.getMessages("unprivd")
         self.assertEqual(len(messages), 1)
         self.assertMessageMatch(messages[0], command=ERR_CHANOPRIVSNEEDED)
 
-        self.sendLine("chanop", "MODE #chan +o unrelated")
+        self.sendLine("chanop", "MODE #chan +o otherguy")
         messages = self.getMessages("chanop")
         self.assertEqual(len(messages), 1)
         self.assertMessageMatch(messages[0], command=ERR_USERNOTINCHANNEL)
@@ -50,24 +50,24 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
             [ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_NOSUCHNICK, ERR_USERNOTINCHANNEL],
         )
 
-        self.sendLine("chanop", "MODE #unrelated +o chanop")
+        self.sendLine("chanop", "MODE #otherguy +o chanop")
         messages = self.getMessages("chanop")
         self.assertEqual(len(messages), 1)
         self.assertIn(messages[0].command, [ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED])
 
         # test an actually successful mode grant
-        self.sendLine("chanop", "MODE #chan +o unprivileged")
+        self.sendLine("chanop", "MODE #chan +o unprivd")
         messages = self.getMessages("chanop")
         self.assertEqual(len(messages), 1)
         self.assertMessageMatch(
             messages[0],
             command="MODE",
-            params=["#chan", "+o", "unprivileged"],
+            params=["#chan", "+o", "unprivd"],
         )
-        messages = self.getMessages("unprivileged")
+        messages = self.getMessages("unprivd")
         self.assertEqual(len(messages), 1)
         self.assertMessageMatch(
             messages[0],
             command="MODE",
-            params=["#chan", "+o", "unprivileged"],
+            params=["#chan", "+o", "unprivd"],
         )
