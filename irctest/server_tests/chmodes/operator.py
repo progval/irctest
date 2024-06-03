@@ -7,10 +7,10 @@ Test various error and success cases around the channel operator mode:
 from irctest import cases
 from irctest.numerics import (
     ERR_CHANOPRIVSNEEDED,
-    ERR_USERNOTINCHANNEL,
-    ERR_NOSUCHNICK,
     ERR_NOSUCHCHANNEL,
+    ERR_NOSUCHNICK,
     ERR_NOTONCHANNEL,
+    ERR_USERNOTINCHANNEL,
 )
 
 

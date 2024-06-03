@@ -6,7 +6,7 @@ Test RPL_CHANNELMODEIS and RPL_CHANNELCREATED as responses to
 """
 
 from irctest import cases
-from irctest.numerics import RPL_CHANNELMODEIS, RPL_CHANNELCREATED
+from irctest.numerics import RPL_CHANNELCREATED, RPL_CHANNELMODEIS
 from irctest.patma import ANYSTR
 
 
