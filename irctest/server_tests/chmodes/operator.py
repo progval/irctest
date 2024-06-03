@@ -15,7 +15,7 @@ from irctest.numerics import (
 
 
 class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("RFC1459")
+    @cases.mark_specifications("Modern")
     def testChannelOperatorMode(self):
         self.connectClient("chanop", name="chanop")
         self.joinChannel("chanop", "#chan")
@@ -40,7 +40,9 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.sendLine("chanop", "MODE #nonexistentchan +o chanop")
         messages = self.getMessages("chanop")
         self.assertEqual(len(messages), 1)
-        self.assertIn(messages[0].command, [ERR_NOSUCHCHANNEL, ERR_CHANOPRIVSNEEDED])
+        # Modern: "If <target> is a channel that does not exist on the network,
+        # the ERR_NOSUCHCHANNEL (403) numeric is returned."
+        self.assertMessageMatch(messages[0], command=ERR_NOSUCHCHANNEL)
 
         self.sendLine("chanop", "MODE #nonexistentchan +o nonexistentnick")
         messages = self.getMessages("chanop")
