@@ -42,7 +42,8 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(messages), 1)
         # Modern: "If <target> is a channel that does not exist on the network,
         # the ERR_NOSUCHCHANNEL (403) numeric is returned."
-        self.assertMessageMatch(messages[0], command=ERR_NOSUCHCHANNEL)
+        # However, Unreal sends 401 ERR_NOSUCHNICK here instead:
+        self.assertIn(messages[0].command, [ERR_NOSUCHCHANNEL, ERR_NOSUCHNICK])
 
         self.sendLine("chanop", "MODE #nonexistentchan +o nonexistentnick")
         messages = self.getMessages("chanop")
