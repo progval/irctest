@@ -7,7 +7,7 @@ Test RPL_CHANNELMODEIS and RPL_CHANNELCREATED as responses to
 
 from irctest import cases
 from irctest.numerics import RPL_CHANNELCREATED, RPL_CHANNELMODEIS
-from irctest.patma import ANYSTR
+from irctest.patma import ANYSTR, ListRemainder
 
 
 class RplChannelModeIsTestCase(cases.BaseServerTestCase):
@@ -27,10 +27,13 @@ class RplChannelModeIsTestCase(cases.BaseServerTestCase):
         )
         for message in messages:
             if message.command == RPL_CHANNELMODEIS:
+                # the final parameters are the mode string (e.g. `+int`),
+                # and then optionally any mode parameters (in case the ircd
+                # lists a mode that takes a parameter)
                 self.assertMessageMatch(
                     message,
                     command=RPL_CHANNELMODEIS,
-                    params=["chanop", "#chan", ANYSTR],
+                    params=["chanop", "#chan", ListRemainder(ANYSTR, min_length=1)],
                 )
                 final_param = message.params[2]
                 self.assertEqual(final_param[0], "+")
