@@ -37,6 +37,11 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(messages), 1)
         self.assertMessageMatch(messages[0], command=ERR_USERNOTINCHANNEL)
 
+        self.sendLine("chanop", "MODE #chan +o nobody")
+        messages = self.getMessages("chanop")
+        self.assertEqual(len(messages), 1)
+        self.assertIn(messages[0].command, [ERR_NOSUCHNICK, ERR_USERNOTINCHANNEL])
+
         self.sendLine("chanop", "MODE #nonexistentchan +o chanop")
         messages = self.getMessages("chanop")
         self.assertEqual(len(messages), 1)
@@ -45,7 +50,7 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         # However, Unreal sends 401 ERR_NOSUCHNICK here instead:
         self.assertIn(messages[0].command, [ERR_NOSUCHCHANNEL, ERR_NOSUCHNICK])
 
-        self.sendLine("chanop", "MODE #nonexistentchan +o nonexistentnick")
+        self.sendLine("chanop", "MODE #nonexistentchan +o nobody")
         messages = self.getMessages("chanop")
         self.assertEqual(len(messages), 1)
         self.assertIn(
