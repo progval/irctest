@@ -26,6 +26,8 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
 
         self.connectClient("otherguy", name="otherguy")
         self.joinChannel("otherguy", "#otherguy")
+        self.joinChannel("unprivd", "#otherguy")
+        self.getMessages("otherguy")
 
         # sender is a channel member but without the necessary privileges:
         self.sendLine("unprivd", "MODE #chan +o unprivd")
@@ -65,6 +67,12 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
 
         # sender is not a channel member, target nick exists but is not a channel member:
         self.sendLine("chanop", "MODE #otherguy +o chanop")
+        messages = self.getMessages("chanop")
+        self.assertEqual(len(messages), 1)
+        self.assertIn(messages[0].command, [ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED])
+
+        # sender is not a channel member, target nick exists and is a channel member:
+        self.sendLine("chanop", "MODE #otherguy +o unprivd")
         messages = self.getMessages("chanop")
         self.assertEqual(len(messages), 1)
         self.assertIn(messages[0].command, [ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED])
