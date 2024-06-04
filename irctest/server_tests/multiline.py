@@ -163,10 +163,12 @@ class MultilineTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("Ergo")
-    def testLimits(self):
-        # this test is Ergo-specific for now because it hardcodes the same
-        # line and byte limits as in the Ergo controller; we can generalize it
-        # in future for other multiline implementations
+    def testLineLimit(self):
+        """This is an Ergo-specific test for line limit enforcement
+        in multiline messages. Right now it hardcodes the same limits as in
+        the Ergo controller; we can generalize it in future for other multiline
+        implementations.
+        """
 
         self.connectClient(
             "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=False
@@ -182,6 +184,17 @@ class MultilineTestCase(cases.BaseServerTestCase):
             command="FAIL",
             params=["BATCH", "MULTILINE_MAX_LINES", "32", ANYSTR],
         )
+
+    @cases.mark_specifications("Ergo")
+    def testByteLimit(self):
+        """This is an Ergo-specific test for line limit enforcement
+        in multiline messages (see testLineLimit).
+        """
+
+        self.connectClient(
+            "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=False
+        )
+        self.joinChannel(1, "#test")
 
         # byte limit exceeded
         self.sendLine(1, "BATCH +234 %s #test" % (BATCH_TYPE,))
