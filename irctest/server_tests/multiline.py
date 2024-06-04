@@ -137,7 +137,10 @@ class MultilineTestCase(cases.BaseServerTestCase):
         self.assertEqual(fallback_relay[0].tags["msgid"], msgid)
 
     @cases.mark_capabilities("draft/multiline")
-    def testErrors(self):
+    def testInvalidBatchTag(self):
+        """Test that an unexpected change of batch tag results in
+        FAIL BATCH MULTILINE_INVALID."""
+
         self.connectClient(
             "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
         )
@@ -151,6 +154,16 @@ class MultilineTestCase(cases.BaseServerTestCase):
             command="FAIL",
             params=["BATCH", "MULTILINE_INVALID", ANYSTR],
         )
+
+    @cases.mark_capabilities("draft/multiline")
+    def testInvalidBlankConcatTag(self):
+        """Test that the concat tag on a blank message results in
+        FAIL BATCH MULTILINE_INVALID."""
+
+        self.connectClient(
+            "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
+        )
+        self.joinChannel(1, "#test")
 
         # cannot send the concat tag with a blank message:
         self.sendLine(1, "BATCH +123 %s #test" % (BATCH_TYPE,))
