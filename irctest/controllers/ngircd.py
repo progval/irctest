@@ -28,6 +28,9 @@ TEMPLATE_CONFIG = """
 [Operator]
     Name = operuser
     Password = operpassword
+
+[Limits]
+    MaxNickLength = 32  # defaults to 9
 """
 
 
