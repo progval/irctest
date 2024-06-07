@@ -98,8 +98,9 @@ def installed_version() -> int:
         return 3
     if output.startswith("InspIRCd-4"):
         return 4
-    else:
-        assert False, f"unexpected version: {output}"
+    if output.startswith("InspIRCd-5"):
+        return 5
+    assert False, f"unexpected version: {output}"
 
 
 class InspircdController(BaseServerController, DirectoryBasedController):
@@ -142,7 +143,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
 
         if installed_version() == 3:
             help_module_name = "helpop"
-        elif installed_version() == 4:
+        elif installed_version() >= 4:
             help_module_name = "help"
         else:
             assert False, f"unexpected version: {installed_version()}"
