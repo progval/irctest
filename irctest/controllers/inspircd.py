@@ -48,9 +48,7 @@ TEMPLATE_CONFIG = """
     sendpass="password"
     >
 <module name="spanningtree">
-<module name="services_account">
 <module name="hidechans">  # Anope errors when missing
-<module name="svshold">  # Atheme raises a warning when missing
 <sasl requiressl="no"
       target="services.example.org">
 
@@ -71,14 +69,10 @@ TEMPLATE_CONFIG = """
 <module name="ircv3_servertime">
 <module name="monitor">
 <module name="m_muteban">  # for testing mute extbans
-<module name="namesx"> # For multi-prefix
 <module name="sasl">
 <module name="uhnames">  # For userhost-in-names
-
-# HELP/HELPOP
 <module name="alias">  # for the HELP alias
-<module name="{help_module_name}">
-<include file="examples/{help_module_name}.conf.example">
+{version_config}
 
 # Misc:
 <log method="file" type="*" level="debug" target="/tmp/ircd-{port}.log">
@@ -88,6 +82,26 @@ TEMPLATE_CONFIG = """
 TEMPLATE_SSL_CONFIG = """
 <module name="ssl_openssl">
 <openssl certfile="{pem_path}" keyfile="{key_path}" dhfile="{dh_path}" hash="sha1">
+"""
+
+TEMPLATE_V3_CONFIG = """
+<module name="namesx"> # For multi-prefix
+<module name="services_account">
+<module name="svshold">  # Atheme raises a warning when missing
+
+# HELP/HELPOP
+<module name="helpop">
+<include file="examples/helpop.conf.example">
+"""
+
+TEMPLATE_V4_CONFIG = """
+<module name="account">
+<module name="multiprefix"> # For multi-prefix
+<module name="services">
+
+# HELP/HELPOP
+<module name="help">
+<include file="examples/help.conf.example">
 """
 
 
@@ -142,9 +156,9 @@ class InspircdController(BaseServerController, DirectoryBasedController):
             ssl_config = ""
 
         if installed_version() == 3:
-            help_module_name = "helpop"
+            version_config = TEMPLATE_V3_CONFIG
         elif installed_version() >= 4:
-            help_module_name = "help"
+            version_config = TEMPLATE_V4_CONFIG
         else:
             assert False, f"unexpected version: {installed_version()}"
 
@@ -157,7 +171,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                     services_port=services_port,
                     password_field=password_field,
                     ssl_config=ssl_config,
-                    help_module_name=help_module_name,
+                    version_config=version_config,
                 )
             )
         assert self.directory
