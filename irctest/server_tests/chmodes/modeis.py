@@ -12,12 +12,14 @@ from irctest.patma import ANYSTR, ListRemainder
 
 class RplChannelModeIsTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
-    @cases.xfailIfSoftware(
-        ["irc2", "Sable"],
-        "irc2 doesn't support 329 RPL_CHANNELCREATED"
-        "https://github.com/Libera-Chat/sable/issues/130",
-    )
     def testChannelModeIs(self):
+        expected_numerics = {RPL_CHANNELMODEIS, RPL_CHANNELCREATED}
+        if self.controller.software_name in ("irc2", "Sable"):
+            # irc2 and Sable don't use timestamps for conflict resolution,
+            # consequently they don't store the channel creation timestamp
+            # and don't send RPL_CHANNELCREATED
+            expected_numerics = {RPL_CHANNELMODEIS}
+
         self.connectClient("chanop", name="chanop")
         self.joinChannel("chanop", "#chan")
         # i, n, and t are specified by RFC1459; some of them may be on by default,
@@ -27,9 +29,7 @@ class RplChannelModeIsTestCase(cases.BaseServerTestCase):
 
         self.sendLine("chanop", "MODE #chan")
         messages = self.getMessages("chanop")
-        self.assertLessEqual(
-            {RPL_CHANNELMODEIS, RPL_CHANNELCREATED}, {msg.command for msg in messages}
-        )
+        self.assertLessEqual(expected_numerics, {msg.command for msg in messages})
         for message in messages:
             if message.command == RPL_CHANNELMODEIS:
                 # the final parameters are the mode string (e.g. `+int`),
@@ -54,9 +54,7 @@ class RplChannelModeIsTestCase(cases.BaseServerTestCase):
 
         self.sendLine("chanop", "MODE #chan")
         messages = self.getMessages("chanop")
-        self.assertLessEqual(
-            {RPL_CHANNELMODEIS, RPL_CHANNELCREATED}, {msg.command for msg in messages}
-        )
+        self.assertLessEqual(expected_numerics, {msg.command for msg in messages})
         # all modes have been disabled; the correct representation of this is `+`
         for message in messages:
             if message.command == RPL_CHANNELMODEIS:
