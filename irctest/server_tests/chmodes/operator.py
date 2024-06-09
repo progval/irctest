@@ -31,6 +31,7 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.getMessages("unrelated")
 
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(["irc2"], "broken in irc2")
     def testChannelOperatorModeSenderPrivsNeeded(self):
         """Test that +o from a channel member without the necessary privileges
         fails as expected."""
@@ -60,10 +61,14 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.sendLine("chanop", "MODE #chan +o nobody")
         messages = self.getMessages("chanop")
         # ERR_NOSUCHNICK is typical, Bahamut additionally sends ERR_USERNOTINCHANNEL
-        self.assertGreaterEqual(len(messages), 1)
-        self.assertLessEqual(len(messages), 2)
-        for message in messages:
-            self.assertIn(message.command, [ERR_NOSUCHNICK, ERR_USERNOTINCHANNEL])
+        if self.controller.software_name != "Bahamut":
+            self.assertEqual(len(messages), 1)
+            self.assertMessageMatch(messages[0], command=ERR_NOSUCHNICK)
+        else:
+            self.assertLessEqual(len(messages), 2)
+            commands = {message.command for message in messages}
+            self.assertLessEqual({ERR_NOSUCHNICK}, commands)
+            self.assertLessEqual(commands, {ERR_NOSUCHNICK, ERR_USERNOTINCHANNEL})
 
     @cases.mark_specifications("Modern")
     def testChannelOperatorModeChannelDoesNotExist(self):
