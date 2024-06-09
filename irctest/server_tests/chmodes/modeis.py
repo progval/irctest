@@ -45,6 +45,8 @@ class RplChannelModeIsTestCase(cases.BaseServerTestCase):
                 enabled_modes = list(final_param[1:])
                 break
 
+        self.assertLessEqual(set(enabled_modes), {"i", "n", "t"})
+
         # remove all the modes listed by RPL_CHANNELMODEIS
         self.sendLine("chanop", f"MODE #chan -{''.join(enabled_modes)}")
         response = self.getMessage("chanop")
