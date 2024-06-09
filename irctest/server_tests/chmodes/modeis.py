@@ -27,7 +27,7 @@ class RplChannelModeIsTestCase(cases.BaseServerTestCase):
 
         self.sendLine("chanop", "MODE #chan")
         messages = self.getMessages("chanop")
-        self.assertLessEqual(expected_numerics, {msg.command for msg in messages})
+        self.assertEqual(expected_numerics, {msg.command for msg in messages})
         for message in messages:
             if message.command == RPL_CHANNELMODEIS:
                 # the final parameters are the mode string (e.g. `+int`),
@@ -54,7 +54,7 @@ class RplChannelModeIsTestCase(cases.BaseServerTestCase):
 
         self.sendLine("chanop", "MODE #chan")
         messages = self.getMessages("chanop")
-        self.assertLessEqual(expected_numerics, {msg.command for msg in messages})
+        self.assertEqual(expected_numerics, {msg.command for msg in messages})
         # all modes have been disabled; the correct representation of this is `+`
         for message in messages:
             if message.command == RPL_CHANNELMODEIS:
