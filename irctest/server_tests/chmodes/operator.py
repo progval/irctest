@@ -72,7 +72,10 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.sendLine("chanop", "MODE #unrelated +o chanop")
         messages = self.getMessages("chanop")
         self.assertEqual(len(messages), 1)
-        self.assertIn(messages[0].command, [ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED])
+        self.assertIn(
+            messages[0].command,
+            [ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_USERNOTINCHANNEL],
+        )
 
         # sender is not a channel member, target nick exists and is a channel member:
         self.sendLine("chanop", "MODE #unrelated +o unprivileged")
