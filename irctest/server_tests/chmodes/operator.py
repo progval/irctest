@@ -80,8 +80,8 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(messages), 1)
         # Modern: "If <target> is a channel that does not exist on the network,
         # the ERR_NOSUCHCHANNEL (403) numeric is returned."
-        # However, Unreal sends 401 ERR_NOSUCHNICK here instead:
-        if self.controller.software_name != "UnrealIRCd":
+        # However, Unreal and ngircd send 401 ERR_NOSUCHNICK here instead:
+        if self.controller.software_name not in ("UnrealIRCd", "ngIRCd"):
             self.assertEqual(messages[0].command, ERR_NOSUCHCHANNEL)
         else:
             self.assertIn(messages[0].command, [ERR_NOSUCHCHANNEL, ERR_NOSUCHNICK])
