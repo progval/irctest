@@ -44,8 +44,11 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         # sender is a chanop, but target nick does not exist:
         self.sendLine("chanop", "MODE #chan +o nobody")
         messages = self.getMessages("chanop")
-        self.assertEqual(len(messages), 1)
-        self.assertIn(messages[0].command, [ERR_NOSUCHNICK, ERR_USERNOTINCHANNEL])
+        # ERR_NOSUCHNICK is typical, Bahamut additionally sends ERR_USERNOTINCHANNEL
+        self.assertGreaterEqual(len(messages), 1)
+        self.assertLessEqual(len(messages), 2)
+        for message in messages:
+            self.assertIn(message.command, [ERR_NOSUCHNICK, ERR_USERNOTINCHANNEL])
 
         # target channel does not exist, but target nick does:
         self.sendLine("chanop", "MODE #nonexistentchan +o chanop")
