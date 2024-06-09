@@ -12,6 +12,11 @@ from irctest.patma import ANYSTR, ListRemainder
 
 class RplChannelModeIsTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(
+        ["irc2", "Sable"],
+        "irc2 doesn't support 329 RPL_CHANNELCREATED"
+        "https://github.com/Libera-Chat/sable/issues/130",
+    )
     def testChannelModeIs(self):
         self.connectClient("chanop", name="chanop")
         self.joinChannel("chanop", "#chan")
