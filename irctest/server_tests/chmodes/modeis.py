@@ -1,10 +1,3 @@
-"""
-Test RPL_CHANNELMODEIS and RPL_CHANNELCREATED as responses to
-`MODE #channel`:
-<https://modern.ircdocs.horse/#rplcreationtime-329>
-<https://modern.ircdocs.horse/#rplchannelmodeis-324>
-"""
-
 from irctest import cases
 from irctest.numerics import RPL_CHANNELCREATED, RPL_CHANNELMODEIS
 from irctest.patma import ANYSTR, ListRemainder
@@ -13,6 +6,11 @@ from irctest.patma import ANYSTR, ListRemainder
 class RplChannelModeIsTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testChannelModeIs(self):
+        """Test RPL_CHANNELMODEIS and RPL_CHANNELCREATED as responses to
+        `MODE #channel`:
+        <https://modern.ircdocs.horse/#rplcreationtime-329>
+        <https://modern.ircdocs.horse/#rplchannelmodeis-324>
+        """
         expected_numerics = {RPL_CHANNELMODEIS, RPL_CHANNELCREATED}
         if self.controller.software_name in ("irc2", "Sable"):
             # irc2 and Sable don't use timestamps for conflict resolution,
