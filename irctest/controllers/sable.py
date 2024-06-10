@@ -408,7 +408,7 @@ class SableController(BaseServerController, DirectoryBasedController):
             ],
             cwd=self.directory,
             preexec_fn=os.setsid,
-            env={"RUST_BACKTRACE": "1"},
+            env={"RUST_BACKTRACE": "1", **os.environ},
         )
         self.pgroup_id = os.getpgid(self.proc.pid)
 
@@ -486,7 +486,7 @@ class SableServicesController(BaseServicesController):
             ],
             cwd=self.server_controller.directory,
             preexec_fn=os.setsid,
-            env={"RUST_BACKTRACE": "1"},
+            env={"RUST_BACKTRACE": "1", **os.environ},
         )
         self.pgroup_id = os.getpgid(self.proc.pid)
 
