@@ -43,6 +43,7 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(messages[0], command=ERR_CHANOPRIVSNEEDED)
 
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(["InspIRCd"], "fixed in InspIRCd 4.x")
     def testChannelOperatorModeTargetNotInChannel(self):
         """Test that +o targeting a user not present in the channel fails
         as expected."""
