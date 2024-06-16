@@ -58,6 +58,11 @@ BASE_CONFIG = {
             "enabled": True,
             "method": "strict",
         },
+        "login-throttling": {
+            "enabled": True,
+            "duration": "1m",
+            "max-attempts": 3,
+        },
     },
     "channels": {"registration": {"enabled": True}},
     "datastore": {"path": None},
