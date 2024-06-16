@@ -49,7 +49,9 @@ class RplChannelModeIsTestCase(cases.BaseServerTestCase):
         self.sendLine("chanop", f"MODE #chan -{''.join(enabled_modes)}")
         response = self.getMessage("chanop")
         # we should get something like: MODE #chan -int
-        self.assertMessageMatch(response, command="MODE", params=["#chan", StrRe("^-.*")])
+        self.assertMessageMatch(
+            response, command="MODE", params=["#chan", StrRe("^-.*")]
+        )
         self.assertEqual(set(response.params[1][1:]), set(enabled_modes))
 
         self.sendLine("chanop", "MODE #chan")
