@@ -1,6 +1,6 @@
 from irctest import cases
 from irctest.numerics import RPL_CHANNELCREATED, RPL_CHANNELMODEIS
-from irctest.patma import ANYSTR, ListRemainder
+from irctest.patma import ANYSTR, ListRemainder, StrRe
 
 
 class RplChannelModeIsTestCase(cases.BaseServerTestCase):
@@ -48,6 +48,7 @@ class RplChannelModeIsTestCase(cases.BaseServerTestCase):
         # remove all the modes listed by RPL_CHANNELMODEIS
         self.sendLine("chanop", f"MODE #chan -{''.join(enabled_modes)}")
         response = self.getMessage("chanop")
+        # we should get something like: MODE #chan -int
         self.assertMessageMatch(response, command="MODE", params=["#chan", StrRe("^-.*")])
         self.assertEqual(set(response.params[1][1:]), set(enabled_modes))
 
