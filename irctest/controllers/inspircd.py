@@ -101,7 +101,7 @@ TEMPLATE_V4_CONFIG = """
 
 # HELP/HELPOP
 <module name="help">
-<include file="examples/help.conf.example">
+<include file="examples/help.example.conf">
 """
 
 
