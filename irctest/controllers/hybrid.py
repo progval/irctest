@@ -3,6 +3,9 @@ from typing import Set, Type
 from .base_hybrid import BaseHybridController
 
 TEMPLATE_CONFIG = """
+module_base_path = "{install_prefix}/lib/ircd-hybrid/modules";
+.include "./modules.conf"
+
 serverinfo {{
     name = "My.Little.Server";
     sid = "42X";
