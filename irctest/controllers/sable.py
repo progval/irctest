@@ -107,6 +107,8 @@ NETWORK_CONFIG = """
 
 NETWORK_CONFIG_CONFIG = """
 {
+    "object_expiry": 300,
+
     "opers": [
         {
             "name": "operuser",
