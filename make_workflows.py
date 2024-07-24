@@ -224,7 +224,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
                 "name": "Test with pytest",
                 "timeout-minutes": 30,
                 "env": {
-                    "IRCTEST_DEBUG": "${{ runner.debug }}",
+                    "IRCTEST_DEBUG_LOGS": "${{ runner.debug }}",
                 },
                 "run": (
                     f"PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' "

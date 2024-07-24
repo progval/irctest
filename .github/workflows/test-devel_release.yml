@@ -127,7 +127,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
     - env:
-        IRCTEST_DEBUG: ${{ runner.debug }}
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
         make inspircd
@@ -168,7 +168,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
     - env:
-        IRCTEST_DEBUG: ${{ runner.debug }}
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH  make
         inspircd-anope
@@ -203,7 +203,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
     - env:
-        IRCTEST_DEBUG: ${{ runner.debug }}
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
         make inspircd-atheme

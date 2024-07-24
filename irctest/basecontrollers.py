@@ -11,7 +11,19 @@ import subprocess
 import tempfile
 import textwrap
 import time
-from typing import IO, Any, Callable, Dict, Iterator, List, Optional, Set, Tuple, Type
+from typing import (
+    IO,
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Type,
+)
 
 import irctest
 
@@ -74,7 +86,7 @@ class _BaseController:
     _port_lock = FileLock(Path(tempfile.gettempdir()) / "irctest_ports.json.lock")
 
     def __init__(self, test_config: TestCaseControllerConfig):
-        self.debug_mode = os.getenv("IRCTEST_DEBUG", "0").lower() in ("true", "1")
+        self.debug_mode = os.getenv("IRCTEST_DEBUG_LOGS", "0").lower() in ("true", "1")
         self.test_config = test_config
         self.proc = None
         self._own_ports: Set[Tuple[str, int]] = set()
@@ -131,7 +143,7 @@ class _BaseController:
                 used_ports.remove((hostname, port))
                 self._own_ports.remove((hostname, port))
 
-    def execute(self, command, **kwargs) -> subprocess.Popen:
+    def execute(self, command: Sequence[str], **kwargs: Any) -> subprocess.Popen:
         output_to = None if self.debug_mode else subprocess.DEVNULL
         return subprocess.Popen(command, stderr=output_to, stdout=output_to, **kwargs)
 
