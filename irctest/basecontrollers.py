@@ -143,7 +143,9 @@ class _BaseController:
                 used_ports.remove((hostname, port))
                 self._own_ports.remove((hostname, port))
 
-    def execute(self, command: Sequence[str], **kwargs: Any) -> subprocess.Popen:
+    def execute(
+        self, command: Sequence[Union[str, Path]], **kwargs: Any
+    ) -> subprocess.Popen:
         output_to = None if self.debug_mode else subprocess.DEVNULL
         return subprocess.Popen(command, stderr=output_to, stdout=output_to, **kwargs)
 
