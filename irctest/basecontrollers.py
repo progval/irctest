@@ -23,6 +23,7 @@ from typing import (
     Set,
     Tuple,
     Type,
+    Union,
 )
 
 import irctest
