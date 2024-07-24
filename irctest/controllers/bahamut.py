@@ -1,6 +1,5 @@
 from pathlib import Path
 import shutil
-import subprocess
 from typing import Optional, Set, Type
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
@@ -150,7 +149,7 @@ class BahamutController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "ircd",

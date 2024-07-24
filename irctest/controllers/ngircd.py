@@ -1,5 +1,4 @@
 import shutil
-import subprocess
 from typing import Optional, Set, Type
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
@@ -95,7 +94,7 @@ class NgircdController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "ngircd",
@@ -103,7 +102,6 @@ class NgircdController(BaseServerController, DirectoryBasedController):
                 "--config",
                 self.directory / "server.conf",
             ],
-            # stdout=subprocess.DEVNULL,
         )
 
         if run_services:

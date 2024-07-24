@@ -1,6 +1,5 @@
 from pathlib import Path
 import shutil
-import subprocess
 from typing import Optional
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
@@ -74,7 +73,7 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 self.binary_name,
@@ -84,7 +83,6 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
                 "-pidfile",
                 self.directory / "server.pid",
             ],
-            # stderr=subprocess.DEVNULL,
         )
 
         if run_services:

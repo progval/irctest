@@ -1,4 +1,3 @@
-import subprocess
 from typing import Optional, Type
 
 import irctest
@@ -75,7 +74,7 @@ class AthemeController(BaseServicesController, DirectoryBasedController):
             )
 
         assert self.directory
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 "atheme-services",
                 "-n",  # don't fork
@@ -88,8 +87,6 @@ class AthemeController(BaseServicesController, DirectoryBasedController):
                 "-D",
                 self.directory,
             ],
-            # stdout=subprocess.DEVNULL,
-            # stderr=subprocess.DEVNULL,
         )
 
     def registerUser(

@@ -453,7 +453,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         bahamut
       timeout-minutes: 30
@@ -492,7 +494,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
         bahamut-anope
       timeout-minutes: 30
@@ -525,7 +529,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         bahamut-atheme
       timeout-minutes: 30
@@ -565,7 +571,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/go/sbin:~/go/bin:~/go:$PATH
         make ergo
       timeout-minutes: 30
@@ -604,7 +612,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
         hybrid
       timeout-minutes: 30
@@ -637,7 +647,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
         make inspircd
       timeout-minutes: 30
@@ -676,7 +688,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH  make
         inspircd-anope
       timeout-minutes: 30
@@ -715,7 +729,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         ircu2
       timeout-minutes: 30
@@ -743,7 +759,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         limnoria
       timeout-minutes: 30
@@ -781,7 +799,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         nefarious
       timeout-minutes: 30
@@ -814,7 +834,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH
         make ngircd
       timeout-minutes: 30
@@ -853,7 +875,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH  make
         ngircd-anope
       timeout-minutes: 30
@@ -886,7 +910,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH
         make ngircd-atheme
       timeout-minutes: 30
@@ -925,7 +951,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
         plexus4
       timeout-minutes: 30
@@ -972,7 +1000,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=$GITHUB_WORKSPACE/sable/target/debug/sbin:$GITHUB_WORKSPACE/sable/target/debug/bin:$GITHUB_WORKSPACE/sable/target/debug:$PATH
         make sable
       timeout-minutes: 30
@@ -1005,7 +1035,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         solanum
       timeout-minutes: 30
@@ -1032,7 +1064,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         sopel
       timeout-minutes: 30
@@ -1070,7 +1104,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         thelounge
       timeout-minutes: 30
@@ -1103,7 +1139,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         make unrealircd
       timeout-minutes: 30
@@ -1136,7 +1174,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         make unrealircd-5
       timeout-minutes: 30
@@ -1175,7 +1215,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH  make
         unrealircd-anope
       timeout-minutes: 30
@@ -1208,7 +1250,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         make unrealircd-atheme
       timeout-minutes: 30
@@ -1252,7 +1296,9 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - name: Test with pytest
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services" IRCTEST_WP_CLI_PATH="${{
         github.workspace }}/wp-cli.phar" IRCTEST_WP_ZIP_PATH="${{ github.workspace

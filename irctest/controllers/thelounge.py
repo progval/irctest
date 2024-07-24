@@ -1,6 +1,5 @@
 import json
 import os
-import subprocess
 from typing import Optional, Type
 
 from irctest import authentication, tls
@@ -96,7 +95,7 @@ class TheLoungeController(BaseClientController, DirectoryBasedController):
             )
         with self.open_file("users/testuser.json", "r") as fd:
             print("config", json.load(fd)["networks"][0]["saslPassword"])
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [os.environ.get("THELOUNGE_BIN", "thelounge"), "start"],
             env={**os.environ, "THELOUNGE_HOME": str(self.directory)},
         )

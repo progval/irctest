@@ -213,7 +213,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [*faketime_cmd, "ergo", "run", "--conf", self._config_path, "--quiet"]
         )
 
