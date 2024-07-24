@@ -1,5 +1,4 @@
 import shutil
-import subprocess
 from typing import Optional, Type
 
 from irctest.basecontrollers import (
@@ -78,7 +77,7 @@ class Irc2Controller(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "ircd",
@@ -88,7 +87,6 @@ class Irc2Controller(BaseServerController, DirectoryBasedController):
                 "-f",
                 self.directory / "server.conf",
             ],
-            # stderr=subprocess.DEVNULL,
         )
 
 

@@ -394,7 +394,7 @@ class SableController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "sable_ircd",
@@ -475,7 +475,7 @@ class SableServicesController(BaseServicesController):
         with self.server_controller.open_file("configs/services.conf") as fd:
             fd.write(SERVICES_CONFIG % self.server_controller.template_vars)
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 "sable_services",
                 "--foreground",

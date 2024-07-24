@@ -182,15 +182,22 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        extra_args = []
+        if self.debug_mode:
+            if installed_version() >= 4:
+                extra_args.append("--protocoldebug")
+            else:
+                extra_args.append("--debug")
+
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "inspircd",
                 "--nofork",
                 "--config",
                 self.directory / "server.conf",
+                *extra_args,
             ],
-            stdout=subprocess.DEVNULL,
         )
 
         if run_services:

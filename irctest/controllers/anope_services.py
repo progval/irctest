@@ -136,16 +136,19 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
             Path(services_path).parent.parent / "modules"
         )
 
-        self.proc = subprocess.Popen(
+        extra_args = []
+        if self.debug_mode:
+            extra_args.append("--debug")
+
+        self.proc = self.execute(
             [
                 "anope",
                 "--config=services.conf",  # can't be an absolute path in 2.0
                 "--nofork",  # don't fork
                 "--nopid",  # don't write a pid
+                *extra_args,
             ],
             cwd=self.directory,
-            # stdout=subprocess.DEVNULL,
-            # stderr=subprocess.DEVNULL,
         )
 
 
