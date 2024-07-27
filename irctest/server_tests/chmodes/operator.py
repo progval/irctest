@@ -71,22 +71,34 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
             self.assertLessEqual(commands, {ERR_NOSUCHNICK, ERR_USERNOTINCHANNEL})
 
     @cases.mark_specifications("Modern")
+    @cases.xfailIf(
+        lambda self: bool(
+            self.controller.software_name == "UnrealIRCd"
+            and self.controller.software_version == 5
+        ),
+        "UnrealIRCd <6.1.7 returns ERR_NOSUCHNICK on non-existent channel",
+    )
     def testChannelOperatorModeChannelDoesNotExist(self):
-        """Test that +o targeting a nonexistent channel fails as expected."""
+        """Test that +o targeting a nonexistent channel fails as expected.
+
+        "If <target> is a channel that does not exist on the network,
+        # the ERR_NOSUCHCHANNEL (403) numeric is returned."
+        """
         self.setupNicks()
         # target channel does not exist, but target nick does:
         self.sendLine("chanop", "MODE #nonexistentchan +o chanop")
         messages = self.getMessages("chanop")
         self.assertEqual(len(messages), 1)
-        # Modern: "If <target> is a channel that does not exist on the network,
-        # the ERR_NOSUCHCHANNEL (403) numeric is returned."
-        # However, Unreal and ngircd send 401 ERR_NOSUCHNICK here instead:
-        if self.controller.software_name not in ("UnrealIRCd", "ngIRCd"):
-            self.assertEqual(messages[0].command, ERR_NOSUCHCHANNEL)
-        else:
-            self.assertIn(messages[0].command, [ERR_NOSUCHCHANNEL, ERR_NOSUCHNICK])
+        self.assertMessageMatch(messages[0], command=ERR_NOSUCHCHANNEL)
 
     @cases.mark_specifications("Modern")
+    @cases.xfailIf(
+        lambda self: bool(
+            self.controller.software_name == "UnrealIRCd"
+            and self.controller.software_version == 5
+        ),
+        "UnrealIRCd <6.1.7 returns ERR_NOSUCHNICK on non-existent channel",
+    )
     def testChannelOperatorModeChannelAndTargetDoNotExist(self):
         """Test that +o targeting a nonexistent channel and nickname
         fails as expected."""
@@ -97,7 +109,7 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(messages), 1)
         self.assertIn(
             messages[0].command,
-            [ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_NOSUCHNICK, ERR_USERNOTINCHANNEL],
+            [ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_USERNOTINCHANNEL],
         )
 
     @cases.mark_specifications("Modern")
