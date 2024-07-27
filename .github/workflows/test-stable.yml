@@ -228,7 +228,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: ngircd
-        ref: 3e3f6cbeceefd9357b53b27c2386bb39306ab353
+        ref: acf8409c60ccc96beed0a1f990c4f9374823c0ce
         repository: ngircd/ngircd
     - name: Build ngircd
       run: |
@@ -351,7 +351,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: unrealircd
-        ref: da3c1c654481a33035b9c703957e1c25d0158259
+        ref: a68625454078641ce984eeb197f7e02b1857ab6c
         repository: unrealircd/unrealircd
     - name: Build UnrealIRCd 6
       run: |
