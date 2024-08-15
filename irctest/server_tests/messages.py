@@ -146,8 +146,8 @@ class TagsTestCase(cases.BaseServerTestCase):
             "@+clientOnlyTagExample=" + "a" * tag_length + " PRIVMSG #xyz hi!"
         )
         self.sendLine(1, monsterMessage)
-        self.assertEqual(self.getMessages(2), [], "overflowing message was relayed")
         replies = self.getMessages(1)
+        self.assertEqual(self.getMessages(2), [], "overflowing message was relayed")
         if len(replies) > 0:
             self.assertIn(ERR_INPUTTOOLONG, set(reply.command for reply in replies))
 
