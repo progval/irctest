@@ -136,7 +136,7 @@ software:
         pre_deps:
             - uses: actions/setup-go@v3
               with:
-                  go-version: '^1.22.0'
+                  go-version: '^1.23.0'
             - run: go version
         separate_build_job: false
         build_script: |
