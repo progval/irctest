@@ -14,7 +14,7 @@ index 317b00e..adfcfcf 100644
 -                           sptr->hostip, sptr->name);
 -            return exit_client(cptr, sptr, &me, "Invalid hostname");
 -        }
--        
-         if (bad_dns) 
+-
+         if (bad_dns)
          {
              sendto_one(sptr, ":%s NOTICE %s :*** Notice -- You have a bad "
