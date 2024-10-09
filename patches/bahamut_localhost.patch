@@ -8,7 +8,7 @@ index 317b00e..adfcfcf 100644
  	    dots = 1;
  	}
  
--	if (!dots) 
+-	if (!dots)
 -        {
 -            sendto_realops("Invalid hostname for %s, dumping user %s",
 -                           sptr->hostip, sptr->name);
