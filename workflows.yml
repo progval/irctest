@@ -97,7 +97,7 @@ software:
         name: Bahamut
         repository: DALnet/Bahamut
         refs:
-            stable: "v2.2.1"
+            stable: "v2.2.4"
             release: null
             devel: "master"
             devel_release: null

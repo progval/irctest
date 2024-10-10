@@ -65,7 +65,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: Bahamut
-        ref: v2.2.1
+        ref: v2.2.4
         repository: DALnet/Bahamut
     - name: Build Bahamut
       run: |
