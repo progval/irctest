@@ -67,6 +67,9 @@ class TestCaseControllerConfig:
     This should be used as little as possible, using the other attributes instead;
     as they are work with any controller."""
 
+    sable_history_server: bool = False
+    """Whether to start Sable's long-term history server"""
+
 
 class _BaseController:
     """Base class for software controllers.

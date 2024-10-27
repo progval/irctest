@@ -5,7 +5,7 @@ import signal
 import subprocess
 import tempfile
 import time
-from typing import Optional, Type
+from typing import Optional, Sequence, Type
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -85,7 +85,7 @@ def certs_dir() -> Path:
         certs_dir = tempfile.TemporaryDirectory()
         (Path(certs_dir.name) / "gen_certs.sh").write_text(GEN_CERTS)
         subprocess.run(
-            ["bash", "gen_certs.sh", "My.Little.Server", "My.Little.Services"],
+            ["bash", "gen_certs.sh", "My.Little.Server", "My.Little.History", "My.Little.Services"],
             cwd=certs_dir.name,
             check=True,
         )
@@ -99,6 +99,7 @@ NETWORK_CONFIG = """
     "ca_file": "%(certs_dir)s/ca_cert.pem",
 
     "peers": [
+        { "name": "My.Little.History", "address": "%(history_hostname)s:%(history_port)s", "fingerprint": "%(history_cert_sha1)s" },
         { "name": "My.Little.Services", "address": "%(services_hostname)s:%(services_port)s", "fingerprint": "%(services_cert_sha1)s" },
         { "name": "My.Little.Server", "address": "%(server1_hostname)s:%(server1_port)s", "fingerprint": "%(server1_cert_sha1)s" }
     ]
@@ -107,7 +108,7 @@ NETWORK_CONFIG = """
 
 NETWORK_CONFIG_CONFIG = """
 {
-    "object_expiry": 300,
+    "object_expiry": 60,  // 1 minute
 
     "opers": [
         {
@@ -216,6 +217,58 @@ SERVER_CONFIG = """
             },
         ],
     },
+}
+"""
+
+HISTORY_SERVER_CONFIG = """
+{
+    "server_id": 50,
+    "server_name": "My.Little.History",
+
+    "management": {
+        "address": "%(history_management_hostname)s:%(history_management_port)s",
+        "client_ca": "%(certs_dir)s/ca_cert.pem",
+        "authorised_fingerprints": [
+            { "name": "user1", "fingerprint": "435bc6db9f22e84ba5d9652432154617c9509370" }
+        ]
+    },
+
+    "server": {
+        "database": "%(history_db_url)s",
+        "auto_run_migrations": true,
+    },
+
+    "event_log": {
+        "event_expiry": 300, // five minutes, for local testing
+    },
+
+    "tls_config": {
+        "key_file": "%(certs_dir)s/My.Little.History.key",
+        "cert_file": "%(certs_dir)s/My.Little.History.pem"
+    },
+
+    "node_config": {
+        "listen_addr": "%(history_hostname)s:%(history_port)s",
+        "cert_file": "%(certs_dir)s/My.Little.History.pem",
+        "key_file": "%(certs_dir)s/My.Little.History.key"
+    },
+
+    "log": {
+        "dir": "log/services/",
+
+        "module-levels": {
+            "": "debug",
+            "sable_history": "trace",
+        },
+
+        "targets": [
+            {
+                "target": "stdout",
+                "level": "trace",
+                "modules": [ "sable_history" ]
+            }
+        ]
+    }
 }
 """
 
@@ -348,10 +401,11 @@ class SableController(BaseServerController, DirectoryBasedController):
 
         (server1_hostname, server1_port) = self.get_hostname_and_port()
         (services_hostname, services_port) = self.get_hostname_and_port()
+        (history_hostname, history_port) = self.get_hostname_and_port()
 
         # Sable requires inbound connections to match the configured hostname,
         # so we can't configure 0.0.0.0
-        server1_hostname = services_hostname = "127.0.0.1"
+        server1_hostname = history_hostname = services_hostname = "127.0.0.1"
 
         (
             server1_management_hostname,
@@ -360,6 +414,10 @@ class SableController(BaseServerController, DirectoryBasedController):
         (
             services_management_hostname,
             services_management_port,
+        ) = self.get_hostname_and_port()
+        (
+            history_management_hostname,
+            history_management_port,
         ) = self.get_hostname_and_port()
 
         self.template_vars = dict(
@@ -381,6 +439,13 @@ class SableController(BaseServerController, DirectoryBasedController):
             services_management_hostname=services_management_hostname,
             services_management_port=services_management_port,
             services_alias_users=SERVICES_ALIAS_USERS if run_services else "",
+            history_hostname=history_hostname,
+            history_port=history_port,
+            history_cert_sha1=(certs_dir() / "My.Little.History.pem.sha1")
+            .read_text()
+            .strip(),
+            history_management_hostname=history_management_hostname,
+            history_management_port=history_management_port,
         )
 
         with self.open_file("configs/network.conf") as fd:
@@ -416,10 +481,20 @@ class SableController(BaseServerController, DirectoryBasedController):
 
         if run_services:
             self.services_controller = SableServicesController(self.test_config, self)
+            self.services_controller.faketime_cmd = faketime_cmd
             self.services_controller.run(
                 protocol="sable",
                 server_hostname=services_hostname,
                 server_port=services_port,
+            )
+
+        if self.test_config.sable_history_server:
+            self.history_controller = SableHistoryController(self.test_config, self)
+            self.history_controller.faketime_cmd = faketime_cmd
+            self.history_controller.run(
+                protocol="sable",
+                server_hostname=history_hostname,
+                server_port=history_port,
             )
 
     def kill_proc(self) -> None:
@@ -470,6 +545,8 @@ class SableServicesController(BaseServicesController):
     server_controller: SableController
     software_name = "Sable Services"
 
+    faketime_cmd: Sequence[str]
+
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         assert protocol == "sable"
         assert self.server_controller.directory is not None
@@ -479,10 +556,54 @@ class SableServicesController(BaseServicesController):
 
         self.proc = self.execute(
             [
+                *self.faketime_cmd,
                 "sable_services",
                 "--foreground",
                 "--server-conf",
                 self.server_controller.directory / "configs/services.conf",
+                "--network-conf",
+                self.server_controller.directory / "configs/network.conf",
+            ],
+            cwd=self.server_controller.directory,
+            preexec_fn=os.setsid,
+            env={"RUST_BACKTRACE": "1", **os.environ},
+        )
+        self.pgroup_id = os.getpgid(self.proc.pid)
+
+    def kill_proc(self) -> None:
+        os.killpg(self.pgroup_id, signal.SIGKILL)
+        super().kill_proc()
+
+
+class SableHistoryController(BaseServicesController):
+    server_controller: SableController
+    software_name = "Sable History Server"
+    faketime_cmd: Sequence[str]
+
+    def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
+        assert protocol == "sable"
+        assert self.server_controller.directory is not None
+        history_db_url=os.environ.get("PIFPAF_POSTGRESQL_URL") or os.environ.get("IRCTEST_POSTGRESQL_URL")
+        assert history_db_url, (
+            "Cannot find a postgresql database to use as backend for sable_history. "
+            "Either set the IRCTEST_POSTGRESQL_URL env var to a libpq URL, or "
+            "run `pip3 install pifpaf` and wrap irctest in a pifpaf call (ie. "
+            "pifpaf run postgresql -- pytest --controller=irctest.controllers.sable ...)"
+        )
+
+        with self.server_controller.open_file("configs/history_server.conf") as fd:
+            fd.write(HISTORY_SERVER_CONFIG % {
+                **self.server_controller.template_vars,
+                "history_db_url": history_db_url,
+            })
+
+        self.proc = self.execute(
+            [
+                *self.faketime_cmd,
+                "sable_history",
+                "--foreground",
+                "--server-conf",
+                self.server_controller.directory / "configs/history_server.conf",
                 "--network-conf",
                 self.server_controller.directory / "configs/network.conf",
             ],

@@ -842,16 +842,22 @@ def mark_services(cls: TClass) -> TClass:
 def mark_specifications(
     *specifications_str: str, deprecated: bool = False, strict: bool = False
 ) -> Callable[[TCallable], TCallable]:
-    specifications = frozenset(
+    specifications = {
         Specifications.from_name(s) if isinstance(s, str) else s
         for s in specifications_str
-    )
+    }
     if None in specifications:
         raise ValueError("Invalid set of specifications: {}".format(specifications))
+
+    is_implementation_specific = all(
+        spec.is_implementation_specific() for spec in specifications
+    )
 
     def decorator(f: TCallable) -> TCallable:
         for specification in specifications:
             f = getattr(pytest.mark, specification.value)(f)
+        if is_implementation_specific:
+            f = getattr(pytest.mark, "implementation-specific")(f)
         if strict:
             f = pytest.mark.strict(f)
         if deprecated:

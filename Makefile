@@ -8,71 +8,72 @@ PYTEST_ARGS ?=
 EXTRA_SELECTORS ?=
 
 BAHAMUT_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	and not IRCv3 \
 	$(EXTRA_SELECTORS)
 
 CHARYBDIS_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
 ERGO_SELECTORS := \
+	(Ergo or not implementation-specific) \
 	not deprecated \
 	$(EXTRA_SELECTORS)
 
 HYBRID_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	$(EXTRA_SELECTORS)
 
 INSPIRCD_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
 IRCU2_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
 NEFARIOUS_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
 SNIRCD_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
 IRC2_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
 MAMMON_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
 NGIRCD_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
 PLEXUS4_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	$(EXTRA_SELECTORS)
 
@@ -87,7 +88,7 @@ LIMNORIA_SELECTORS := \
 # Tests marked with private_chathistory can't pass because Sable does not implement CHATHISTORY for DMs
 
 SABLE_SELECTORS := \
-	not Ergo \
+	(Sable or not implementation-specific) \
 	and not deprecated \
 	and not strict \
 	and not arbitrary_client_tags \
@@ -97,7 +98,7 @@ SABLE_SELECTORS := \
 	$(EXTRA_SELECTORS)
 
 SOLANUM_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
@@ -119,7 +120,7 @@ THELOUNGE_SELECTORS := \
 # Tests marked with private_chathistory can't pass because Unreal does not implement CHATHISTORY for DMs
 
 UNREALIRCD_SELECTORS := \
-	not Ergo \
+	not implementation-specific \
 	and not deprecated \
 	and not strict \
 	and not arbitrary_client_tags \
