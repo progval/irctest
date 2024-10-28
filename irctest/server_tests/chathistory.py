@@ -111,7 +111,9 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
 
         # test a nonexistent channel
         self.sendLine(bar, "CHATHISTORY LATEST #nonexistent_channel * 10")
-        msgs = self.getMessages(bar)
+        while not (msgs := self.getMessages(bar)):
+            # need to retry when Sable has the history server on
+            pass
         msgs = [msg for msg in msgs if msg.command != "MODE"]  # :NickServ MODE +r
         self.assertMessageMatch(
             msgs[0],
@@ -121,7 +123,9 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
 
         # as should a real channel to which one is not joined:
         self.sendLine(bar, "CHATHISTORY LATEST %s * 10" % (real_chname,))
-        msgs = self.getMessages(bar)
+        while not (msgs := self.getMessages(bar)):
+            # need to retry when Sable has the history server on
+            pass
         self.assertMessageMatch(
             msgs[0],
             command="FAIL",
