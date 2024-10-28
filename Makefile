@@ -84,15 +84,12 @@ LIMNORIA_SELECTORS := \
 	$(EXTRA_SELECTORS)
 
 # Tests marked with arbitrary_client_tags or react_tag can't pass because Sable does not support client tags yet
-# Tests marked with private_chathistory can't pass because Sable does not implement CHATHISTORY for DMs
-
 SABLE_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	and not arbitrary_client_tags \
 	and not react_tag \
-	and not private_chathistory \
 	and not list and not lusers and not time and not info \
 	$(EXTRA_SELECTORS)
 
