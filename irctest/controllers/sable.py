@@ -265,7 +265,7 @@ HISTORY_SERVER_CONFIG = """
             {
                 "target": "stdout",
                 "level": "trace",
-                "modules": [ "sable_history" ]
+                "modules": [ "sable" ]
             }
         ]
     }
@@ -350,7 +350,7 @@ SERVICES_CONFIG = """
             {
                 "target": "stdout",
                 "level": "debug",
-                "modules": [ "sable_services" ]
+                "modules": [ "sable" ]
             }
         ]
     }
@@ -476,6 +476,7 @@ class SableController(BaseServerController, DirectoryBasedController):
             cwd=self.directory,
             preexec_fn=os.setsid,
             env={"RUST_BACKTRACE": "1", **os.environ},
+            proc_name="sable_ircd    ",
         )
         self.pgroup_id = os.getpgid(self.proc.pid)
 
@@ -567,6 +568,7 @@ class SableServicesController(BaseServicesController):
             cwd=self.server_controller.directory,
             preexec_fn=os.setsid,
             env={"RUST_BACKTRACE": "1", **os.environ},
+            proc_name="sable_services",
         )
         self.pgroup_id = os.getpgid(self.proc.pid)
 
@@ -610,6 +612,7 @@ class SableHistoryController(BaseServicesController):
             cwd=self.server_controller.directory,
             preexec_fn=os.setsid,
             env={"RUST_BACKTRACE": "1", **os.environ},
+            proc_name="sable_history ",
         )
         self.pgroup_id = os.getpgid(self.proc.pid)
 

@@ -8,9 +8,11 @@ from pathlib import Path
 import shutil
 import socket
 import subprocess
+import sys
 import tempfile
 import textwrap
 import time
+import threading
 from typing import (
     IO,
     Any,
@@ -148,10 +150,39 @@ class _BaseController:
                 self._own_ports.remove((hostname, port))
 
     def execute(
-        self, command: Sequence[Union[str, Path]], **kwargs: Any
+        self, command: Sequence[Union[str, Path]], proc_name: Optional[str], **kwargs: Any
     ) -> subprocess.Popen:
         output_to = None if self.debug_mode else subprocess.DEVNULL
-        return subprocess.Popen(command, stderr=output_to, stdout=output_to, **kwargs)
+        proc_name = proc_name or command[0]
+        kwargs.setdefault("stdout", output_to)
+        kwargs.setdefault("stderr", output_to)
+        stream_stdout = stream_stderr = None
+        if kwargs["stdout"] in (None, subprocess.STDOUT):
+            kwargs["stdout"] = subprocess.PIPE
+            def stream_stdout():
+                for line in proc.stdout:
+                    prefix = f"{time.time():.3f} {proc_name} ".encode()
+                    try:
+                        sys.stdout.buffer.write(prefix + line)
+                    except ValueError:
+                        # "I/O operation on closed file"
+                        pass
+        if kwargs["stderr"] in (subprocess.STDOUT, None):
+            kwargs["stdout"] = subprocess.PIPE
+            def stream_stderr():
+                for line in proc.stdout:
+                    prefix = f"{time.time():.3f} {proc_name} ".encode()
+                    try:
+                        sys.stdout.buffer.write(prefix + line)
+                    except ValueError:
+                        # "I/O operation on closed file"
+                        pass
+        proc = subprocess.Popen(command, **kwargs)
+        if stream_stdout is not None:
+            threading.Thread(target=stream_stdout, name="stream_stdout").start()
+        if stream_stderr is not None:
+            threading.Thread(target=stream_stderr, name="stream_stderr").start()
+        return proc
 
 
 class DirectoryBasedController(_BaseController):
