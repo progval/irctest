@@ -868,10 +868,9 @@ assert {f"_validate_chathistory_{cmd}" for cmd in SUBCOMMANDS} == {
 @cases.mark_specifications("Sable")
 @cases.mark_services
 class SablePostgresqlHistoryTestCase(_BaseChathistoryTests):
-    # for every wall clock second, 10 seconds pass for the server.
-    # At x15, sable_history does not always have time to persist messages (wtf?)
+    # for every wall clock second, 15 seconds pass for the server.
     # at x30, links between nodes timeout.
-    faketime = "+1y x10"
+    faketime = "+1y x15"
 
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
@@ -881,22 +880,24 @@ class SablePostgresqlHistoryTestCase(_BaseChathistoryTests):
         )
 
     def _wait_before_chathistory(self):
-        """waits 15 seconds which appears to be a 1.5 min to Sable; which goes over
-        the 1 min timeout for in-memory history"""
+        """waits 6 seconds which appears to be a 1.5 min to Sable; which goes over
+        the 1 min timeout for in-memory history (+ 1 min because the cleanup job
+        only runs every min)"""
         assert self.controller.faketime_enabled, "faketime is not installed"
-        time.sleep(15)
+        time.sleep(8)
 
 
 @cases.mark_specifications("Sable")
 @cases.mark_services
 class SableExpiringHistoryTestCase(cases.BaseServerTestCase):
-    faketime = "+1y x10"
+    faketime = "+1y x15"
 
     def _wait_before_chathistory(self):
         """waits 6 seconds which appears to be a 1.5 min to Sable; which goes over
-        the 1 min timeout for in-memory history"""
+        the 1 min timeout for in-memory history (+ 1 min because the cleanup job
+        only runs every min)"""
         assert self.controller.faketime_enabled, "faketime is not installed"
-        time.sleep(15)
+        time.sleep(8)
 
     def testChathistoryExpired(self):
         """Checks that Sable forgets about messages if the history server is not available"""

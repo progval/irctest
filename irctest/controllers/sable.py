@@ -95,7 +95,7 @@ def certs_dir() -> Path:
 
 NETWORK_CONFIG = """
 {
-    "fanout": 1,
+    "fanout": 2,
     "ca_file": "%(certs_dir)s/ca_cert.pem",
 
     "peers": [
