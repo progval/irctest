@@ -990,6 +990,7 @@ jobs:
         cache-on-failure: true
         workspaces: sable -> target
     - run: rustc --version
+    - run: sudo systemctl start postgresql.service
     - name: Build Sable
       run: |
         cd $GITHUB_WORKSPACE/sable/
@@ -1003,7 +1004,8 @@ jobs:
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=$GITHUB_WORKSPACE/sable/target/debug/sbin:$GITHUB_WORKSPACE/sable/target/debug/bin:$GITHUB_WORKSPACE/sable/target/debug:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH
+        IRCTEST_POSTGRESQL_URL=postgresql:// PATH=$GITHUB_WORKSPACE/sable/target/debug/sbin:$GITHUB_WORKSPACE/sable/target/debug/bin:$GITHUB_WORKSPACE/sable/target/debug:$PATH
         make sable
       timeout-minutes: 30
     - if: always()

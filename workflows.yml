@@ -268,6 +268,9 @@ software:
                 workspaces: "sable -> target"
                 cache-on-failure: true
             - run: rustc --version
+            - run: start postgresql
+              run: "sudo systemctl start postgresql.service"
+        env: "IRCTEST_POSTGRESQL_URL=postgresql://"
         separate_build_job: false
         build_script: |
             cd $GITHUB_WORKSPACE/sable/
