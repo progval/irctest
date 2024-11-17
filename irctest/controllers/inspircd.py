@@ -33,7 +33,8 @@ TEMPLATE_CONFIG = """
       class="ServerOperators"
       >
 
-<options casemapping="ascii">
+<options casemapping="ascii"
+         extbanformat="any">
 
 # Disable 'NOTICE #chan :*** foo invited bar into the channel-
 <security announceinvites="none">
