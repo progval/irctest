@@ -85,7 +85,13 @@ def certs_dir() -> Path:
         certs_dir = tempfile.TemporaryDirectory()
         (Path(certs_dir.name) / "gen_certs.sh").write_text(GEN_CERTS)
         subprocess.run(
-            ["bash", "gen_certs.sh", "My.Little.Server", "My.Little.History", "My.Little.Services"],
+            [
+                "bash",
+                "gen_certs.sh",
+                "My.Little.Server",
+                "My.Little.History",
+                "My.Little.Services",
+            ],
             cwd=certs_dir.name,
             check=True,
         )
@@ -585,7 +591,9 @@ class SableHistoryController(BaseServicesController):
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         assert protocol == "sable"
         assert self.server_controller.directory is not None
-        history_db_url=os.environ.get("PIFPAF_POSTGRESQL_URL") or os.environ.get("IRCTEST_POSTGRESQL_URL")
+        history_db_url = os.environ.get("PIFPAF_POSTGRESQL_URL") or os.environ.get(
+            "IRCTEST_POSTGRESQL_URL"
+        )
         assert history_db_url, (
             "Cannot find a postgresql database to use as backend for sable_history. "
             "Either set the IRCTEST_POSTGRESQL_URL env var to a libpq URL, or "
@@ -594,10 +602,9 @@ class SableHistoryController(BaseServicesController):
         )
 
         with self.server_controller.open_file("configs/history_server.conf") as fd:
-            fd.write(HISTORY_SERVER_CONFIG % {
-                **self.server_controller.template_vars,
-                "history_db_url": history_db_url,
-            })
+            vals = dict(self.server_controller.template_vars)
+            vals["history_db_url"] = history_db_url
+            fd.write(HISTORY_SERVER_CONFIG % vals)
 
         self.proc = self.execute(
             [
