@@ -174,7 +174,7 @@ class _BaseController:
                         pass
 
         if kwargs["stderr"] in (subprocess.STDOUT, None):
-            kwargs["stdout"] = subprocess.PIPE
+            kwargs["stderr"] = subprocess.PIPE
 
             def stream_stderr() -> None:
                 assert proc.stderr is not None  # for mypy
