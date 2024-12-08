@@ -127,6 +127,7 @@ LIMNORIA_SELECTORS := \
 	$(EXTRA_SELECTORS)
 
 # Tests marked with arbitrary_client_tags or react_tag can't pass because Sable does not support client tags yet
+# 'SablePostgresqlHistoryTestCase and private_chathistory' disabled because Sable does not (yet?) persist private messages to postgresql
 SABLE_MARKERS := \
 	(Sable or not implementation-specific) \
 	and not deprecated \
@@ -136,6 +137,7 @@ SABLE_MARKERS := \
 	$(EXTRA_MARKERS)
 SABLE_SELECTORS := \
 	not list and not lusers and not time and not info \
+	and not (SablePostgresqlHistoryTestCase and private_chathistory) \
 	$(EXTRA_SELECTORS)
 
 SOLANUM_MARKERS := \
