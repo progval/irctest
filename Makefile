@@ -22,7 +22,7 @@ CHARYBDIS_SELECTORS := \
 
 ERGO_SELECTORS := \
 	(Ergo or not implementation-specific) \
-	not deprecated \
+	and not deprecated \
 	$(EXTRA_SELECTORS)
 
 HYBRID_SELECTORS := \
