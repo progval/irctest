@@ -4,8 +4,9 @@ import shutil
 import signal
 import subprocess
 import tempfile
+import threading
 import time
-from typing import Optional, Sequence, Type
+from typing import Any, Optional, Sequence, Type
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -372,6 +373,12 @@ class SableController(BaseServerController, DirectoryBasedController):
     """Sable processes commands very quickly, but responses for commands changing the
     state may be sent after later commands for messages which don't."""
 
+    history_controller: Optional[BaseServicesController] = None
+
+    def __init__(self, *args: Any, **kwargs: Any):
+        super().__init__(*args, **kwargs)
+        self.history_controller = None
+
     def run(
         self,
         hostname: str,
@@ -548,6 +555,19 @@ class SableController(BaseServerController, DirectoryBasedController):
         case.sendLine(client, "QUIT")
         case.assertDisconnected(client)
 
+    def wait_for_services(self) -> None:
+        # FIXME: this isn't called when sable_history is enabled but sable_services
+        # isn't. This doesn't happen with the existing tests so this isn't an issue yet
+        if self.services_controller is not None:
+            t1 = threading.Thread(target=self.services_controller.wait_for_services)
+            t1.start()
+        if self.history_controller is not None:
+            t2 = threading.Thread(target=self.history_controller.wait_for_services)
+            t2.start()
+            t2.join()
+        if self.services_controller is not None:
+            t1.join()
+
 
 class SableServicesController(BaseServicesController):
     server_controller: SableController
@@ -659,6 +679,48 @@ class SableHistoryController(BaseServicesController):
             proc_name="sable_history ",
         )
         self.pgroup_id = os.getpgid(self.proc.pid)
+
+    def wait_for_services(self) -> None:
+        """Overrides the default implementation, as it relies on
+        ``PRIVMSG NickServ: HELP``, which always succeeds on Sable.
+
+        Instead, this relies on SASL PLAIN availability."""
+        if self.services_up:
+            # Don't check again if they are already available
+            return
+        self.server_controller.wait_for_port()
+
+        c = ClientMock(name="chkHist", show_io=True)
+        c.connect(self.server_controller.hostname, self.server_controller.port)
+        c.sendLine("NICK chkHist")
+        c.sendLine("USER chk chk chk chk")
+        time.sleep(self.server_controller.sync_sleep_time)
+        got_end_of_motd = False
+        while not got_end_of_motd:
+            for msg in c.getMessages(synchronize=False):
+                if msg.command == "PING":
+                    c.sendLine("PONG :" + msg.params[0])
+                if msg.command in ("376", "422"):  # RPL_ENDOFMOTD / ERR_NOMOTD
+                    got_end_of_motd = True
+
+        def wait() -> None:
+            timeout = time.time() + 10
+            while time.time() < timeout:
+                c.sendLine("LINKS")
+                time.sleep(self.server_controller.sync_sleep_time)
+                for msg in c.getMessages(synchronize=False):
+                    if msg.command == "364":  # RPL_LINKS
+                        if msg.params[2] == "My.Little.History":
+                            return
+
+            raise Exception("History server is not available")
+
+        wait()
+
+        c.sendLine("QUIT")
+        c.getMessages()
+        c.disconnect()
+        self.services_up = True
 
     def kill_proc(self) -> None:
         os.killpg(self.pgroup_id, signal.SIGKILL)

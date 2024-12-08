@@ -316,6 +316,7 @@ class BaseServerController(_BaseController):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.faketime_enabled = False
+        self.services_controller = None
 
     def run(
         self,
