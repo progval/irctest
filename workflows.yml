@@ -249,7 +249,7 @@ software:
         name: Sable
         repository: Libera-Chat/sable
         refs:
-            stable: 52397dc9e0f27c3ed197f984c00f06639870716d
+            stable: 034c4d5dd937774099773238d8d5b8054b015607
             release: null
             devel: master
             devel_release: null
@@ -268,6 +268,9 @@ software:
                 workspaces: "sable -> target"
                 cache-on-failure: true
             - run: rustc --version
+            - run: start postgresql
+              run: "sudo systemctl start postgresql.service"
+        env: "IRCTEST_POSTGRESQL_URL=postgresql://localhost IRCTEST_DEBUG_LOGS=1"
         separate_build_job: false
         build_script: |
             cd $GITHUB_WORKSPACE/sable/
