@@ -270,7 +270,7 @@ software:
             - run: rustc --version
             - run: start postgresql
               run: "sudo systemctl start postgresql.service"
-        env: "IRCTEST_POSTGRESQL_URL=postgresql:// IRCTEST_DEBUG_LOGS=1"
+        env: "IRCTEST_POSTGRESQL_URL=postgresql://localhost IRCTEST_DEBUG_LOGS=1"
         separate_build_job: false
         build_script: |
             cd $GITHUB_WORKSPACE/sable/
