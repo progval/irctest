@@ -8,7 +8,7 @@ from irctest.basecontrollers import BaseServicesController, DirectoryBasedContro
 
 TEMPLATE_CONFIG = """
 serverinfo {{
-    name = "services.example.org"
+    name = "My.Little.Services"
     description = "Anope IRC Services"
     numeric = "00A"
     pid = "services.pid"
