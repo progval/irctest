@@ -136,7 +136,7 @@ class ServicesLinksTestCase(cases.BaseServerTestCase):
                 "nick",
                 "My.Little.Services",
                 "My.Little.Server",
-                StrRe("1 .+"),  # SID instead of description for Anope...
+                StrRe("[01] .+"),  # SID instead of description for Anope...
             ],
         )
 
