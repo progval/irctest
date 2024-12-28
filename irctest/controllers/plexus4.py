@@ -44,7 +44,7 @@ class {{
     connectfreq = 5 minutes;
 }};
 connect {{
-    name = "services.example.org";
+    name = "My.Little.Services";
     host = "127.0.0.1";  # Used to validate incoming connection
     port = 0;  # We don't need servers to connect to services
     send_password = "password";
@@ -52,7 +52,7 @@ connect {{
     class = "server";
 }};
 service {{
-    name = "services.example.org";
+    name = "My.Little.Services";
 }};
 
 auth {{

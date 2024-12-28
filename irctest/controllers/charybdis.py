@@ -44,7 +44,7 @@ channel {{
     displayed_usercount = 0;
 }};
 
-connect "services.example.org" {{
+connect "My.Little.Services" {{
     host = "localhost";  # Used to validate incoming connection
     port = 0;  # We don't need servers to connect to services
     send_password = "password";
@@ -53,7 +53,7 @@ connect "services.example.org" {{
     flags = topicburst;
 }};
 service {{
-    name = "services.example.org";
+    name = "My.Little.Services";
 }};
 
 privset "omnioper" {{

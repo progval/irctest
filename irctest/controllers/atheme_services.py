@@ -24,7 +24,7 @@ loadmodule "modules/saslserv/plain";
 #loadmodule "modules/saslserv/scram";
 
 serverinfo {{
-    name = "services.example.org";
+    name = "My.Little.Services";
     desc = "Atheme IRC Services";
     numeric = "00A";
     netname = "testnet";

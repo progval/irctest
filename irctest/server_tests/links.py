@@ -127,7 +127,7 @@ class ServicesLinksTestCase(cases.BaseServerTestCase):
             command=RPL_LINKS,
             params=[
                 "nick",
-                "services.example.org",
+                "My.Little.Services",
                 "My.Little.Server",
                 StrRe("1 .+"),  # SID instead of description for Anope...
             ],

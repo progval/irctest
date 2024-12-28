@@ -41,7 +41,7 @@ TEMPLATE_CONFIG = """
 
 # Services:
 <bind address="{services_hostname}" port="{services_port}" type="servers">
-<link name="services.example.org"
+<link name="My.Little.Services"
     ipaddr="{services_hostname}"
     port="{services_port}"
     allowmask="*"
@@ -51,7 +51,7 @@ TEMPLATE_CONFIG = """
 <module name="spanningtree">
 <module name="hidechans">  # Anope errors when missing
 <sasl requiressl="no"
-      target="services.example.org">
+      target="My.Little.Services">
 
 # Protocol:
 <module name="banexception">

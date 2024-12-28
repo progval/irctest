@@ -64,7 +64,7 @@ listen {{
     options {{ serversonly; }}
 }}
 
-link services.example.org {{
+link My.Little.Services {{
     incoming {{
         mask *;
     }}
@@ -72,11 +72,11 @@ link services.example.org {{
     class servers;
 }}
 ulines {{
-    services.example.org;
+    My.Little.Services;
 }}
 
 set {{
-    sasl-server services.example.org;
+    sasl-server My.Little.Services;
     kline-address "example@example.org";
     network-name "ExampleNET";
     default-server "irc.example.org";
