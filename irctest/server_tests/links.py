@@ -3,6 +3,13 @@ from irctest.numerics import ERR_UNKNOWNCOMMAND, RPL_ENDOFLINKS, RPL_LINKS
 from irctest.patma import ANYSTR, StrRe
 
 
+def _server_info_regexp(case: cases.BaseServerTestCase) -> str:
+    if case.controller.software_name == "Sable":
+        return ".+"
+    else:
+        return "test server"
+
+
 class LinksTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     def testLinksSingleServer(self):
@@ -56,7 +63,7 @@ class LinksTestCase(cases.BaseServerTestCase):
                 "nick",
                 "My.Little.Server",
                 "My.Little.Server",
-                StrRe("0 (0042 )?test server"),
+                StrRe(f"0 (0042 )?{_server_info_regexp(self)}"),
             ],
         )
 
@@ -119,7 +126,7 @@ class ServicesLinksTestCase(cases.BaseServerTestCase):
                 "nick",
                 "My.Little.Server",
                 "My.Little.Server",
-                StrRe("0 (0042 )?test server"),
+                StrRe(f"0 (0042 )?{_server_info_regexp(self)}"),
             ],
         )
         self.assertMessageMatch(
