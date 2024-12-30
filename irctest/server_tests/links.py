@@ -117,7 +117,7 @@ class ServicesLinksTestCase(cases.BaseServerTestCase):
             # This server redacts links
             return
 
-        messages.sort(key=lambda m: m.params[-1])
+        messages.sort(key=lambda m: tuple(m.params))
 
         self.assertMessageMatch(
             messages.pop(0),
