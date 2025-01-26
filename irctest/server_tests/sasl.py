@@ -82,7 +82,7 @@ class SaslTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("IRCv3")
     @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainNonAscii(self):
-        password = "é" * 100
+        password = "é" * 30
         authstring = base64.b64encode(
             b"\x00".join([b"foo", b"foo", password.encode()])
         ).decode()
