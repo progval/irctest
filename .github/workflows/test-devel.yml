@@ -558,7 +558,7 @@ jobs:
         repository: ergochat/ergo
     - uses: actions/setup-go@v3
       with:
-        go-version: ^1.23.0
+        go-version: ^1.24.0
     - run: go version
     - name: Build Ergo
       run: |
