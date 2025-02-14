@@ -14,6 +14,7 @@ from irctest.basecontrollers import (
     NotImplementedByController,
 )
 from irctest.cases import BaseServerTestCase
+from irctest.client_mock import ClientMock
 from irctest.exceptions import NoMessageException
 from irctest.patma import ANYSTR
 
@@ -495,6 +496,53 @@ class SableServicesController(BaseServicesController):
     def kill_proc(self) -> None:
         os.killpg(self.pgroup_id, signal.SIGKILL)
         super().kill_proc()
+
+    def wait_for_services(self) -> None:
+        # by default, wait_for_services() connects a user that sends a HELP command
+        # to NickServ and assumes services are up when it receives a non-ERR_NOSUCHNICK
+        # reply.
+        # However, with Sable, NickServ is always up, even when services are not linked,
+        # so we need to check a different way. We check presence of a non-EXTERNAL
+        # value to the sasl capability, but LINKS would
+        if self.services_up:
+            # Don't check again if they are already available
+            return
+        self.server_controller.wait_for_port()
+
+        c = ClientMock(name="chkSvs", show_io=True)
+        c.connect(self.server_controller.hostname, self.server_controller.port)
+        c.sendLine("NICK chkSvs")
+        c.sendLine("USER chk chk chk chk")
+        time.sleep(self.server_controller.sync_sleep_time)
+        got_end_of_motd = False
+        while not got_end_of_motd:
+            for msg in c.getMessages(synchronize=False):
+                if msg.command == "PING":
+                    # Hi Unreal
+                    c.sendLine("PONG :" + msg.params[0])
+                if msg.command in ("376", "422"):  # RPL_ENDOFMOTD / ERR_NOMOTD
+                    got_end_of_motd = True
+
+        timeout = time.time() + 10
+        while not self.services_up:
+            if time.time() > timeout:
+                raise Exception("Timeout while waiting for services")
+            c.sendLine("CAP LS 302")
+
+            msgs = self.getNickServResponse(c, timeout=1)
+            for msg in msgs:
+                if msg.command == "CAP":
+                    pass
+                for token in msg.params[-1].split():
+                    if token.startswith("sasl="):
+                        if "PLAIN" in token.removeprefix("sasl=").split(","):
+                            # SASL PLAIN is available, so services are linked.
+                            self.services_up = True
+                            break
+
+        c.sendLine("QUIT")
+        c.getMessages()
+        c.disconnect()
 
 
 def get_irctest_controller_class() -> Type[SableController]:
