@@ -206,7 +206,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
             *install_steps,
             {
                 "name": "Install system dependencies",
-                "run": "sudo apt-get install atheme-services faketime libjansson-dev",
+                "run": "sudo apt-get install atheme-services faketime",
             },
             {
                 "name": "Install irctest dependencies",

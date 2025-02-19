@@ -161,6 +161,8 @@ jobs:
         path: ircd-hybrid
         ref: 8.2.39
         repository: ircd-hybrid/ircd-hybrid
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime libjansson-dev
     - name: Build Hybrid
       run: |
         cd $GITHUB_WORKSPACE/ircd-hybrid/
@@ -491,7 +493,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -532,7 +534,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -567,7 +569,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -602,7 +604,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -644,7 +646,7 @@ jobs:
         make build
         make install
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -685,7 +687,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -720,7 +722,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -761,7 +763,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -796,7 +798,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -848,7 +850,7 @@ jobs:
         mkdir -p $HOME/.local/bin
         cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -889,7 +891,7 @@ jobs:
         make -j 4
         make install
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -918,7 +920,7 @@ jobs:
     - name: Install dependencies
       run: pip install limnoria==2023.5.27 cryptography pyxmpp2-scram
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -958,7 +960,7 @@ jobs:
         make install
         cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -993,7 +995,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1034,7 +1036,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1069,7 +1071,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1110,7 +1112,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1159,7 +1161,7 @@ jobs:
         cd $GITHUB_WORKSPACE/sable/
         cargo build
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1194,7 +1196,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1223,7 +1225,7 @@ jobs:
     - name: Install dependencies
       run: pip install sopel==7.1.8
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1263,7 +1265,7 @@ jobs:
         mkdir -p ~/.local/bin/
         ln -s $(pwd)/index.js ~/.local/bin/thelounge
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1298,7 +1300,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1333,7 +1335,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1374,7 +1376,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1409,7 +1411,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime libjansson-dev
+      run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip

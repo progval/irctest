@@ -33,6 +33,9 @@ software:
             devel: "8.2.x"
             devel_release: null
         path: ircd-hybrid
+        pre_deps:
+            - name: "Install system dependencies"
+              run: "sudo apt-get install atheme-services faketime libjansson-dev"
         separate_build_job: true
         build_script: |
             cd $GITHUB_WORKSPACE/ircd-hybrid/
