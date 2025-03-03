@@ -66,7 +66,9 @@ options {{
     warningtimeout = 4h
 }}
 
-module {{ name = "{module_prefix}sasl" }}
+module {{ name = "ns_sasl" }} # since 2.1.13
+module {{ name = "sasl" }}    # 2.1.2 to 2.1.12
+module {{ name = "m_sasl" }}  # 2.0 to 2.1.1
 
 module {{ name = "enc_sha2" }}   # 2.1
 module {{ name = "enc_sha256" }} # 2.0
@@ -126,7 +128,6 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
                     protocol=protocol,
                     server_hostname=server_hostname,
                     server_port=server_port,
-                    module_prefix="" if self.software_version >= (2, 1, 2) else "m_",
                 )
             )
 
