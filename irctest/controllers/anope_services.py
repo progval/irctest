@@ -67,8 +67,10 @@ options {{
 }}
 
 module {{ name = "{module_prefix}sasl" }}
-module {{ name = "enc_sha2" }}
-module {{ name = "enc_sha256" }}
+
+module {{ name = "enc_sha2" }}   # 2.1
+module {{ name = "enc_sha256" }} # 2.0
+
 module {{ name = "ns_cert" }}
 
 """
