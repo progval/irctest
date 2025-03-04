@@ -13,6 +13,7 @@ TEMPLATE_CONFIG = """
 include "modules.default.conf";
 include "operclass.default.conf";
 {extras}
+loadmodule "third/redact";
 include "help/help.conf";
 
 me {{
@@ -95,6 +96,11 @@ set {{
         }}
     }}
     modes-on-join "+H 100:1d";  // Enables CHATHISTORY
+
+    redacters {{
+        op;
+        sender;
+    }}
 
     {set_v6only}
 
