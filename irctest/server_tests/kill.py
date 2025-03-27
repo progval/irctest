@@ -22,7 +22,7 @@ class KillTestCase(cases.BaseServerTestCase):
             fail_msg="OPER failed",
         )
 
-        self.sendLine("alice", "KILL bob")
+        self.sendLine("alice", "KILL bob :no reason")
         self.assertIn(
             ERR_NOPRIVILEGES,
             [m.command for m in self.getMessages("alice")],
@@ -31,7 +31,7 @@ class KillTestCase(cases.BaseServerTestCase):
         # bob is not killed
         self.getMessages("bob")
 
-        self.sendLine("alice", "KILL alice")
+        self.sendLine("alice", "KILL alice :no reason")
         self.assertIn(
             ERR_NOPRIVILEGES,
             [m.command for m in self.getMessages("alice")],
