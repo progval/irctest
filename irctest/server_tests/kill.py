@@ -9,6 +9,10 @@ from irctest.numerics import ERR_NOPRIVILEGES, RPL_YOUREOPER
 
 class KillTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(
+        ["Sable"],
+        "https://github.com/Libera-Chat/sable/issues/154",
+    )
     def testKill(self):
         self.connectClient("ircop", name="ircop")
         self.connectClient("alice", name="alice")
