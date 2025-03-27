@@ -44,7 +44,7 @@ class KillTestCase(cases.BaseServerTestCase):
         self.getMessages("ircop")
         self.assertDisconnected("alice")
 
-        self.sendLine("ircop", "KILL bob")
+        self.sendLine("ircop", "KILL bob :no reason")
         self.getMessages("ircop")
         self.assertDisconnected("bob")
 
