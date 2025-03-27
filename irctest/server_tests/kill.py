@@ -1,6 +1,5 @@
 """
 The KILL command  (`Modern <https://modern.ircdocs.horse/#kill-message>`__)
-and `IRCv3 WHOX <https://ircv3.net/specs/extensions/whox>`_
 """
 
 
@@ -48,3 +47,20 @@ class KillTestCase(cases.BaseServerTestCase):
         self.sendLine("ircop", "KILL bob")
         self.getMessages("ircop")
         self.assertDisconnected("bob")
+
+    @cases.mark_specifications("Ergo")
+    def testKillOneArgument(self):
+        self.connectClient("ircop", name="ircop")
+        self.connectClient("alice", name="alice")
+
+        self.sendLine("ircop", "OPER operuser operpassword")
+        self.assertIn(
+            RPL_YOUREOPER,
+            [m.command for m in self.getMessages("ircop")],
+            fail_msg="OPER failed",
+        )
+
+        # 1-argument kill command, accepted by Ergo and some implementations
+        self.sendLine("ircop", "KILL alice")
+        self.getMessages("ircop")
+        self.assertDisconnected("alice")
