@@ -21,7 +21,7 @@ class KillTestCase(cases.BaseServerTestCase):
             fail_msg="OPER failed",
         )
 
-        self.sendLine("alice", "KILL bob :no reason")
+        self.sendLine("alice", "KILL bob :some arbitrary reason")
         self.assertIn(
             ERR_NOPRIVILEGES,
             [m.command for m in self.getMessages("alice")],
@@ -30,7 +30,7 @@ class KillTestCase(cases.BaseServerTestCase):
         # bob is not killed
         self.getMessages("bob")
 
-        self.sendLine("alice", "KILL alice :no reason")
+        self.sendLine("alice", "KILL alice :some arbitrary reason")
         self.assertIn(
             ERR_NOPRIVILEGES,
             [m.command for m in self.getMessages("alice")],
@@ -40,11 +40,11 @@ class KillTestCase(cases.BaseServerTestCase):
         self.getMessages("alice")
 
         # privileged KILL should succeed
-        self.sendLine("ircop", "KILL alice :no reason")
+        self.sendLine("ircop", "KILL alice :some arbitrary reason")
         self.getMessages("ircop")
         self.assertDisconnected("alice")
 
-        self.sendLine("ircop", "KILL bob :no reason")
+        self.sendLine("ircop", "KILL bob :some arbitrary reason")
         self.getMessages("ircop")
         self.assertDisconnected("bob")
 
