@@ -60,7 +60,7 @@ privset "omnioper" {{
     privs = oper:general, oper:privs, oper:testline, oper:kill, oper:operwall, oper:message,
             oper:routing, oper:kline, oper:unkline, oper:xline,
             oper:resv, oper:cmodes, oper:mass_notice, oper:wallops,
-            oper:remoteban,
+            oper:remoteban, oper:local_kill,
             usermode:servnotice, auspex:oper, auspex:hostname, auspex:umodes, auspex:cmodes,
             oper:admin, oper:die, oper:rehash, oper:spy, oper:grant;
 }};
