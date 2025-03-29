@@ -113,8 +113,9 @@ class BouncerTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("Ergo")
     def testChannelMessageFromSelf(self):
-        """Test that all clients attached to a session get messages sent by someone else
-        to a channel"""
+        """Test that all clients attached to a session get messages sent by an other client
+
+        (TODO: check when the initial sender has echo-message too)"""
         self._connectClient3()
         self._connectClient4()
 
@@ -123,7 +124,7 @@ class BouncerTestCase(cases.BaseServerTestCase):
             msg for msg in self.getMessages(2) if msg.command == "PRIVMSG"
         ]
         messagesforone = [
-            msg for msg in self.getMessages(2) if msg.command == "PRIVMSG"
+            msg for msg in self.getMessages(1) if msg.command == "PRIVMSG"
         ]
         messagesforthree = [
             msg for msg in self.getMessages(3) if msg.command == "PRIVMSG"
