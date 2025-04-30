@@ -1291,7 +1291,7 @@ jobs:
       run: |
         pip install pifpaf
         wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-        wget -q https://wordpress.org/latest.zip -O wordpress-latest.zip
+        wget -q https://wordpress.org/wordpress-6.7.2.zip -O wordpress-latest.zip
     - name: Install system dependencies
       run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
