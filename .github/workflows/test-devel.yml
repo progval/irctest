@@ -42,6 +42,46 @@ jobs:
         name: installed-anope
         path: ~/artefacts-*.tar.gz
         retention-days: 1
+  build-anope-2.0:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir -p .local/ go/
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        key: 3-${{ runner.os }}-anope-2.0-devel
+        path: '~/.cache
+
+          ${ github.workspace }/anope
+
+          '
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Checkout Anope 2.0
+      uses: actions/checkout@v4
+      with:
+        path: anope
+        ref: '2.0'
+        repository: anope/anope
+    - name: Build Anope 2.0
+      run: |
+        cd $GITHUB_WORKSPACE/anope/
+        sudo apt-get install ninja-build --no-install-recommends
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
+        ninja install
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-anope-2.0.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: installed-anope-2.0
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
   build-bahamut:
     runs-on: ubuntu-22.04
     steps:
@@ -470,7 +510,7 @@ jobs:
   test-bahamut-anope:
     needs:
     - build-bahamut
-    - build-anope
+    - build-anope-2.0
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -486,7 +526,7 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v4
       with:
-        name: installed-anope
+        name: installed-anope-2.0
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
