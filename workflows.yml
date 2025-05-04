@@ -357,6 +357,23 @@ software:
             cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
             ninja install
 
+    anope-2.0:
+        name: Anope 2.0
+        repository: anope/anope
+        separate_build_job: true
+        path: anope
+        refs:
+            stable: "2.0.14"
+            release: null
+            devel: "2.0"
+            devel_release: null
+        build_script: |
+            cd $GITHUB_WORKSPACE/anope/
+            sudo apt-get install ninja-build --no-install-recommends
+            mkdir build && cd build
+            cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
+            ninja install
+
     dlk:
         name: Dlk
         repository: DalekIRC/Dalek-Services
@@ -435,7 +452,7 @@ tests:
         software: [bahamut]
 
     bahamut-anope:
-        software: [bahamut, anope]
+        software: [bahamut, anope-2.0] # Anope 2.1.15 removes support for Bahamut
 
     charybdis:
         software: [charybdis]
