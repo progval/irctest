@@ -151,10 +151,10 @@ software:
         name: InspIRCd
         repository: inspircd/inspircd
         refs: &inspircd_refs
-            stable: v3.17.1
+            stable: v4.7.0
             release: null
             devel: master
-            devel_release: insp3
+            devel_release: insp4
         path: inspircd
         prefix: ~/.local/inspircd
         cache: false  # incremental compilation is frequently broken

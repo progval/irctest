@@ -119,10 +119,7 @@ cd /tmp/
 git clone https://github.com/inspircd/inspircd.git
 cd inspircd
 
-# Optional, makes tests run considerably faster. Pick one depending on the InspIRCd version:
-# on Insp3 <= 3.16.0 and Insp4 <= 4.0.0a21:
-patch src/inspircd.cpp < ~/irctest/patches/inspircd_mainloop.patch
-# on Insp3 >= 3.17.0 and Insp4 >= 4.0.0a22:
+# Optional, makes tests run considerably faster.
 export CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP
 
 ./configure --prefix=$HOME/.local/ --development
