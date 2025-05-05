@@ -12,9 +12,8 @@ from irctest.patma import ANYSTR, StrRe
 
 @cases.mark_services
 class BouncerTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("Ergo")
-    def testBouncer(self):
-        """Test basic bouncer functionality."""
+    def setUp(self):
+        super().setUp()
         self.controller.registerUser(self, "observer", "observerpassword")
         self.controller.registerUser(self, "testuser", "mypassword")
 
@@ -33,13 +32,27 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "USER a 0 * a")
         self.sendLine(2, "CAP REQ :server-time message-tags")
         self.sendLine(2, "CAP END")
-        messages = self.getMessages(2)
-        welcomes = [message for message in messages if message.command == RPL_WELCOME]
-        self.assertEqual(len(welcomes), 1)
-        # should see a regburst for testnick
-        self.assertMessageMatch(welcomes[0], params=["testnick", ANYSTR])
+        self._waitForWelcome(2, "testnick")
         self.joinChannel(2, "#chan")
 
+    def _waitForWelcome(self, client, nick):
+        """Waits for numeric 001, and returns every message after that."""
+        while True:
+            messages = iter(self.getMessages(client, synchronize=False))
+            for message in messages:
+                if message.command == "001":
+                    # should see a regburst for testnick
+                    self.assertMessageMatch(message, params=[nick, ANYSTR])
+
+                    messages_after_welcome = list(messages)
+                    messages_after_welcome += self.getMessages(client)
+
+                    # check there is no other 001
+                    for message in messages_after_welcome:
+                        self.assertNotEqual(message.command, "001")
+                    return messages_after_welcome
+
+    def _connectClient3(self):
         self.addClient()
         self.sendLine(3, "CAP LS 302")
         self.sendLine(3, "AUTHENTICATE PLAIN")
@@ -48,49 +61,37 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self.sendLine(3, "USER a 0 * a")
         self.sendLine(3, "CAP REQ :server-time message-tags account-tag")
         self.sendLine(3, "CAP END")
-        messages = self.getMessages(3)
-        welcomes = [message for message in messages if message.command == RPL_WELCOME]
-        self.assertEqual(len(welcomes), 1)
         # should see the *same* regburst for testnick
-        self.assertMessageMatch(welcomes[0], params=["testnick", ANYSTR])
+        messages = self._waitForWelcome(3, "testnick")
         joins = [message for message in messages if message.command == "JOIN"]
         # we should be automatically joined to #chan
         self.assertMessageMatch(joins[0], params=["#chan"])
 
-        # disable multiclient in nickserv
-        self.sendLine(3, "NS SET MULTICLIENT OFF")
-        self.getMessages(3)
-
+    def _connectClient4(self):
+        # connect a client similar to 3, but without the message-tags and account-tag
+        # capabilities, to make sure it does not receive the associated tags
         self.addClient()
         self.sendLine(4, "CAP LS 302")
         self.sendLine(4, "AUTHENTICATE PLAIN")
         self.sendLine(4, sasl_plain_blob("testuser", "mypassword"))
         self.sendLine(4, "NICK testnick")
         self.sendLine(4, "USER a 0 * a")
-        self.sendLine(4, "CAP REQ :server-time message-tags")
+        self.sendLine(4, "CAP REQ server-time")
         self.sendLine(4, "CAP END")
-        # with multiclient disabled, we should not be able to attach to the nick
-        messages = self.getMessages(4)
-        welcomes = [message for message in messages if message.command == RPL_WELCOME]
-        self.assertEqual(len(welcomes), 0)
-        errors = [
-            message for message in messages if message.command == ERR_NICKNAMEINUSE
-        ]
-        self.assertEqual(len(errors), 1)
+        # should see the *same* regburst for testnick
+        self._waitForWelcome(4, "testnick")
 
-        self.sendLine(3, "NS SET MULTICLIENT ON")
-        self.getMessages(3)
-        self.addClient()
-        self.sendLine(5, "CAP LS 302")
-        self.sendLine(5, "AUTHENTICATE PLAIN")
-        self.sendLine(5, sasl_plain_blob("testuser", "mypassword"))
-        self.sendLine(5, "NICK testnick")
-        self.sendLine(5, "USER a 0 * a")
-        self.sendLine(5, "CAP REQ server-time")
-        self.sendLine(5, "CAP END")
-        messages = self.getMessages(5)
-        welcomes = [message for message in messages if message.command == RPL_WELCOME]
-        self.assertEqual(len(welcomes), 1)
+    @cases.mark_specifications("Ergo", "Sable")
+    def testAutomaticResumption(self):
+        """Test logging into an account that already has a client joins the client's session"""
+        self._connectClient3()
+
+    @cases.mark_specifications("Ergo", "Sable")
+    def testChannelMessageFromOther(self):
+        """Test that all clients attached to a session get messages sent by someone else
+        to a channel"""
+        self._connectClient3()
+        self._connectClient4()
 
         self.sendLine(1, "@+clientOnlyTag=Value PRIVMSG #chan :hey")
         self.getMessages(1)
@@ -104,22 +105,84 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self.assertEqual(len(messagesforthree), 1)
         messagefortwo = messagesfortwo[0]
         messageforthree = messagesforthree[0]
-        messageforfive = self.getMessage(5)
+        messageforfour = self.getMessage(4)
         self.assertMessageMatch(messagefortwo, params=["#chan", "hey"])
         self.assertMessageMatch(messageforthree, params=["#chan", "hey"])
-        self.assertMessageMatch(messageforfive, params=["#chan", "hey"])
+        self.assertMessageMatch(messageforfour, params=["#chan", "hey"])
         self.assertIn("time", messagefortwo.tags)
         self.assertIn("time", messageforthree.tags)
-        self.assertIn("time", messageforfive.tags)
+        self.assertIn("time", messageforfour.tags)
         # 3 has account-tag
         self.assertIn("account", messageforthree.tags)
         # should get same msgid
         self.assertEqual(messagefortwo.tags["msgid"], messageforthree.tags["msgid"])
-        # 5 only has server-time, shouldn't get account or msgid tags
-        self.assertNotIn("account", messageforfive.tags)
-        self.assertNotIn("msgid", messageforfive.tags)
+        # 4 only has server-time, shouldn't get account or msgid tags
+        self.assertNotIn("account", messageforfour.tags)
+        self.assertNotIn("msgid", messageforfour.tags)
 
-        # test that copies of sent messages go out to other sessions
+    @cases.mark_specifications("Ergo", "Sable")
+    def testChannelMessageFromSelf(self):
+        """Test that all clients attached to a session get messages sent by an other client
+
+        (TODO: check when the initial sender has echo-message too)"""
+        self._connectClient3()
+        self._connectClient4()
+
+        self.sendLine(2, "@+clientOnlyTag=Value PRIVMSG #chan :hey")
+        messagesfortwo = [
+            msg for msg in self.getMessages(2) if msg.command == "PRIVMSG"
+        ]
+        messagesforone = [
+            msg for msg in self.getMessages(1) if msg.command == "PRIVMSG"
+        ]
+        messagesforthree = [
+            msg for msg in self.getMessages(3) if msg.command == "PRIVMSG"
+        ]
+        self.assertEqual(len(messagesforone), 1)
+        self.assertEqual(len(messagesfortwo), 0)  # echo-message not enabled
+        self.assertEqual(len(messagesforthree), 1)
+        messageforone = messagesforone[0]
+        messageforthree = messagesforthree[0]
+        messageforfour = self.getMessage(4)
+        self.assertMessageMatch(messageforone, params=["#chan", "hey"])
+        self.assertMessageMatch(messageforthree, params=["#chan", "hey"])
+        self.assertMessageMatch(messageforfour, params=["#chan", "hey"])
+        self.assertIn("time", messageforone.tags)
+        self.assertIn("time", messageforthree.tags)
+        self.assertIn("time", messageforfour.tags)
+        # 3 has account-tag
+        self.assertIn("account", messageforthree.tags)
+        # should get same msgid
+        self.assertEqual(messageforone.tags["msgid"], messageforthree.tags["msgid"])
+        # 4 only has server-time, shouldn't get account or msgid tags
+        self.assertNotIn("account", messageforfour.tags)
+        self.assertNotIn("msgid", messageforfour.tags)
+
+    @cases.mark_specifications("Ergo", "Sable")
+    def testDirectMessageFromOther(self):
+        """Test that all clients attached to a session get copies of messages sent
+        by an other client of that session directly to an other user"""
+        self._connectClient3()
+        self._connectClient4()
+
+        self.sendLine(1, "PRIVMSG testnick :this is a direct message")
+        self.getMessages(1)
+        messagefortwo = [
+            msg for msg in self.getMessages(2) if msg.command == "PRIVMSG"
+        ][0]
+        messageforthree = [
+            msg for msg in self.getMessages(3) if msg.command == "PRIVMSG"
+        ][0]
+        self.assertEqual(messagefortwo.params, messageforthree.params)
+        self.assertEqual(messagefortwo.tags["msgid"], messageforthree.tags["msgid"])
+
+    @cases.mark_specifications("Ergo", "Sable")
+    def testDirectMessageFromSelf(self):
+        """Test that all clients attached to a session get copies of messages sent
+        by an other client of that session directly to an other user"""
+        self._connectClient3()
+        self._connectClient4()
+
         self.sendLine(2, "PRIVMSG observer :this is a direct message")
         self.getMessages(2)
         messageForRecipient = [
@@ -133,10 +196,20 @@ class BouncerTestCase(cases.BaseServerTestCase):
             messageForRecipient.tags["msgid"], copyForOtherSession.tags["msgid"]
         )
 
+    @cases.mark_specifications("Ergo", "Sable")
+    def testQuit(self):
+        """Test that a single client of a session does not make the whole user quit
+        (and is generally not visible to anyone else, not even their other sessions),
+        until the last client quits"""
+        self._connectClient3()
+        self._connectClient4()
         self.sendLine(2, "QUIT :two out")
-        quitLines = [msg for msg in self.getMessages(2) if msg.command == "QUIT"]
+        quitLines = [
+            msg for msg in self.getMessages(2) if msg.command in ("QUIT", "ERROR")
+        ]
         self.assertEqual(len(quitLines), 1)
-        self.assertMessageMatch(quitLines[0], params=[StrRe(".*two out.*")])
+        if quitLines[0].command == "QUIT":
+            self.assertMessageMatch(quitLines[0], params=[StrRe(".*two out.*")])
         # neither the observer nor the other attached session should see a quit here
         quitLines = [msg for msg in self.getMessages(1) if msg.command == "QUIT"]
         self.assertEqual(quitLines, [])
@@ -154,13 +227,39 @@ class BouncerTestCase(cases.BaseServerTestCase):
             messagesforthree[0], command="PRIVMSG", params=["#chan", "hey again"]
         )
 
-        self.sendLine(5, "QUIT :five out")
-        self.getMessages(5)
+        self.sendLine(4, "QUIT :four out")
+        self.getMessages(4)
         self.sendLine(3, "QUIT :three out")
-        quitLines = [msg for msg in self.getMessages(3) if msg.command == "QUIT"]
+        quitLines = [
+            msg for msg in self.getMessages(3) if msg.command in ("QUIT", "ERROR")
+        ]
         self.assertEqual(len(quitLines), 1)
-        self.assertMessageMatch(quitLines[0], params=[StrRe(".*three out.*")])
+        if quitLines[0].command == "QUIT":
+            self.assertMessageMatch(quitLines[0], params=[StrRe(".*three out.*")])
         # observer should see *this* quit
         quitLines = [msg for msg in self.getMessages(1) if msg.command == "QUIT"]
         self.assertEqual(len(quitLines), 1)
         self.assertMessageMatch(quitLines[0], params=[StrRe(".*three out.*")])
+
+    @cases.mark_specifications("Ergo")
+    def testDisableAutomaticResumption(self):
+        # disable multiclient in nickserv
+        self.sendLine(2, "NS SET MULTICLIENT OFF")
+        self.getMessages(2)
+
+        self.addClient()
+        self.sendLine(3, "CAP LS 302")
+        self.sendLine(3, "AUTHENTICATE PLAIN")
+        self.sendLine(3, sasl_plain_blob("testuser", "mypassword"))
+        self.sendLine(3, "NICK testnick")
+        self.sendLine(3, "USER a 0 * a")
+        self.sendLine(3, "CAP REQ :server-time message-tags")
+        self.sendLine(3, "CAP END")
+        # with multiclient disabled, we should not be able to attach to the nick
+        messages = self.getMessages(3)
+        welcomes = [message for message in messages if message.command == RPL_WELCOME]
+        self.assertEqual(len(welcomes), 0)
+        errors = [
+            message for message in messages if message.command == ERR_NICKNAMEINUSE
+        ]
+        self.assertEqual(len(errors), 1)
