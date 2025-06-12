@@ -813,10 +813,6 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
     @pytest.mark.private_chathistory
     @skip_ngircd
-    @cases.xfailIfSoftware(
-        ["Sable"],
-        "https://github.com/Libera-Chat/sable/issues/158",
-    )
     def testChathistoryTargets(self):
         """Tests the CHATHISTORY TARGETS command, which lists channels the user has visible
         history in and users with which the user has exchanged direct messages."""
