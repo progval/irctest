@@ -933,31 +933,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         # Verify response
         batch_messages = self.getMessages(1)
 
-        def summarize_results(batch_messages):
-            # Validate batch format
-            batch_start = batch_messages[0]
-            batch_end = batch_messages[-1]
-            self.assertMessageMatch(
-                batch_start,
-                command="BATCH",
-                params=[StrRe(r"\+.*"), "draft/chathistory-targets"],
-            )
-            batch_tag = batch_start.params[0][1:]
-            self.assertMessageMatch(
-                batch_end, command="BATCH", params=["-" + batch_tag]
-            )
-            # Extract actual targets from the batch
-            targets_results = []
-            for msg in batch_messages:
-                if (
-                    msg.command == "CHATHISTORY"
-                    and msg.params[0] == "TARGETS"
-                    and len(msg.params) >= 3
-                ):
-                    targets_results.append((msg.params[1], msg.params[2]))
-            return targets_results
-
-        targets_results = summarize_results(batch_messages)
+        targets_results = self.summarize_chathistory_targets(batch_messages)
         # Check that each target we messaged is in the results
         # Targets should be sorted by time of latest message (earliest first)
         expected_order = [ch1, c2, ch2, c3]
@@ -969,7 +945,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         batch_messages = self.getMessages(1)
 
         # Extract targets again
-        targets_results = summarize_results(batch_messages)
+        targets_results = self.summarize_chathistory_targets(batch_messages)
 
         # Should only get 2 targets due to limit
         self.assertEqual([t[0] for t in targets_results], [ch1, c2])
@@ -983,7 +959,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
         # Should only get targets that had messages after ch1_time
         # That would be c2, ch2, and c3, but not ch1
-        targets_results = summarize_results(batch_messages)
+        targets_results = self.summarize_chathistory_targets(batch_messages)
         self.assertEqual([t[0] for t in targets_results], [c2, ch2, c3])
 
         # test limits on both sides
@@ -992,8 +968,99 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             1, f"CHATHISTORY TARGETS timestamp={ch1_time} timestamp={ch3_time} 100"
         )
         batch_messages = self.getMessages(1)
-        targets_results = summarize_results(batch_messages)
+        targets_results = self.summarize_chathistory_targets(batch_messages)
         self.assertEqual([t[0] for t in targets_results], [c2, ch2])
+
+    @pytest.mark.private_chathistory
+    @skip_ngircd
+    def testChathistoryTargetsExcludesUpdatedTargets(self):
+        """Tests that CHATHISTORY TARGETS does not match targets that have messages
+        within the selection window, but where the latest message is outside the
+        selection window."""
+        c1 = random_name("foo")
+
+        # Register users
+        self.controller.registerUser(self, c1, "sesame1")
+
+        # Connect with all capabilities
+        self.connectClient(
+            c1,
+            capabilities=[
+                "message-tags",
+                "server-time",
+                "echo-message",
+                "batch",
+                "labeled-response",
+                "sasl",
+                CHATHISTORY_CAP,
+            ],
+            password="sesame1",
+            skip_if_cap_nak=True,
+        )
+
+        # Clear any initial messages
+        self.getMessages(1)
+
+        # Create a few channels for testing
+        ch1 = "#chan" + secrets.token_hex(8)
+
+        # Join channels and exchange messages
+        self.joinChannel(1, ch1)
+        self.getMessages(1)
+
+        target_times = []
+
+        for i in range(3):
+            self.sendLine(1, f"PRIVMSG {ch1} :Hello channel {i}")
+            ch1_msg = self.getMessages(1)[0]
+            target_times.append(ch1_msg.tags["time"])
+            time.sleep(0.002)
+
+        # Now test TARGETS command
+        # Get a timestamp before all messages
+        before_all = "timestamp=2020-01-01T00:00:00.000Z"
+        # Get a timestamp after all messages
+        after_all = "timestamp=2262-01-01T00:00:00.000Z"
+
+        # Execute TARGETS command
+        self.sendLine(1, f"CHATHISTORY TARGETS {before_all} {after_all} 100")
+        # Verify response
+        batch_messages = self.getMessages(1)
+        targets_results = self.summarize_chathistory_targets(batch_messages)
+        expected_results = [(ch1, target_times[2])]
+        self.assertEqual(targets_results, expected_results)
+
+        # Execute TARGETS command with a time window excluding the latest message
+        self.sendLine(
+            1, f"CHATHISTORY TARGETS {before_all} timestamp={target_times[1]} 100"
+        )
+        # Verify response
+        batch_messages = self.getMessages(1)
+        targets_results = self.summarize_chathistory_targets(batch_messages)
+        # should not receive any targets
+        self.assertEqual(targets_results, [])
+
+    def summarize_chathistory_targets(self, batch_messages):
+        # Validate batch format
+        batch_start = batch_messages[0]
+        batch_end = batch_messages[-1]
+        self.assertMessageMatch(
+            batch_start,
+            command="BATCH",
+            params=[StrRe(r"\+.*"), "draft/chathistory-targets"],
+        )
+        batch_tag = batch_start.params[0][1:]
+        self.assertMessageMatch(batch_end, command="BATCH", params=["-" + batch_tag])
+        # Extract actual targets from the batch
+        targets_results = []
+        for msg in batch_messages:
+            if (
+                msg.command == "CHATHISTORY"
+                and msg.params[0] == "TARGETS"
+                and len(msg.params) >= 3
+            ):
+                targets_results.append((msg.params[1], msg.params[2]))
+        return targets_results
 
 
 assert {f"_validate_chathistory_{cmd}" for cmd in SUBCOMMANDS} == {
