@@ -454,10 +454,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
 
         self.sub(2, ["avatar", "display-name"])
 
-        self.sendLine(1, "JOIN #chan")
-        self.sendLine(2, "JOIN #chan")
-        self.getMessages(1)
-        self.getMessages(2)
+        self.joinChannel(1, "#chan")
+        self.joinChannel(2, "#chan")
         self.getMessages(1)
 
         self.assertSetGetValue(1, "#chan", "display-name", "Hash Channel")
