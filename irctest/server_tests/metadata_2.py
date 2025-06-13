@@ -375,10 +375,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
 
-        self.sendLine(1, "JOIN #chan")
-        self.sendLine(2, "JOIN #chan")
-        self.getMessages(1)
-        self.getMessages(2)
+        self.joinChannel(1, "#chan")
+        self.joinChannel(2, "#chan")
         self.getMessages(1)
 
         self.assertSetGetValue(1, "#chan", "display-name", "Hash Channel")
