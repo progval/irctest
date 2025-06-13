@@ -5,7 +5,7 @@
 from irctest import cases
 
 
-class MetadataTestCase(cases.BaseServerTestCase):
+class MetadataDeprecatedTestCase(cases.BaseServerTestCase):
     valid_metadata_keys = {"display-name", "avatar"}
     invalid_metadata_keys = {"indisplay-name", "inavatar"}
 

@@ -74,7 +74,19 @@ class ClientMock:
                     continue
                 if not synchronize:
                     got_pong = True
-                for line in data.decode().split("\r\n"):
+                try:
+                    decoded_data = data.decode()
+                except UnicodeDecodeError:
+                    print(
+                        "{time:.3f}{ssl} S -> {client} - failed to decode: {data!r}".format(
+                            time=time.time(),
+                            ssl=" (ssl)" if self.ssl else "",
+                            client=self.name,
+                            data=data,
+                        )
+                    )
+                    raise
+                for line in decoded_data.split("\r\n"):
                     if line:
                         if self.show_io:
                             print(
