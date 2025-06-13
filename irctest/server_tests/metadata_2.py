@@ -568,7 +568,14 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "UTF-8 was answered with 761 (RPL_KEYVALUE)",
         )
         self.clients[1].conn.sendall(b"METADATA * SET display-name :" + value + b"\r\n")
-        failMessage = self.getMessage(1)
+        messages = self.getMessages(1)
+        # must get a FAIL and not a successful 761 RPL_KEYVALUE response
+        self.assertEqual(
+            len(messages),
+            1,
+            "Invalid METADATA value should produce exactly one FAIL message",
+        )
+        failMessage = messages[0]
         self.assertMessageMatch(
             failMessage,
             command="FAIL",
@@ -576,18 +583,6 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         # VALUE_INVALID as per the metadata spec, INVALID_UTF8 as per the UTF8ONLY spec
         self.assertIn(failMessage.params[1], ("VALUE_INVALID", "INVALID_UTF8"))
-        messages = self.getMessages(1)
-        self.assertNotIn(
-            "761",  # RPL_KEYVALUE
-            {m.command for m in messages},
-            fail_msg="Setting METADATA key to a value containing invalid "
-            "UTF-8 was answered with 761 (RPL_KEYVALUE)",
-        )
-        self.assertEqual(
-            messages,
-            [],
-            fail_msg="Unexpected response to METADATA SET with invalid value: {got}",
-        )
 
     @cases.mark_specifications("IRCv3")
     def testSetInvalidUtf8(self):
