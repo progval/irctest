@@ -10,7 +10,7 @@ import pytest
 
 from irctest import cases, runner
 from irctest.irc_utils.junkdrawer import random_name
-from irctest.patma import ANYSTR
+from irctest.patma import ANYSTR, StrRe
 
 CHATHISTORY_CAP = "draft/chathistory"
 EVENT_PLAYBACK_CAP = "draft/event-playback"
@@ -19,28 +19,6 @@ EVENT_PLAYBACK_CAP = "draft/event-playback"
 SUBCOMMANDS = ["LATEST", "BEFORE", "AFTER", "BETWEEN", "AROUND"]
 
 MYSQL_PASSWORD = ""
-
-
-def validate_chathistory_batch(msgs):
-    batch_tag = None
-    closed_batch_tag = None
-    result = []
-    for msg in msgs:
-        if msg.command == "BATCH":
-            batch_param = msg.params[0]
-            if batch_tag is None and batch_param[0] == "+":
-                batch_tag = batch_param[1:]
-            elif batch_param[0] == "-":
-                closed_batch_tag = batch_param[1:]
-        elif (
-            msg.command == "PRIVMSG"
-            and batch_tag is not None
-            and msg.tags.get("batch") == batch_tag
-        ):
-            if not msg.prefix.startswith("HistServ!"):  # FIXME: ergo-specific
-                result.append(msg.to_history_message())
-    assert batch_tag == closed_batch_tag
-    return result
 
 
 def skip_ngircd(f):
@@ -56,9 +34,39 @@ def skip_ngircd(f):
 @cases.mark_specifications("IRCv3")
 @cases.mark_services
 class ChathistoryTestCase(cases.BaseServerTestCase):
+    def validate_chathistory_batch(self, msgs, target):
+        (start, *inner_msgs, end) = msgs
+
+        self.assertMessageMatch(
+            start, command="BATCH", params=[StrRe(r"\+.*"), "chathistory", target]
+        )
+        batch_tag = start.params[0][1:]
+        self.assertMessageMatch(end, command="BATCH", params=["-" + batch_tag])
+
+        result = []
+        for msg in inner_msgs:
+            if (
+                msg.command in ("PRIVMSG", "TOPIC")
+                and batch_tag is not None
+                and msg.tags.get("batch") == batch_tag
+            ):
+                if not msg.prefix.startswith("HistServ!"):  # FIXME: ergo-specific
+                    result.append(msg.to_history_message())
+        return result
+
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(chathistory=True)
+
+    def _supports_msgid(self):
+        return "msgid" in self.server_support.get(
+            "MSGREFTYPES", "msgid,timestamp"
+        ).split(",")
+
+    def _supports_timestamp(self):
+        return "timestamp" in self.server_support.get(
+            "MSGREFTYPES", "msgid,timestamp"
+        ).split(",")
 
     @skip_ngircd
     def testInvalidTargets(self):
@@ -222,6 +230,47 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
         self.validate_chathistory(subcommand, echo_messages, 1, chname)
 
+    @skip_ngircd
+    def testChathistoryNoEventPlayback(self):
+        """Tests that non-messages don't appear in the chat history when event-playback
+        is not enabled."""
+
+        self.connectClient(
+            "bar",
+            capabilities=[
+                "message-tags",
+                "server-time",
+                "echo-message",
+                "batch",
+                "labeled-response",
+                "sasl",
+                CHATHISTORY_CAP,
+            ],
+            skip_if_cap_nak=True,
+        )
+        chname = "#chan" + secrets.token_hex(12)
+        self.joinChannel(1, chname)
+        self.getMessages(1)
+        self.getMessages(1)
+
+        NUM_MESSAGES = 10
+        echo_messages = []
+        for i in range(NUM_MESSAGES):
+            self.sendLine(1, "TOPIC %s :this is topic %d" % (chname, i))
+            self.getMessages(1)
+            self.sendLine(1, "PRIVMSG %s :this is message %d" % (chname, i))
+            echo_messages.extend(
+                msg.to_history_message() for msg in self.getMessages(1)
+            )
+            time.sleep(0.002)
+
+        self.validate_echo_messages(NUM_MESSAGES, echo_messages)
+        self.sendLine(1, "CHATHISTORY LATEST %s * 100" % chname)
+        (batch_open, *messages, batch_close) = self.getMessages(1)
+        self.assertMessageMatch(batch_open, command="BATCH")
+        self.assertMessageMatch(batch_close, command="BATCH")
+        self.assertEqual([msg for msg in messages if msg.command != "PRIVMSG"], [])
+
     @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
     @skip_ngircd
     def testChathistoryEventPlayback(self, subcommand):
@@ -246,21 +295,27 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         NUM_MESSAGES = 10
         echo_messages = []
         for i in range(NUM_MESSAGES):
+            self.sendLine(1, "TOPIC %s :this is topic %d" % (chname, i))
+            echo_messages.extend(
+                msg.to_history_message() for msg in self.getMessages(1)
+            )
+            time.sleep(0.002)
+
             self.sendLine(1, "PRIVMSG %s :this is message %d" % (chname, i))
             echo_messages.extend(
                 msg.to_history_message() for msg in self.getMessages(1)
             )
             time.sleep(0.002)
 
-        self.validate_echo_messages(NUM_MESSAGES, echo_messages)
+        self.validate_echo_messages(NUM_MESSAGES * 2, echo_messages)
         self.validate_chathistory(subcommand, echo_messages, 1, chname)
 
     @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
     @pytest.mark.private_chathistory
     @skip_ngircd
     def testChathistoryDMs(self, subcommand):
-        c1 = "foo" + secrets.token_hex(12)
-        c2 = "bar" + secrets.token_hex(12)
+        c1 = random_name("foo")
+        c2 = random_name("bar")
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(
@@ -308,11 +363,14 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             )
             time.sleep(0.002)
 
+        self.getMessages(1)
+        self.getMessages(2)
+
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
         self.validate_chathistory(subcommand, echo_messages, 1, c2)
         self.validate_chathistory(subcommand, echo_messages, 2, c1)
 
-        c3 = "baz" + secrets.token_hex(12)
+        c3 = random_name("baz")
         self.connectClient(
             c3,
             capabilities=[
@@ -401,189 +459,212 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     def _validate_chathistory_LATEST(self, echo_messages, user, chname):
         INCLUSIVE_LIMIT = len(echo_messages) * 2
         self.sendLine(user, "CHATHISTORY LATEST %s * %d" % (chname, INCLUSIVE_LIMIT))
-        result = validate_chathistory_batch(self.getMessages(user))
+        result = self.validate_chathistory_batch(self.getMessages(user), chname)
         self.assertEqual(echo_messages, result)
 
         self.sendLine(user, "CHATHISTORY LATEST %s * %d" % (chname, 5))
-        result = validate_chathistory_batch(self.getMessages(user))
+        result = self.validate_chathistory_batch(self.getMessages(user), chname)
         self.assertEqual(echo_messages[-5:], result)
 
         self.sendLine(user, "CHATHISTORY LATEST %s * %d" % (chname, 1))
-        result = validate_chathistory_batch(self.getMessages(user))
+        result = self.validate_chathistory_batch(self.getMessages(user), chname)
         self.assertEqual(echo_messages[-1:], result)
 
-        self.sendLine(
-            user,
-            "CHATHISTORY LATEST %s msgid=%s %d"
-            % (chname, echo_messages[4].msgid, INCLUSIVE_LIMIT),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[5:], result)
+        if self._supports_msgid():
+            self.sendLine(
+                user,
+                "CHATHISTORY LATEST %s msgid=%s %d"
+                % (chname, echo_messages[4].msgid, INCLUSIVE_LIMIT),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[5:], result)
 
-        self.sendLine(
-            user,
-            "CHATHISTORY LATEST %s timestamp=%s %d"
-            % (chname, echo_messages[4].time, INCLUSIVE_LIMIT),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[5:], result)
+        if self._supports_timestamp():
+            self.sendLine(
+                user,
+                "CHATHISTORY LATEST %s timestamp=%s %d"
+                % (chname, echo_messages[4].time, INCLUSIVE_LIMIT),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[5:], result)
 
     def _validate_chathistory_BEFORE(self, echo_messages, user, chname):
         INCLUSIVE_LIMIT = len(echo_messages) * 2
-        self.sendLine(
-            user,
-            "CHATHISTORY BEFORE %s msgid=%s %d"
-            % (chname, echo_messages[6].msgid, INCLUSIVE_LIMIT),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[:6], result)
+        if self._supports_msgid():
+            self.sendLine(
+                user,
+                "CHATHISTORY BEFORE %s msgid=%s %d"
+                % (chname, echo_messages[6].msgid, INCLUSIVE_LIMIT),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[:6], result)
 
-        self.sendLine(
-            user,
-            "CHATHISTORY BEFORE %s timestamp=%s %d"
-            % (chname, echo_messages[6].time, INCLUSIVE_LIMIT),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[:6], result)
+        if self._supports_timestamp():
+            self.sendLine(
+                user,
+                "CHATHISTORY BEFORE %s timestamp=%s %d"
+                % (chname, echo_messages[6].time, INCLUSIVE_LIMIT),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[:6], result)
 
-        self.sendLine(
-            user,
-            "CHATHISTORY BEFORE %s timestamp=%s %d"
-            % (chname, echo_messages[6].time, 2),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[4:6], result)
+            self.sendLine(
+                user,
+                "CHATHISTORY BEFORE %s timestamp=%s %d"
+                % (chname, echo_messages[6].time, 2),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[4:6], result)
 
     def _validate_chathistory_AFTER(self, echo_messages, user, chname):
         INCLUSIVE_LIMIT = len(echo_messages) * 2
-        self.sendLine(
-            user,
-            "CHATHISTORY AFTER %s msgid=%s %d"
-            % (chname, echo_messages[3].msgid, INCLUSIVE_LIMIT),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[4:], result)
+        if self._supports_msgid():
+            self.sendLine(
+                user,
+                "CHATHISTORY AFTER %s msgid=%s %d"
+                % (chname, echo_messages[3].msgid, INCLUSIVE_LIMIT),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[4:], result)
 
-        self.sendLine(
-            user,
-            "CHATHISTORY AFTER %s timestamp=%s %d"
-            % (chname, echo_messages[3].time, INCLUSIVE_LIMIT),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[4:], result)
+        if self._supports_timestamp():
+            self.sendLine(
+                user,
+                "CHATHISTORY AFTER %s timestamp=%s %d"
+                % (chname, echo_messages[3].time, INCLUSIVE_LIMIT),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[4:], result)
 
-        self.sendLine(
-            user,
-            "CHATHISTORY AFTER %s timestamp=%s %d" % (chname, echo_messages[3].time, 3),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[4:7], result)
+            self.sendLine(
+                user,
+                "CHATHISTORY AFTER %s timestamp=%s %d"
+                % (chname, echo_messages[3].time, 3),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[4:7], result)
 
     def _validate_chathistory_BETWEEN(self, echo_messages, user, chname):
         INCLUSIVE_LIMIT = len(echo_messages) * 2
-        # BETWEEN forwards and backwards
-        self.sendLine(
-            user,
-            "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"
-            % (
-                chname,
-                echo_messages[0].msgid,
-                echo_messages[-1].msgid,
-                INCLUSIVE_LIMIT,
-            ),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[1:-1], result)
+        if self._supports_msgid():
+            # BETWEEN forwards and backwards
+            self.sendLine(
+                user,
+                "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"
+                % (
+                    chname,
+                    echo_messages[0].msgid,
+                    echo_messages[-1].msgid,
+                    INCLUSIVE_LIMIT,
+                ),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[1:-1], result)
 
-        self.sendLine(
-            user,
-            "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"
-            % (
-                chname,
-                echo_messages[-1].msgid,
-                echo_messages[0].msgid,
-                INCLUSIVE_LIMIT,
-            ),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[1:-1], result)
+            self.sendLine(
+                user,
+                "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"
+                % (
+                    chname,
+                    echo_messages[-1].msgid,
+                    echo_messages[0].msgid,
+                    INCLUSIVE_LIMIT,
+                ),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[1:-1], result)
 
-        # BETWEEN forwards and backwards with a limit, should get
-        # different results this time
-        self.sendLine(
-            user,
-            "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"
-            % (chname, echo_messages[0].msgid, echo_messages[-1].msgid, 3),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[1:4], result)
+            # BETWEEN forwards and backwards with a limit, should get
+            # different results this time
+            self.sendLine(
+                user,
+                "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"
+                % (chname, echo_messages[0].msgid, echo_messages[-1].msgid, 3),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[1:4], result)
 
-        self.sendLine(
-            user,
-            "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"
-            % (chname, echo_messages[-1].msgid, echo_messages[0].msgid, 3),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[-4:-1], result)
+            self.sendLine(
+                user,
+                "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"
+                % (chname, echo_messages[-1].msgid, echo_messages[0].msgid, 3),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[-4:-1], result)
 
-        # same stuff again but with timestamps
-        self.sendLine(
-            user,
-            "CHATHISTORY BETWEEN %s timestamp=%s timestamp=%s %d"
-            % (chname, echo_messages[0].time, echo_messages[-1].time, INCLUSIVE_LIMIT),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[1:-1], result)
-        self.sendLine(
-            user,
-            "CHATHISTORY BETWEEN %s timestamp=%s timestamp=%s %d"
-            % (chname, echo_messages[-1].time, echo_messages[0].time, INCLUSIVE_LIMIT),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[1:-1], result)
-        self.sendLine(
-            user,
-            "CHATHISTORY BETWEEN %s timestamp=%s timestamp=%s %d"
-            % (chname, echo_messages[0].time, echo_messages[-1].time, 3),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[1:4], result)
-        self.sendLine(
-            user,
-            "CHATHISTORY BETWEEN %s timestamp=%s timestamp=%s %d"
-            % (chname, echo_messages[-1].time, echo_messages[0].time, 3),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[-4:-1], result)
+        if self._supports_timestamp():
+            # same stuff again but with timestamps
+            self.sendLine(
+                user,
+                "CHATHISTORY BETWEEN %s timestamp=%s timestamp=%s %d"
+                % (
+                    chname,
+                    echo_messages[0].time,
+                    echo_messages[-1].time,
+                    INCLUSIVE_LIMIT,
+                ),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[1:-1], result)
+            self.sendLine(
+                user,
+                "CHATHISTORY BETWEEN %s timestamp=%s timestamp=%s %d"
+                % (
+                    chname,
+                    echo_messages[-1].time,
+                    echo_messages[0].time,
+                    INCLUSIVE_LIMIT,
+                ),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[1:-1], result)
+            self.sendLine(
+                user,
+                "CHATHISTORY BETWEEN %s timestamp=%s timestamp=%s %d"
+                % (chname, echo_messages[0].time, echo_messages[-1].time, 3),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[1:4], result)
+            self.sendLine(
+                user,
+                "CHATHISTORY BETWEEN %s timestamp=%s timestamp=%s %d"
+                % (chname, echo_messages[-1].time, echo_messages[0].time, 3),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[-4:-1], result)
 
     def _validate_chathistory_AROUND(self, echo_messages, user, chname):
-        self.sendLine(
-            user,
-            "CHATHISTORY AROUND %s msgid=%s %d" % (chname, echo_messages[7].msgid, 1),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual([echo_messages[7]], result)
+        if self._supports_msgid():
+            self.sendLine(
+                user,
+                "CHATHISTORY AROUND %s msgid=%s %d"
+                % (chname, echo_messages[7].msgid, 1),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual([echo_messages[7]], result)
 
-        self.sendLine(
-            user,
-            "CHATHISTORY AROUND %s msgid=%s %d" % (chname, echo_messages[7].msgid, 3),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertEqual(echo_messages[6:9], result)
+            self.sendLine(
+                user,
+                "CHATHISTORY AROUND %s msgid=%s %d"
+                % (chname, echo_messages[7].msgid, 3),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertEqual(echo_messages[6:9], result)
 
-        self.sendLine(
-            user,
-            "CHATHISTORY AROUND %s timestamp=%s %d"
-            % (chname, echo_messages[7].time, 3),
-        )
-        result = validate_chathistory_batch(self.getMessages(user))
-        self.assertIn(echo_messages[7], result)
+        if self._supports_timestamp():
+            self.sendLine(
+                user,
+                "CHATHISTORY AROUND %s timestamp=%s %d"
+                % (chname, echo_messages[7].time, 3),
+            )
+            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            self.assertIn(echo_messages[7], result)
 
     @pytest.mark.arbitrary_client_tags
     @skip_ngircd
     def testChathistoryTagmsg(self):
-        c1 = "foo" + secrets.token_hex(12)
-        c2 = "bar" + secrets.token_hex(12)
+        c1 = random_name("foo")
+        c2 = random_name("bar")
         chname = "#chan" + secrets.token_hex(12)
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
@@ -682,8 +763,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     @skip_ngircd
     def testChathistoryDMClientOnlyTags(self):
         # regression test for Ergo #1411
-        c1 = "foo" + secrets.token_hex(12)
-        c2 = "bar" + secrets.token_hex(12)
+        c1 = random_name("foo")
+        c2 = random_name("bar")
         self.controller.registerUser(self, c1, "sesame1")
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(

@@ -19,6 +19,10 @@ SHOWLISTMODES="1"
 NOOPEROVERRIDE=""
 OPEROVERRIDEVERIFY=""
 GENCERTIFICATE="1"
-EXTRAPARA=""
+
+# Use system argon to avoid getting SIGILLed if the build machine has a more recent
+# CPU than the one running the tests.
+EXTRAPARA="--with-system-argon2"
+
 ADVANCED=""
 

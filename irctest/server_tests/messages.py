@@ -4,6 +4,7 @@ The PRIVMSG and NOTICE commands.
 
 from irctest import cases
 from irctest.numerics import ERR_INPUTTOOLONG
+from irctest.patma import ANYSTR
 
 
 class PrivmsgTestCase(cases.BaseServerTestCase):
@@ -12,6 +13,7 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
         """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
         self.connectClient("foo")
         self.sendLine(1, "JOIN #chan")
+        self.getMessages(1)  # synchronize
         self.connectClient("bar")
         self.sendLine(2, "JOIN #chan")
         self.getMessages(2)  # synchronize
@@ -45,12 +47,34 @@ class PrivmsgTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("RFC1459", "RFC2812")
     def testPrivmsgNonexistentUser(self):
-        """https://tools.ietf.org/html/rfc2812#section-3.3.1"""
+        """<https://tools.ietf.org/html/rfc2812#section-3.3.1>"""
         self.connectClient("foo")
         self.sendLine(1, "PRIVMSG bar :hey there!")
         msg = self.getMessage(1)
-        # ERR_NOSUCHNICK
-        self.assertIn(msg.command, ("401"))
+        # ERR_NOSUCHNICK: 401 <sender> <recipient> :No such nick
+        self.assertMessageMatch(msg, command="401", params=["foo", "bar", ANYSTR])
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["irc2"],
+        "replies with ERR_NEEDMOREPARAMS instead of ERR_NOTEXTTOSEND",
+    )
+    def testEmptyPrivmsg(self):
+        self.connectClient("foo")
+        self.sendLine(1, "JOIN #chan")
+        self.getMessages(1)  # synchronize
+        self.connectClient("bar")
+        self.sendLine(2, "JOIN #chan")
+        self.getMessages(2)  # synchronize
+        self.getMessages(1)  # synchronize
+        self.sendLine(1, "PRIVMSG #chan :")
+
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="412",  # ERR_NOTEXTTOSEND
+            params=["foo", ANYSTR],
+        )
+        self.assertEqual(self.getMessages(2), [])
 
 
 class NoticeTestCase(cases.BaseServerTestCase):
@@ -116,9 +140,9 @@ class TagsTestCase(cases.BaseServerTestCase):
         self.joinChannel(1, "#xyz")
         monsterMessage = "@+clientOnlyTagExample=" + "a" * 4096 + " PRIVMSG #xyz hi!"
         self.sendLine(1, monsterMessage)
-        self.assertEqual(self.getMessages(2), [], "overflowing message was relayed")
         replies = self.getMessages(1)
         self.assertIn(ERR_INPUTTOOLONG, set(reply.command for reply in replies))
+        self.assertEqual(self.getMessages(2), [], "overflowing message was relayed")
 
 
 class LengthLimitTestCase(cases.BaseServerTestCase):

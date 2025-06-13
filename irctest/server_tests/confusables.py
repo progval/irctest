@@ -12,8 +12,8 @@ class ConfusablesTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            ergo_config=lambda config: config["accounts"].update(
-                {"nick-reservation": {"enabled": True, "method": "strict"}}
+            ergo_config=lambda config: config["server"].update(
+                {"casemapping": "precis"},
             )
         )
 

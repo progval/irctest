@@ -3,12 +3,12 @@
 
 jobs:
   build-anope:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         key: 3-${{ runner.os }}-anope-stable
         path: '~/.cache
@@ -16,39 +16,79 @@ jobs:
           ${ github.workspace }/anope
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Anope
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: anope
-        ref: 2.0.9
+        ref: 2.0.14
         repository: anope/anope
     - name: Build Anope
       run: |
         cd $GITHUB_WORKSPACE/anope/
-        cp $GITHUB_WORKSPACE/data/anope/* .
-        CFLAGS=-O0 ./Config -quick
-        make -C build -j 4
-        make -C build install
+        sudo apt-get install ninja-build --no-install-recommends
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
+        ninja install
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: installed-anope
         path: ~/artefacts-*.tar.gz
         retention-days: 1
-  build-bahamut:
-    runs-on: ubuntu-20.04
+  build-anope-2-0:
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v4
+      with:
+        key: 3-${{ runner.os }}-anope-2-0-stable
+        path: '~/.cache
+
+          ${ github.workspace }/anope
+
+          '
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Checkout Anope 2.0
+      uses: actions/checkout@v4
+      with:
+        path: anope
+        ref: 2.0.14
+        repository: anope/anope
+    - name: Build Anope 2.0
+      run: |
+        cd $GITHUB_WORKSPACE/anope/
+        sudo apt-get install ninja-build --no-install-recommends
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
+        ninja install
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-anope-2-0.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: installed-anope-2-0
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
+  build-bahamut:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir -p .local/ go/
+    - name: Cache dependencies
+      uses: actions/cache@v4
       with:
         key: 3-${{ runner.os }}-bahamut-stable
         path: '~/.cache
@@ -56,22 +96,26 @@ jobs:
           ${ github.workspace }/Bahamut
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Bahamut
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: Bahamut
-        ref: v2.2.1
+        ref: v2.2.4
         repository: DALnet/Bahamut
     - name: Build Bahamut
       run: |
         cd $GITHUB_WORKSPACE/Bahamut/
         patch src/s_user.c < $GITHUB_WORKSPACE/patches/bahamut_localhost.patch
         patch src/s_bsd.c < $GITHUB_WORKSPACE/patches/bahamut_mainloop.patch
+
+        # <= v2.2.2
+        patch -p1 < $GITHUB_WORKSPACE/patches/bahamut_ubuntu22.patch || true
+
         echo "#undef THROTTLE_ENABLE" >> include/config.h
         libtoolize --force
         aclocal
@@ -86,18 +130,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-bahamut.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: installed-bahamut
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-charybdis:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         key: 3-${{ runner.os }}-charybdis-stable
         path: '~/.cache
@@ -105,13 +149,13 @@ jobs:
           ${ github.workspace }/charybdis
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Charybdis
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: charybdis
         ref: charybdis-4.1.2
@@ -119,6 +163,7 @@ jobs:
     - name: Build Charybdis
       run: |
         cd $GITHUB_WORKSPACE/charybdis/
+        patch -p1 < $GITHUB_WORKSPACE/patches/charybdis_ubuntu22.patch
         ./autogen.sh
         ./configure --prefix=$HOME/.local/
         make -j 4
@@ -126,18 +171,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-charybdis.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: installed-charybdis
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-hybrid:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         key: 3-${{ runner.os }}-hybrid-stable
         path: '~/.cache
@@ -145,17 +190,19 @@ jobs:
           ${ github.workspace }/ircd-hybrid
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Hybrid
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: ircd-hybrid
         ref: 8.2.39
         repository: ircd-hybrid/ircd-hybrid
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime libjansson-dev
     - name: Build Hybrid
       run: |
         cd $GITHUB_WORKSPACE/ircd-hybrid/
@@ -165,49 +212,48 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-hybrid.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: installed-hybrid
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-inspircd:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout InspIRCd
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: inspircd
-        ref: v3.12.0
+        ref: v3.17.1
         repository: inspircd/inspircd
     - name: Build InspIRCd
       run: |
         cd $GITHUB_WORKSPACE/inspircd/
-        patch src/inspircd.cpp < $GITHUB_WORKSPACE/patches/inspircd_mainloop.patch
         ./configure --prefix=$HOME/.local/inspircd --development
-        make -j 4
+        CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
         make install
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-inspircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: installed-inspircd
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-ngircd:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         key: 3-${{ runner.os }}-ngircd-stable
         path: '~/.cache
@@ -215,16 +261,16 @@ jobs:
           ${ github.workspace }/ngircd
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout ngircd
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: ngircd
-        ref: rel-26.1
+        ref: acf8409c60ccc96beed0a1f990c4f9374823c0ce
         repository: ngircd/ngircd
     - name: Build ngircd
       run: |
@@ -237,18 +283,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-ngircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: installed-ngircd
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-plexus4:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         key: 3-${{ runner.os }}-plexus4-stable
         path: '~/.cache
@@ -256,11 +302,11 @@ jobs:
           ${ github.workspace }/placeholder
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: clone
       run: 'curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar
         | tar -x
@@ -279,18 +325,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-plexus4.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: installed-plexus4
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-solanum:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         key: 3-${{ runner.os }}-solanum-stable
         path: '~/.cache
@@ -298,13 +344,13 @@ jobs:
           ${ github.workspace }/solanum
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Solanum
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: solanum
         ref: 492d560ee13e71dc35403fd676e58c2d5bdcf2a9
@@ -319,18 +365,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-solanum.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: installed-solanum
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         key: 3-${{ runner.os }}-unrealircd-stable
         path: '~/.cache
@@ -338,16 +384,16 @@ jobs:
           ${ github.workspace }/unrealircd
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout UnrealIRCd 6
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: unrealircd
-        ref: da3c1c654481a33035b9c703957e1c25d0158259
+        ref: a68625454078641ce984eeb197f7e02b1857ab6c
         repository: unrealircd/unrealircd
     - name: Build UnrealIRCd 6
       run: |
@@ -365,18 +411,18 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: installed-unrealircd
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd-5:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         key: 3-${{ runner.os }}-unrealircd-5-stable
         path: '~/.cache
@@ -384,13 +430,13 @@ jobs:
           ${ github.workspace }/unrealircd
 
           '
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout UnrealIRCd 5
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: unrealircd
         ref: 6604856973f713a494f83d38992d7d61ce6b9db4
@@ -411,7 +457,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd-5.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: installed-unrealircd-5
         path: ~/artefacts-*.tar.gz
@@ -437,18 +483,19 @@ jobs:
     - test-ngircd-anope
     - test-ngircd-atheme
     - test-plexus4
+    - test-sable
     - test-solanum
     - test-sopel
+    - test-thelounge
     - test-unrealircd
     - test-unrealircd-5
     - test-unrealircd-anope
     - test-unrealircd-atheme
-    - test-unrealircd-dlk
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Download Artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         path: artifacts
     - name: Install dashboard dependencies
@@ -471,15 +518,15 @@ jobs:
   test-bahamut:
     needs:
     - build-bahamut
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-bahamut
         path: '~'
@@ -490,37 +537,39 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         bahamut
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_bahamut_stable
         path: pytest.xml
   test-bahamut-anope:
     needs:
     - build-bahamut
-    - build-anope
-    runs-on: ubuntu-20.04
+    - build-anope-2-0
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-bahamut
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
-        name: installed-anope
+        name: installed-anope-2-0
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
@@ -529,29 +578,31 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
         bahamut-anope
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_bahamut-anope_stable
         path: pytest.xml
   test-bahamut-atheme:
     needs:
     - build-bahamut
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-bahamut
         path: '~'
@@ -562,29 +613,31 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         bahamut-atheme
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_bahamut-atheme_stable
         path: pytest.xml
   test-charybdis:
     needs:
     - build-charybdis
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-charybdis
         path: '~'
@@ -595,35 +648,37 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         charybdis
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_charybdis_stable
         path: pytest.xml
   test-ergo:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout Ergo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: ergo
         ref: irctest_stable
         repository: ergochat/ergo
-    - uses: actions/setup-go@v2
+    - uses: actions/setup-go@v3
       with:
-        go-version: ^1.19.0
+        go-version: ^1.24.0
     - run: go version
     - name: Build Ergo
       run: |
@@ -635,14 +690,16 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/go/sbin:~/go/bin:$PATH
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/go/sbin:~/go/bin:~/go:$PATH
         make ergo
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_ergo_stable
         path: pytest.xml
@@ -650,20 +707,20 @@ jobs:
     needs:
     - build-hybrid
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-hybrid
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-anope
         path: '~'
@@ -674,29 +731,31 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
         hybrid
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_hybrid_stable
         path: pytest.xml
   test-inspircd:
     needs:
     - build-inspircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-inspircd
         path: '~'
@@ -707,14 +766,16 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
         make inspircd
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_inspircd_stable
         path: pytest.xml
@@ -722,20 +783,20 @@ jobs:
     needs:
     - build-inspircd
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-inspircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-anope
         path: '~'
@@ -746,29 +807,31 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH  make
         inspircd-anope
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_inspircd-anope_stable
         path: pytest.xml
   test-inspircd-atheme:
     needs:
     - build-inspircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-inspircd
         path: '~'
@@ -779,28 +842,30 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:$PATH
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
         make inspircd-atheme
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_inspircd-atheme_stable
         path: pytest.xml
   test-irc2:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout irc2
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: irc2.11.2p3
         ref: 59649f24c3a5c27bad5648b48774f27475bccfd3
@@ -829,28 +894,30 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         irc2
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_irc2_stable
         path: pytest.xml
   test-ircu2:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout ircu2
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: ircu2
         ref: u2.10.12.19
@@ -868,55 +935,59 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         ircu2
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_ircu2_stable
         path: pytest.xml
   test-limnoria:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Install dependencies
-      run: pip install limnoria==2022.03.17 cryptography pyxmpp2-scram
+      run: pip install limnoria==2023.5.27 cryptography pyxmpp2-scram
     - name: Install system dependencies
       run: sudo apt-get install atheme-services faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         limnoria
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_limnoria_stable
         path: pytest.xml
   test-nefarious:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Checkout nefarious
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         path: nefarious
         ref: 985704168ecada12d9e53b46df6087ef9d9fb40b
@@ -933,29 +1004,31 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         nefarious
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_nefarious_stable
         path: pytest.xml
   test-ngircd:
     needs:
     - build-ngircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-ngircd
         path: '~'
@@ -966,14 +1039,16 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:$PATH
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH
         make ngircd
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_ngircd_stable
         path: pytest.xml
@@ -981,20 +1056,20 @@ jobs:
     needs:
     - build-ngircd
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-ngircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-anope
         path: '~'
@@ -1005,29 +1080,31 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH  make
         ngircd-anope
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_ngircd-anope_stable
         path: pytest.xml
   test-ngircd-atheme:
     needs:
     - build-ngircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-ngircd
         path: '~'
@@ -1038,14 +1115,16 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:$PATH
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH
         make ngircd-atheme
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_ngircd-atheme_stable
         path: pytest.xml
@@ -1053,20 +1132,20 @@ jobs:
     needs:
     - build-plexus4
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-plexus4
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-anope
         path: '~'
@@ -1077,29 +1156,80 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH   make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
         plexus4
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_plexus4_stable
+        path: pytest.xml
+  test-sable:
+    needs: []
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Checkout Sable
+      uses: actions/checkout@v4
+      with:
+        path: sable
+        ref: baed3ef9ac4550dc36a45b758436769e82e8ec58
+        repository: Libera-Chat/sable
+    - name: Install rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        override: true
+        profile: minimal
+        toolchain: nightly
+    - name: Enable Cargo cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: true
+        workspaces: sable -> target
+    - run: rustc --version
+    - name: Build Sable
+      run: |
+        cd $GITHUB_WORKSPACE/sable/
+        cargo build
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=$GITHUB_WORKSPACE/sable/target/debug/sbin:$GITHUB_WORKSPACE/sable/target/debug/bin:$GITHUB_WORKSPACE/sable/target/debug:$PATH
+        make sable
+      timeout-minutes: 30
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results_sable_stable
         path: pytest.xml
   test-solanum:
     needs:
     - build-solanum
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-solanum
         path: '~'
@@ -1110,26 +1240,28 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         solanum
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_solanum_stable
         path: pytest.xml
   test-sopel:
     needs: []
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Install dependencies
       run: pip install sopel==7.1.8
     - name: Install system dependencies
@@ -1137,29 +1269,71 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
         sopel
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_sopel_stable
+        path: pytest.xml
+  test-thelounge:
+    needs: []
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Checkout TheLounge
+      uses: actions/checkout@v4
+      with:
+        path: thelounge
+        ref: v4.4.0
+        repository: thelounge/thelounge
+    - name: Build TheLounge
+      run: |
+        cd $GITHUB_WORKSPACE/thelounge
+        yarn install
+        NODE_ENV=production yarn build
+        mkdir -p ~/.local/bin/
+        ln -s $(pwd)/index.js ~/.local/bin/thelounge
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
+        thelounge
+      timeout-minutes: 30
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results_thelounge_stable
         path: pytest.xml
   test-unrealircd:
     needs:
     - build-unrealircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-unrealircd
         path: '~'
@@ -1170,29 +1344,31 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:$PATH
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         make unrealircd
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_unrealircd_stable
         path: pytest.xml
   test-unrealircd-5:
     needs:
     - build-unrealircd-5
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-unrealircd-5
         path: '~'
@@ -1203,14 +1379,16 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:$PATH
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         make unrealircd-5
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_unrealircd-5_stable
         path: pytest.xml
@@ -1218,20 +1396,20 @@ jobs:
     needs:
     - build-unrealircd
     - build-anope
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-unrealircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-anope
         path: '~'
@@ -1242,29 +1420,31 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:$PATH  make
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH  make
         unrealircd-anope
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_unrealircd-anope_stable
         path: pytest.xml
   test-unrealircd-atheme:
     needs:
     - build-unrealircd
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.7
+        python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: installed-unrealircd
         path: '~'
@@ -1275,62 +1455,18 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:$PATH
+        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         make unrealircd-atheme
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results_unrealircd-atheme_stable
-        path: pytest.xml
-  test-unrealircd-dlk:
-    needs:
-    - build-unrealircd
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Download build artefacts
-      uses: actions/download-artifact@v2
-      with:
-        name: installed-unrealircd
-        path: '~'
-    - name: Unpack artefacts
-      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Checkout Dlk
-      uses: actions/checkout@v2
-      with:
-        path: Dlk-Services
-        ref: effd18652fc1c847d1959089d9cca9ff9837a8c0
-        repository: DalekIRC/Dalek-Services
-    - name: Build Dlk
-      run: |
-        pip install pifpaf
-        wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-        wget -q https://wordpress.org/latest.zip -O wordpress-latest.zip
-    - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest pytest-xdist -r requirements.txt
-    - name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:$PATH
-        IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services" IRCTEST_WP_CLI_PATH="${{
-        github.workspace }}/wp-cli.phar" IRCTEST_WP_ZIP_PATH="${{ github.workspace
-        }}/wordpress-latest.zip" make unrealircd-dlk
-      timeout-minutes: 30
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v2
-      with:
-        name: pytest-results_unrealircd-dlk_stable
         path: pytest.xml
 name: irctest with stable versions
 'on':

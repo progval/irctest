@@ -8,6 +8,7 @@ import pytest
 
 from irctest import cases
 from irctest.numerics import (
+    ERR_NOSUCHNICK,
     RPL_AWAY,
     RPL_ENDOFWHOIS,
     RPL_WHOISACCOUNT,
@@ -56,6 +57,7 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
                 [m.command for m in self.getMessages(1)],
                 fail_msg="OPER failed",
             )
+            self.getMessages(1)  # make sure we did get all oper-up messages
 
         self.sendLine(1, "WHOIS nick2")
 
@@ -95,7 +97,9 @@ class _WhoisTestMixin(cases.BaseServerTestCase):
                     params=[
                         "nick1",
                         "nick2",
-                        StrRe("(@#chan1 @#chan2|@#chan2 @#chan1)"),
+                        # trailing space was required by the RFCs, and Modern explicitly
+                        # allows it
+                        StrRe("(@#chan1 @#chan2|@#chan2 @#chan1) ?"),
                     ],
                 )
             elif m.command == RPL_WHOISSPECIAL:
@@ -195,18 +199,44 @@ class WhoisTestCase(_WhoisTestMixin, cases.BaseServerTestCase):
 
         self.connectClient("otherNick")
         self.getMessages(2)
-        self.sendLine(2, f"WHOIS {server} coolnick")
+        self.sendLine(2, f"WHOIS {server} {nick}")
         messages = self.getMessages(2)
         whois_user = messages[0]
-        self.assertEqual(whois_user.command, RPL_WHOISUSER)
-        #  "<client> <nick> <username> <host> * :<realname>"
-        self.assertEqual(whois_user.params[1], nick)
-        self.assertIn(whois_user.params[2], ("~" + username, username))
+        self.assertMessageMatch(
+            whois_user,
+            command=RPL_WHOISUSER,
+            # "<client> <nick> <username> <host> * :<realname>"
+            params=[
+                "otherNick",
+                nick,
+                StrRe("~?" + username),
+                ANYSTR,
+                ANYSTR,
+                realname,
+            ],
+        )
         # dumb regression test for oragono/oragono#355:
         self.assertNotIn(
             whois_user.params[3], [nick, username, "~" + username, realname]
         )
-        self.assertEqual(whois_user.params[5], realname)
+
+    @cases.mark_specifications("RFC2812")
+    def testWhoisMissingUser(self):
+        """Test WHOIS on a nonexistent nickname."""
+        self.connectClient("qux", name="qux")
+        self.sendLine("qux", "WHOIS bar")
+        messages = self.getMessages("qux")
+        self.assertEqual(len(messages), 2)
+        self.assertMessageMatch(
+            messages[0],
+            command=ERR_NOSUCHNICK,
+            params=["qux", "bar", ANYSTR],
+        )
+        self.assertMessageMatch(
+            messages[1],
+            command=RPL_ENDOFWHOIS,
+            params=["qux", "bar", ANYSTR],
+        )
 
     @pytest.mark.parametrize(
         "away,oper",

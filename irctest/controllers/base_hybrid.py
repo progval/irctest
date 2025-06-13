@@ -1,5 +1,5 @@
+from pathlib import Path
 import shutil
-import subprocess
 from typing import Optional
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
@@ -51,6 +51,8 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
             )
         else:
             ssl_config = ""
+        binary_path = shutil.which(self.binary_name)
+        assert binary_path, f"Could not find '{binary_path}' executable"
         with self.open_file("server.conf") as fd:
             fd.write(
                 (self.template_config).format(
@@ -60,6 +62,7 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
                     services_port=services_port,
                     password_field=password_field,
                     ssl_config=ssl_config,
+                    install_prefix=Path(binary_path).parent.parent,
                 )
             )
         assert self.directory
@@ -70,7 +73,7 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 self.binary_name,
@@ -80,7 +83,6 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
                 "-pidfile",
                 self.directory / "server.pid",
             ],
-            # stderr=subprocess.DEVNULL,
         )
 
         if run_services:

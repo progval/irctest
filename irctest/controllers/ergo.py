@@ -14,6 +14,7 @@ BASE_CONFIG = {
         "name": "My.Little.Server",
         "listeners": {},
         "max-sendq": "16k",
+        "casemapping": "ascii",
         "connection-limits": {
             "enabled": True,
             "cidr-len-ipv4": 32,
@@ -56,6 +57,11 @@ BASE_CONFIG = {
         "nick-reservation": {
             "enabled": True,
             "method": "strict",
+        },
+        "login-throttling": {
+            "enabled": True,
+            "duration": "1m",
+            "max-attempts": 3,
         },
     },
     "channels": {"registration": {"enabled": True}},
@@ -126,7 +132,7 @@ def hash_password(password: Union[str, bytes]) -> str:
         ["ergo", "genpasswd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
     out, _ = p.communicate(input_)
-    return out.decode("utf-8")
+    return out.decode("utf-8").strip()
 
 
 class ErgoController(BaseServerController, DirectoryBasedController):
@@ -166,6 +172,16 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         if enable_roleplay:
             config["roleplay"] = {"enabled": True}
 
+        if self.test_config.account_registration_before_connect:
+            config["accounts"]["registration"]["allow-before-connect"] = True  # type: ignore
+        if self.test_config.account_registration_requires_email:
+            config["accounts"]["registration"]["email-verification"] = {  # type: ignore
+                "enabled": True,
+                "sender": "test@example.com",
+                "require-tls": True,
+                "helo-domain": "example.com",
+            }
+
         if self.test_config.ergo_config:
             self.test_config.ergo_config(config)
 
@@ -197,7 +213,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [*faketime_cmd, "ergo", "run", "--conf", self._config_path, "--quiet"]
         )
 
@@ -211,9 +227,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         username: str,
         password: Optional[str] = None,
     ) -> None:
-        # XXX: Move this somewhere else when
-        # https://github.com/ircv3/ircv3-specifications/pull/152 becomes
-        # part of the specification
         if not case.run_services:
             # Ergo does not actually need this, but other controllers do, so we
             # are checking it here as well for tests that aren't tested with other

@@ -1,5 +1,4 @@
 import shutil
-import subprocess
 from typing import Optional, Set, Type
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
@@ -15,7 +14,7 @@ TEMPLATE_CONFIG = """
     {password_field}
 
 [Server]
-    Name = services.example.org
+    Name = My.Little.Services
     MyPassword = password
     PeerPassword = password
     Passive = yes  # don't connect to it
@@ -23,10 +22,14 @@ TEMPLATE_CONFIG = """
 
 [Options]
     MorePrivacy = no  # by default, always replies to WHOWAS with ERR_WASNOSUCHNICK
+    PAM = no
 
 [Operator]
     Name = operuser
     Password = operpassword
+
+[Limits]
+    MaxNickLength = 32  # defaults to 9
 """
 
 
@@ -91,7 +94,7 @@ class NgircdController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "ngircd",
@@ -99,7 +102,6 @@ class NgircdController(BaseServerController, DirectoryBasedController):
                 "--config",
                 self.directory / "server.conf",
             ],
-            # stdout=subprocess.DEVNULL,
         )
 
         if run_services:

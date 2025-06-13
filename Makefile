@@ -35,22 +35,18 @@ INSPIRCD_SELECTORS := \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
-# HelpTestCase fails because it returns NOTICEs instead of numerics
 IRCU2_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
-# same justification as ircu2
-# lusers "unregistered" tests fail because 
 NEFARIOUS_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
 	$(EXTRA_SELECTORS)
 
-# same justification as ircu2
 SNIRCD_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -87,6 +83,16 @@ LIMNORIA_SELECTORS := \
 	(foo or not foo) \
 	$(EXTRA_SELECTORS)
 
+# Tests marked with arbitrary_client_tags or react_tag can't pass because Sable does not support client tags yet
+SABLE_SELECTORS := \
+	not Ergo \
+	and not deprecated \
+	and not strict \
+	and not arbitrary_client_tags \
+	and not react_tag \
+	and not list and not lusers and not time and not info \
+	$(EXTRA_SELECTORS)
+
 SOLANUM_SELECTORS := \
 	not Ergo \
 	and not deprecated \
@@ -95,6 +101,13 @@ SOLANUM_SELECTORS := \
 
 # Same as Limnoria
 SOPEL_SELECTORS := \
+	(foo or not foo) \
+	$(EXTRA_SELECTORS)
+
+# TheLounge can actually pass all the test so there is none to exclude.
+# `(foo or not foo)` serves as a `true` value so it doesn't break when
+# $(EXTRA_SELECTORS) is non-empty
+THELOUNGE_SELECTORS := \
 	(foo or not foo) \
 	$(EXTRA_SELECTORS)
 
@@ -111,9 +124,9 @@ UNREALIRCD_SELECTORS := \
 	and not private_chathistory \
 	$(EXTRA_SELECTORS)
 
-.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sopel solanum unrealircd
+.PHONY: all flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sable sopel solanum unrealircd
 
-all: flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sopel solanum unrealircd
+all: flakes bahamut charybdis ergo inspircd ircu2 snircd irc2 mammon nefarious limnoria sable sopel solanum unrealircd
 
 flakes:
 	find irctest/ -name "*.py" -not -path "irctest/scram/*" -print0 | xargs -0 pyflakes3
@@ -242,6 +255,12 @@ ngircd-atheme:
 		-m 'services' \
 		-k "$(NGIRCD_SELECTORS)"
 
+sable:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.sable \
+		-n 20 \
+		-k '$(SABLE_SELECTORS)'
+
 solanum:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.solanum \
@@ -252,6 +271,11 @@ sopel:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.sopel \
 		-k '$(SOPEL_SELECTORS)'
+
+thelounge:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.thelounge \
+		-k '$(THELOUNGE_SELECTORS)'
 
 unrealircd:
 	$(PYTEST) $(PYTEST_ARGS) \

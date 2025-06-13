@@ -65,7 +65,7 @@ listen {{
     options {{ serversonly; }}
 }}
 
-link services.example.org {{
+link My.Little.Services {{
     incoming {{
         mask *;
     }}
@@ -73,11 +73,11 @@ link services.example.org {{
     class servers;
 }}
 ulines {{
-    services.example.org;
+    My.Little.Services;
 }}
 
 set {{
-    sasl-server services.example.org;
+    sasl-server My.Little.Services;
     kline-address "example@example.org";
     network-name "ExampleNET";
     default-server "irc.example.org";
@@ -113,7 +113,7 @@ files {{
 }}
 
 oper "operuser" {{
-    password = "operpassword";
+    password "operpassword";
     mask *;
     class clients;
     operclass netadmin;
@@ -262,7 +262,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
             faketime_cmd = []
 
         with _STARTSTOP_LOCK():
-            self.proc = subprocess.Popen(
+            self.proc = self.execute(
                 [
                     *faketime_cmd,
                     "unrealircd",
@@ -271,7 +271,6 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                     "-f",
                     self.directory / "unrealircd.conf",
                 ],
-                # stdout=subprocess.DEVNULL,
             )
             self.wait_for_port()
 

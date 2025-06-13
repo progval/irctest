@@ -160,6 +160,7 @@ class _IrcTestCase(Generic[TController]):
     def messageDiffers(
         self,
         msg: Message,
+        command: Union[str, None, patma.Operator] = None,
         params: Optional[List[Union[str, None, patma.Operator]]] = None,
         target: Optional[str] = None,
         tags: Optional[
@@ -185,6 +186,14 @@ class _IrcTestCase(Generic[TController]):
                     param=key,
                     msg=msg,
                 )
+
+        if command is not None and not patma.match_string(msg.command, command):
+            fail_msg = (
+                fail_msg or "expected command to match {expects}, got {got}: {msg}"
+            )
+            return fail_msg.format(
+                *extra_format, got=msg.command, expects=command, msg=msg
+            )
 
         if prefix is not None and not patma.match_string(msg.prefix, prefix):
             fail_msg = (
@@ -214,7 +223,7 @@ class _IrcTestCase(Generic[TController]):
                     or "expected nick to be {expects}, got {got} instead: {msg}"
                 )
                 return fail_msg.format(
-                    *extra_format, got=got_nick, expects=nick, param=key, msg=msg
+                    *extra_format, got=got_nick, expects=nick, msg=msg
                 )
 
         return None
@@ -585,9 +594,13 @@ class BaseServerTestCase(
         del self.clients[name]
 
     def getMessages(self, client: TClientName, **kwargs: Any) -> List[Message]:
+        if kwargs.get("synchronize", True):
+            time.sleep(self.controller.sync_sleep_time)
         return self.clients[client].getMessages(**kwargs)
 
     def getMessage(self, client: TClientName, **kwargs: Any) -> Message:
+        if kwargs.get("synchronize", True):
+            time.sleep(self.controller.sync_sleep_time)
         return self.clients[client].getMessage(**kwargs)
 
     def getRegistrationMessage(self, client: TClientName) -> Message:
@@ -798,7 +811,7 @@ def xfailIf(
     def decorator(f: Callable[..., _TReturn]) -> Callable[..., _TReturn]:
         @functools.wraps(f)
         def newf(self: _TSelf, *args: Any, **kwargs: Any) -> _TReturn:
-            if condition(self):
+            if condition(self, *args, **kwargs):
                 try:
                     return f(self, *args, **kwargs)
                 except Exception:
@@ -815,7 +828,10 @@ def xfailIf(
 def xfailIfSoftware(
     names: List[str], reason: str
 ) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
-    return xfailIf(lambda testcase: testcase.controller.software_name in names, reason)
+    def pred(testcase: _IrcTestCase, *args: Any, **kwargs: Any) -> bool:
+        return testcase.controller.software_name in names
+
+    return xfailIf(pred, reason)
 
 
 def mark_services(cls: TClass) -> TClass:

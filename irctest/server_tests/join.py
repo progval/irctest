@@ -6,7 +6,6 @@ The JOIN command  (`RFC 1459
 """
 
 from irctest import cases, runner
-from irctest.irc_utils import ambiguities
 from irctest.numerics import (
     ERR_BADCHANMASK,
     ERR_FORBIDDENCHANNEL,
@@ -61,6 +60,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             ),
         )
 
+    @cases.xfailIfSoftware(["Bahamut", "irc2"], "trailing space on RPL_NAMREPLY")
     @cases.mark_specifications("RFC2812")
     def testJoinNamreply(self):
         """“353    RPL_NAMREPLY
@@ -75,33 +75,23 @@ class JoinTestCase(cases.BaseServerTestCase):
 
         for m in self.getMessages(1):
             if m.command == "353":
-                self.assertIn(
-                    len(m.params),
-                    (3, 4),
-                    m,
-                    fail_msg="RPL_NAM_REPLY with number of arguments "
-                    "<3 or >4: {msg}",
+                self.assertMessageMatch(
+                    m, params=["foo", StrRe(r"[=\*@]"), "#chan", StrRe("[@+]?foo")]
                 )
-                params = ambiguities.normalize_namreply_params(m.params)
-                self.assertIn(
-                    params[1],
-                    "=*@",
+
+        self.connectClient("bar")
+        self.sendLine(2, "JOIN #chan")
+
+        for m in self.getMessages(2):
+            if m.command == "353":
+                self.assertMessageMatch(
                     m,
-                    fail_msg="Bad channel prefix: {item} not in {list}: {msg}",
-                )
-                self.assertEqual(
-                    params[2],
-                    "#chan",
-                    m,
-                    fail_msg="Bad channel name: {got} instead of " "{expects}: {msg}",
-                )
-                self.assertIn(
-                    params[3],
-                    {"foo", "@foo", "+foo"},
-                    m,
-                    fail_msg="Bad user list: should contain only user "
-                    '"foo" with an optional "+" or "@" prefix, but got: '
-                    "{msg}",
+                    params=[
+                        "bar",
+                        StrRe(r"[=\*@]"),
+                        "#chan",
+                        StrRe("([@+]?foo bar|bar [@+]?foo)"),
+                    ],
                 )
 
     def testJoinTwice(self):
@@ -115,34 +105,8 @@ class JoinTestCase(cases.BaseServerTestCase):
         # if the join is successful, or has an error among the given set.
         for m in self.getMessages(1):
             if m.command == "353":
-                self.assertIn(
-                    len(m.params),
-                    (3, 4),
-                    m,
-                    fail_msg="RPL_NAM_REPLY with number of arguments "
-                    "<3 or >4: {msg}",
-                )
-                params = ambiguities.normalize_namreply_params(m.params)
-                self.assertIn(
-                    params[1],
-                    "=*@",
-                    m,
-                    fail_msg="Bad channel prefix: {item} not in {list}: {msg}",
-                )
-                self.assertEqual(
-                    params[2],
-                    "#chan",
-                    m,
-                    fail_msg="Bad channel name: {got} instead of " "{expects}: {msg}",
-                )
-                self.assertIn(
-                    params[3],
-                    {"foo", "@foo", "+foo"},
-                    m,
-                    fail_msg='Bad user list after user "foo" joined twice '
-                    "the same channel: should contain only user "
-                    '"foo" with an optional "+" or "@" prefix, but got: '
-                    "{msg}",
+                self.assertMessageMatch(
+                    m, params=["foo", StrRe(r"[=\*@]"), "#chan", StrRe("[@+]?foo")]
                 )
 
     def testJoinPartiallyInvalid(self):
@@ -235,4 +199,79 @@ class JoinTestCase(cases.BaseServerTestCase):
             1,
             fail_msg="Expected 1 error when joining channels '#valid' and 'inv@lid', "
             "got {got}",
+        )
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testJoinKey(self):
+        """Joins a single channel with a key"""
+        self.connectClient("chanop")
+        self.joinChannel(1, "#chan")
+        self.sendLine(1, "MODE #chan +k key")
+        self.getMessages(1)
+
+        self.connectClient("joiner")
+        self.sendLine(2, "JOIN #chan key")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="JOIN",
+            params=["#chan"],
+        )
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testJoinKeys(self):
+        """Joins two channels, both with keys"""
+        self.connectClient("chanop")
+        if self.targmax.get("JOIN", "1000") == "1":
+            raise runner.OptionalExtensionNotSupported("Multi-target JOIN")
+        self.joinChannel(1, "#chan1")
+        self.sendLine(1, "MODE #chan1 +k key1")
+        self.getMessages(1)
+        self.joinChannel(1, "#chan2")
+        self.sendLine(1, "MODE #chan2 +k key2")
+        self.getMessages(1)
+
+        self.connectClient("joiner")
+        self.sendLine(2, "JOIN #chan1,#chan2 key1,key2")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="JOIN",
+            params=["#chan1"],
+        )
+        self.assertMessageMatch(
+            [
+                msg
+                for msg in self.getMessages(2)
+                if msg.command not in {RPL_NAMREPLY, RPL_ENDOFNAMES}
+            ][0],
+            command="JOIN",
+            params=["#chan2"],
+        )
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testJoinManySingleKey(self):
+        """Joins two channels, the first one has a key."""
+        self.connectClient("chanop")
+        if self.targmax.get("JOIN", "1000") == "1":
+            raise runner.OptionalExtensionNotSupported("Multi-target JOIN")
+        self.joinChannel(1, "#chan1")
+        self.sendLine(1, "MODE #chan1 +k key1")
+        self.getMessages(1)
+        self.joinChannel(1, "#chan2")
+        self.getMessages(1)
+
+        self.connectClient("joiner")
+        self.sendLine(2, "JOIN #chan1,#chan2 key1")
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="JOIN",
+            params=["#chan1"],
+        )
+        self.assertMessageMatch(
+            [
+                msg
+                for msg in self.getMessages(2)
+                if msg.command not in {RPL_NAMREPLY, RPL_ENDOFNAMES}
+            ][0],
+            command="JOIN",
+            params=["#chan2"],
         )

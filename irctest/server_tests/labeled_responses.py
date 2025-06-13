@@ -12,6 +12,7 @@ import pytest
 from irctest import cases
 from irctest.numerics import ERR_UNKNOWNCOMMAND
 from irctest.patma import ANYDICT, ANYOPTSTR, NotStrRe, RemainingKeys, StrRe
+from irctest.runner import OptionalExtensionNotSupported
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase):
@@ -22,7 +23,10 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase):
             capabilities=["echo-message", "batch", "labeled-response"],
             skip_if_cap_nak=True,
         )
+        if int(self.targmax.get("PRIVMSG", "1") or "4") < 3:
+            raise OptionalExtensionNotSupported("PRIVMSG to multiple targets")
         self.getMessages(1)
+
         self.connectClient(
             "bar",
             capabilities=["echo-message", "batch", "labeled-response"],

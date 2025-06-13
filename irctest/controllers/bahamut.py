@@ -1,6 +1,5 @@
 from pathlib import Path
 import shutil
-import subprocess
 from typing import Optional, Set, Type
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
@@ -15,7 +14,7 @@ options {{
     network_name    unconfigured;
     allow_split_ops;                # Give ops in empty channels
 
-    services_name   services.example.org;
+    services_name   My.Little.Services;
 
     // if you need to link more than 1 server, uncomment the following line
     servtype        hub;
@@ -45,7 +44,7 @@ class {{
 
 /* for services */
 super {{
-    "services.example.org";
+    "My.Little.Services";
 }};
 
 
@@ -58,7 +57,7 @@ class {{
 
 /* our services */
 connect {{
-    name        services.example.org;
+    name        My.Little.Services;
     host        *@127.0.0.1;  # unfortunately, masks aren't allowed here
     apasswd     password;
     cpasswd     password;
@@ -92,7 +91,7 @@ class BahamutController(BaseServerController, DirectoryBasedController):
     software_name = "Bahamut"
     supported_sasl_mechanisms: Set[str] = set()
     supports_sts = False
-    nickserv = "NickServ@services.example.org"
+    nickserv = "NickServ@My.Little.Services"
 
     def create_config(self) -> None:
         super().create_config()
@@ -150,7 +149,7 @@ class BahamutController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "ircd",

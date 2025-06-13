@@ -1,5 +1,4 @@
 import shutil
-import subprocess
 from typing import Optional, Set, Type
 
 from irctest.basecontrollers import (
@@ -116,7 +115,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "mammond",

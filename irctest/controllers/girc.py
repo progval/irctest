@@ -1,4 +1,3 @@
-import subprocess
 from typing import Optional, Type
 
 from irctest import authentication, tls
@@ -31,7 +30,7 @@ class GircController(BaseClientController, DirectoryBasedController):
             args += ["--sasl-fail-is-ok"]
 
         # Runs a client with the config given as arguments
-        self.proc = subprocess.Popen(["girc_test", "connect"] + args)
+        self.proc = self.execute(["girc_test", "connect"] + args)
 
 
 def get_irctest_controller_class() -> Type[GircController]:

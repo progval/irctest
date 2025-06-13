@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import dataclasses
-import multiprocessing
+import json
 import os
 from pathlib import Path
 import shutil
@@ -15,18 +16,21 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Iterator,
     List,
-    MutableMapping,
     Optional,
+    Sequence,
     Set,
     Tuple,
     Type,
+    Union,
 )
 
 import irctest
 
 from . import authentication, tls
 from .client_mock import ClientMock
+from .irc_utils.filelock import FileLock
 from .irc_utils.junkdrawer import find_hostname_and_port
 from .irc_utils.message_parser import Message
 from .runner import NotImplementedByController
@@ -46,6 +50,14 @@ class TestCaseControllerConfig:
 
     chathistory: bool = False
     """Whether to enable chathistory features."""
+
+    account_registration_before_connect: bool = False
+    """Whether draft/account-registration should be allowed before completing
+    connection registration (NICK + USER + CAP END)"""
+
+    account_registration_requires_email: bool = False
+    """Whether an email address must be provided when using draft/account-registration.
+    This does not imply servers must validate it."""
 
     ergo_roleplay: bool = False
     """Whether to enable the Ergo role-play commands."""
@@ -68,43 +80,40 @@ class _BaseController:
 
     supports_sts: bool
     supported_sasl_mechanisms: Set[str]
+
     proc: Optional[subprocess.Popen]
 
-    _used_ports: Set[Tuple[str, int]]
-    """``(hostname, port))`` used by this controller."""
-    # the following need to be shared between processes in case we are running in
-    # parallel (with pytest-xdist)
-    # The dicts are used as a set of (hostname, port), because _manager.set() doesn't
-    # exist.
-    _manager = multiprocessing.Manager()
-    _port_lock = _manager.Lock()
-    """Lock for access to ``_all_used_ports`` and ``_available_ports``."""
-    _all_used_ports: MutableMapping[Tuple[str, int], None] = _manager.dict()
-    """``(hostname, port)`` used by all controllers."""
-    _available_ports: MutableMapping[Tuple[str, int], None] = _manager.dict()
-    """``(hostname, port)`` available to any controller."""
+    _used_ports_path = Path(tempfile.gettempdir()) / "irctest_ports.json"
+    _port_lock = FileLock(Path(tempfile.gettempdir()) / "irctest_ports.json.lock")
 
     def __init__(self, test_config: TestCaseControllerConfig):
+        self.debug_mode = os.getenv("IRCTEST_DEBUG_LOGS", "0").lower() in ("true", "1")
         self.test_config = test_config
         self.proc = None
-        self._used_ports = set()
+        self._own_ports: Set[Tuple[str, int]] = set()
+
+    @contextlib.contextmanager
+    def _used_ports(self) -> Iterator[Set[Tuple[str, int]]]:
+        with self._port_lock:
+            if not self._used_ports_path.exists():
+                self._used_ports_path.write_text("[]")
+            used_ports = {
+                (h, p) for (h, p) in json.loads(self._used_ports_path.read_text())
+            }
+            yield used_ports
+            self._used_ports_path.write_text(json.dumps(list(used_ports)))
 
     def get_hostname_and_port(self) -> Tuple[str, int]:
-        with self._port_lock:
-            try:
-                # try to get a known available port
-                ((hostname, port), _) = self._available_ports.popitem()
-            except KeyError:
-                # if there aren't any, iterate while we get a fresh one.
-                while True:
-                    (hostname, port) = find_hostname_and_port()
-                    if (hostname, port) not in self._all_used_ports:
-                        # double-checking in self._used_ports to prevent collisions
-                        # between controllers starting at the same time.
-                        break
+        with self._used_ports() as used_ports:
+            while True:
+                (hostname, port) = find_hostname_and_port()
+                if (hostname, port) not in used_ports:
+                    # double-checking in self._used_ports to prevent collisions
+                    # between controllers starting at the same time.
+                    break
 
-            # Make this port unavailable to other processes
-            self._all_used_ports[(hostname, port)] = None
+            used_ports.add((hostname, port))
+            self._own_ports.add((hostname, port))
 
         return (hostname, port)
 
@@ -112,7 +121,7 @@ class _BaseController:
         assert self.proc
         self.proc.poll()
         if self.proc.returncode is not None:
-            raise ProcessStopped()
+            raise ProcessStopped(f"process returned {self.proc.returncode}")
 
     def kill_proc(self) -> None:
         """Terminates the controlled process, waits for it to exit, and
@@ -130,10 +139,16 @@ class _BaseController:
         if self.proc:
             self.kill_proc()
 
-        # move this controller's ports from _all_used_ports to _available_ports
-        for hostname, port in self._used_ports:
-            del self._all_used_ports[(hostname, port)]
-            self._available_ports[(hostname, port)] = None
+        with self._used_ports() as used_ports:
+            for hostname, port in list(self._own_ports):
+                used_ports.remove((hostname, port))
+                self._own_ports.remove((hostname, port))
+
+    def execute(
+        self, command: Sequence[Union[str, Path]], **kwargs: Any
+    ) -> subprocess.Popen:
+        output_to = None if self.debug_mode else subprocess.DEVNULL
+        return subprocess.Popen(command, stderr=output_to, stdout=output_to, **kwargs)
 
 
 class DirectoryBasedController(_BaseController):
@@ -248,6 +263,12 @@ class BaseServerController(_BaseController):
     extban_mute_char: Optional[str] = None
     """Character used for the 'mute' extban"""
     nickserv = "NickServ"
+    sync_sleep_time = 0.0
+    """How many seconds to sleep before clients synchronously get messages.
+
+    This can be 0 for servers answering all commands in order (all but Sable as of
+    this writing), as irctest emits a PING, waits for a PONG, and captures all messages
+    between the two."""
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
@@ -296,7 +317,7 @@ class BaseServerController(_BaseController):
                         time.sleep(0.01)
 
                         c.send(b" ")  # Triggers BrokenPipeError
-                except BrokenPipeError:
+                except (BrokenPipeError, ConnectionResetError):
                     # ircu2 cuts the connection without a message if registration
                     # is not complete.
                     pass
@@ -350,13 +371,17 @@ class BaseServicesController(_BaseController):
         c.connect(self.server_controller.hostname, self.server_controller.port)
         c.sendLine("NICK chkNS")
         c.sendLine("USER chk chk chk chk")
-        for msg in c.getMessages(synchronize=False):
-            if msg.command == "PING":
-                # Hi Unreal
-                c.sendLine("PONG :" + msg.params[0])
-        c.getMessages()
+        time.sleep(self.server_controller.sync_sleep_time)
+        got_end_of_motd = False
+        while not got_end_of_motd:
+            for msg in c.getMessages(synchronize=False):
+                if msg.command == "PING":
+                    # Hi Unreal
+                    c.sendLine("PONG :" + msg.params[0])
+                if msg.command in ("376", "422"):  # RPL_ENDOFMOTD / ERR_NOMOTD
+                    got_end_of_motd = True
 
-        timeout = time.time() + 3
+        timeout = time.time() + 10
         while True:
             c.sendLine(f"PRIVMSG {self.server_controller.nickserv} :help")
 
@@ -365,11 +390,19 @@ class BaseServicesController(_BaseController):
                 if msg.command == "401":
                     # NickServ not available yet
                     pass
+                elif msg.command in ("MODE", "221"):  # RPL_UMODEIS
+                    pass
+                elif msg.command == "396":  # RPL_VISIBLEHOST
+                    pass
                 elif msg.command == "NOTICE":
-                    # NickServ is available
-                    assert "nickserv" in (msg.prefix or "").lower(), msg
-                    print("breaking")
-                    break
+                    assert msg.prefix is not None
+                    if "!" not in msg.prefix and "." in msg.prefix:
+                        # Server notice
+                        pass
+                    else:
+                        # NickServ is available
+                        assert "nickserv" in (msg.prefix or "").lower(), msg
+                        break
                 else:
                     assert False, f"unexpected reply from NickServ: {msg}"
             else:
