@@ -520,7 +520,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
 
         self.sendLine(1, "CAP LS 302")
         caps = self.getCapLs(1)
-        if "before-connect" not in (caps["draft/metadata-2"] or "").split(","):
+        if "before-connect" not in (caps.get("draft/metadata-2") or "").split(","):
             raise runner.OptionalExtensionNotSupported(
                 "draft/metadata-2=before-connect"
             )
