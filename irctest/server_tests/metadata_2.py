@@ -9,6 +9,7 @@ import itertools
 import pytest
 
 from irctest import cases, runner
+from irctest.numerics import RPL_METADATASUBOK
 from irctest.patma import ANYDICT, ANYLIST, ANYSTR, StrRe
 
 CLIENT_NICKS = {
@@ -550,6 +551,23 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.joinChannel(1, "#chan")
+        self.joinChannel(2, "#chan")
+        self.getMessages(1)
+        self.sendLine(2, "METADATA * SUB display-name")
+        sub_replies = self.getMessages(2)
+        self.assertEqual(
+            len(sub_replies), 1, "Successful sub should get exactly 1 reply"
+        )
+        self.assertMessageMatch(
+            sub_replies[0],
+            command=RPL_METADATASUBOK,
+            params=["bar", "display-name"],
+        )
+
         # Sending directly because it is not valid UTF-8 so Python would
         # not like it
         self.clients[1].conn.sendall(
@@ -581,6 +599,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         # VALUE_INVALID as per the metadata spec, INVALID_UTF8 as per the UTF8ONLY spec
         self.assertIn(failMessage.params[1], ("VALUE_INVALID", "INVALID_UTF8"))
+        # friends should not receive anything
+        self.assertEqual(
+            self.getMessages(2), [], "Unsuccessful metadata update must not be relayed"
+        )
 
     @cases.mark_specifications("IRCv3")
     def testSetInvalidUtf8(self):
