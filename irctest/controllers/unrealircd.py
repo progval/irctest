@@ -211,6 +211,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 """
                 include "snomasks.default.conf";
                 loadmodule "cloak_md5";
+                loadmodule "third/metadata2";
                 """
             )
             set_v6only = SET_V6ONLY

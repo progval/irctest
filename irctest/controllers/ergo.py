@@ -118,6 +118,11 @@ BASE_CONFIG = {
             "password": "$2a$04$bKb6k5A6yuFA2wx.iJtxcuT2dojHQAjHd5ZPK/I2sjJml7p4spxjG",
         }
     },
+    "metadata": {
+        "enabled": True,
+        "max-subs": 100,
+        "max-keys": 1000,
+    },
 }
 
 LOGGING_CONFIG = {"logging": [{"method": "stderr", "level": "debug", "type": "*"}]}

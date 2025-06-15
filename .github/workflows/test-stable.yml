@@ -399,6 +399,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/unrealircd/
         cp $GITHUB_WORKSPACE/data/unreal/* .
+        wget https://raw.githubusercontent.com/progval/unrealircd-contrib/50e839c2e2f1d8b9924126f34bc2f50965c0a557/files/metadata2.c -O src/modules/third/metadata2.c
         # Need to use a specific -march, because GitHub has inconsistent
         # architectures across workers, which result in random SIGILL with some
         # worker combinations
