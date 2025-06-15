@@ -11,7 +11,6 @@ from irctest.basecontrollers import BaseServerController, DirectoryBasedControll
 
 TEMPLATE_CONFIG = """
 include "modules.default.conf";
-loadmodule "third/metadata2";
 include "operclass.default.conf";
 {extras}
 include "help/help.conf";
@@ -212,6 +211,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 """
                 include "snomasks.default.conf";
                 loadmodule "cloak_md5";
+                loadmodule "third/metadata2";
                 """
             )
             set_v6only = SET_V6ONLY
