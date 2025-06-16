@@ -9,7 +9,7 @@ import itertools
 import pytest
 
 from irctest import cases, runner
-from irctest.numerics import RPL_METADATASUBOK
+from irctest.numerics import RPL_KEYVALUE, RPL_METADATASUBOK, RPL_METADATAUNSUBOK
 from irctest.patma import ANYDICT, ANYLIST, ANYSTR, StrRe
 
 CLIENT_NICKS = {
@@ -627,3 +627,91 @@ class MetadataTestCase(cases.BaseServerTestCase):
         """
         heart = b"\xf0\x9f\x92\x9c"
         self._testSetInvalidValue(heart * 120)
+
+    @cases.mark_specifications("IRCv3")
+    def testKeyNameInvalidUTF8(self):
+        """Test handling of key names that are invalid UTF8."""
+        self.connectClient(
+            "baz",
+            capabilities=["draft/metadata-2", "batch"],
+            skip_if_cap_nak=True,
+        )
+
+        def validate_failresponse(line):
+            # Sending directly because it is not valid UTF-8 so Python would
+            # not like it
+            self.clients[1].conn.sendall(line)
+            try:
+                messages = self.getMessages(1)
+                commands = {m.command for m in messages}
+            except UnicodeDecodeError:
+                assert False, "Server sent invalid UTF-8"
+            success_commands = commands.intersection(
+                [RPL_METADATASUBOK, RPL_KEYVALUE, RPL_METADATAUNSUBOK]
+            )
+            self.assertEqual(
+                success_commands,
+                set(),
+                fail_msg="Received success numeric for invalid metadata key",
+            )
+            fails = [msg for msg in messages if msg.command == "FAIL"]
+            self.assertNotEqual(
+                fails, [], "Subscribing to invalid key must generate FAIL"
+            )
+            if fails[0].params[1] != "INVALID_UTF8":
+                # don't validate INVALID_UTF8, but if it's KEY_INVALID validate
+                # the number of params
+                self.assertMessageMatch(
+                    fails[0],
+                    command="FAIL",
+                    params=["METADATA", "KEY_INVALID", ANYSTR, ANYSTR],
+                )
+
+        validate_failresponse(b"METADATA * SUB display-nam\xc3\r\n")
+        validate_failresponse(b"METADATA baz SET display-nam\xc3 :shivaram l\r\n")
+
+    @cases.mark_specifications("IRCv3")
+    def testInvalidKeys(self):
+        """Test handling of key names that are valid UTF8 but don't conform to the
+        grammar."""
+        self.connectClient(
+            "baz",
+            capabilities=["draft/metadata-2", "batch"],
+            skip_if_cap_nak=True,
+        )
+
+        def validate_failresponse(line):
+            self.sendLine(1, line)
+            try:
+                messages = self.getMessages(1)
+                commands = {m.command for m in messages}
+            except UnicodeDecodeError:
+                assert False, "Server sent invalid UTF-8"
+            success_commands = commands.intersection(
+                [RPL_METADATASUBOK, RPL_KEYVALUE, RPL_METADATAUNSUBOK]
+            )
+            self.assertEqual(
+                success_commands,
+                set(),
+                fail_msg="Received success numeric for invalid metadata key",
+            )
+            fails = [msg for msg in messages if msg.command == "FAIL"]
+            self.assertNotEqual(
+                fails, [], "Subscribing to invalid key must generate FAIL"
+            )
+            self.assertMessageMatch(
+                fails[0],
+                command="FAIL",
+                params=["METADATA", "KEY_INVALID", ANYSTR, ANYSTR],
+            )
+
+        # invalid character
+        validate_failresponse("METADATA * SUB !")
+        validate_failresponse("METADATA baz SET ! value")
+        validate_failresponse("METADATA * SUB 🐬")
+        validate_failresponse("METADATA baz SET 🐬 value")
+        # invalid character, protocol-breaking:
+        validate_failresponse("METADATA * SUB ::")
+        validate_failresponse("METADATA * SUB :")
+        validate_failresponse("METADATA * SUB : ")
+        validate_failresponse("METADATA * SUB :a b ")
