@@ -252,7 +252,7 @@ software:
         name: Sable
         repository: Libera-Chat/sable
         refs:
-            stable: c302acb68f1919beeb8d5457974c9e5db06adaaf
+            stable: 85d8591afae3322f4aa8609d1d0305aaf25e1719
             release: null
             devel: master
             devel_release: null
@@ -310,9 +310,10 @@ software:
         path: unrealircd
         prefix: ~/.local/unrealircd
         separate_build_job: true
-        build_script: &unrealircd_build_script |
+        build_script: |
             cd $GITHUB_WORKSPACE/unrealircd/
             cp $GITHUB_WORKSPACE/data/unreal/* .
+            wget https://raw.githubusercontent.com/progval/unrealircd-contrib/50e839c2e2f1d8b9924126f34bc2f50965c0a557/files/metadata2.c -O src/modules/third/metadata2.c
             # Need to use a specific -march, because GitHub has inconsistent
             # architectures across workers, which result in random SIGILL with some
             # worker combinations
@@ -334,7 +335,18 @@ software:
         path: unrealircd
         prefix: ~/.local/unrealircd
         separate_build_job: true
-        build_script: *unrealircd_build_script
+        build_script: |
+            cd $GITHUB_WORKSPACE/unrealircd/
+            cp $GITHUB_WORKSPACE/data/unreal/* .
+            # Need to use a specific -march, because GitHub has inconsistent
+            # architectures across workers, which result in random SIGILL with some
+            # worker combinations
+            sudo apt install libsodium-dev libargon2-dev
+            CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
+            make -j 4
+            make install
+            # Prevent download of geoIP database on first startup
+            sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
 
 
     #############################
