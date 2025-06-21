@@ -252,7 +252,7 @@ software:
         name: Sable
         repository: Libera-Chat/sable
         refs:
-            stable: baed3ef9ac4550dc36a45b758436769e82e8ec58
+            stable: 85d8591afae3322f4aa8609d1d0305aaf25e1719
             release: null
             devel: master
             devel_release: null
