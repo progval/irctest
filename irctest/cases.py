@@ -286,7 +286,7 @@ class _IrcTestCase(Generic[TController]):
     ) -> None:
         if fail_msg:
             msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
-        assert got >= expects, msg  # type: ignore
+        assert got > expects, msg  # type: ignore
 
     def assertGreaterEqual(
         self,
