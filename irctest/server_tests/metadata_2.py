@@ -142,16 +142,20 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "and then 762 (RPL_METADATAEND)",
         )
 
-    def assertSetValue(self, client, target, key, value):
+    def assertSetValue(self, client, target, key, value, before_connect=False):
         self.sendLine(client, "METADATA {} SET {} :{}".format(target, key, value))
 
         if target == "*":
             target = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
 
+        nick = CLIENT_NICKS[client]
+        if before_connect:
+            nick = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
+
         self.assertMessageMatch(
             self.getMessage(client),
             command="761",  # RPL_KEYVALUE
-            params=[CLIENT_NICKS[client], target, key, ANYSTR, value],
+            params=[nick, target, key, ANYSTR, value],
         )
 
     def assertUnsetValue(self, client, target, key):
@@ -166,18 +170,22 @@ class MetadataTestCase(cases.BaseServerTestCase):
             params=[CLIENT_NICKS[client], target, key, ANYSTR],
         )
 
-    def assertGetValue(self, client, target, key, value):
+    def assertGetValue(self, client, target, key, value, before_connect=False):
         self.sendLine(client, "METADATA {} GET {}".format(target, key))
 
         if target == "*":
             target = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
+
+        nick = CLIENT_NICKS[client]
+        if before_connect:
+            nick = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
 
         (batch_id, messages) = self.getBatchMessages(client)
         self.assertEqual(len(messages), 1, fail_msg="Expected one RPL_KEYVALUE")
         self.assertMessageMatch(
             messages[0],
             command="761",  # RPL_KEYVALUE
-            params=[CLIENT_NICKS[client], target, key, ANYSTR, value],
+            params=[nick, target, key, ANYSTR, value],
         )
 
     def assertValueNotSet(self, client, target, key):
@@ -522,12 +530,14 @@ class MetadataTestCase(cases.BaseServerTestCase):
 
         self.requestCapabilities(1, ["draft/metadata-2", "batch"], skip_if_cap_nak=True)
 
-        self.assertSetValue(1, "*", "display-name", "Foo The First")
+        self.assertSetValue(
+            1, "*", "display-name", "Foo The First", before_connect=True
+        )
 
         self.sendLine(1, "NICK foo")
         self.sendLine(1, "USER foo 0 * :foo")
         self.sendLine(1, "CAP END")
-        self.skipToWelcome(1)
+        self.getMessages(1)  # consume the reg burst
 
         self.assertGetValue(1, "*", "display-name", "Foo The First")
 
