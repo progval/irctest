@@ -128,9 +128,7 @@ def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bo
         if got is None or re.match(expected.regexp + "$", got):
             return False
     elif isinstance(expected, Either):
-        if got is None or all(
-            not match_string(got, option) for option in expected.options
-        ):
+        if all(not match_string(got, option) for option in expected.options):
             return False
     elif isinstance(expected, InsensitiveStr):
         if got is None or got.lower() != expected.string.lower():
