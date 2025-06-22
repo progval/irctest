@@ -14,7 +14,7 @@ from irctest.numerics import (
     RPL_MONOFFLINE,
     RPL_MONONLINE,
 )
-from irctest.patma import ANYSTR, StrRe
+from irctest.patma import ANYSTR, Either, StrRe
 
 
 class _BaseMonitorTestCase(cases.BaseServerTestCase):
@@ -191,7 +191,7 @@ class MonitorTestCase(_BaseMonitorTestCase):
         self.check_server_support()
         self.sendLine(1, "MONITOR + *!username@localhost")
         self.sendLine(1, "MONITOR + *!username@127.0.0.1")
-        expected_command = StrRe(f"({RPL_MONOFFLINE}|{ERR_ERRONEUSNICKNAME})")
+        expected_command = Either(RPL_MONOFFLINE, ERR_ERRONEUSNICKNAME)
         try:
             m = self.getMessage(1)
             self.assertMessageMatch(m, command=expected_command)

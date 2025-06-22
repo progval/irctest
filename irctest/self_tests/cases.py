@@ -1,6 +1,6 @@
 """Internal checks of assertion implementations."""
 
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pytest
 
@@ -11,6 +11,7 @@ from irctest.patma import (
     ANYLIST,
     ANYOPTSTR,
     ANYSTR,
+    Either,
     ListRemainder,
     NotStrRe,
     OptStrRe,
@@ -19,7 +20,7 @@ from irctest.patma import (
 )
 
 # fmt: off
-MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
+MESSAGE_SPECS: List[Tuple[Dict[str, Any], List[str], List[str], List[str]]] = [
     (
         # the specification:
         dict(
@@ -261,6 +262,29 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         [
             "expected params to match ['nick', '...', OptStrRe(r'[a-zA-Z]+')], got ['nick', '...', '123']",
             "expected params to match ['nick', '...', OptStrRe(r'[a-zA-Z]+')], got ['nick', '...', '']",
+        ]
+    ),
+    (
+        # the specification:
+        dict(
+            command="004",
+            params=[Either("nick", "*", "."), "...", "trailer"],  # type: ignore[arg-type]
+        ),
+        # matches:
+        [
+            "004 nick ... trailer",
+            "004 * ... trailer",
+            "004 . ... trailer",
+        ],
+        # and does not match:
+        [
+            "004 foo ... trailer",
+            "004 f ... trailer",
+        ],
+        # and they each error with:
+        [
+            "expected params to match [Either('nick', '*', '.'), '...', 'trailer'], got ['foo', '...', 'trailer']",
+            "expected params to match [Either('nick', '*', '.'), '...', 'trailer'], got ['f', '...', 'trailer']",
         ]
     ),
     (
