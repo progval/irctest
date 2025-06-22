@@ -10,7 +10,7 @@ import pytest
 
 from irctest import cases, runner
 from irctest.numerics import RPL_METADATASUBOK
-from irctest.patma import ANYDICT, ANYLIST, ANYSTR, Either, StrRe
+from irctest.patma import ANYDICT, ANYLIST, ANYOPTSTR, ANYSTR, Either, StrRe
 
 CLIENT_NICKS = {
     1: "foo",
@@ -24,8 +24,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
 
         first_msg = messages.pop(0)
         last_msg = messages.pop(-1)
+        # TODO: s/ANYOPTSTR/ANYSTR/, as per spec update to require a batch parameter
+        # indicating the target
         self.assertMessageMatch(
-            first_msg, command="BATCH", params=[StrRe(r"\+.*"), "metadata"]
+            first_msg, command="BATCH", params=[StrRe(r"\+.*"), "metadata", ANYOPTSTR]
         )
         batch_id = first_msg.params[0][1:]
         self.assertMessageMatch(last_msg, command="BATCH", params=["-" + batch_id])
