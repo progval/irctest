@@ -53,6 +53,17 @@ class NotStrRe(Operator):
 
 
 @dataclasses.dataclass(frozen=True)
+class Either(Operator):
+    options: str
+
+    def __init__(self, *options: Operator):
+        object.__setattr__(self, "options", options)
+
+    def __repr__(self) -> str:
+        return f"Either({', '.join(map(repr, self.options))})"
+
+
+@dataclasses.dataclass(frozen=True)
 class InsensitiveStr(Operator):
     string: str
 
@@ -115,6 +126,11 @@ def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bo
             return False
     elif isinstance(expected, NotStrRe):
         if got is None or re.match(expected.regexp + "$", got):
+            return False
+    elif isinstance(expected, Either):
+        if got is None or all(
+            not match_string(got, option) for option in expected.options
+        ):
             return False
     elif isinstance(expected, InsensitiveStr):
         if got is None or got.lower() != expected.string.lower():

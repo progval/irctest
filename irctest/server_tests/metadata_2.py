@@ -10,7 +10,7 @@ import pytest
 
 from irctest import cases, runner
 from irctest.numerics import RPL_METADATASUBOK
-from irctest.patma import ANYDICT, ANYLIST, ANYSTR, StrRe
+from irctest.patma import ANYDICT, ANYLIST, ANYSTR, Either, StrRe
 
 CLIENT_NICKS = {
     1: "foo",
@@ -146,11 +146,11 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.sendLine(client, "METADATA {} SET {} :{}".format(target, key, value))
 
         if target == "*":
-            target = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
+            target = Either("*", CLIENT_NICKS[client])
 
         nick = CLIENT_NICKS[client]
         if before_connect:
-            nick = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
+            nick = Either("*", nick)
 
         self.assertMessageMatch(
             self.getMessage(client),
@@ -162,7 +162,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.sendLine(client, "METADATA {} SET {}".format(target, key))
 
         if target == "*":
-            target = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
+            target = Either("*", CLIENT_NICKS[client])
 
         self.assertMessageMatch(
             self.getMessage(client),
@@ -174,11 +174,11 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.sendLine(client, "METADATA {} GET {}".format(target, key))
 
         if target == "*":
-            target = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
+            target = Either("*", CLIENT_NICKS[client])
 
         nick = CLIENT_NICKS[client]
         if before_connect:
-            nick = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
+            nick = Either("*", nick)
 
         (batch_id, messages) = self.getBatchMessages(client)
         self.assertEqual(len(messages), 1, fail_msg="Expected one RPL_KEYVALUE")
@@ -192,7 +192,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.sendLine(client, "METADATA {} GET {}".format(target, key))
 
         if target == "*":
-            target = StrRe(r"(\*|" + CLIENT_NICKS[client] + ")")
+            target = Either("*", CLIENT_NICKS[client])
 
         (batch_id, messages) = self.getBatchMessages(client)
         self.assertEqual(len(messages), 1, fail_msg="Expected one RPL_KEYVALUE")
