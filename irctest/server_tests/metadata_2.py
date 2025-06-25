@@ -10,7 +10,7 @@ import pytest
 
 from irctest import cases, runner
 from irctest.numerics import RPL_METADATASUBOK
-from irctest.patma import ANYDICT, ANYLIST, ANYSTR, Either, StrRe
+from irctest.patma import ANYDICT, ANYLIST, ANYOPTSTR, ANYSTR, Either, StrRe
 
 CLIENT_NICKS = {
     1: "foo",
@@ -24,8 +24,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
 
         first_msg = messages.pop(0)
         last_msg = messages.pop(-1)
+        # TODO: s/ANYOPTSTR/ANYSTR/, as per spec update to require a batch parameter
+        # indicating the target
         self.assertMessageMatch(
-            first_msg, command="BATCH", params=[StrRe(r"\+.*"), "metadata"]
+            first_msg, command="BATCH", params=[StrRe(r"\+.*"), "metadata", ANYOPTSTR]
         )
         batch_id = first_msg.params[0][1:]
         self.assertMessageMatch(last_msg, command="BATCH", params=["-" + batch_id])
@@ -537,7 +539,36 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "NICK foo")
         self.sendLine(1, "USER foo 0 * :foo")
         self.sendLine(1, "CAP END")
-        self.getMessages(1)  # consume the reg burst
+        burst = self.getMessages(1)
+
+        burst_batch = []
+        batch_id = ""
+        for msg in burst:
+            if (
+                batch_id == ""
+                and msg.command == "BATCH"
+                and len(msg.params) >= 3
+                and msg.params[1] == "metadata"
+            ):
+                batch_id = msg.params[0][1:]
+            elif batch_id != "":
+                if msg.command == "BATCH" and msg.params[0] == "-" + batch_id:
+                    batch_id = ""
+                else:
+                    burst_batch.append(msg)
+        self.assertGreater(
+            len(burst_batch), 0, "Must receive METADATA lines for pre-set metadata"
+        )
+        self.assertTrue(
+            any(
+                self.messageEqual(
+                    msg,
+                    command="METADATA",
+                    params=["foo", "display-name", ANYSTR, "Foo The First"],
+                )
+                for msg in burst_batch
+            )
+        )
 
         self.assertGetValue(1, "*", "display-name", "Foo The First")
 
