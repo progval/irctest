@@ -386,6 +386,42 @@ software:
             cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
             ninja install
 
+    atheme:
+        name: Atheme
+        repository: atheme/atheme
+        submodules: recursive
+        separate_build_job: true
+        path: atheme
+        refs:
+            stable: "v7.2.12"
+            release: null
+            devel: "release/7.2"
+            devel_release: null
+        build_script: |
+            sudo apt install gettext --no-install-recommends
+            cd $GITHUB_WORKSPACE/atheme/
+            ./configure --prefix=$HOME/.local/
+            make
+            make install
+
+    atheme-7-3:
+        name: Atheme
+        repository: atheme/atheme
+        submodules: recursive
+        separate_build_job: true
+        path: atheme
+        refs:
+            stable: "22b0a326651d7fba5f7c733012191d74afba8883" # Latest commit as of 2025-08-01
+            release: null
+            devel: "master"
+            devel_release: null
+        build_script: |
+            sudo apt install gettext --no-install-recommends
+            cd $GITHUB_WORKSPACE/atheme/
+            ./configure --prefix=$HOME/.local/
+            make
+            make install
+
     dlk:
         name: Dlk
         repository: DalekIRC/Dalek-Services
@@ -461,19 +497,19 @@ tests:
         software: [bahamut]
 
     bahamut-atheme:
-        software: [bahamut]
+        software: [bahamut, atheme]
 
     bahamut-anope:
         software: [bahamut, anope-2-0] # Anope 2.1.15 removes support for Bahamut
 
     charybdis:
-        software: [charybdis]
+        software: [charybdis, atheme]
 
     hybrid:
         software: [hybrid, anope]
 
     solanum:
-        software: [solanum]
+        software: [solanum, atheme]
 
     ergo:
         software: [ergo]
@@ -482,8 +518,8 @@ tests:
         software: [inspircd]
 
     inspircd-atheme:
-        software: [inspircd]
-        exclude_versions: [devel] # Atheme does not support Insp4 yet, so it fails to connect
+        software: [inspircd, atheme-7-3] # Atheme 7.2 does not support InspIRCd v4 (stable)
+        exclude_versions: [devel] # Atheme 7.3 does not support InspIRCd v5 (master)
 
     inspircd-anope:
         software: [inspircd, anope]
@@ -492,7 +528,7 @@ tests:
         software: [ngircd]
 
     ngircd-atheme:
-        software: [ngircd]
+        software: [ngircd, atheme]
 
     ngircd-anope:
         software: [ngircd, anope]
@@ -523,7 +559,7 @@ tests:
         software: [unrealircd]
 
     unrealircd-atheme:
-        software: [unrealircd]
+        software: [unrealircd, atheme]
 
     unrealircd-anope:
         software: [unrealircd, anope]
