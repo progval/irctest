@@ -52,7 +52,6 @@ module {{
     maxpasslen = 1000
     minpasslen = 1
 }}
-command {{ service = "NickServ"; name = "HELP"; command = "generic/help"; }}
 
 module {{
     name = "ns_register"
@@ -63,12 +62,10 @@ command {{ service = "NickServ"; name = "REGISTER"; command = "nickserv/register
 options {{
     casemap = "ascii"
     readtimeout = 5s
-    warningtimeout = 4h
 }}
 
-module {{ name = "ns_sasl" }} # since 2.1.13
-module {{ name = "sasl" }}    # 2.1.2 to 2.1.12
-module {{ name = "m_sasl" }}  # 2.0 to 2.1.1
+module {{ name = "ns_sasl" }} # 2.1
+module {{ name = "m_sasl" }}  # 2.0
 
 module {{ name = "enc_sha2" }}   # 2.1
 module {{ name = "enc_sha256" }} # 2.0
@@ -148,6 +145,7 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
             [
                 "anope",
                 "--config=services.conf",  # can't be an absolute path in 2.0
+                "--nodb",  # don't write a database
                 "--nofork",  # don't fork
                 "--nopid",  # don't write a pid
                 *extra_args,
