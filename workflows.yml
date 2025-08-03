@@ -358,8 +358,8 @@ software:
         separate_build_job: true
         path: anope
         refs:
-            stable: "2.0.14"
-            release: "2.1.1"
+            stable: "2.0.18"
+            release: "2.1.17"
             devel: "2.1"
             devel_release: "2.0"
         build_script: |
@@ -375,7 +375,7 @@ software:
         separate_build_job: true
         path: anope
         refs:
-            stable: "2.0.14"
+            stable: "2.0.18"
             release: null
             devel: "2.0"
             devel_release: null
