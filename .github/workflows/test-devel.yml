@@ -27,6 +27,7 @@ jobs:
         path: anope
         ref: '2.1'
         repository: anope/anope
+        submodules: ''
     - name: Build Anope
       run: |
         cd $GITHUB_WORKSPACE/anope/
@@ -67,6 +68,7 @@ jobs:
         path: anope
         ref: '2.0'
         repository: anope/anope
+        submodules: ''
     - name: Build Anope 2.0
       run: |
         cd $GITHUB_WORKSPACE/anope/
@@ -80,6 +82,88 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: installed-anope-2-0
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
+  build-atheme:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir -p .local/ go/
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        key: 3-${{ runner.os }}-atheme-devel
+        path: '~/.cache
+
+          ${ github.workspace }/atheme
+
+          '
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Checkout Atheme
+      uses: actions/checkout@v4
+      with:
+        path: atheme
+        ref: release/7.2
+        repository: atheme/atheme
+        submodules: recursive
+    - name: Build Atheme
+      run: |
+        sudo apt install gettext --no-install-recommends
+        cd $GITHUB_WORKSPACE/atheme/
+        ./configure --prefix=$HOME/.local/
+        make
+        make install
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-atheme.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: installed-atheme
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
+  build-atheme-7-3:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir -p .local/ go/
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        key: 3-${{ runner.os }}-atheme-7-3-devel
+        path: '~/.cache
+
+          ${ github.workspace }/atheme
+
+          '
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Checkout Atheme
+      uses: actions/checkout@v4
+      with:
+        path: atheme
+        ref: master
+        repository: atheme/atheme
+        submodules: recursive
+    - name: Build Atheme
+      run: |
+        sudo apt install gettext --no-install-recommends
+        cd $GITHUB_WORKSPACE/atheme/
+        ./configure --prefix=$HOME/.local/
+        make
+        make install
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-atheme-7-3.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: installed-atheme-7-3
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-bahamut:
@@ -107,6 +191,7 @@ jobs:
         path: Bahamut
         ref: master
         repository: DALnet/Bahamut
+        submodules: ''
     - name: Build Bahamut
       run: |
         cd $GITHUB_WORKSPACE/Bahamut/
@@ -160,6 +245,7 @@ jobs:
         path: ircd-hybrid
         ref: 8.2.x
         repository: ircd-hybrid/ircd-hybrid
+        submodules: ''
     - name: Install system dependencies
       run: sudo apt-get install atheme-services faketime libjansson-dev
     - name: Build Hybrid
@@ -192,6 +278,7 @@ jobs:
         path: inspircd
         ref: master
         repository: inspircd/inspircd
+        submodules: ''
     - name: Build InspIRCd
       run: |
         cd $GITHUB_WORKSPACE/inspircd/
@@ -231,6 +318,7 @@ jobs:
         path: ngircd
         ref: master
         repository: ngircd/ngircd
+        submodules: ''
     - name: Build ngircd
       run: |
         cd $GITHUB_WORKSPACE/ngircd
@@ -314,6 +402,7 @@ jobs:
         path: solanum
         ref: main
         repository: solanum-ircd/solanum
+        submodules: ''
     - name: Build Solanum
       run: |
         cd $GITHUB_WORKSPACE/solanum/
@@ -354,6 +443,7 @@ jobs:
         path: unrealircd
         ref: unreal60_dev
         repository: unrealircd/unrealircd
+        submodules: ''
     - name: Build UnrealIRCd 6
       run: |
         cd $GITHUB_WORKSPACE/unrealircd/
@@ -401,6 +491,7 @@ jobs:
         path: unrealircd
         ref: unreal52
         repository: unrealircd/unrealircd
+        submodules: ''
     - name: Build UnrealIRCd 5
       run: |
         cd $GITHUB_WORKSPACE/unrealircd/
@@ -491,7 +582,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -532,7 +623,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -552,6 +643,7 @@ jobs:
   test-bahamut-atheme:
     needs:
     - build-bahamut
+    - build-atheme
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -564,10 +656,15 @@ jobs:
       with:
         name: installed-bahamut
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-atheme
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -575,7 +672,7 @@ jobs:
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
         bahamut-atheme
       timeout-minutes: 30
     - if: always()
@@ -599,6 +696,7 @@ jobs:
         path: ergo
         ref: master
         repository: ergochat/ergo
+        submodules: ''
     - uses: actions/setup-go@v3
       with:
         go-version: ^1.24.0
@@ -609,7 +707,7 @@ jobs:
         make build
         make install
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -650,7 +748,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -685,7 +783,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -726,7 +824,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -758,6 +856,7 @@ jobs:
         path: ircu2
         ref: u2_10_12_branch
         repository: undernetirc/ircu2
+        submodules: ''
     - name: Build ircu2
       run: |
         cd $GITHUB_WORKSPACE/ircu2
@@ -767,7 +866,7 @@ jobs:
         make -j 4
         make install
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -797,7 +896,7 @@ jobs:
       run: pip install git+https://github.com/progval/Limnoria.git@master cryptography
         pyxmpp2-scram
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -829,6 +928,7 @@ jobs:
         path: nefarious
         ref: master
         repository: evilnet/nefarious2
+        submodules: ''
     - name: Build nefarious
       run: |
         cd $GITHUB_WORKSPACE/nefarious
@@ -837,7 +937,7 @@ jobs:
         make install
         cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -872,7 +972,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -913,7 +1013,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -933,6 +1033,7 @@ jobs:
   test-ngircd-atheme:
     needs:
     - build-ngircd
+    - build-atheme
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -945,10 +1046,15 @@ jobs:
       with:
         name: installed-ngircd
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-atheme
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -956,8 +1062,8 @@ jobs:
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH
-        make ngircd-atheme
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH  make
+        ngircd-atheme
       timeout-minutes: 30
     - if: always()
       name: Publish results
@@ -989,7 +1095,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1021,6 +1127,7 @@ jobs:
         path: sable
         ref: master
         repository: Libera-Chat/sable
+        submodules: ''
     - name: Install rust toolchain
       uses: actions-rs/toolchain@v1
       with:
@@ -1038,7 +1145,7 @@ jobs:
         cd $GITHUB_WORKSPACE/sable/
         cargo build
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1058,6 +1165,7 @@ jobs:
   test-solanum:
     needs:
     - build-solanum
+    - build-atheme
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -1070,10 +1178,15 @@ jobs:
       with:
         name: installed-solanum
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-atheme
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1081,7 +1194,7 @@ jobs:
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
         solanum
       timeout-minutes: 30
     - if: always()
@@ -1102,7 +1215,7 @@ jobs:
     - name: Install dependencies
       run: pip install git+https://github.com/sopel-irc/sopel.git
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1134,6 +1247,7 @@ jobs:
         path: thelounge
         ref: master
         repository: thelounge/thelounge
+        submodules: ''
     - name: Build TheLounge
       run: |
         cd $GITHUB_WORKSPACE/thelounge
@@ -1142,7 +1256,7 @@ jobs:
         mkdir -p ~/.local/bin/
         ln -s $(pwd)/index.js ~/.local/bin/thelounge
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1177,7 +1291,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1212,7 +1326,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1253,7 +1367,7 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1273,6 +1387,7 @@ jobs:
   test-unrealircd-atheme:
     needs:
     - build-unrealircd
+    - build-atheme
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
@@ -1285,10 +1400,15 @@ jobs:
       with:
         name: installed-unrealircd
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-atheme
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1296,8 +1416,8 @@ jobs:
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
-        make unrealircd-atheme
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH  make
+        unrealircd-atheme
       timeout-minutes: 30
     - if: always()
       name: Publish results
@@ -1328,13 +1448,14 @@ jobs:
         path: Dlk-Services
         ref: main
         repository: DalekIRC/Dalek-Services
+        submodules: ''
     - name: Build Dlk
       run: |
         pip install pifpaf
         wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
         wget -q https://wordpress.org/wordpress-6.7.2.zip -O wordpress-latest.zip
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
@@ -1355,6 +1476,12 @@ jobs:
         path: pytest.xml
 name: irctest with devel versions
 'on':
+  pull_request:
+    paths:
+    - .github/workflows/test-devel.yml
+  push:
+    paths:
+    - .github/workflows/test-devel.yml
   schedule:
   - cron: 51 8 * * 6
   - cron: 51 8 * * 0
