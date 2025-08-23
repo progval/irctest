@@ -83,6 +83,9 @@ BASE_CONFIG = {
         "channel-length": 128,
         "client-length": 128,
         "chathistory-maxmessages": 100,
+        "retention": {
+            "allow-individual-delete": True,
+        },
         "tagmsg-storage": {
             "default": False,
             "whitelist": ["+draft/persist", "+persist"],
