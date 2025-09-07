@@ -64,7 +64,9 @@ options {{
     readtimeout = 5s
 }}
 
-module {{ name = "ns_sasl" }} # 2.1
+module {{ name = "ns_sasl" }}          # 2.1
+module {{ name = "ns_sasl_external" }} # 2.1
+module {{ name = "ns_sasl_plain" }}    # 2.1
 module {{ name = "m_sasl" }}  # 2.0
 
 module {{ name = "enc_sha2" }}   # 2.1
