@@ -3,7 +3,7 @@
 
 jobs:
   build-anope:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -44,7 +44,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-inspircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/

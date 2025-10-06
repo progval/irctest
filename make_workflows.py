@@ -117,7 +117,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
         return None
 
     return {
-        "runs-on": "ubuntu-22.04",
+        "runs-on": "ubuntu-24.04",
         "steps": [
             {
                 "name": "Create directories",

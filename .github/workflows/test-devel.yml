@@ -3,7 +3,7 @@
 
 jobs:
   build-anope:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -44,7 +44,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-anope-2-0:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -85,7 +85,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-atheme:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -126,7 +126,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-atheme-7-3:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -167,7 +167,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-bahamut:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -221,7 +221,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-hybrid:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -263,7 +263,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-inspircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -294,7 +294,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-ngircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -336,7 +336,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-plexus4:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -378,7 +378,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-solanum:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -419,7 +419,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -467,7 +467,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd-5:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
