@@ -130,6 +130,10 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "uses": "actions/setup-python@v5",
                 "with": {"python-version": 3.11},
             },
+            {
+                "name": "Install system dependencies",
+                "run": "sudo apt-get install libltdl-dev",
+            },
             *install_steps,
             *upload_steps(software_id),
         ],

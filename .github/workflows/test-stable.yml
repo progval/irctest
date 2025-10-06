@@ -21,6 +21,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Anope
       uses: actions/checkout@v4
       with:
@@ -62,6 +64,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Anope 2.0
       uses: actions/checkout@v4
       with:
@@ -103,6 +107,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Atheme
       uses: actions/checkout@v4
       with:
@@ -144,6 +150,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Atheme
       uses: actions/checkout@v4
       with:
@@ -185,6 +193,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Bahamut
       uses: actions/checkout@v4
       with:
@@ -239,6 +249,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Charybdis
       uses: actions/checkout@v4
       with:
@@ -281,6 +293,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Hybrid
       uses: actions/checkout@v4
       with:
@@ -314,6 +328,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout InspIRCd
       uses: actions/checkout@v4
       with:
@@ -354,6 +370,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout ngircd
       uses: actions/checkout@v4
       with:
@@ -396,6 +414,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: clone
       run: 'curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar
         | tar -x
@@ -438,6 +458,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Solanum
       uses: actions/checkout@v4
       with:
@@ -479,6 +501,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout UnrealIRCd 6
       uses: actions/checkout@v4
       with:
@@ -527,6 +551,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout UnrealIRCd 5
       uses: actions/checkout@v4
       with:
