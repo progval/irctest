@@ -197,7 +197,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
         unpack = []
 
     return {
-        "runs-on": "ubuntu-22.04",
+        "runs-on": "ubuntu-24.04",
         "needs": needs,
         "steps": [
             {"uses": "actions/checkout@v4"},
@@ -320,7 +320,7 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
     jobs["publish-test-results"] = {
         "name": "Publish Dashboard",
         "needs": sorted({f"test-{test_id}" for test_id in config["tests"]} & set(jobs)),
-        "runs-on": "ubuntu-22.04",
+        "runs-on": "ubuntu-24.04",
         # the build-and-test job might be skipped, we don't need to run
         # this job then
         "if": "success() || failure()",
