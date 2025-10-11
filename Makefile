@@ -97,6 +97,7 @@ SOLANUM_SELECTORS := \
 	not Ergo \
 	and not deprecated \
 	and not strict \
+	and not arbitrary_client_tags \
 	$(EXTRA_SELECTORS)
 
 # Same as Limnoria
