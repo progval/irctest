@@ -61,7 +61,7 @@ assert proc.returncode == 0, (output, proc.stderr.decode())
 print(output)
 
 m = re.search("https://[^ ]*--[^ ]*netlify.app", output)
-assert m
+assert m, f"Could not find domain in 'netlify deploy' output:\n{output}"
 netlify_site_url = m.group(0)
 target_url = f"{netlify_site_url}/index.xhtml"
 
