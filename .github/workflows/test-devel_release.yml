@@ -3,7 +3,7 @@
 
 jobs:
   build-anope:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -21,6 +21,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Anope
       uses: actions/checkout@v4
       with:
@@ -44,7 +46,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-inspircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -53,6 +55,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout InspIRCd
       uses: actions/checkout@v4
       with:
@@ -80,7 +84,7 @@ jobs:
     needs:
     - test-inspircd
     - test-inspircd-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Download Artifacts
@@ -107,7 +111,7 @@ jobs:
   test-inspircd:
     needs:
     - build-inspircd
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -143,7 +147,7 @@ jobs:
     needs:
     - build-inspircd
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11

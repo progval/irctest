@@ -3,7 +3,7 @@
 
 jobs:
   build-anope:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -21,6 +21,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Anope
       uses: actions/checkout@v4
       with:
@@ -44,7 +46,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-anope-2-0:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -62,6 +64,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Anope 2.0
       uses: actions/checkout@v4
       with:
@@ -85,7 +89,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-atheme:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -103,6 +107,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Atheme
       uses: actions/checkout@v4
       with:
@@ -126,7 +132,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-atheme-7-3:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -144,6 +150,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Atheme
       uses: actions/checkout@v4
       with:
@@ -167,7 +175,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-bahamut:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -185,6 +193,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Bahamut
       uses: actions/checkout@v4
       with:
@@ -221,7 +231,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-charybdis:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -239,6 +249,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Charybdis
       uses: actions/checkout@v4
       with:
@@ -263,7 +275,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-hybrid:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -281,6 +293,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Hybrid
       uses: actions/checkout@v4
       with:
@@ -305,7 +319,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-inspircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -314,6 +328,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout InspIRCd
       uses: actions/checkout@v4
       with:
@@ -336,7 +352,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-ngircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -354,6 +370,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout ngircd
       uses: actions/checkout@v4
       with:
@@ -378,7 +396,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-plexus4:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -396,6 +414,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: clone
       run: 'curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar
         | tar -x
@@ -420,7 +440,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-solanum:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -438,6 +458,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Solanum
       uses: actions/checkout@v4
       with:
@@ -461,7 +483,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -479,6 +501,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout UnrealIRCd 6
       uses: actions/checkout@v4
       with:
@@ -509,7 +533,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd-5:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -527,6 +551,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout UnrealIRCd 5
       uses: actions/checkout@v4
       with:
@@ -584,7 +610,7 @@ jobs:
     - test-unrealircd-5
     - test-unrealircd-anope
     - test-unrealircd-atheme
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Download Artifacts
@@ -611,7 +637,7 @@ jobs:
   test-bahamut:
     needs:
     - build-bahamut
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -647,7 +673,7 @@ jobs:
     needs:
     - build-bahamut
     - build-anope-2-0
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -688,7 +714,7 @@ jobs:
     needs:
     - build-bahamut
     - build-atheme
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -729,7 +755,7 @@ jobs:
     needs:
     - build-charybdis
     - build-atheme
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -768,7 +794,7 @@ jobs:
         path: pytest.xml
   test-ergo:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -813,7 +839,7 @@ jobs:
     needs:
     - build-hybrid
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -853,7 +879,7 @@ jobs:
   test-inspircd:
     needs:
     - build-inspircd
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -889,7 +915,7 @@ jobs:
     needs:
     - build-inspircd
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -930,7 +956,7 @@ jobs:
     needs:
     - build-inspircd
     - build-atheme-7-3
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -969,7 +995,7 @@ jobs:
         path: pytest.xml
   test-irc2:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1022,7 +1048,7 @@ jobs:
         path: pytest.xml
   test-ircu2:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1064,7 +1090,7 @@ jobs:
         path: pytest.xml
   test-limnoria:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1093,7 +1119,7 @@ jobs:
         path: pytest.xml
   test-nefarious:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1135,7 +1161,7 @@ jobs:
   test-ngircd:
     needs:
     - build-ngircd
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1171,7 +1197,7 @@ jobs:
     needs:
     - build-ngircd
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1212,7 +1238,7 @@ jobs:
     needs:
     - build-ngircd
     - build-atheme
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1253,7 +1279,7 @@ jobs:
     needs:
     - build-plexus4
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1292,7 +1318,7 @@ jobs:
         path: pytest.xml
   test-sable:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1344,7 +1370,7 @@ jobs:
     needs:
     - build-solanum
     - build-atheme
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1383,7 +1409,7 @@ jobs:
         path: pytest.xml
   test-sopel:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1412,7 +1438,7 @@ jobs:
         path: pytest.xml
   test-thelounge:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1454,7 +1480,7 @@ jobs:
   test-unrealircd:
     needs:
     - build-unrealircd
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1489,7 +1515,7 @@ jobs:
   test-unrealircd-5:
     needs:
     - build-unrealircd-5
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1525,7 +1551,7 @@ jobs:
     needs:
     - build-unrealircd
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1566,7 +1592,7 @@ jobs:
     needs:
     - build-unrealircd
     - build-atheme
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
