@@ -656,7 +656,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -697,7 +697,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -738,7 +738,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -779,7 +779,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -822,7 +822,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -863,7 +863,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -898,7 +898,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -939,7 +939,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -980,7 +980,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1033,7 +1033,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1075,7 +1075,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1104,7 +1104,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1145,7 +1145,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1180,7 +1180,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1221,7 +1221,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1262,7 +1262,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1303,7 +1303,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1353,7 +1353,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1394,7 +1394,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1423,7 +1423,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1464,7 +1464,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1499,7 +1499,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1534,7 +1534,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1575,7 +1575,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1616,7 +1616,7 @@ jobs:
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest

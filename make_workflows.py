@@ -217,7 +217,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
                 "name": "Install irctest dependencies",
                 "run": script(
                     "python -m pip install --upgrade pip",
-                    "pip install pytest pytest-xdist pytest-timeout -r requirements.txt",
+                    "pip install -r requirements.txt pytest-xdist pytest-timeout",
                     *(
                         software_config["extra_deps"]
                         if "extra_deps" in software_config
