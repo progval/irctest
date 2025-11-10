@@ -12,7 +12,6 @@ from irctest.patma import ANYSTR
 
 
 class OperTestCase(cases.BaseServerTestCase):
-
     def _assertNumericPresent(self, messages, numeric, expected_nick):
         """Helper to check that a numeric has correct two-parameter syntax.
 
