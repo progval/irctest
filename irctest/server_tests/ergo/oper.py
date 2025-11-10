@@ -8,50 +8,61 @@ and `RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.4>`__.
 
 from irctest import cases
 from irctest.numerics import ERR_NOOPERHOST, RPL_YOUREOPER
+from irctest.patma import ANYSTR
 
 
 class OperTestCase(cases.BaseServerTestCase):
+
+    def _assertNumericPresent(self, messages, numeric, expected_nick):
+        """Helper to check that a numeric has correct two-parameter syntax.
+
+        Args:
+            messages: List of messages to search
+            numeric: The numeric command to check
+            expected_nick: Expected nickname in first parameter
+        """
+        numeric_messages = [msg for msg in messages if msg.command == numeric]
+        self.assertTrue(
+            len(numeric_messages) > 0,
+            msg=f"Expected at least one {numeric} message",
+        )
+        for msg in numeric_messages:
+            self.assertMessageMatch(
+                msg, command=numeric, params=[expected_nick, ANYSTR]
+            )
+
     @cases.mark_specifications("Ergo")
     def testOperSuccess(self):
         """Test successful OPER authentication."""
-        self.connectClient("oper_user", name="oper_user")
-        self.sendLine("oper_user", "OPER operuser operpassword")
-        messages = self.getMessages("oper_user")
+        self.connectClient("baz", name="baz")
+        self.sendLine("baz", "OPER operuser operpassword")
+        messages = self.getMessages("baz")
 
-        commands = {msg.command for msg in messages}
-        self.assertIn(
-            RPL_YOUREOPER,
-            commands,
-            msg="Expected RPL_YOUREOPER (381) in response to successful OPER command",
-        )
+        self._assertNumericPresent(messages, RPL_YOUREOPER, "baz")
 
         # Check that the user receives +o mode
         mode_messages = [msg for msg in messages if msg.command == "MODE"]
-        self.assertTrue(
-            len(mode_messages) > 0,
+        self.assertEqual(
+            len(mode_messages),
+            1,
             msg="Expected MODE message after successful OPER command",
         )
-
-        # Verify that at least one MODE message contains +o
-        has_oper_mode = any("+o" in " ".join(msg.params) for msg in mode_messages)
-        self.assertTrue(
-            has_oper_mode,
-            msg="Expected MODE message to contain +o after successful OPER command",
-        )
+        mode_message = mode_messages[0]
+        # additional parameters are possible, e.g. if the user received a snomask
+        self.assertGreaterEqual(len(mode_message.params), 2)
+        self.assertEqual(mode_message.params[0], "baz")
+        self.assertTrue(mode_message.params[1].startswith("+"))
+        self.assertIn("o", mode_message.params[1])
 
     @cases.mark_specifications("Ergo")
     def testOperFailure(self):
         """Test failed OPER authentication with incorrect password."""
-        self.connectClient("oper_user", name="oper_user")
-        self.sendLine("oper_user", "OPER operuser nottheoperpassword")
-        messages = self.getMessages("oper_user")
+        self.connectClient("baz", name="baz")
+        self.sendLine("baz", "OPER operuser nottheoperpassword")
+        messages = self.getMessages("baz")
 
         commands = {msg.command for msg in messages}
-        self.assertIn(
-            ERR_NOOPERHOST,
-            commands,
-            msg="Expected ERR_NOOPERHOST (491) in response to OPER with incorrect password",
-        )
+        self._assertNumericPresent(messages, ERR_NOOPERHOST, "baz")
 
         # Ensure RPL_YOUREOPER was NOT sent
         self.assertNotIn(
@@ -63,16 +74,12 @@ class OperTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
     def testOperNoPassword(self):
         """Test OPER command with no password argument."""
-        self.connectClient("oper_user", name="oper_user")
-        self.sendLine("oper_user", "OPER operuser")
-        messages = self.getMessages("oper_user")
+        self.connectClient("baz", name="baz")
+        self.sendLine("baz", "OPER operuser")
+        messages = self.getMessages("baz")
 
         commands = {msg.command for msg in messages}
-        self.assertIn(
-            ERR_NOOPERHOST,
-            commands,
-            msg="Expected ERR_NOOPERHOST (491) in response to OPER with no password",
-        )
+        self._assertNumericPresent(messages, ERR_NOOPERHOST, "baz")
 
         # Ensure RPL_YOUREOPER was NOT sent
         self.assertNotIn(
@@ -84,16 +91,12 @@ class OperTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
     def testOperNonexistentUser(self):
         """Test OPER command with nonexistent oper username."""
-        self.connectClient("oper_user", name="oper_user")
-        self.sendLine("oper_user", "OPER notanoperuser somepassword")
-        messages = self.getMessages("oper_user")
+        self.connectClient("baz", name="baz")
+        self.sendLine("baz", "OPER notanoperuser somepassword")
+        messages = self.getMessages("baz")
 
         commands = {msg.command for msg in messages}
-        self.assertIn(
-            ERR_NOOPERHOST,
-            commands,
-            msg="Expected ERR_NOOPERHOST (491) in response to OPER with nonexistent username",
-        )
+        self._assertNumericPresent(messages, ERR_NOOPERHOST, "baz")
 
         # Ensure RPL_YOUREOPER was NOT sent
         self.assertNotIn(
