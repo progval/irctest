@@ -4,6 +4,7 @@ Tests for the OPER command.
 The OPER command is used to obtain IRC operator privileges.
 See `RFC 1459 <https://datatracker.ietf.org/doc/html/rfc1459#section-4.1.5>`__
 and `RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.1.4>`__.
+and <https://modern.ircdocs.horse/#oper-message>
 """
 
 from irctest import cases
