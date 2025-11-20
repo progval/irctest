@@ -30,7 +30,7 @@ class OperTestCase(cases.BaseServerTestCase):
                 msg, command=numeric, params=[expected_nick, ANYSTR]
             )
 
-    @cases.mark_specifications("Ergo")
+    @cases.mark_specifications("Modern")
     def testOperSuccess(self):
         """Test successful OPER authentication."""
         self.connectClient("baz", name="baz")
@@ -53,7 +53,7 @@ class OperTestCase(cases.BaseServerTestCase):
         self.assertTrue(mode_message.params[1].startswith("+"))
         self.assertIn("o", mode_message.params[1])
 
-    @cases.mark_specifications("Ergo")
+    @cases.mark_specifications("Modern")
     def testOperFailure(self):
         """Test failed OPER authentication with incorrect password."""
         self.connectClient("baz", name="baz")
@@ -70,7 +70,7 @@ class OperTestCase(cases.BaseServerTestCase):
             msg="RPL_YOUREOPER (381) should not be sent for failed OPER attempt",
         )
 
-    @cases.mark_specifications("Ergo")
+    @cases.mark_specifications("Modern")
     def testOperNoPassword(self):
         """Test OPER command with no password argument."""
         self.connectClient("baz", name="baz")
@@ -87,7 +87,7 @@ class OperTestCase(cases.BaseServerTestCase):
             msg="RPL_YOUREOPER (381) should not be sent for OPER with no password",
         )
 
-    @cases.mark_specifications("Ergo")
+    @cases.mark_specifications("Modern")
     def testOperNonexistentUser(self):
         """Test OPER command with nonexistent oper username."""
         self.connectClient("baz", name="baz")
