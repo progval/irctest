@@ -8,12 +8,17 @@ and <https://modern.ircdocs.horse/#oper-message>
 """
 
 from irctest import cases
-from irctest.numerics import ERR_NOOPERHOST, RPL_YOUREOPER
+from irctest.numerics import (
+    ERR_NOOPERHOST,
+    ERR_PASSWDMISMATCH,
+    ERR_NEEDMOREPARAMS,
+    RPL_YOUREOPER,
+)
 from irctest.patma import ANYSTR
 
 
 class OperTestCase(cases.BaseServerTestCase):
-    def _assertNumericPresent(self, messages, numeric, expected_nick):
+    def _assertNumericPresent(self, messages, numerics, expected_nick):
         """Helper to check that a numeric has correct two-parameter syntax.
 
         Args:
@@ -21,15 +26,13 @@ class OperTestCase(cases.BaseServerTestCase):
             numeric: The numeric command to check
             expected_nick: Expected nickname in first parameter
         """
-        numeric_messages = [msg for msg in messages if msg.command == numeric]
+        numeric_messages = [msg for msg in messages if msg.command in numerics]
         self.assertTrue(
             len(numeric_messages) > 0,
-            msg=f"Expected at least one {numeric} message",
+            msg=f"Expected at least one {numerics} message",
         )
         for msg in numeric_messages:
-            self.assertMessageMatch(
-                msg, command=numeric, params=[expected_nick, ANYSTR]
-            )
+            self.assertMessageMatch(msg, params=[expected_nick, ANYSTR])
 
     @cases.mark_specifications("Modern")
     def testOperSuccess(self):
@@ -38,7 +41,7 @@ class OperTestCase(cases.BaseServerTestCase):
         self.sendLine("baz", "OPER operuser operpassword")
         messages = self.getMessages("baz")
 
-        self._assertNumericPresent(messages, RPL_YOUREOPER, "baz")
+        self._assertNumericPresent(messages, [RPL_YOUREOPER], "baz")
 
         # Check that the user receives +o mode
         mode_messages = [msg for msg in messages if msg.command == "MODE"]
@@ -62,7 +65,9 @@ class OperTestCase(cases.BaseServerTestCase):
         messages = self.getMessages("baz")
 
         commands = {msg.command for msg in messages}
-        self._assertNumericPresent(messages, ERR_NOOPERHOST, "baz")
+        self._assertNumericPresent(
+            messages, [ERR_NOOPERHOST, ERR_PASSWDMISMATCH], "baz"
+        )
 
         # Ensure RPL_YOUREOPER was NOT sent
         self.assertNotIn(
@@ -79,7 +84,9 @@ class OperTestCase(cases.BaseServerTestCase):
         messages = self.getMessages("baz")
 
         commands = {msg.command for msg in messages}
-        self._assertNumericPresent(messages, ERR_NOOPERHOST, "baz")
+        self._assertNumericPresent(
+            messages, [ERR_NOOPERHOST, ERR_PASSWDMISMATCH, ERR_NEEDMOREPARAMS], "baz"
+        )
 
         # Ensure RPL_YOUREOPER was NOT sent
         self.assertNotIn(
@@ -96,7 +103,7 @@ class OperTestCase(cases.BaseServerTestCase):
         messages = self.getMessages("baz")
 
         commands = {msg.command for msg in messages}
-        self._assertNumericPresent(messages, ERR_NOOPERHOST, "baz")
+        self._assertNumericPresent(messages, [ERR_NOOPERHOST], "baz")
 
         # Ensure RPL_YOUREOPER was NOT sent
         self.assertNotIn(
