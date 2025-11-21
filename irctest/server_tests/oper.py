@@ -9,9 +9,9 @@ and <https://modern.ircdocs.horse/#oper-message>
 
 from irctest import cases
 from irctest.numerics import (
+    ERR_NEEDMOREPARAMS,
     ERR_NOOPERHOST,
     ERR_PASSWDMISMATCH,
-    ERR_NEEDMOREPARAMS,
     RPL_YOUREOPER,
 )
 from irctest.patma import ANYSTR
