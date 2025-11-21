@@ -32,7 +32,12 @@ class OperTestCase(cases.BaseServerTestCase):
             msg=f"Expected at least one {numerics} message",
         )
         for msg in numeric_messages:
-            self.assertMessageMatch(msg, params=[expected_nick, ANYSTR])
+            if msg.command == ERR_NEEDMOREPARAMS:
+                # some ircds echo the command back as the second parameter
+                self.assertEqual(msg.params[0], expected_nick)
+            else:
+                # normal numeric format: nick and freeform trailing
+                self.assertMessageMatch(msg, params=[expected_nick, ANYSTR])
 
     @cases.mark_specifications("Modern")
     def testOperSuccess(self):
