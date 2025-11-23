@@ -69,12 +69,12 @@ class OperTestCase(cases.BaseServerTestCase):
         self.sendLine("baz", "OPER operuser nottheoperpassword")
         messages = self.getMessages("baz")
 
-        commands = {msg.command for msg in messages}
         self._assertNumericPresent(
             messages, [ERR_NOOPERHOST, ERR_PASSWDMISMATCH], "baz"
         )
 
         # Ensure RPL_YOUREOPER was NOT sent
+        commands = {msg.command for msg in messages}
         self.assertNotIn(
             RPL_YOUREOPER,
             commands,
@@ -88,12 +88,12 @@ class OperTestCase(cases.BaseServerTestCase):
         self.sendLine("baz", "OPER operuser")
         messages = self.getMessages("baz")
 
-        commands = {msg.command for msg in messages}
         self._assertNumericPresent(
             messages, [ERR_NOOPERHOST, ERR_PASSWDMISMATCH, ERR_NEEDMOREPARAMS], "baz"
         )
 
         # Ensure RPL_YOUREOPER was NOT sent
+        commands = {msg.command for msg in messages}
         self.assertNotIn(
             RPL_YOUREOPER,
             commands,
@@ -107,12 +107,12 @@ class OperTestCase(cases.BaseServerTestCase):
         self.sendLine("baz", "OPER notanoperuser somepassword")
         messages = self.getMessages("baz")
 
-        commands = {msg.command for msg in messages}
         self._assertNumericPresent(
             messages, [ERR_NOOPERHOST, ERR_PASSWDMISMATCH], "baz"
         )
 
         # Ensure RPL_YOUREOPER was NOT sent
+        commands = {msg.command for msg in messages}
         self.assertNotIn(
             RPL_YOUREOPER,
             commands,
