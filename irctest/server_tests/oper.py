@@ -108,7 +108,9 @@ class OperTestCase(cases.BaseServerTestCase):
         messages = self.getMessages("baz")
 
         commands = {msg.command for msg in messages}
-        self._assertNumericPresent(messages, [ERR_NOOPERHOST], "baz")
+        self._assertNumericPresent(
+            messages, [ERR_NOOPERHOST, ERR_PASSWDMISMATCH], "baz"
+        )
 
         # Ensure RPL_YOUREOPER was NOT sent
         self.assertNotIn(
