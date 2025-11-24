@@ -18,18 +18,18 @@ from irctest.patma import ANYSTR
 
 
 class OperTestCase(cases.BaseServerTestCase):
-    def _assertNumericPresent(self, messages, numerics, expected_nick):
+    def _assertNumericsPresent(self, messages, numerics_any, expected_nick):
         """Helper to check that a numeric has correct two-parameter syntax.
 
         Args:
             messages: List of messages to search
-            numeric: The numeric command to check
+            numerics_any: At least one of these numerics must be present
             expected_nick: Expected nickname in first parameter
         """
-        numeric_messages = [msg for msg in messages if msg.command in numerics]
+        numeric_messages = [msg for msg in messages if msg.command in numerics_any]
         self.assertTrue(
             len(numeric_messages) > 0,
-            msg=f"Expected at least one {numerics} message",
+            msg=f"Expected at least one {numerics_any} message",
         )
         for msg in numeric_messages:
             if msg.command == ERR_NEEDMOREPARAMS:
@@ -53,7 +53,7 @@ class OperTestCase(cases.BaseServerTestCase):
         self.sendLine("baz", "OPER operuser operpassword")
         messages = self.getMessages("baz")
 
-        self._assertNumericPresent(messages, [RPL_YOUREOPER], "baz")
+        self._assertNumericsPresent(messages, [RPL_YOUREOPER], "baz")
 
         # Check that the user receives +o mode
         mode_messages = [msg for msg in messages if msg.command == "MODE"]
@@ -79,7 +79,7 @@ class OperTestCase(cases.BaseServerTestCase):
         self.sendLine("baz", "OPER operuser nottheoperpassword")
         messages = self.getMessages("baz")
 
-        self._assertNumericPresent(
+        self._assertNumericsPresent(
             messages, [ERR_NOOPERHOST, ERR_PASSWDMISMATCH], "baz"
         )
 
@@ -93,7 +93,7 @@ class OperTestCase(cases.BaseServerTestCase):
         self.sendLine("baz", "OPER operuser")
         messages = self.getMessages("baz")
 
-        self._assertNumericPresent(
+        self._assertNumericsPresent(
             messages, [ERR_NOOPERHOST, ERR_PASSWDMISMATCH, ERR_NEEDMOREPARAMS], "baz"
         )
 
@@ -107,7 +107,7 @@ class OperTestCase(cases.BaseServerTestCase):
         self.sendLine("baz", "OPER notanoperuser somepassword")
         messages = self.getMessages("baz")
 
-        self._assertNumericPresent(
+        self._assertNumericsPresent(
             messages, [ERR_NOOPERHOST, ERR_PASSWDMISMATCH], "baz"
         )
 
