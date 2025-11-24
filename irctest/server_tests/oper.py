@@ -39,6 +39,13 @@ class OperTestCase(cases.BaseServerTestCase):
                 # normal numeric format: nick and freeform trailing
                 self.assertMessageMatch(msg, params=[expected_nick, ANYSTR])
 
+    def _assertNumericsNotPresent(self, messages, numerics):
+        commands = {msg.command for msg in messages}
+        bad_commands = commands.intersection(numerics)
+        self.assertTrue(
+            len(bad_commands) == 0, msg=f"Found unexpected numerics {bad_commands}"
+        )
+
     @cases.mark_specifications("Modern")
     def testOperSuccess(self):
         """Test successful OPER authentication."""
@@ -62,6 +69,9 @@ class OperTestCase(cases.BaseServerTestCase):
         self.assertTrue(mode_message.params[1].startswith("+"))
         self.assertIn("o", mode_message.params[1])
 
+        # error numerics must not be sent:
+        self._assertNumericsNotPresent(messages, [ERR_NOOPERHOST, ERR_PASSWDMISMATCH])
+
     @cases.mark_specifications("Modern")
     def testOperFailure(self):
         """Test failed OPER authentication with incorrect password."""
@@ -74,12 +84,7 @@ class OperTestCase(cases.BaseServerTestCase):
         )
 
         # Ensure RPL_YOUREOPER was NOT sent
-        commands = {msg.command for msg in messages}
-        self.assertNotIn(
-            RPL_YOUREOPER,
-            commands,
-            msg="RPL_YOUREOPER (381) should not be sent for failed OPER attempt",
-        )
+        self._assertNumericsNotPresent(messages, [RPL_YOUREOPER])
 
     @cases.mark_specifications("Modern")
     def testOperNoPassword(self):
@@ -93,12 +98,7 @@ class OperTestCase(cases.BaseServerTestCase):
         )
 
         # Ensure RPL_YOUREOPER was NOT sent
-        commands = {msg.command for msg in messages}
-        self.assertNotIn(
-            RPL_YOUREOPER,
-            commands,
-            msg="RPL_YOUREOPER (381) should not be sent for OPER with no password",
-        )
+        self._assertNumericsNotPresent(messages, [RPL_YOUREOPER])
 
     @cases.mark_specifications("Modern")
     def testOperNonexistentUser(self):
@@ -112,9 +112,4 @@ class OperTestCase(cases.BaseServerTestCase):
         )
 
         # Ensure RPL_YOUREOPER was NOT sent
-        commands = {msg.command for msg in messages}
-        self.assertNotIn(
-            RPL_YOUREOPER,
-            commands,
-            msg="RPL_YOUREOPER (381) should not be sent for OPER with nonexistent username",
-        )
+        self._assertNumericsNotPresent(messages, [RPL_YOUREOPER])
