@@ -54,12 +54,20 @@ class Message:
         )
 
 
+_forbidden_codepoints = frozenset(("\x00", "\r", "\n"))
+
+
 def parse_message(s: str) -> Message:
     """Parse a message according to
     http://tools.ietf.org/html/rfc1459#section-2.3.1
     and
-    http://ircv3.net/specs/core/message-tags-3.2.html"""
-    s = s.rstrip("\r\n")
+    http://ircv3.net/specs/core/message-tags-3.2.html
+
+    We assume that the terminating \r\n was stripped already.
+    """
+    for codepoint in s:
+        if codepoint in _forbidden_codepoints:
+            raise ValueError("Message contains forbidden codepoint: " + repr(codepoint))
     if s.startswith("@"):
         (tags_str, s) = s.split(" ", 1)
         tags = parse_tags(tags_str[1:])
