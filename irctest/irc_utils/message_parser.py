@@ -67,7 +67,7 @@ def parse_message(s: str) -> Message:
     """
     if match := _forbidden_codepoints_re.search(s):
         raise ValueError(
-            f"Message {repr(s)} contains forbidden codepoint {repr(match.group())}"
+            f"Message {s!r} contains forbidden codepoint {match.group()!r}"
         )
     if s.startswith("@"):
         (tags_str, s) = s.split(" ", 1)
