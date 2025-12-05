@@ -444,7 +444,8 @@ class BaseClientTestCase(_IrcTestCase[basecontrollers.BaseClientController]):
             line = self.getLine(*args)
             if not line:
                 raise ConnectionClosed()
-            msg = message_parser.parse_message(line)
+            # strip final "\r\n", then parse
+            msg = message_parser.parse_message(line[:-2])
             if not filter_pred or filter_pred(msg):
                 return msg
 

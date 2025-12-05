@@ -107,6 +107,7 @@ class BufferingTestCase(cases.BaseServerTestCase):
                     )
                 payload_intact = False
             else:
+                # strip final "\r\n", then parse
                 msg = message_parser.parse_message(decoded_line[:-2])
                 self.assertMessageMatch(
                     msg, command="PRIVMSG", params=["nick2", ANYSTR]
