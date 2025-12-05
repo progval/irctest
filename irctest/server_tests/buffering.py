@@ -107,7 +107,7 @@ class BufferingTestCase(cases.BaseServerTestCase):
                     )
                 payload_intact = False
             else:
-                msg = message_parser.parse_message(decoded_line)
+                msg = message_parser.parse_message(decoded_line[:-2])
                 self.assertMessageMatch(
                     msg, command="PRIVMSG", params=["nick2", ANYSTR]
                 )
@@ -152,8 +152,8 @@ class BufferingTestCase(cases.BaseServerTestCase):
             except socket.timeout:
                 data = b""
             line += data
-            if data.endswith(b"\r\n"):
+            if line.endswith(b"\r\n"):
                 return line
             time.sleep(0.1)
             print(f"{client}: Waiting...")
-        return line
+        raise ValueError(f"Received unterminated line: {repr(line)}")
