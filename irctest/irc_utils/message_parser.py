@@ -54,7 +54,7 @@ class Message:
         )
 
 
-_forbidden_codepoints = frozenset(("\x00", "\r", "\n"))
+_forbidden_codepoints_re = re.compile(r"[\x00\r\n]")
 
 
 def parse_message(s: str) -> Message:
@@ -65,11 +65,10 @@ def parse_message(s: str) -> Message:
 
     We assume that the terminating \r\n was stripped already.
     """
-    for codepoint in s:
-        if codepoint in _forbidden_codepoints:
-            raise ValueError(
-                f"Message {repr(s)} contains forbidden codepoint {repr(codepoint)}"
-            )
+    if match := _forbidden_codepoints_re.search(s):
+        raise ValueError(
+            f"Message {repr(s)} contains forbidden codepoint {repr(match.group())}"
+        )
     if s.startswith("@"):
         (tags_str, s) = s.split(" ", 1)
         tags = parse_tags(tags_str[1:])
