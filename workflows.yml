@@ -324,30 +324,6 @@ software:
             # Prevent download of geoIP database on first startup
             sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
 
-    unrealircd-5:
-        name: UnrealIRCd 5
-        repository: unrealircd/unrealircd
-        refs:
-            stable: 6604856973f713a494f83d38992d7d61ce6b9db4  # 5.2.4
-            release: null
-            devel: unreal52
-            devel_release:
-        path: unrealircd
-        prefix: ~/.local/unrealircd
-        separate_build_job: true
-        build_script: |
-            cd $GITHUB_WORKSPACE/unrealircd/
-            cp $GITHUB_WORKSPACE/data/unreal/* .
-            # Need to use a specific -march, because GitHub has inconsistent
-            # architectures across workers, which result in random SIGILL with some
-            # worker combinations
-            sudo apt install libsodium-dev libargon2-dev
-            CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
-            make -j 4
-            make install
-            # Prevent download of geoIP database on first startup
-            sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
-
 
     #############################
     # Services:
@@ -551,9 +527,6 @@ tests:
     # doesn't build because it can't find liblex for some reason
     #snircd:
     #    software: [snircd]
-
-    unrealircd-5:
-        software: [unrealircd-5]
 
     unrealircd:
         software: [unrealircd]
