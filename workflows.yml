@@ -303,8 +303,8 @@ software:
         name: UnrealIRCd 6
         repository: unrealircd/unrealircd
         refs:
-            stable: a68625454078641ce984eeb197f7e02b1857ab6c # 6.1.7.1
-            release: a68625454078641ce984eeb197f7e02b1857ab6c # 6.1.7.1
+            stable: 806fa83dd7a7130f5763298dd269b4eeab458d38 # 6.2.2
+            release: 806fa83dd7a7130f5763298dd269b4eeab458d38 # 6.2.2
             devel: unreal60_dev
             devel_release: null
         path: unrealircd
@@ -314,30 +314,6 @@ software:
             cd $GITHUB_WORKSPACE/unrealircd/
             cp $GITHUB_WORKSPACE/data/unreal/* .
             wget https://raw.githubusercontent.com/progval/unrealircd-contrib/50e839c2e2f1d8b9924126f34bc2f50965c0a557/files/metadata2.c -O src/modules/third/metadata2.c
-            # Need to use a specific -march, because GitHub has inconsistent
-            # architectures across workers, which result in random SIGILL with some
-            # worker combinations
-            sudo apt install libsodium-dev libargon2-dev
-            CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
-            make -j 4
-            make install
-            # Prevent download of geoIP database on first startup
-            sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
-
-    unrealircd-5:
-        name: UnrealIRCd 5
-        repository: unrealircd/unrealircd
-        refs:
-            stable: 6604856973f713a494f83d38992d7d61ce6b9db4  # 5.2.4
-            release: null
-            devel: unreal52
-            devel_release:
-        path: unrealircd
-        prefix: ~/.local/unrealircd
-        separate_build_job: true
-        build_script: |
-            cd $GITHUB_WORKSPACE/unrealircd/
-            cp $GITHUB_WORKSPACE/data/unreal/* .
             # Need to use a specific -march, because GitHub has inconsistent
             # architectures across workers, which result in random SIGILL with some
             # worker combinations
@@ -551,9 +527,6 @@ tests:
     # doesn't build because it can't find liblex for some reason
     #snircd:
     #    software: [snircd]
-
-    unrealircd-5:
-        software: [unrealircd-5]
 
     unrealircd:
         software: [unrealircd]

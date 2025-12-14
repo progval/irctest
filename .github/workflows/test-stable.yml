@@ -507,7 +507,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: unrealircd
-        ref: a68625454078641ce984eeb197f7e02b1857ab6c
+        ref: 806fa83dd7a7130f5763298dd269b4eeab458d38
         repository: unrealircd/unrealircd
         submodules: ''
     - name: Build UnrealIRCd 6
@@ -530,55 +530,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: installed-unrealircd
-        path: ~/artefacts-*.tar.gz
-        retention-days: 1
-  build-unrealircd-5:
-    runs-on: ubuntu-24.04
-    steps:
-    - name: Create directories
-      run: cd ~/; mkdir -p .local/ go/
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      with:
-        key: 3-${{ runner.os }}-unrealircd-5-stable
-        path: '~/.cache
-
-          ${ github.workspace }/unrealircd
-
-          '
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.11
-    - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
-    - name: Checkout UnrealIRCd 5
-      uses: actions/checkout@v4
-      with:
-        path: unrealircd
-        ref: 6604856973f713a494f83d38992d7d61ce6b9db4
-        repository: unrealircd/unrealircd
-        submodules: ''
-    - name: Build UnrealIRCd 5
-      run: |
-        cd $GITHUB_WORKSPACE/unrealircd/
-        cp $GITHUB_WORKSPACE/data/unreal/* .
-        # Need to use a specific -march, because GitHub has inconsistent
-        # architectures across workers, which result in random SIGILL with some
-        # worker combinations
-        sudo apt install libsodium-dev libargon2-dev
-        CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
-        make -j 4
-        make install
-        # Prevent download of geoIP database on first startup
-        sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
-    - name: Make artefact tarball
-      run: cd ~; tar -czf artefacts-unrealircd-5.tar.gz .local/ go/
-    - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: installed-unrealircd-5
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   publish-test-results:
@@ -607,7 +558,6 @@ jobs:
     - test-sopel
     - test-thelounge
     - test-unrealircd
-    - test-unrealircd-5
     - test-unrealircd-anope
     - test-unrealircd-atheme
     runs-on: ubuntu-24.04
@@ -1511,41 +1461,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: pytest-results_unrealircd_stable
-        path: pytest.xml
-  test-unrealircd-5:
-    needs:
-    - build-unrealircd-5
-    runs-on: ubuntu-24.04
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.11
-    - name: Download build artefacts
-      uses: actions/download-artifact@v4
-      with:
-        name: installed-unrealircd-5
-        path: '~'
-    - name: Unpack artefacts
-      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install system dependencies
-      run: sudo apt-get install faketime
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt pytest-xdist pytest-timeout
-    - env:
-        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
-      name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
-        make unrealircd-5
-      timeout-minutes: 30
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v4
-      with:
-        name: pytest-results_unrealircd-5_stable
         path: pytest.xml
   test-unrealircd-anope:
     needs:
