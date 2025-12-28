@@ -71,6 +71,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.connectClient(
             "alice",
             capabilities=["message-tags", "batch", "echo-message", "server-time"],
+            skip_if_cap_nak=True,
         )
         self.connectClient("bob")
         self.getMessages(1)
