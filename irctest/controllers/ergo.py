@@ -123,8 +123,9 @@ BASE_CONFIG = {
         "max-subs": 100,
         "max-keys": 1000,
     },
-    "logging": [{"method": "stderr", "level": "debug", "type": "*"}],
 }
+
+LOGGING_CONFIG = {"logging": [{"method": "stderr", "level": "debug", "type": "*"}]}
 
 
 def hash_password(password: Union[str, bytes]) -> str:
@@ -263,6 +264,12 @@ class ErgoController(BaseServerController, DirectoryBasedController):
     def getConfig(self) -> Dict:
         return copy.deepcopy(self._config)
 
+    def addLoggingToConfig(self, config: Optional[Dict] = None) -> Dict:
+        if config is None:
+            config = self.baseConfig()
+        config.update(LOGGING_CONFIG)
+        return config
+
     def addMysqlToConfig(self, config: Optional[Dict] = None) -> Dict:
         mysql_password = os.getenv("MYSQL_PASSWORD")
         if config is None:
@@ -300,6 +307,11 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         case.getMessages(client)
         case.sendLine(client, "QUIT")
         case.assertDisconnected(client)
+
+    def enable_debug_logging(self, case: BaseServerTestCase) -> None:
+        config = self.getConfig()
+        config.update(LOGGING_CONFIG)
+        self.rehash(case, config)
 
 
 def get_irctest_controller_class() -> Type[ErgoController]:
