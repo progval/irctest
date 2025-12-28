@@ -79,6 +79,7 @@ class RegressionsTestCase(cases.BaseServerTestCase):
 
         # bob messages alice so we can get a valid msgid for alice to reply to
         self.sendLine(2, "PRIVMSG alice :hey")
+        self.getMessages(2)
         msgs = self.getMessages(1)
         bob_msgid = msgs[0].tags["msgid"]
         self.assertNotEqual(bob_msgid, "")
