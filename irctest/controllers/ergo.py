@@ -167,6 +167,9 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         if config is None:
             config = copy.deepcopy(BASE_CONFIG)
 
+        if self.debug_mode:
+            config = self.addLoggingToConfig(config)
+
         assert self.directory
 
         enable_chathistory = self.test_config.chathistory
@@ -307,11 +310,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         case.getMessages(client)
         case.sendLine(client, "QUIT")
         case.assertDisconnected(client)
-
-    def enable_debug_logging(self, case: BaseServerTestCase) -> None:
-        config = self.getConfig()
-        config.update(LOGGING_CONFIG)
-        self.rehash(case, config)
 
 
 def get_irctest_controller_class() -> Type[ErgoController]:
