@@ -267,6 +267,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertGetValue(2, "foo", "display-name", "Foo The First")
 
     @cases.mark_specifications("IRCv3")
+    @cases.xfailIfSoftware(
+        ["UnrealIRCd"],
+        "Not implemented yet in Unreal metadata module",
+    )
     def testWhoisKeyValue(self):
         self.connectClient(
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
