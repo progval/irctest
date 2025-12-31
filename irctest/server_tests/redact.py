@@ -18,16 +18,11 @@ class RedactTestCase(cases.BaseServerTestCase):
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(chathistory=True)
 
-    @cases.mark_capabilities(
-        "message-tags", "echo-message", "batch", "labeled-response", REDACT_CAP
-    )
-    def testRedactPrivmsg(self):
-        """Test basic redaction of a PRIVMSG.
+    def _setupTwoClientsAndChannel(self):
+        """Connect two clients (alice and bob) with redaction capability and join a channel.
 
-        Tests that:
-        - Users can redact their own messages
-        - Channel operators can redact other users' messages
-        - Non-operators cannot redact other users' messages
+        Returns:
+            tuple: (alice_nick, bob_nick, channel_name)
         """
         alice = random_name("alice")
         bob = random_name("bob")
@@ -66,6 +61,15 @@ class RedactTestCase(cases.BaseServerTestCase):
         self.getMessages(alice)
         self.getMessages(bob)
 
+        return alice, bob, channel
+
+    @cases.mark_capabilities(
+        "message-tags", "echo-message", "batch", "labeled-response", REDACT_CAP
+    )
+    def testOpRedactSelfPrivmsg(self):
+        """Tests that a channel operator can redact a message they sent themselves."""
+        alice, bob, channel = self._setupTwoClientsAndChannel()
+
         # Alice sends a message and redacts her own message
         self.sendLine(alice, f"PRIVMSG {channel} :Hello everyone")
         alice_echo = self.getMessage(alice)
@@ -101,6 +105,13 @@ class RedactTestCase(cases.BaseServerTestCase):
             prefix=StrRe(f"{alice}!.*"),
         )
 
+    @cases.mark_capabilities(
+        "message-tags", "echo-message", "batch", "labeled-response", REDACT_CAP
+    )
+    def testOpRedactOthersPrivmsg(self):
+        """Tests that a channel operator can redact another user's message."""
+        alice, bob, channel = self._setupTwoClientsAndChannel()
+
         # Bob sends a message
         self.sendLine(bob, f"PRIVMSG {channel} :Hi Alice")
         bob_echo = self.getMessage(bob)
@@ -118,46 +129,53 @@ class RedactTestCase(cases.BaseServerTestCase):
 
         # Alice can redact Bob's message because she is channel operator
         self.sendLine(alice, f"REDACT {channel} {bob_msgid} :spam")
-        alice_redact2 = self.getMessage(alice)
-        bob_redact2 = self.getMessage(bob)
+        alice_redact = self.getMessage(alice)
+        bob_redact = self.getMessage(bob)
 
         self.assertMessageMatch(
-            alice_redact2,
+            alice_redact,
             command="REDACT",
             params=[channel, bob_msgid, "spam"],
             prefix=StrRe(f"{alice}!.*"),
         )
         self.assertMessageMatch(
-            bob_redact2,
+            bob_redact,
             command="REDACT",
             params=[channel, bob_msgid, "spam"],
             prefix=StrRe(f"{alice}!.*"),
         )
 
-        # Alice sends another message
+    @cases.mark_capabilities(
+        "message-tags", "echo-message", "batch", "labeled-response", REDACT_CAP
+    )
+    def testCantRedactOthersPrivmsg(self):
+        """Tests that a non-operator cannot redact another user's message."""
+        alice, bob, channel = self._setupTwoClientsAndChannel()
+
+        # Alice sends a message
         self.sendLine(alice, f"PRIVMSG {channel} :Another message")
-        alice_echo2 = self.getMessage(alice)
-        bob_delivery2 = self.getMessage(bob)
+        alice_echo = self.getMessage(alice)
+        bob_delivery = self.getMessage(bob)
 
         self.assertMessageMatch(
-            alice_echo2, command="PRIVMSG", params=[channel, "Another message"]
+            alice_echo, command="PRIVMSG", params=[channel, "Another message"]
         )
         self.assertMessageMatch(
-            bob_delivery2, command="PRIVMSG", params=[channel, "Another message"]
+            bob_delivery, command="PRIVMSG", params=[channel, "Another message"]
         )
 
-        alice_msgid2 = alice_echo2.tags.get("msgid")
-        assert alice_msgid2, "Server did not send a msgid tag"
+        alice_msgid = alice_echo.tags.get("msgid")
+        assert alice_msgid, "Server did not send a msgid tag"
 
         # Bob cannot redact Alice's message because he is not a channel operator
-        self.sendLine(bob, f"REDACT {channel} {alice_msgid2}")
+        self.sendLine(bob, f"REDACT {channel} {alice_msgid}")
         bob_fail = self.getMessage(bob)
 
         # Should receive REDACT_FORBIDDEN error
         self.assertMessageMatch(
             bob_fail,
             command="FAIL",
-            params=["REDACT", "REDACT_FORBIDDEN", channel, alice_msgid2, ANYSTR],
+            params=["REDACT", "REDACT_FORBIDDEN", channel, alice_msgid, ANYSTR],
         )
 
         # Alice should not receive a REDACT (the redaction was rejected)
@@ -210,40 +228,7 @@ class RedactTestCase(cases.BaseServerTestCase):
     )
     def testRedactTagmsg(self):
         """Test redaction of a TAGMSG."""
-        alice = random_name("alice")
-        bob = random_name("bob")
-        channel = random_name("#channel")
-
-        # Connect clients with redaction capability
-        self.connectClient(
-            alice,
-            name=alice,
-            capabilities=[
-                "message-tags",
-                "echo-message",
-                "batch",
-                "labeled-response",
-                REDACT_CAP,
-            ],
-            skip_if_cap_nak=True,
-        )
-        self.joinChannel(alice, channel)
-        self.getMessages(alice)
-
-        self.connectClient(
-            bob,
-            name=bob,
-            capabilities=[
-                "message-tags",
-                "echo-message",
-                "batch",
-                "labeled-response",
-                REDACT_CAP,
-            ],
-        )
-        self.joinChannel(bob, channel)
-        self.getMessages(alice)
-        self.getMessages(bob)
+        alice, bob, channel = self._setupTwoClientsAndChannel()
 
         # Send a TAGMSG (e.g., a reaction)
         self.sendLine(alice, f"@+draft/react=👍 TAGMSG {channel}")
@@ -270,7 +255,7 @@ class RedactTestCase(cases.BaseServerTestCase):
             )
             # No REDACT was sent, so bob shouldn't receive anything
             bob_msgs = self.getMessages(bob)
-            self.assertEqual(len(bob_msgs), 0)
+            self.assertEqual(bob_msgs, [])
         else:
             # Server supports redacting TAGMSGs
             # No reason provided, so should be exactly 2 params
@@ -383,14 +368,11 @@ class RedactTestCase(cases.BaseServerTestCase):
         self.sendLine(alice, f"REDACT {channel} {fake_msgid}")
         response = self.getMessage(alice)
 
-        # Should receive a FAIL message
-        # FAIL REDACT UNKNOWN_MSGID <target> <target-msgid> :message
-        if response.command == "FAIL":
-            self.assertMessageMatch(
-                response,
-                command="FAIL",
-                params=["REDACT", "UNKNOWN_MSGID", channel, fake_msgid, ANYSTR],
-            )
+        self.assertMessageMatch(
+            response,
+            command="FAIL",
+            params=["REDACT", "UNKNOWN_MSGID", channel, fake_msgid, ANYSTR],
+        )
 
     @cases.mark_capabilities(
         "message-tags", "echo-message", "batch", "labeled-response", REDACT_CAP
@@ -419,24 +401,173 @@ class RedactTestCase(cases.BaseServerTestCase):
         self.sendLine(alice, f"REDACT {fake_channel} {fake_msgid}")
         response = self.getMessage(alice)
 
-        # Should receive a FAIL message
-        # FAIL REDACT INVALID_TARGET <target> :message
-        if response.command == "FAIL":
-            self.assertMessageMatch(
-                response,
-                command="FAIL",
-                params=["REDACT", "INVALID_TARGET", fake_channel, ANYSTR],
-            )
+        self.assertMessageMatch(
+            response,
+            command="FAIL",
+            params=["REDACT", "INVALID_TARGET", fake_channel, ANYSTR],
+        )
 
-    @pytest.mark.services
+    @cases.mark_capabilities(
+        "message-tags",
+        "server-time",
+        "echo-message",
+        "batch",
+        "labeled-response",
+        REDACT_CAP,
+    )
+    def testRedactedMessageDisappearsFromChathistory(self):
+        """Test that redacted messages are excluded from CHATHISTORY responses.
+
+        Per the spec, after a message is redacted, CHATHISTORY responses SHOULD either:
+        - Exclude it entirely, OR
+        - Include a REDACT message after the redacted message
+        """
+        alice = random_name("alice")
+        bob = random_name("bob")
+        channel = random_name("#channel")
+
+        # Connect alice
+        self.connectClient(
+            alice,
+            name=alice,
+            capabilities=[
+                "message-tags",
+                "server-time",
+                "echo-message",
+                "batch",
+                "labeled-response",
+                "draft/chathistory",
+                REDACT_CAP,
+            ],
+            skip_if_cap_nak=True,
+        )
+        self.joinChannel(alice, channel)
+        self.getMessages(alice)
+
+        # Connect bob
+        self.connectClient(
+            bob,
+            name=bob,
+            capabilities=[
+                "message-tags",
+                "server-time",
+                "echo-message",
+                "batch",
+                "labeled-response",
+                "draft/chathistory",
+                REDACT_CAP,
+            ],
+        )
+        self.joinChannel(bob, channel)
+        # request event-playback cap so that Ergo doesn't send HistServ messages,
+        # but don't skip the test if it's not available
+        self.sendLine(alice, "CAP REQ draft/event-playback")
+        self.sendLine(bob, "CAP REQ draft/event-playback")
+        self.getMessages(alice)
+        self.getMessages(bob)
+
+        # Alice sends a message
+        self.sendLine(alice, f"PRIVMSG {channel} :This message will be redacted")
+        echo = self.getMessage(alice)
+        delivery = self.getMessage(bob)
+
+        self.assertMessageMatch(
+            echo, command="PRIVMSG", params=[channel, "This message will be redacted"]
+        )
+        self.assertMessageMatch(
+            delivery,
+            command="PRIVMSG",
+            params=[channel, "This message will be redacted"],
+        )
+
+        msgid = echo.tags.get("msgid")
+        assert msgid, "Server did not send a msgid tag"
+
+        # Bob retrieves chat history and should see the message
+        self.sendLine(bob, f"CHATHISTORY LATEST {channel} * 10")
+        batch_id, batch_params, messages = self.getBatchMessages(bob, "chathistory")
+
+        # CHATHISTORY should return exactly one PRIVMSG
+        (privmsg_before,) = [msg for msg in messages if msg.command == "PRIVMSG"]
+
+        # Verify the exact message is present with correct msgid and text
+        self.assertMessageMatch(
+            privmsg_before,
+            command="PRIVMSG",
+            params=[channel, "This message will be redacted"],
+        )
+        self.assertEqual(privmsg_before.tags.get("msgid"), msgid)
+
+        # Alice redacts the message
+        self.sendLine(alice, f"REDACT {channel} {msgid}")
+        self.getMessage(alice)  # Alice's REDACT echo
+        self.getMessage(bob)  # Bob's REDACT delivery
+
+        # Bob retrieves chat history again
+        self.sendLine(bob, f"CHATHISTORY LATEST {channel} * 10")
+        batch_id_after, batch_params_after, messages_after = self.getBatchMessages(
+            bob, "chathistory"
+        )
+
+        # Extract PRIVMSG and REDACT messages from the batch
+        privmsgs_after = [
+            msg
+            for msg in messages_after
+            if msg.command == "PRIVMSG" and channel in msg.params
+        ]
+        redacts_after = [
+            msg
+            for msg in messages_after
+            if msg.command == "REDACT" and channel in msg.params
+        ]
+
+        # Per spec: the message should either be excluded entirely,
+        # or a REDACT should be included after it
+        found_original_after_redaction = False
+
+        for msg in privmsgs_after:
+            if (
+                msg.tags.get("msgid") == msgid
+                or "This message will be redacted" in msg.params[-1]
+            ):
+                found_original_after_redaction = True
+                break
+
+        # If the original message is still present, there should be a REDACT for it
+        if found_original_after_redaction:
+            # Find a REDACT that matches our message
+            # REDACT format: REDACT <target> <msgid> [<reason>]
+            matching_redact = None
+            for redact_msg in redacts_after:
+                if (
+                    len(redact_msg.params) >= 2
+                    and redact_msg.params[0] == channel
+                    and redact_msg.params[1] == msgid
+                ):
+                    matching_redact = redact_msg
+                    break
+
+            self.assertIsNotNone(
+                matching_redact,
+                f"If redacted message is in CHATHISTORY, a REDACT with target={channel} and msgid={msgid} should also be present",
+            )
+        # Otherwise, the message was excluded entirely (preferred behavior)
+        else:
+            # Message was excluded - this is acceptable
+            pass
+
+
+@cases.mark_services
+class RedactWithServicesTestCase(cases.BaseServerTestCase):
+    @staticmethod
+    def config() -> cases.TestCaseControllerConfig:
+        return cases.TestCaseControllerConfig(chathistory=True)
+
     @cases.mark_capabilities(
         "message-tags", "echo-message", "batch", "labeled-response", REDACT_CAP
     )
     def testRedactDirectMessage(self):
         """Test redacting a direct message between two users."""
-        # Enable services for account registration
-        self.run_services = True
-
         alice = random_name("alice")
         bob = random_name("bob")
 
@@ -512,161 +643,3 @@ class RedactTestCase(cases.BaseServerTestCase):
             params=[bob, msgid],
             prefix=StrRe(f"{alice}!.*"),
         )
-
-    @cases.mark_capabilities(
-        "message-tags",
-        "server-time",
-        "echo-message",
-        "batch",
-        "labeled-response",
-        REDACT_CAP,
-    )
-    def testRedactedMessageDisappearsFromChathistory(self):
-        """Test that redacted messages are excluded from CHATHISTORY responses.
-
-        Per the spec, after a message is redacted, CHATHISTORY responses SHOULD either:
-        - Exclude it entirely, OR
-        - Include a REDACT message after the redacted message
-        """
-        alice = random_name("alice")
-        bob = random_name("bob")
-        channel = random_name("#channel")
-
-        # Connect alice
-        self.connectClient(
-            alice,
-            name=alice,
-            capabilities=[
-                "message-tags",
-                "server-time",
-                "echo-message",
-                "batch",
-                "labeled-response",
-                "draft/chathistory",
-                REDACT_CAP,
-            ],
-            skip_if_cap_nak=True,
-        )
-        self.joinChannel(alice, channel)
-        self.getMessages(alice)
-
-        # Connect bob
-        self.connectClient(
-            bob,
-            name=bob,
-            capabilities=[
-                "message-tags",
-                "server-time",
-                "echo-message",
-                "batch",
-                "labeled-response",
-                "draft/chathistory",
-                REDACT_CAP,
-            ],
-        )
-        self.joinChannel(bob, channel)
-        self.getMessages(alice)
-        self.getMessages(bob)
-
-        # Alice sends a message
-        self.sendLine(alice, f"PRIVMSG {channel} :This message will be redacted")
-        echo = self.getMessage(alice)
-        delivery = self.getMessage(bob)
-
-        self.assertMessageMatch(
-            echo, command="PRIVMSG", params=[channel, "This message will be redacted"]
-        )
-        self.assertMessageMatch(
-            delivery,
-            command="PRIVMSG",
-            params=[channel, "This message will be redacted"],
-        )
-
-        msgid = echo.tags.get("msgid")
-        assert msgid, "Server did not send a msgid tag"
-
-        # Bob retrieves chat history and should see the message
-        self.sendLine(bob, f"CHATHISTORY LATEST {channel} * 10")
-        messages = self.getMessages(bob)
-
-        # Extract PRIVMSG messages from the batch
-        privmsgs_before = [
-            msg
-            for msg in messages
-            if msg.command == "PRIVMSG" and channel in msg.params
-        ]
-        self.assertGreater(
-            len(privmsgs_before),
-            0,
-            "Bob should see at least one message in CHATHISTORY before redaction",
-        )
-
-        # Verify the exact message is present with correct msgid and text
-        found_message = False
-        for msg in privmsgs_before:
-            if (
-                msg.tags.get("msgid") == msgid
-                and msg.params[-1] == "This message will be redacted"
-            ):
-                found_message = True
-                break
-        self.assertTrue(
-            found_message,
-            f"Original message with msgid {msgid} and exact text should be in CHATHISTORY before redaction",
-        )
-
-        # Alice redacts the message
-        self.sendLine(alice, f"REDACT {channel} {msgid}")
-        self.getMessage(alice)  # Alice's REDACT echo
-        self.getMessage(bob)  # Bob's REDACT delivery
-
-        # Bob retrieves chat history again
-        self.sendLine(bob, f"CHATHISTORY LATEST {channel} * 10")
-        messages_after = self.getMessages(bob)
-
-        # Extract PRIVMSG and REDACT messages from the batch
-        privmsgs_after = [
-            msg
-            for msg in messages_after
-            if msg.command == "PRIVMSG" and channel in msg.params
-        ]
-        redacts_after = [
-            msg
-            for msg in messages_after
-            if msg.command == "REDACT" and channel in msg.params
-        ]
-
-        # Per spec: the message should either be excluded entirely,
-        # or a REDACT should be included after it
-        found_original_after_redaction = False
-
-        for msg in privmsgs_after:
-            if (
-                msg.tags.get("msgid") == msgid
-                or "This message will be redacted" in msg.params[-1]
-            ):
-                found_original_after_redaction = True
-                break
-
-        # If the original message is still present, there should be a REDACT for it
-        if found_original_after_redaction:
-            # Find a REDACT that matches our message
-            # REDACT format: REDACT <target> <msgid> [<reason>]
-            matching_redact = None
-            for redact_msg in redacts_after:
-                if (
-                    len(redact_msg.params) >= 2
-                    and redact_msg.params[0] == channel
-                    and redact_msg.params[1] == msgid
-                ):
-                    matching_redact = redact_msg
-                    break
-
-            self.assertIsNotNone(
-                matching_redact,
-                f"If redacted message is in CHATHISTORY, a REDACT with target={channel} and msgid={msgid} should also be present",
-            )
-        # Otherwise, the message was excluded entirely (preferred behavior)
-        else:
-            # Message was excluded - this is acceptable
-            pass
