@@ -87,6 +87,9 @@ BASE_CONFIG = {
             "default": False,
             "whitelist": ["+draft/persist", "+persist"],
         },
+        "retention": {
+            "allow-individual-delete": True,
+        },
     },
     "oper-classes": {
         "server-admin": {
