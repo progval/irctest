@@ -24,7 +24,7 @@ class RedactTestCase(cases.BaseServerTestCase):
         Returns:
             tuple: (alice_nick, bob_nick, channel_name)
         """
-        alice = random_name("alice")
+        alice = random_name("alys")  # work around Sable nick limit
         bob = random_name("bob")
         channel = random_name("#channel")
 
