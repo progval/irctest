@@ -220,9 +220,10 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         self._start()
 
     def _start(self) -> None:
-        self.proc = self.execute(
-            ["ergo", "run", "--conf", self._config_path, "--quiet"]
-        )
+        args = ["ergo", "run", "--conf", self._config_path]
+        if not self.debug_mode:
+            args.append("--quiet")
+        self.proc = self.execute(args)
 
     def restart(self) -> None:
         self.kill_proc()
