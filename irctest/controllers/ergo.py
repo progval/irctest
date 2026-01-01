@@ -1,8 +1,9 @@
 import copy
 import json
 import os
+from pathlib import Path
 import subprocess
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 from irctest.cases import BaseServerTestCase
@@ -220,7 +221,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         self._start()
 
     def _start(self) -> None:
-        args = ["ergo", "run", "--conf", self._config_path]
+        args: List[Union[str, Path]] = ["ergo", "run", "--conf", self._config_path]
         if not self.debug_mode:
             args.append("--quiet")
         self.proc = self.execute(args)
