@@ -219,12 +219,12 @@ class ErgoController(BaseServerController, DirectoryBasedController):
 
         self._start()
 
-    def _start(self):
+    def _start(self) -> None:
         self.proc = self.execute(
             ["ergo", "run", "--conf", self._config_path, "--quiet"]
         )
 
-    def restart(self):
+    def restart(self) -> None:
         self.kill_proc()
         self.port_open = False
         self._start()

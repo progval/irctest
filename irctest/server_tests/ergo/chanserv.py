@@ -3,8 +3,7 @@
 registration functionality.
 """
 
-from irctest import cases
-from irctest import patma
+from irctest import cases, patma
 from irctest.numerics import ERR_BANNEDFROMCHAN, RPL_NAMREPLY, RPL_TOPIC
 
 # ratified caps we want everyone to request, ideally
