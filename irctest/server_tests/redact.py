@@ -187,7 +187,7 @@ class RedactTestCase(cases.BaseServerTestCase):
     )
     def testRedactWithReason(self):
         """Test redaction with a reason parameter."""
-        alice = random_name("alice")
+        alice = random_name("alys")
         channel = random_name("#channel")
 
         self.connectClient(
@@ -279,7 +279,7 @@ class RedactTestCase(cases.BaseServerTestCase):
     )
     def testRedactNotRelayedToNonSupportingClients(self):
         """Test that REDACT is not sent to clients without the capability."""
-        alice = random_name("alice")
+        alice = random_name("alys")
         bob = random_name("bob")
         channel = random_name("#channel")
 
@@ -345,7 +345,7 @@ class RedactTestCase(cases.BaseServerTestCase):
     )
     def testRedactUnknownMsgid(self):
         """Test redacting a message with an unknown msgid."""
-        alice = random_name("alice")
+        alice = random_name("alys")
         channel = random_name("#channel")
 
         self.connectClient(
@@ -379,7 +379,7 @@ class RedactTestCase(cases.BaseServerTestCase):
     )
     def testRedactInvalidTarget(self):
         """Test redacting with an invalid target."""
-        alice = random_name("alice")
+        alice = random_name("alys")
         fake_channel = random_name("#fake")
 
         self.connectClient(
@@ -422,7 +422,7 @@ class RedactTestCase(cases.BaseServerTestCase):
         - Exclude it entirely, OR
         - Include a REDACT message after the redacted message
         """
-        alice = random_name("alice")
+        alice = random_name("alys")
         bob = random_name("bob")
         channel = random_name("#channel")
 
@@ -568,7 +568,7 @@ class RedactWithServicesTestCase(cases.BaseServerTestCase):
     )
     def testRedactDirectMessage(self):
         """Test redacting a direct message between two users."""
-        alice = random_name("alice")
+        alice = random_name("alys")
         bob = random_name("bob")
 
         # Register and authenticate both users (required for DM redaction on some servers)
