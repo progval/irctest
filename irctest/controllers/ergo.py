@@ -1,7 +1,6 @@
 import copy
 import json
 import os
-import shutil
 import subprocess
 from typing import Any, Dict, Optional, Type, Union
 
@@ -218,15 +217,19 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         subprocess.call(["ergo", "initdb", "--conf", self._config_path, "--quiet"])
         subprocess.call(["ergo", "mkcerts", "--conf", self._config_path, "--quiet"])
 
-        if faketime and shutil.which("faketime"):
-            faketime_cmd = ["faketime", "-f", faketime]
-            self.faketime_enabled = True
-        else:
-            faketime_cmd = []
+        self._start()
 
-        self.proc = self.execute(
-            [*faketime_cmd, "ergo", "run", "--conf", self._config_path, "--quiet"]
-        )
+    def _start(self) -> None:
+        args = ["ergo", "run", "--conf", str(self._config_path)]
+        if not self.debug_mode:
+            args.append("--quiet")
+        self.proc = self.execute(args)
+
+    def restart(self) -> None:
+        self.kill_proc()
+        self.port_open = False
+        self._start()
+        self.wait_for_port()
 
     def wait_for_services(self) -> None:
         # Nothing to wait for, they start at the same time as Ergo.
