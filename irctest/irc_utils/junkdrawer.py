@@ -1,8 +1,11 @@
 import datetime
-import re
 import secrets
 import socket
-from typing import Dict, Tuple
+from typing import List, Set, Tuple
+
+from irctest.numerics import RPL_NAMREPLY
+
+from .message_parser import Message
 
 # thanks jess!
 IRCV3_FORMAT_STRFTIME = "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -25,22 +28,18 @@ def find_hostname_and_port() -> Tuple[str, int]:
     return (hostname, port)
 
 
-"""
-Stolen from supybot:
-"""
+def parse_rplnamreply(msgs: List[Message]) -> Set[str]:
+    """Extract the set of names from RPL_NAMREPLY messages.
 
+    Args:
+        msgs: List of IRC messages to parse
 
-class MultipleReplacer:
-    """Return a callable that replaces all dict keys by the associated
-    value. More efficient than multiple .replace()."""
-
-    # We use an object instead of a lambda function because it avoids the
-    # need for using the staticmethod() on the lambda function if assigning
-    # it to a class in Python 3.
-    def __init__(self, dict_: Dict[str, str]):
-        self._dict = dict_
-        dict_ = dict([(re.escape(key), val) for key, val in dict_.items()])
-        self._matcher = re.compile("|".join(dict_.keys()))
-
-    def __call__(self, s: str) -> str:
-        return self._matcher.sub(lambda m: self._dict[m.group(0)], s)
+    Returns:
+        Set of names (nicknames with channel status prefixes like @, ~, %, +)
+    """
+    names = set()
+    for msg in msgs:
+        if msg.command != RPL_NAMREPLY:
+            continue
+        names.update(msg.params[3].split())
+    return names
