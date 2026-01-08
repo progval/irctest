@@ -4,27 +4,9 @@ registration functionality.
 """
 
 from irctest import cases, patma
-from irctest.numerics import ERR_BANNEDFROMCHAN, RPL_NAMREPLY, RPL_TOPIC
-
-# ratified caps we want everyone to request, ideally
-ERGO_BASE_CAPS = (
-    "sasl",
-    "server-time",
-    "message-tags",
-    "echo-message",
-    "batch",
-    "labeled-response",
-    "account-tag",
-)
-
-
-def extract_names(msgs):
-    names = set()
-    for msg in msgs:
-        if msg.command != RPL_NAMREPLY:
-            continue
-        names.update(msg.params[3].split())
-    return names
+from irctest.controllers.ergo import BASE_CAPS
+from irctest.irc_utils.junkdrawer import parse_rplnamreply
+from irctest.numerics import ERR_BANNEDFROMCHAN, RPL_TOPIC
 
 
 @cases.mark_services
@@ -41,7 +23,7 @@ class ChanservTestCase(cases.BaseServerTestCase):
             name=alice,
             account=alice,
             password="alice_password",
-            capabilities=ERGO_BASE_CAPS,
+            capabilities=BASE_CAPS,
         )
         self.joinChannel(alice, "#alice")
 
@@ -67,7 +49,7 @@ class ChanservTestCase(cases.BaseServerTestCase):
         self.connectClient(
             bob,
             name=bob,
-            capabilities=ERGO_BASE_CAPS,
+            capabilities=BASE_CAPS,
         )
         self.sendLine(bob, "JOIN #alice")
         # alice is not here yet, but bob should not get +o, and he should see the topic
@@ -89,22 +71,22 @@ class ChanservTestCase(cases.BaseServerTestCase):
             [],
             "No MODE lines are expected when joining a registered channel as non-founder",
         )
-        self.assertEqual(extract_names(msgs), {"bob"})
+        self.assertEqual(parse_rplnamreply(msgs), {"bob"})
 
         self.connectClient(
             alice,
             name=alice,
             account=alice,
             password="alice_password",
-            capabilities=ERGO_BASE_CAPS,
+            capabilities=BASE_CAPS,
         )
 
         self.sendLine(alice, "JOIN #alice")
         msgs = self.getMessages(alice)
-        self.assertEqual(extract_names(msgs), {"bob", "~alice"})
+        self.assertEqual(parse_rplnamreply(msgs), {"bob", "~alice"})
 
         # test that bans created before the restart are respected
-        self.connectClient(eve, name=eve, capabilities=ERGO_BASE_CAPS)
+        self.connectClient(eve, name=eve, capabilities=BASE_CAPS)
         self.sendLine(eve, "JOIN #alice")
         msg = self.getMessage(eve)
         self.assertMessageMatch(

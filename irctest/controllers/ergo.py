@@ -7,6 +7,17 @@ from typing import Any, Dict, Optional, Type, Union
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 from irctest.cases import BaseServerTestCase
 
+# ratified caps we want everyone to request, ideally
+BASE_CAPS = (
+    "sasl",
+    "server-time",
+    "message-tags",
+    "echo-message",
+    "batch",
+    "labeled-response",
+    "account-tag",
+)
+
 BASE_CONFIG = {
     "network": {"name": "ErgoTest"},
     "server": {
@@ -45,7 +56,7 @@ BASE_CONFIG = {
         "multiclient": {
             "allowed-by-default": True,
             "enabled": True,
-            "always-on": "disabled",
+            "always-on": "opt-in",
         },
         "registration": {
             "bcrypt-cost": 4,
@@ -292,11 +303,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             "password": mysql_password,
             "history-database": "ergo_history",
             "timeout": "3s",
-        }
-        config["accounts"]["multiclient"] = {
-            "enabled": True,
-            "allowed-by-default": True,
-            "always-on": "disabled",
         }
         config["history"]["persistent"] = {
             "enabled": True,
