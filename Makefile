@@ -90,7 +90,7 @@ SABLE_SELECTORS := \
 	and not strict \
 	and not arbitrary_client_tags \
 	and not react_tag \
-	and not list and not lusers and not time and not info \
+	and not list and not lusers and not time and not info and not limit \
 	$(EXTRA_SELECTORS)
 
 SOLANUM_SELECTORS := \
