@@ -8,9 +8,9 @@ User limit channel mode (`RFC 1459
 import pytest
 
 from irctest import cases
+from irctest.exceptions import NoMessageException
 from irctest.numerics import ERR_CHANNELISFULL, ERR_INVALIDMODEPARAM
 from irctest.patma import ANYSTR
-from irctest.exceptions import NoMessageException
 
 
 class LimitTestCase(cases.BaseServerTestCase):
@@ -64,7 +64,9 @@ class LimitTestCase(cases.BaseServerTestCase):
 
         # Remove the limit
         self.sendLine("chanop", "MODE #chan -l")
-        self.assertMessageMatch(self.getMessage("chanop"), command="MODE", params=["#chan", "-l"])
+        self.assertMessageMatch(
+            self.getMessage("chanop"), command="MODE", params=["#chan", "-l"]
+        )
 
         # Now user2 should be able to join
         self.joinChannel("user2", "#chan")
@@ -277,4 +279,6 @@ class LimitTestCase(cases.BaseServerTestCase):
 
         # Can now join #chan despite the limit
         self.sendLine("user2", "JOIN #chan")
-        self.assertMessageMatch(self.getMessage("user2"), command="JOIN", params=["#chan"])
+        self.assertMessageMatch(
+            self.getMessage("user2"), command="JOIN", params=["#chan"]
+        )
