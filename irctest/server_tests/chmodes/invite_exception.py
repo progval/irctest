@@ -15,34 +15,38 @@ from irctest.patma import ANYSTR, StrRe
 class InviteExceptionTestCase(cases.BaseServerTestCase):
     def getInviteExceptionMode(self) -> str:
         """Get the invite exception mode letter from ISUPPORT and validate it."""
-        if "INVEX" in self.server_support:
+        if self.server_support and "INVEX" in self.server_support:
             mode = self.server_support["INVEX"] or "I"
             if "CHANMODES" in self.server_support:
-                self.assertIn(
-                    mode,
-                    self.server_support["CHANMODES"],
-                    fail_msg="ISUPPORT INVEX is present, but '{item}' is missing "
-                    "from 'CHANMODES={list}'",
-                )
-                self.assertIn(
-                    mode,
-                    self.server_support["CHANMODES"].split(",")[0],
-                    fail_msg="ISUPPORT INVEX is present, but '{item}' is not "
-                    "in group A",
-                )
+                chanmodes = self.server_support["CHANMODES"]
+                if chanmodes:
+                    self.assertIn(
+                        mode,
+                        chanmodes,
+                        fail_msg="ISUPPORT INVEX is present, but '{item}' is missing "
+                        "from 'CHANMODES={list}'",
+                    )
+                    self.assertIn(
+                        mode,
+                        chanmodes.split(",")[0],
+                        fail_msg="ISUPPORT INVEX is present, but '{item}' is not "
+                        "in group A",
+                    )
         else:
             mode = "I"
-            if "CHANMODES" in self.server_support:
-                if "I" not in self.server_support["CHANMODES"]:
+            if self.server_support and "CHANMODES" in self.server_support:
+                chanmodes = self.server_support["CHANMODES"]
+                if chanmodes and "I" not in chanmodes:
                     raise runner.OptionalExtensionNotSupported(
                         "Invite exception (or mode letter is not +I)"
                     )
-                self.assertIn(
-                    mode,
-                    self.server_support["CHANMODES"].split(",")[0],
-                    fail_msg="Mode +I (assumed to be invite exception) is present, "
-                    "but 'I' is not in group A",
-                )
+                if chanmodes:
+                    self.assertIn(
+                        mode,
+                        chanmodes.split(",")[0],
+                        fail_msg="Mode +I (assumed to be invite exception) is present, "
+                        "but 'I' is not in group A",
+                    )
             else:
                 raise runner.OptionalExtensionNotSupported("ISUPPORT CHANMODES")
         return mode
