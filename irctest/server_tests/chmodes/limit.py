@@ -275,6 +275,6 @@ class LimitTestCase(cases.BaseServerTestCase):
         self.getMessages("chanop")
         self.getMessages("user2")
 
-        # Can now join #chan despite the limi despite the limitt
+        # Can now join #chan despite the limit
         self.sendLine("user2", "JOIN #chan")
         self.assertMessageMatch(self.getMessage("user2"), command="JOIN", params=["#chan"])
