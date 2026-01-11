@@ -7,7 +7,7 @@ who can join an invite-only channel without needing an explicit INVITE.
 """
 
 from irctest import cases, runner
-from irctest.numerics import ERR_INVITEONLYCHAN, RPL_ENDOFINVITELIST, RPL_INVITELIST
+from irctest.numerics import ERR_INVITEONLYCHAN, RPL_ENDOFINVEXLIST, RPL_INVEXLIST
 from irctest.patma import ANYSTR, StrRe
 
 
@@ -127,7 +127,7 @@ class InviteExceptionTestCase(cases.BaseServerTestCase):
             # Old format
             self.assertMessageMatch(
                 m,
-                command=RPL_INVITELIST,
+                command=RPL_INVEXLIST,
                 params=[
                     "chanop",
                     "#chan",
@@ -138,7 +138,7 @@ class InviteExceptionTestCase(cases.BaseServerTestCase):
             # Modern format with who set it and timestamp
             self.assertMessageMatch(
                 m,
-                command=RPL_INVITELIST,
+                command=RPL_INVEXLIST,
                 params=[
                     "chanop",
                     "#chan",
@@ -150,7 +150,7 @@ class InviteExceptionTestCase(cases.BaseServerTestCase):
 
         self.assertMessageMatch(
             self.getMessage("chanop"),
-            command=RPL_ENDOFINVITELIST,
+            command=RPL_ENDOFINVEXLIST,
             params=[
                 "chanop",
                 "#chan",
