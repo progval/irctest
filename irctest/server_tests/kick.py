@@ -284,11 +284,12 @@ class KickTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.joinChannel(1, "#test")
 
-        self.connectClient("bar")
-        self.joinChannel(2, "#test")
-
         if "KICKLEN" not in self.server_support:
             raise runner.IsupportTokenNotSupported("KICKLEN")
+
+        self.connectClient("bar")
+        self.joinChannel(2, "#test")
+        self.getMessages(1)
 
         kicklen = int(self.server_support["KICKLEN"])
 
