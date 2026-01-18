@@ -7,6 +7,7 @@ The TOPIC command  (`RFC 1459
 
 from irctest import cases, client_mock, runner
 from irctest.numerics import ERR_CHANOPRIVSNEEDED, RPL_NOTOPIC, RPL_TOPIC, RPL_TOPICTIME
+from irctest.patma import ANYSTR
 
 
 class TopicTestCase(cases.BaseServerTestCase):
@@ -220,4 +221,39 @@ class TopicPrivilegesTestCase(cases.BaseServerTestCase):
         )
         self.assertEqual(
             len([msg for msg in replies if msg.command == RPL_TOPICTIME]), 1
+        )
+
+    @cases.mark_specifications("Modern")
+    @cases.mark_isupport("TOPICLEN")
+    def testTopiclen(self):
+        """
+        "TOPICLEN=<number>
+        The TOPICLEN parameter indicates the maximum length of a topic that a client may set on a channel."
+        -- https://modern.ircdocs.horse/#topiclen-parameter
+        """
+        self.connectClient("foo")
+        self.joinChannel(1, "#test")
+
+        if "TOPICLEN" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("TOPICLEN")
+
+        topiclen = int(self.server_support["TOPICLEN"])
+
+        # Set a topic at exactly the limit
+        valid_topic = "a" * topiclen
+        self.sendLine(1, f"TOPIC #test :{valid_topic}")
+        self.assertMessageMatch(
+            self.getMessage(1), command="TOPIC", params=["#test", valid_topic]
+        )
+
+        # Try a topic longer than the limit
+        self.getMessages(1)  # clear
+        long_topic = "b" * (topiclen + 50)
+        self.sendLine(1, f"TOPIC #test :{long_topic}")
+        msg = self.getMessage(1)
+        self.assertMessageMatch(msg, command="TOPIC", params=["#test", ANYSTR])
+        self.assertLessEqual(
+            len(msg.params[1]),
+            topiclen,
+            f"Server set topic longer than TOPICLEN {topiclen}",
         )

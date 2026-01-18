@@ -53,13 +53,19 @@ class Capabilities(enum.Enum):
 
 @enum.unique
 class IsupportTokens(enum.Enum):
+    AWAYLEN = "AWAYLEN"
     BOT = "BOT"
+    CHANLIMIT = "CHANLIMIT"
+    CHANNELLEN = "CHANNELLEN"
     ELIST = "ELIST"
     INVEX = "INVEX"
-    PREFIX = "PREFIX"
+    KICKLEN = "KICKLEN"
     MONITOR = "MONITOR"
+    NICKLEN = "NICKLEN"
+    PREFIX = "PREFIX"
     STATUSMSG = "STATUSMSG"
     TARGMAX = "TARGMAX"
+    TOPICLEN = "TOPICLEN"
     UTF8ONLY = "UTF8ONLY"
     WHOX = "WHOX"
 

@@ -272,3 +272,54 @@ class KickTestCase(cases.BaseServerTestCase):
                     m1.params[1], m2.params[1]
                 )
             )
+
+    @cases.mark_specifications("Modern")
+    @cases.mark_isupport("KICKLEN")
+    def testKicklen(self):
+        """
+        "KICKLEN=<number>
+        The KICKLEN parameter indicates the maximum length for the <reason> of a KICK command."
+        -- https://modern.ircdocs.horse/#kicklen-parameter
+        """
+        self.connectClient("foo")
+        self.joinChannel(1, "#test")
+
+        self.connectClient("bar")
+        self.joinChannel(2, "#test")
+
+        if "KICKLEN" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("KICKLEN")
+
+        kicklen = int(self.server_support["KICKLEN"])
+
+        # Kick with a reason at exactly the limit
+        valid_reason = "a" * kicklen
+        self.sendLine(1, f"KICK #test bar :{valid_reason}")
+        msg = self.getMessage(1)
+
+        if msg.command != "KICK":
+            raise runner.ImplementationChoice("User doesn't have permission to kick")
+
+        self.assertMessageMatch(msg, command="KICK", params=["#test", "bar", ANYSTR])
+        self.assertLessEqual(
+            len(msg.params[2]),
+            kicklen,
+            f"Server sent kick reason longer than KICKLEN {kicklen}",
+        )
+
+        # Rejoin and kick with a reason longer than the limit
+        self.getMessages(1)
+        self.getMessages(2)
+        self.sendLine(2, "JOIN #test")
+        self.getMessages(2)
+        self.getMessages(1)
+
+        long_reason = "b" * (kicklen + 50)
+        self.sendLine(1, f"KICK #test bar :{long_reason}")
+        msg = self.getMessage(1)
+        self.assertMessageMatch(msg, command="KICK", params=["#test", "bar", ANYSTR])
+        self.assertLessEqual(
+            len(msg.params[2]),
+            kicklen,
+            f"Server truncated kick reason to KICKLEN {kicklen}",
+        )
