@@ -7,6 +7,7 @@ import pytest
 
 from irctest import cases, runner
 from irctest.numerics import (
+    ERR_BADCHANMASK,
     ERR_ERRONEUSNICKNAME,
     ERR_FORBIDDENCHANNEL,
     ERR_NOSUCHCHANNEL,
@@ -94,7 +95,12 @@ class IsupportLimitTestCase(cases.BaseServerTestCase):
         self.sendLine(1, f"JOIN {invalid_chan}")
         self.assertMessageMatch(
             self.getMessage(1),
-            command=Either(ERR_NOSUCHCHANNEL, ERR_BADCHANNAME, ERR_FORBIDDENCHANNEL),
+            command=Either(
+                ERR_NOSUCHCHANNEL,
+                ERR_BADCHANNAME,
+                ERR_FORBIDDENCHANNEL,
+                ERR_BADCHANMASK,
+            ),
             params=["foo", invalid_chan, ANYSTR],
         )
 
