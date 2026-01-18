@@ -8,10 +8,13 @@ import pytest
 from irctest import cases, runner
 from irctest.numerics import (
     ERR_ERRONEUSNICKNAME,
+    ERR_FORBIDDENCHANNEL,
     ERR_NOSUCHCHANNEL,
     ERR_TOOMANYCHANNELS,
 )
-from irctest.patma import ANYSTR
+from irctest.patma import ANYSTR, Either
+
+ERR_BADCHANNAME = "479"  # Hybrid only, and conflicts with others
 
 
 class IsupportLimitTestCase(cases.BaseServerTestCase):
@@ -91,7 +94,7 @@ class IsupportLimitTestCase(cases.BaseServerTestCase):
         self.sendLine(1, f"JOIN {invalid_chan}")
         self.assertMessageMatch(
             self.getMessage(1),
-            command=ERR_NOSUCHCHANNEL,
+            command=Either(ERR_NOSUCHCHANNEL, ERR_BADCHANNAME, ERR_FORBIDDENCHANNEL),
             params=["foo", invalid_chan, ANYSTR],
         )
 

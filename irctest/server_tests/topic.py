@@ -196,6 +196,13 @@ class TopicTestCase(cases.BaseServerTestCase):
             self.getMessage(1), command="TOPIC", params=["#test", valid_topic]
         )
 
+        self.connectClient("bar")
+        self.sendLine(2, "JOIN #test")
+        (msg,) = [msg for msg in self.getMessages(2) if msg.command == RPL_TOPIC]
+        self.assertMessageMatch(
+            msg, command=RPL_TOPIC, params=["bar", "#test", valid_topic]
+        )
+
         # Try a topic longer than the limit
         self.getMessages(1)  # clear
         long_topic = "b" * (topiclen + 50)
@@ -250,7 +257,7 @@ class TopicPrivilegesTestCase(cases.BaseServerTestCase):
         self.connectClient("buzz", name="buzz")
         self.sendLine("buzz", "JOIN #chan")
         replies = self.getMessages("buzz")
-        rpl_topic = [msg for msg in replies if msg.command == RPL_TOPIC][0]
+        (rpl_topic,) = [msg for msg in replies if msg.command == RPL_TOPIC]
         self.assertMessageMatch(
             rpl_topic, command=RPL_TOPIC, params=["buzz", "#chan", "new topic"]
         )

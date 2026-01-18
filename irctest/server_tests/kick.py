@@ -297,10 +297,6 @@ class KickTestCase(cases.BaseServerTestCase):
         valid_reason = "a" * kicklen
         self.sendLine(1, f"KICK #test bar :{valid_reason}")
         msg = self.getMessage(1)
-
-        if msg.command != "KICK":
-            raise runner.ImplementationChoice("User doesn't have permission to kick")
-
         self.assertMessageMatch(msg, command="KICK", params=["#test", "bar", ANYSTR])
         self.assertLessEqual(
             len(msg.params[2]),
@@ -322,5 +318,5 @@ class KickTestCase(cases.BaseServerTestCase):
         self.assertLessEqual(
             len(msg.params[2]),
             kicklen,
-            f"Server truncated kick reason to KICKLEN {kicklen}",
+            f"Server did not truncate kick reason to KICKLEN {kicklen}",
         )
