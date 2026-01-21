@@ -1,3 +1,8 @@
+"""
+`Ergo <https://ergo.chat/>`_-specific tests for nick collisions based on Unicode
+confusable characters
+"""
+
 from irctest import cases
 from irctest.numerics import ERR_NICKNAMEINUSE, RPL_WELCOME
 
@@ -7,8 +12,8 @@ class ConfusablesTestCase(cases.BaseServerTestCase):
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         return cases.TestCaseControllerConfig(
-            ergo_config=lambda config: config["accounts"].update(
-                {"nick-reservation": {"enabled": True, "method": "strict"}}
+            ergo_config=lambda config: config["server"].update(
+                {"casemapping": "precis"},
             )
         )
 

@@ -1,3 +1,8 @@
+"""
+RPL_ISUPPORT: `format <https://modern.ircdocs.horse/#rplisupport-005>`__
+and various `tokens <https://modern.ircdocs.horse/#rplisupport-parameters>`__
+"""
+
 import re
 
 from irctest import cases, runner
@@ -6,12 +11,44 @@ from irctest import cases, runner
 class IsupportTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     @cases.mark_isupport("PREFIX")
+    def testParameters(self):
+        """https://modern.ircdocs.horse/#rplisupport-005"""
+
+        # <https://modern.ircdocs.horse/#connection-registration>
+        # "Upon successful completion of the registration process,
+        #  the server MUST send, in this order:
+        #  [...]
+        #  5. at least one RPL_ISUPPORT (005) numeric to the client."
+        welcome_005s = [
+            msg for msg in self.connectClient("foo") if msg.command == "005"
+        ]
+        self.assertGreaterEqual(len(welcome_005s), 1)
+        for msg in welcome_005s:
+            # first parameter is the client's nickname;
+            # last parameter is a human-readable trailing, typically
+            # "are supported by this server"
+            self.assertGreaterEqual(len(msg.params), 3)
+            self.assertEqual(msg.params[0], "foo")
+            # "As the maximum number of message parameters to any reply is 15,
+            # the maximum number of RPL_ISUPPORT tokens that can be advertised
+            # is 13."
+            self.assertLessEqual(len(msg.params), 15)
+            for param in msg.params[1:-1]:
+                self.validateIsupportParam(param)
+
+    def validateIsupportParam(self, param):
+        if not param.isascii():
+            raise ValueError("Invalid non-ASCII 005 parameter", param)
+        # TODO add more validation
+
+    @cases.mark_specifications("Modern")
+    @cases.mark_isupport("PREFIX")
     def testPrefix(self):
         """https://modern.ircdocs.horse/#prefix-parameter"""
         self.connectClient("foo")
 
         if "PREFIX" not in self.server_support:
-            raise runner.NotImplementedByController("PREFIX")
+            raise runner.IsupportTokenNotSupported("PREFIX")
 
         if self.server_support["PREFIX"] == "":
             # "The value is OPTIONAL and when it is not specified indicates that no
@@ -19,7 +56,8 @@ class IsupportTestCase(cases.BaseServerTestCase):
             return
 
         m = re.match(
-            r"\((?P<modes>[a-zA-Z]+)\)(?P<prefixes>\S+)", self.server_support["PREFIX"]
+            r"^\((?P<modes>[a-zA-Z]+)\)(?P<prefixes>\S+)$",
+            self.server_support["PREFIX"],
         )
         self.assertTrue(
             m,
@@ -75,10 +113,10 @@ class IsupportTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
 
         if "TARGMAX" not in self.server_support:
-            raise runner.NotImplementedByController("TARGMAX")
+            raise runner.IsupportTokenNotSupported("TARGMAX")
 
         parts = self.server_support["TARGMAX"].split(",")
         for part in parts:
             self.assertTrue(
-                re.match("[A-Z]+:[0-9]*", part), "Invalid TARGMAX key:value: %r", part
+                re.match("^[A-Z]+:[0-9]*$", part), "Invalid TARGMAX key:value: %r", part
             )

@@ -1,3 +1,7 @@
+"""
+Mute extban, currently no specifications or ways to discover it.
+"""
+
 from irctest import cases, runner
 from irctest.numerics import ERR_CANNOTSENDTOCHAN, ERR_CHANOPRIVSNEEDED
 from irctest.patma import ANYLIST, StrRe
@@ -194,7 +198,7 @@ class MuteExtbanTestCase(cases.BaseServerTestCase):
             self.getMessages(client)
 
         # +e grants an exemption to +b
-        self.sendLine("chanop", f"MODE #chan +e {prefix}{self.char()}:*!~evan@*")
+        self.sendLine("chanop", f"MODE #chan +e {prefix}{self.char()}:*!*evan@*")
         replies = {msg.command for msg in self.getMessages("chanop")}
         self.assertIn("MODE", replies)
         self.assertNotIn(ERR_CHANOPRIVSNEEDED, replies)

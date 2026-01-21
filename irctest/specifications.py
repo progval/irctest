@@ -27,16 +27,20 @@ class Specifications(enum.Enum):
 
 @enum.unique
 class Capabilities(enum.Enum):
+    ACCOUNT_NOTIFY = "account-notify"
     ACCOUNT_TAG = "account-tag"
     AWAY_NOTIFY = "away-notify"
     BATCH = "batch"
     ECHO_MESSAGE = "echo-message"
     EXTENDED_JOIN = "extended-join"
+    EXTENDED_MONITOR = "extended-monitor"
     LABELED_RESPONSE = "labeled-response"
+    MESSAGE_REDACTION = "draft/message-redaction"
     MESSAGE_TAGS = "message-tags"
     MULTILINE = "draft/multiline"
     MULTI_PREFIX = "multi-prefix"
     SERVER_TIME = "server-time"
+    SETNAME = "setname"
     STS = "sts"
 
     @classmethod
@@ -50,10 +54,13 @@ class Capabilities(enum.Enum):
 @enum.unique
 class IsupportTokens(enum.Enum):
     BOT = "BOT"
+    ELIST = "ELIST"
+    INVEX = "INVEX"
     PREFIX = "PREFIX"
     MONITOR = "MONITOR"
     STATUSMSG = "STATUSMSG"
     TARGMAX = "TARGMAX"
+    UTF8ONLY = "UTF8ONLY"
     WHOX = "WHOX"
 
     @classmethod

@@ -1,7 +1,7 @@
 import base64
 
 from irctest import cases, runner, scram
-from irctest.numerics import ERR_SASLFAIL
+from irctest.numerics import ERR_SASLFAIL, RPL_LOGGEDIN, RPL_SASLMECHS
 from irctest.patma import ANYSTR
 
 
@@ -12,9 +12,9 @@ class RegistrationTestCase(cases.BaseServerTestCase):
 
 
 @cases.mark_services
-class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class SaslTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlain(self):
         """PLAIN authentication with correct username/password."""
         self.controller.registerUser(self, "foo", "sesame")
@@ -48,13 +48,39 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
-            command="900",
+            command=RPL_LOGGEDIN,
             params=[ANYSTR, ANYSTR, "jilles", ANYSTR],
             fail_msg="Unexpected reply to correct SASL authentication: {msg}",
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    def testPlainFailure(self):
+        """PLAIN authentication with incorrect username/password."""
+        self.controller.registerUser(self, "jilles", "sesame")
+        self.addClient()
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        # password 'millet'
+        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBtaWxsZXQ=")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command=ERR_SASLFAIL,
+            params=[ANYSTR, ANYSTR],
+            fail_msg="Unexpected reply to incorrect SASL authentication: {msg}",
+        )
+
+    @cases.mark_specifications("IRCv3")
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainNonAscii(self):
         password = "é" * 100
         authstring = base64.b64encode(
@@ -82,7 +108,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainNoAuthzid(self):
         """“message   = [authzid] UTF8NUL authcid UTF8NUL passwd
 
@@ -161,16 +187,31 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
         self.sendLine(1, "AUTHENTICATE FOO")
         m = self.getRegistrationMessage(1)
-        while m.command == "908":  # RPL_SASLMECHS
+        while m.command == RPL_SASLMECHS:
             m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
-            command="904",
+            command=ERR_SASLFAIL,
             fail_msg="Did not reply with 904 to “AUTHENTICATE FOO”: {msg}",
         )
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    @cases.xfailIf(
+        lambda self: (
+            self.controller.services_controller is not None
+            and self.controller.services_controller.software_name == "Anope"
+        ),
+        "Anope does not handle split AUTHENTICATE (reported on IRC)",
+    )
+    @cases.xfailIf(
+        lambda self: (
+            self.controller.services_controller is not None
+            and self.controller.services_controller.software_name == "Dlk-Services"
+        ),
+        "Dlk does not handle split AUTHENTICATE "
+        "https://github.com/DalekIRC/Dalek-Services/issues/28",
+    )
     def testPlainLarge(self):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400.
@@ -232,7 +273,14 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     # message's length too big for it to be valid.
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("PLAIN")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    @cases.xfailIf(
+        lambda self: (
+            self.controller.services_controller is not None
+            and self.controller.services_controller.software_name == "Anope"
+        ),
+        "Anope does not handle split AUTHENTICATE (reported on IRC)",
+    )
     def testPlainLargeEquals400(self):
         """Test the client splits large AUTHENTICATE messages whose payload
         is not a multiple of 400.
@@ -277,7 +325,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
     # message's length too big for it to be valid.
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
+    @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
     def testScramSha256Success(self):
         self.controller.registerUser(self, "Scramtest", "sesame")
 
@@ -333,7 +381,7 @@ class SaslTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.confirmSuccessfulAuth()
 
     @cases.mark_specifications("IRCv3")
-    @cases.OptionalityHelper.skipUnlessHasMechanism("SCRAM-SHA-256")
+    @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
     def testScramSha256Failure(self):
         self.controller.registerUser(self, "Scramtest", "sesame")
 

@@ -1,5 +1,3 @@
-import os
-import subprocess
 from typing import Optional, Type
 
 from irctest import authentication, tls
@@ -85,9 +83,7 @@ class LimnoriaController(BaseClientController, DirectoryBasedController):
                 )
             )
         assert self.directory
-        self.proc = subprocess.Popen(
-            ["supybot", os.path.join(self.directory, "bot.conf")]
-        )
+        self.proc = self.execute(["supybot", self.directory / "bot.conf"])
 
 
 def get_irctest_controller_class() -> Type[LimnoriaController]:

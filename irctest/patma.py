@@ -1,6 +1,7 @@
 """Pattern-matching utilities"""
 
 import dataclasses
+import itertools
 import re
 from typing import Dict, List, Optional, Union
 
@@ -28,6 +29,14 @@ class _AnyOptStr(Operator):
 
 
 @dataclasses.dataclass(frozen=True)
+class OptStrRe(Operator):
+    regexp: str
+
+    def __repr__(self) -> str:
+        return f"OptStrRe(r'{self.regexp}')"
+
+
+@dataclasses.dataclass(frozen=True)
 class StrRe(Operator):
     regexp: str
 
@@ -41,6 +50,17 @@ class NotStrRe(Operator):
 
     def __repr__(self) -> str:
         return f"NotStrRe(r'{self.regexp}')"
+
+
+@dataclasses.dataclass(frozen=True)
+class Either(Operator):
+    options: str
+
+    def __init__(self, *options: Operator):
+        object.__setattr__(self, "options", options)
+
+    def __repr__(self) -> str:
+        return f"Either({', '.join(map(repr, self.options))})"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -97,10 +117,18 @@ def match_string(got: Optional[str], expected: Union[str, Operator, None]) -> bo
     elif isinstance(expected, _AnyStr) and got is not None:
         return True
     elif isinstance(expected, StrRe):
-        if got is None or not re.match(expected.regexp, got):
+        if got is None or not re.match(expected.regexp + "$", got):
+            return False
+    elif isinstance(expected, OptStrRe):
+        if got is None:
+            return True
+        if not re.match(expected.regexp + "$", got):
             return False
     elif isinstance(expected, NotStrRe):
-        if got is None or re.match(expected.regexp, got):
+        if got is None or re.match(expected.regexp + "$", got):
+            return False
+    elif isinstance(expected, Either):
+        if all(not match_string(got, option) for option in expected.options):
             return False
     elif isinstance(expected, InsensitiveStr):
         if got is None or got.lower() != expected.string.lower():
@@ -128,11 +156,19 @@ def match_list(
         nb_remaining_items = len(got) - len(expected)
         expected += [remainder.item] * max(nb_remaining_items, remainder.min_length)
 
-    if len(got) != len(expected):
+    nb_optionals = 0
+    for expected_value in expected:
+        if isinstance(expected_value, (_AnyOptStr, OptStrRe)):
+            nb_optionals += 1
+        else:
+            if nb_optionals > 0:
+                raise NotImplementedError("Optional values in non-final position")
+
+    if not (len(expected) - nb_optionals <= len(got) <= len(expected)):
         return False
     return all(
         match_string(got_value, expected_value)
-        for (got_value, expected_value) in zip(got, expected)
+        for (got_value, expected_value) in itertools.zip_longest(got, expected)
     )
 
 
@@ -152,21 +188,23 @@ def match_dict(
     # Set to not-None if we find a Keys() operator in the dict keys
     remaining_keys_wildcard = None
 
-    for (expected_key, expected_value) in expected.items():
+    for expected_key, expected_value in expected.items():
         if isinstance(expected_key, RemainingKeys):
             remaining_keys_wildcard = (expected_key.key, expected_value)
-        elif isinstance(expected_key, Operator):
-            raise NotImplementedError(f"Unsupported operator: {expected_key}")
         else:
-            if expected_key not in got:
-                return False
-            got_value = got.pop(expected_key)
-            if not match_string(got_value, expected_value):
+            for key in got:
+                if match_string(key, expected_key) and match_string(
+                    got[key], expected_value
+                ):
+                    got.pop(key)
+                    break
+            else:
+                # Found no (key, value) pair matching the request
                 return False
 
     if remaining_keys_wildcard:
         (expected_key, expected_value) = remaining_keys_wildcard
-        for (key, value) in got.items():
+        for key, value in got.items():
             if not match_string(key, expected_key):
                 return False
             if not match_string(value, expected_value):

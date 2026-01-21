@@ -44,7 +44,7 @@ channel {{
     displayed_usercount = 0;
 }};
 
-connect "services.example.org" {{
+connect "My.Little.Services" {{
     host = "localhost";  # Used to validate incoming connection
     port = 0;  # We don't need servers to connect to services
     send_password = "password";
@@ -53,14 +53,14 @@ connect "services.example.org" {{
     flags = topicburst;
 }};
 service {{
-    name = "services.example.org";
+    name = "My.Little.Services";
 }};
 
 privset "omnioper" {{
     privs = oper:general, oper:privs, oper:testline, oper:kill, oper:operwall, oper:message,
             oper:routing, oper:kline, oper:unkline, oper:xline,
             oper:resv, oper:cmodes, oper:mass_notice, oper:wallops,
-            oper:remoteban,
+            oper:remoteban, oper:local_kill,
             usermode:servnotice, auspex:oper, auspex:hostname, auspex:umodes, auspex:cmodes,
             oper:admin, oper:die, oper:rehash, oper:spy, oper:grant;
 }};

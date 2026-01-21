@@ -1,13 +1,9 @@
-import os
+import functools
+import shutil
 import subprocess
-from typing import Optional, Set, Type
+from typing import Optional, Type
 
-from irctest.basecontrollers import (
-    BaseServerController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
-from irctest.irc_utils.junkdrawer import find_hostname_and_port
+from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
 # Clients:
@@ -23,7 +19,7 @@ TEMPLATE_CONFIG = """
 
 <class
     name="ServerOperators"
-    commands="WALLOPS GLOBOPS"
+    commands="WALLOPS GLOBOPS KILL"
     privs="channels/auspex users/auspex channels/auspex servers/auspex"
     >
 <type
@@ -37,14 +33,15 @@ TEMPLATE_CONFIG = """
       class="ServerOperators"
       >
 
-<options casemapping="ascii">
+<options casemapping="ascii"
+         extbanformat="any">
 
 # Disable 'NOTICE #chan :*** foo invited bar into the channel-
 <security announceinvites="none">
 
 # Services:
 <bind address="{services_hostname}" port="{services_port}" type="servers">
-<link name="services.example.org"
+<link name="My.Little.Services"
     ipaddr="{services_hostname}"
     port="{services_port}"
     allowmask="*"
@@ -52,15 +49,15 @@ TEMPLATE_CONFIG = """
     sendpass="password"
     >
 <module name="spanningtree">
-<module name="services_account">
 <module name="hidechans">  # Anope errors when missing
-<module name="svshold">  # Atheme raises a warning when missing
 <sasl requiressl="no"
-      target="services.example.org">
+      target="My.Little.Services">
 
 # Protocol:
+<module name="banexception">
 <module name="botmode">
 <module name="cap">
+<module name="inviteexception">
 <module name="ircv3">
 <module name="ircv3_accounttag">
 <module name="ircv3_batch">
@@ -73,18 +70,15 @@ TEMPLATE_CONFIG = """
 <module name="ircv3_servertime">
 <module name="monitor">
 <module name="m_muteban">  # for testing mute extbans
-<module name="namesx"> # For multi-prefix
 <module name="noctcp">
 <module name="sasl">
-
-# HELP/HELPOP
+<module name="uhnames">  # For userhost-in-names
 <module name="alias">  # for the HELP alias
-<module name="helpop">
-<include file="examples/helpop.conf.example">
+{version_config}
 
 # Misc:
 <log method="file" type="*" level="debug" target="/tmp/ircd-{port}.log">
-<server name="My.Little.Server" description="testnet" id="000" network="testnet">
+<server name="My.Little.Server" description="test server" id="000" network="testnet">
 """
 
 TEMPLATE_SSL_CONFIG = """
@@ -92,9 +86,42 @@ TEMPLATE_SSL_CONFIG = """
 <openssl certfile="{pem_path}" keyfile="{key_path}" dhfile="{dh_path}" hash="sha1">
 """
 
+TEMPLATE_V3_CONFIG = """
+<module name="namesx"> # For multi-prefix
+<module name="services_account">
+<module name="svshold">  # Atheme raises a warning when missing
+
+# HELP/HELPOP
+<module name="helpop">
+<include file="examples/helpop.conf.example">
+"""
+
+TEMPLATE_V4_CONFIG = """
+<module name="account">
+<module name="multiprefix"> # For multi-prefix
+<module name="services">
+
+# HELP/HELPOP
+<module name="help">
+<include file="examples/help.example.conf">
+"""
+
+
+@functools.lru_cache()
+def installed_version() -> int:
+    output = subprocess.check_output(["inspircd", "--version"], universal_newlines=True)
+    if output.startswith("InspIRCd-3"):
+        return 3
+    if output.startswith("InspIRCd-4"):
+        return 4
+    if output.startswith("InspIRCd-5"):
+        return 5
+    assert False, f"unexpected version: {output}"
+
 
 class InspircdController(BaseServerController, DirectoryBasedController):
     software_name = "InspIRCd"
+    software_version = installed_version()
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
     extban_mute_char = "m"
@@ -112,19 +139,13 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-        restricted_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str] = None,
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
         assert self.proc is None
         self.port = port
         self.hostname = hostname
         self.create_config()
-        (services_hostname, services_port) = find_hostname_and_port()
+        (services_hostname, services_port) = self.get_hostname_and_port()
 
         password_field = 'password="{}"'.format(password) if password else ""
 
@@ -136,6 +157,13 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         else:
             ssl_config = ""
 
+        if installed_version() == 3:
+            version_config = TEMPLATE_V3_CONFIG
+        elif installed_version() >= 4:
+            version_config = TEMPLATE_V4_CONFIG
+        else:
+            assert False, f"unexpected version: {installed_version()}"
+
         with self.open_file("server.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -145,17 +173,33 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                     services_port=services_port,
                     password_field=password_field,
                     ssl_config=ssl_config,
+                    version_config=version_config,
                 )
             )
         assert self.directory
-        self.proc = subprocess.Popen(
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
+        extra_args = []
+        if self.debug_mode:
+            if installed_version() >= 4:
+                extra_args.append("--protocoldebug")
+            else:
+                extra_args.append("--debug")
+
+        self.proc = self.execute(
             [
+                *faketime_cmd,
                 "inspircd",
                 "--nofork",
                 "--config",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
+                *extra_args,
             ],
-            stdout=subprocess.DEVNULL,
         )
 
         if run_services:

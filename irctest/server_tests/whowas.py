@@ -1,8 +1,20 @@
+"""
+The WHOSWAS command  (`RFC 1459
+<https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3>`__,
+`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3>`__,
+`Modern <https://modern.ircdocs.horse/#whowas-message>`__)
+
+TODO: cross-reference Modern
+"""
+
+import time
+
 import pytest
 
 from irctest import cases, runner
 from irctest.exceptions import ConnectionClosed
 from irctest.numerics import (
+    ERR_NEEDMOREPARAMS,
     ERR_NONICKNAMEGIVEN,
     ERR_WASNOSUCHNICK,
     RPL_ENDOFWHOWAS,
@@ -78,6 +90,43 @@ class WhowasTestCase(cases.BaseServerTestCase):
             unexpected_messages, [], fail_msg="Unexpected numeric messages: {got}"
         )
 
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    def testWhowasEnd(self):
+        """
+        "At the end of all reply batches, there must be RPL_ENDOFWHOWAS"
+        -- https://datatracker.ietf.org/doc/html/rfc1459#page-50
+        -- https://datatracker.ietf.org/doc/html/rfc2812#page-45
+
+        "Servers MUST reply with either ERR_WASNOSUCHNICK or [...],
+        both followed with RPL_ENDOFWHOWAS"
+        -- https://modern.ircdocs.horse/#whowas-message
+        """
+        self.connectClient("nick1")
+
+        self.connectClient("nick2")
+        self.sendLine(2, "QUIT :bye")
+        try:
+            self.getMessages(2)
+        except ConnectionClosed:
+            pass
+
+        self.sendLine(1, "WHOWAS nick2")
+
+        messages = []
+        for _ in range(10):
+            messages.extend(self.getMessages(1))
+            if RPL_ENDOFWHOWAS in (m.command for m in messages):
+                break
+
+        last_message = messages.pop()
+
+        self.assertMessageMatch(
+            last_message,
+            command=RPL_ENDOFWHOWAS,
+            params=["nick1", "nick2", ANYSTR],
+            fail_msg=f"Last message was not RPL_ENDOFWHOWAS ({RPL_ENDOFWHOWAS})",
+        )
+
     def _testWhowasMultiple(self, second_result, whowas_command):
         """
         "The history is searched backward, returning the most recent entry first."
@@ -96,12 +145,17 @@ class WhowasTestCase(cases.BaseServerTestCase):
         except ConnectionClosed:
             pass
 
+        time.sleep(1)  # Ergo may take a little while to record the nick as free
+
         self.connectClient("nick2", ident="ident3")
         self.sendLine(3, "QUIT :bye")
         try:
             self.getMessages(3)
         except ConnectionClosed:
             pass
+
+        if self.controller.software_name == "Sable":
+            time.sleep(1)  # may take a little while to record the historical user
 
         self.sendLine(1, whowas_command)
 
@@ -152,50 +206,64 @@ class WhowasTestCase(cases.BaseServerTestCase):
             fail_msg=f"Last message was not RPL_ENDOFWHOWAS ({RPL_ENDOFWHOWAS})",
         )
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     def testWhowasMultiple(self):
         """
         "The history is searched backward, returning the most recent entry first."
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2")
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     def testWhowasCount1(self):
         """
         "If there are multiple entries, up to <count> replies will be returned"
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self._testWhowasMultiple(second_result=False, whowas_command="WHOWAS nick2 1")
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     def testWhowasCount2(self):
         """
         "If there are multiple entries, up to <count> replies will be returned"
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 2")
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     def testWhowasCountNegative(self):
         """
         "If a non-positive number is passed as being <count>, then a full search
         is done."
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+
+        "If given, <count> SHOULD be a positive number. Otherwise, a full search
+        "is done.
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 -1")
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["ircu2"], "Fix not released yet: https://github.com/UndernetIRC/ircu2/pull/19"
+    )
     def testWhowasCountZero(self):
         """
         "If a non-positive number is passed as being <count>, then a full search
         is done."
         -- https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+
+        "If given, <count> SHOULD be a positive number. Otherwise, a full search
+        "is done.
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 0")
 
@@ -204,11 +272,15 @@ class WhowasTestCase(cases.BaseServerTestCase):
         """
         "Wildcards are allowed in the <target> parameter."
         -- https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://modern.ircdocs.horse/#whowas-message
         """
+        if self.controller.software_name == "Bahamut":
+            raise runner.OptionalExtensionNotSupported("WHOWAS mask")
+
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS *ck2")
 
     @cases.mark_specifications("RFC1459", "RFC2812", deprecated=True)
-    def testWhowasNoParam(self):
+    def testWhowasNoParamRfc(self):
         """
         https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
@@ -239,11 +311,46 @@ class WhowasTestCase(cases.BaseServerTestCase):
             params=["nick1", "nick2", ANYSTR],
         )
 
-    @cases.mark_specifications("RFC1459", "RFC2812")
+    @cases.mark_specifications("Modern")
+    def testWhowasNoParamModern(self):
+        """
+        "If the `<nick>` argument is missing, they SHOULD send a single reply, using
+        either ERR_NONICKNAMEGIVEN or ERR_NEEDMOREPARAMS"
+        -- https://modern.ircdocs.horse/#whowas-message
+        """
+        # But no one seems to follow this. Most implementations use ERR_NEEDMOREPARAMS
+        # instead of ERR_NONICKNAMEGIVEN; and I couldn't find any that returns
+        # RPL_ENDOFWHOWAS either way.
+        self.connectClient("nick1")
+
+        self.sendLine(1, "WHOWAS")
+
+        m = self.getMessage(1)
+        if m.command == ERR_NONICKNAMEGIVEN:
+            self.assertMessageMatch(
+                m,
+                command=ERR_NONICKNAMEGIVEN,
+                params=["nick1", ANYSTR],
+            )
+        else:
+            self.assertMessageMatch(
+                m,
+                command=ERR_NEEDMOREPARAMS,
+                params=["nick1", "WHOWAS", ANYSTR],
+            )
+
+    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.xfailIfSoftware(
+        ["Charybdis"],
+        "fails because of a typo (solved in "
+        "https://github.com/solanum-ircd/solanum/commit/"
+        "08b7b6bd7e60a760ad47b58cbe8075b45d66166f)",
+    )
     def testWhowasNoSuchNick(self):
         """
         https://datatracker.ietf.org/doc/html/rfc1459#section-4.5.3
         https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
+        -- https://modern.ircdocs.horse/#whowas-message
 
         and:
 
@@ -251,6 +358,12 @@ class WhowasTestCase(cases.BaseServerTestCase):
         (even if there was only one reply and it was an error)."
         -- https://datatracker.ietf.org/doc/html/rfc1459#page-50
         -- https://datatracker.ietf.org/doc/html/rfc2812#page-45
+
+        and:
+
+        "Servers MUST reply with either ERR_WASNOSUCHNICK or [...],
+        both followed with RPL_ENDOFWHOWAS"
+        -- https://modern.ircdocs.horse/#whowas-message
         """
         self.connectClient("nick1")
 
@@ -275,15 +388,15 @@ class WhowasTestCase(cases.BaseServerTestCase):
         """
         https://datatracker.ietf.org/doc/html/rfc2812#section-3.6.3
         """
+        if self.controller.software_name == "Bahamut":
+            pytest.xfail(
+                "Bahamut returns entries in query order instead of chronological order"
+            )
+
         self.connectClient("nick1")
 
-        targmax = dict(
-            item.split(":", 1)
-            for item in self.server_support.get("TARGMAX", "").split(",")
-            if item
-        )
-        if targmax.get("WHOWAS", "1") == "1":
-            raise runner.NotImplementedByController("Multi-target WHOWAS")
+        if self.targmax.get("WHOWAS", "1") == "1":
+            raise runner.OptionalExtensionNotSupported("Multi-target WHOWAS")
 
         self.connectClient("nick2", ident="ident2")
         self.sendLine(2, "QUIT :bye")

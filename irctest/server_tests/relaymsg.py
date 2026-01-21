@@ -1,3 +1,7 @@
+"""
+RELAYMSG command of `Ergo <https://ergo.chat/>`_
+"""
+
 from irctest import cases
 from irctest.irc_utils.junkdrawer import random_name
 from irctest.patma import ANYSTR

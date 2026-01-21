@@ -1,14 +1,13 @@
 """
-Tests METADATA features.
-<http://ircv3.net/specs/core/metadata-3.2.html>
+`Deprecated IRCv3 Metadata <https://ircv3.net/specs/core/metadata-3.2>`_
 """
 
 from irctest import cases
 
 
-class MetadataTestCase(cases.BaseServerTestCase):
-    valid_metadata_keys = {"valid_key1", "valid_key2"}
-    invalid_metadata_keys = {"invalid_key1", "invalid_key2"}
+class MetadataDeprecatedTestCase(cases.BaseServerTestCase):
+    valid_metadata_keys = {"display-name", "avatar"}
+    invalid_metadata_keys = {"indisplay-name", "inavatar"}
 
     @cases.mark_specifications("IRCv3", deprecated=True)
     def testInIsupport(self):
@@ -37,7 +36,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
     def testGetOneUnsetValid(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html#metadata-get>"""
         self.connectClient("foo")
-        self.sendLine(1, "METADATA * GET valid_key1")
+        self.sendLine(1, "METADATA * GET display-name")
         m = self.getMessage(1)
         self.assertMessageMatch(
             m,
@@ -53,7 +52,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-get>
         """
         self.connectClient("foo")
-        self.sendLine(1, "METADATA * GET valid_key1 valid_key2")
+        self.sendLine(1, "METADATA * GET display-name avatar")
         m = self.getMessage(1)
         self.assertMessageMatch(
             m,
@@ -63,10 +62,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         self.assertEqual(
             m.params[1],
-            "valid_key1",
+            "display-name",
             m,
-            fail_msg="Response to “METADATA * GET valid_key1 valid_key2” "
-            "did not respond to valid_key1 first: {msg}",
+            fail_msg="Response to “METADATA * GET display-name avatar” "
+            "did not respond to display-name first: {msg}",
         )
         m = self.getMessage(1)
         self.assertMessageMatch(
@@ -77,10 +76,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         self.assertEqual(
             m.params[1],
-            "valid_key2",
+            "avatar",
             m,
-            fail_msg="Response to “METADATA * GET valid_key1 valid_key2” "
-            "did not respond to valid_key2 as second response: {msg}",
+            fail_msg="Response to “METADATA * GET display-name avatar” "
+            "did not respond to avatar as second response: {msg}",
         )
 
     @cases.mark_specifications("IRCv3", deprecated=True)
@@ -136,7 +135,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         self.assertEqual(
             m.params[1],
-            "valid_key1",
+            "display-name",
             m,
             fail_msg="Second param of 761 after setting “{expects}” to "
             "“{}” is not “{expects}”: {msg}.",
@@ -191,7 +190,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
     def testSetGetValid(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient("foo")
-        self.assertSetGetValue("*", "valid_key1", "myvalue")
+        self.assertSetGetValue("*", "display-name", "myvalue")
 
     @cases.mark_specifications("IRCv3", deprecated=True)
     def testSetGetZeroCharInValue(self):
@@ -199,7 +198,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-restrictions>
         """
         self.connectClient("foo")
-        self.assertSetGetValue("*", "valid_key1", "zero->\0<-zero", "zero->\\0<-zero")
+        self.assertSetGetValue("*", "display-name", "zero->\0<-zero", "zero->\\0<-zero")
 
     @cases.mark_specifications("IRCv3", deprecated=True)
     def testSetGetHeartInValue(self):
@@ -210,7 +209,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
         self.assertSetGetValue(
             "*",
-            "valid_key1",
+            "display-name",
             "->{}<-".format(heart),
             "zero->{}<-zero".format(heart.encode()),
         )
@@ -224,7 +223,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         # Sending directly because it is not valid UTF-8 so Python would
         # not like it
         self.clients[1].conn.sendall(
-            b"METADATA * SET valid_key1 " b":invalid UTF-8 ->\xc3<-\r\n"
+            b"METADATA * SET display-name " b":invalid UTF-8 ->\xc3<-\r\n"
         )
         commands = {m.command for m in self.getMessages(1)}
         self.assertNotIn(
@@ -234,7 +233,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "UTF-8 was answered with 761 (RPL_KEYVALUE)",
         )
         self.clients[1].conn.sendall(
-            b"METADATA * SET valid_key1 " b":invalid UTF-8: \xc3\r\n"
+            b"METADATA * SET display-name " b":invalid UTF-8: \xc3\r\n"
         )
         commands = {m.command for m in self.getMessages(1)}
         self.assertNotIn(

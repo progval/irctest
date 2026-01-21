@@ -1,13 +1,14 @@
-import os
+import functools
+from pathlib import Path
 import shutil
 import subprocess
-from typing import Type
+from typing import Tuple, Type
 
 from irctest.basecontrollers import BaseServicesController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
 serverinfo {{
-    name = "services.example.org"
+    name = "My.Little.Services"
     description = "Anope IRC Services"
     numeric = "00A"
     pid = "services.pid"
@@ -48,8 +49,9 @@ module {{
     client = "NickServ"
     forceemail = no
     passlen = 1000  # Some tests need long passwords
+    maxpasslen = 1000
+    minpasslen = 1
 }}
-command {{ service = "NickServ"; name = "HELP"; command = "generic/help"; }}
 
 module {{
     name = "ns_register"
@@ -60,18 +62,36 @@ command {{ service = "NickServ"; name = "REGISTER"; command = "nickserv/register
 options {{
     casemap = "ascii"
     readtimeout = 5s
-    warningtimeout = 4h
 }}
 
-module {{ name = "m_sasl" }}
-module {{ name = "enc_sha256" }}
+module {{ name = "ns_sasl" }}          # 2.1
+module {{ name = "ns_sasl_external" }} # 2.1
+module {{ name = "ns_sasl_plain" }}    # 2.1
+module {{ name = "m_sasl" }}  # 2.0
+
+module {{ name = "enc_sha2" }}   # 2.1
+module {{ name = "enc_sha256" }} # 2.0
+
 module {{ name = "ns_cert" }}
 
 """
 
 
+@functools.lru_cache()
+def installed_version() -> Tuple[int, ...]:
+    output = subprocess.run(
+        ["anope", "--version"], stdout=subprocess.PIPE, universal_newlines=True
+    ).stdout
+    (anope, version, *trailing) = output.split()[0].split("-")
+    assert anope == "Anope"
+    return tuple(map(int, version.split(".")))
+
+
 class AnopeController(BaseServicesController, DirectoryBasedController):
     """Collaborator for server controllers that rely on Anope"""
+
+    software_name = "Anope"
+    software_version = None
 
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
@@ -86,6 +106,21 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
             "ngircd",
         )
 
+        assert self.directory
+        services_path = shutil.which("anope")
+        assert services_path
+
+        # Rewrite Anope 2.0 module names for 2.1
+        if not self.software_version:
+            self.software_version = installed_version()
+        if self.software_version >= (2, 1, 0):
+            if protocol == "charybdis":
+                protocol = "solanum"
+            elif protocol == "inspircd3":
+                protocol = "inspircd"
+            elif protocol == "unreal4":
+                protocol = "unrealircd"
+
         with self.open_file("conf/services.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -98,27 +133,26 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
         with self.open_file("conf/empty_file") as fd:
             pass
 
-        assert self.directory
-
         # Config and code need to be in the same directory, *obviously*
-        os.symlink(
-            os.path.join(
-                os.path.dirname(shutil.which("services")), "..", "lib"  # type: ignore
-            ),
-            os.path.join(self.directory, "lib"),
+        (self.directory / "lib").symlink_to(Path(services_path).parent.parent / "lib")
+        (self.directory / "modules").symlink_to(
+            Path(services_path).parent.parent / "modules"
         )
 
-        self.proc = subprocess.Popen(
+        extra_args = []
+        if self.debug_mode:
+            extra_args.append("--debug")
+
+        self.proc = self.execute(
             [
-                "services",
-                "-n",  # don't fork
-                "--config=services.conf",  # can't be an absolute path
-                # "--logdir",
-                # f"/tmp/services-{server_port}.log",
+                "anope",
+                "--config=services.conf",  # can't be an absolute path in 2.0
+                "--nodb",  # don't write a database
+                "--nofork",  # don't fork
+                "--nopid",  # don't write a pid
+                *extra_args,
             ],
             cwd=self.directory,
-            # stdout=subprocess.DEVNULL,
-            # stderr=subprocess.DEVNULL,
         )
 
 

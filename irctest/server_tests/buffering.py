@@ -1,5 +1,7 @@
-"""Sends packets with various length to check the server reassembles them
-correctly. Also checks truncation"""
+"""
+Sends packets with various length to check the server reassembles them
+correctly. Also checks truncation.
+"""
 
 import socket
 import time
@@ -30,6 +32,16 @@ def _sendBytePerByte(self, line):
 
 
 class BufferingTestCase(cases.BaseServerTestCase):
+    @cases.xfailIfSoftware(
+        ["Bahamut"],
+        "cannot pass because of issues with UTF-8 handling: "
+        "https://github.com/DALnet/bahamut/issues/196",
+    )
+    @cases.xfailIfSoftware(
+        ["ircu2", "Nefarious", "snircd"],
+        "ircu2 discards the whole buffer on long lines "
+        "(TODO: refine how we exclude these tests)",
+    )
     @pytest.mark.parametrize(
         "sender_function,colon",
         [
@@ -74,10 +86,10 @@ class BufferingTestCase(cases.BaseServerTestCase):
             if messages and ERR_INPUTTOOLONG in (m.command for m in messages):
                 # https://defs.ircdocs.horse/defs/numerics.html#err-inputtoolong-417
                 self.assertGreater(
-                    len(line + payload + "\r\n"),
+                    len((line + payload + "\r\n").encode()),
                     512 - overhead,
-                    "Got ERR_INPUTTOOLONG for a messag that should fit "
-                    "withing 512 characters.",
+                    "Got ERR_INPUTTOOLONG for a message that should fit "
+                    "within 512 characters.",
                 )
                 continue
 
@@ -95,7 +107,8 @@ class BufferingTestCase(cases.BaseServerTestCase):
                     )
                 payload_intact = False
             else:
-                msg = message_parser.parse_message(decoded_line)
+                # strip final "\r\n", then parse
+                msg = message_parser.parse_message(decoded_line[:-2])
                 self.assertMessageMatch(
                     msg, command="PRIVMSG", params=["nick2", ANYSTR]
                 )
@@ -113,11 +126,24 @@ class BufferingTestCase(cases.BaseServerTestCase):
                     f"expected payload to be a prefix of {payload!r}, "
                     f"but got {payload!r}",
                 )
+            if self.controller.software_name == "Ergo":
+                self.assertTrue(
+                    payload_intact,
+                    f"Ergo should not truncate messages: {repr(line + payload)}, {repr(received_line)}",
+                )
 
     def get_overhead(self, client1, client2, colon):
-        self.sendLine(client1, f"PRIVMSG nick2 {colon}a\r\n")
+        """Compute the overhead added to client1's message:
+                          PRIVMSG nick2 a\r\n
+        :nick1!~user@host PRIVMSG nick2 :a\r\n
+        So typically client1's NUH length plus either 2 or 3 bytes
+        (the initial colon, the space between source and command, and possibly
+        a colon preceding the trailing).
+        """
+        outgoing = f"PRIVMSG nick2 {colon}a\r\n"
+        self.sendLine(client1, outgoing)
         line = self._getLine(client2)
-        return len(line) - len(f"PRIVMSG nick2 {colon}a\r\n")
+        return len(line) - len(outgoing.encode())
 
     def _getLine(self, client) -> bytes:
         line = b""
@@ -127,8 +153,8 @@ class BufferingTestCase(cases.BaseServerTestCase):
             except socket.timeout:
                 data = b""
             line += data
-            if data.endswith(b"\r\n"):
+            if line.endswith(b"\r\n"):
                 return line
             time.sleep(0.1)
             print(f"{client}: Waiting...")
-        return line
+        raise ValueError(f"Received unterminated line: {repr(line)}")

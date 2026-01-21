@@ -1,13 +1,8 @@
-import os
-import subprocess
-from typing import Optional, Set
+from pathlib import Path
+import shutil
+from typing import Optional
 
-from irctest.basecontrollers import (
-    BaseServerController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
-from irctest.irc_utils.junkdrawer import find_hostname_and_port
+from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_SSL_CONFIG = """
     ssl_private_key = "{key_path}";
@@ -41,18 +36,13 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
+        faketime: Optional[str],
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
         assert self.proc is None
         self.port = port
         self.hostname = hostname
         self.create_config()
-        (services_hostname, services_port) = find_hostname_and_port()
+        (services_hostname, services_port) = self.get_hostname_and_port()
         password_field = 'password = "{}";'.format(password) if password else ""
         if ssl:
             self.gen_ssl()
@@ -61,6 +51,8 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
             )
         else:
             ssl_config = ""
+        binary_path = shutil.which(self.binary_name)
+        assert binary_path, f"Could not find '{binary_path}' executable"
         with self.open_file("server.conf") as fd:
             fd.write(
                 (self.template_config).format(
@@ -70,19 +62,27 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
                     services_port=services_port,
                     password_field=password_field,
                     ssl_config=ssl_config,
+                    install_prefix=Path(binary_path).parent.parent,
                 )
             )
         assert self.directory
-        self.proc = subprocess.Popen(
+
+        if faketime and shutil.which("faketime"):
+            faketime_cmd = ["faketime", "-f", faketime]
+            self.faketime_enabled = True
+        else:
+            faketime_cmd = []
+
+        self.proc = self.execute(
             [
+                *faketime_cmd,
                 self.binary_name,
                 "-foreground",
                 "-configfile",
-                os.path.join(self.directory, "server.conf"),
+                self.directory / "server.conf",
                 "-pidfile",
-                os.path.join(self.directory, "server.pid"),
+                self.directory / "server.pid",
             ],
-            # stderr=subprocess.DEVNULL,
         )
 
         if run_services:

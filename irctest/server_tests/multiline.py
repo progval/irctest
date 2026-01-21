@@ -1,9 +1,9 @@
 """
-draft/multiline
+`Draft IRCv3 multiline <https://ircv3.net/specs/extensions/multiline>`_
 """
 
 from irctest import cases
-from irctest.patma import ANYDICT, StrRe
+from irctest.patma import ANYDICT, ANYSTR, StrRe
 
 CAP_NAME = "draft/multiline"
 BATCH_TYPE = "draft/multiline"
@@ -12,7 +12,7 @@ CONCAT_TAG = "draft/multiline-concat"
 base_caps = ["message-tags", "batch", "echo-message", "server-time", "labeled-response"]
 
 
-class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
+class MultilineTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("draft/multiline")
     def testBasic(self):
         self.connectClient(
@@ -135,3 +135,86 @@ class MultilineTestCase(cases.BaseServerTestCase, cases.OptionalityHelper):
         self.assertIn("+client-only-tag", fallback_relay[0].tags)
         self.assertIn("+client-only-tag", fallback_relay[1].tags)
         self.assertEqual(fallback_relay[0].tags["msgid"], msgid)
+
+    @cases.mark_capabilities("draft/multiline")
+    def testInvalidBatchTag(self):
+        """Test that an unexpected change of batch tag results in
+        FAIL BATCH MULTILINE_INVALID."""
+
+        self.connectClient(
+            "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
+        )
+        self.joinChannel(1, "#test")
+
+        # invalid batch tag:
+        self.sendLine(1, "BATCH +123 %s #test" % (BATCH_TYPE,))
+        self.sendLine(1, "@batch=231 PRIVMSG #test :hi")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["BATCH", "MULTILINE_INVALID", ANYSTR],
+        )
+
+    @cases.mark_capabilities("draft/multiline")
+    def testInvalidBlankConcatTag(self):
+        """Test that the concat tag on a blank message results in
+        FAIL BATCH MULTILINE_INVALID."""
+
+        self.connectClient(
+            "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
+        )
+        self.joinChannel(1, "#test")
+
+        # cannot send the concat tag with a blank message:
+        self.sendLine(1, "BATCH +123 %s #test" % (BATCH_TYPE,))
+        self.sendLine(1, "@batch=123 PRIVMSG #test :hi")
+        self.sendLine(1, "@batch=123;%s PRIVMSG #test :" % (CONCAT_TAG,))
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["BATCH", "MULTILINE_INVALID", ANYSTR],
+        )
+
+    @cases.mark_specifications("Ergo")
+    def testLineLimit(self):
+        """This is an Ergo-specific test for line limit enforcement
+        in multiline messages. Right now it hardcodes the same limits as in
+        the Ergo controller; we can generalize it in future for other multiline
+        implementations.
+        """
+
+        self.connectClient(
+            "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=False
+        )
+        self.joinChannel(1, "#test")
+
+        # line limit exceeded
+        self.sendLine(1, "BATCH +123 %s #test" % (BATCH_TYPE,))
+        for i in range(33):
+            self.sendLine(1, "@batch=123 PRIVMSG #test hi")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["BATCH", "MULTILINE_MAX_LINES", "32", ANYSTR],
+        )
+
+    @cases.mark_specifications("Ergo")
+    def testByteLimit(self):
+        """This is an Ergo-specific test for line limit enforcement
+        in multiline messages (see testLineLimit).
+        """
+
+        self.connectClient(
+            "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=False
+        )
+        self.joinChannel(1, "#test")
+
+        # byte limit exceeded
+        self.sendLine(1, "BATCH +234 %s #test" % (BATCH_TYPE,))
+        for i in range(11):
+            self.sendLine(1, "@batch=234 PRIVMSG #test " + ("x" * 400))
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["BATCH", "MULTILINE_MAX_BYTES", "4096", ANYSTR],
+        )
