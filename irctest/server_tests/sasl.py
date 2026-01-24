@@ -778,7 +778,7 @@ class SaslTestCase(cases.BaseServerTestCase):
                     params=["*", StrRe("([A-Z0-9_-]+)(,[A-Z0-9_-]+)*"), ANYSTR],
                 )
 
-    @pytest.mark.xfail("the RFC does not say servers have to reject it")
+    @pytest.mark.xfail(reason="the RFC does not say servers have to reject it")
     @cases.mark_specifications("IRCv3")
     @cases.skipUnlessHasMechanism("PLAIN")
     @pytest.mark.parametrize(
