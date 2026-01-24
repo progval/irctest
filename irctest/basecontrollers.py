@@ -262,7 +262,7 @@ class BaseServerController(_BaseController):
     services_controller_class: Type[BaseServicesController]
     extban_mute_char: Optional[str] = None
     """Character used for the 'mute' extban"""
-    nickserv = "NickServ"
+    nickserv = "SaslServ"
     sync_sleep_time = 0.0
     """How many seconds to sleep before clients synchronously get messages.
 
@@ -348,6 +348,8 @@ class BaseServerController(_BaseController):
 
 
 class BaseServicesController(_BaseController):
+    saslserv: str
+
     def __init__(
         self,
         test_config: TestCaseControllerConfig,
