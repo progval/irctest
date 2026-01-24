@@ -484,6 +484,9 @@ tests:
     hybrid:
         software: [hybrid, anope]
 
+    solanum:
+        software: [solanum]
+
     solanum-atheme:
         software: [solanum, atheme]
 
