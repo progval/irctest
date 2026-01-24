@@ -1,4 +1,5 @@
 import base64
+import time
 
 from irctest import cases, runner, scram
 from irctest.numerics import ERR_SASLFAIL, RPL_LOGGEDIN, RPL_SASLMECHS
@@ -430,3 +431,127 @@ class SaslTestCase(cases.BaseServerTestCase):
         )
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(m, command=ERR_SASLFAIL)
+
+    @cases.mark_specifications("IRCv3")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    def testPlainPostRegistration(self):
+        """
+        "Servers SHOULD allow a client, authenticated or otherwise, to reauthenticate by sending
+        a new AUTHENTICATE message at any time."
+        -- https://ircv3.net/specs/extensions/sasl-3.2
+        """
+        self.controller.registerUser(self, "jilles", "sesame")
+
+        self.connectClient(
+            "foo", capabilities=["sasl", "cap-notify"], skip_if_cap_nak=True
+        )
+
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        time.sleep(2)
+        m = self.getMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
+        self.confirmSuccessfulAuth()
+
+    @cases.mark_specifications("IRCv3")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    def testPlainPostRegistrationAndReAuthenticate(self):
+        """
+        "Servers SHOULD allow a client, authenticated or otherwise, to reauthenticate by sending
+        a new AUTHENTICATE message at any time."
+        -- https://ircv3.net/specs/extensions/sasl-3.2
+        """
+        self.controller.registerUser(self, "jilles", "sesame")
+        self.controller.registerUser(self, "foo", "bar")
+
+        self.connectClient(
+            "user", capabilities=["sasl", "cap-notify"], skip_if_cap_nak=True
+        )
+
+        # authenticate as foo
+        authstring = base64.b64encode(b"\x00".join([b"foo", b"foo", b"bar"])).decode()
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        time.sleep(2)
+        m = self.getMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        self.sendLine(1, "AUTHENTICATE " + authstring)
+        self.confirmSuccessfulAuth()
+
+        # reauthenticate as jilles
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        time.sleep(2)
+        m = self.getMessage(1)
+        if m.command == "907":  # ERR_SASLALREADY
+            self.assertMessageMatch(
+                m,
+                command="907",
+                params=["user", ANYSTR],
+                fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+                "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
+                "but instead sent: {msg}",
+            )
+            raise runner.OptionalExtensionNotSupported("SASL re-authentication")
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
+        self.confirmSuccessfulAuth()
+
+    @cases.mark_specifications("IRCv3")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    def testPlainReAuthenticate(self):
+        """
+        "Servers SHOULD allow a client, authenticated or otherwise, to reauthenticate by sending
+        a new AUTHENTICATE message at any time."
+        -- https://ircv3.net/specs/extensions/sasl-3.2
+        """
+        self.controller.registerUser(self, "jilles", "sesame")
+        self.controller.registerUser(self, "foo", "bar")
+
+        self.connectClient(
+            "user",
+            capabilities=["sasl", "cap-notify"],
+            skip_if_cap_nak=True,
+            account="foo",
+            password="bar",
+        )
+
+        # reauthenticate as jilles
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        time.sleep(2)
+        m = self.getMessage(1)
+        if m.command == "907":  # ERR_SASLALREADY
+            self.assertMessageMatch(
+                m,
+                command="907",
+                params=["user", ANYSTR],
+                fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+                "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
+                "but instead sent: {msg}",
+            )
+            raise runner.OptionalExtensionNotSupported("SASL re-authentication")
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
+        self.confirmSuccessfulAuth()
