@@ -507,7 +507,8 @@ jobs:
     - test-ngircd-atheme
     - test-plexus4
     - test-sable
-    - test-solanum
+    - test-solanum-anope
+    - test-solanum-atheme
     - test-sopel
     - test-thelounge
     - test-unrealircd
@@ -1136,7 +1137,48 @@ jobs:
       with:
         name: pytest-results_sable_devel
         path: pytest.xml
-  test-solanum:
+  test-solanum-anope:
+    needs:
+    - build-solanum
+    - build-anope
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-solanum
+        path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-anope
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Install system dependencies
+      run: sudo apt-get install faketime
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt pytest-xdist pytest-timeout
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
+        solanum-anope
+      timeout-minutes: 30
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results_solanum-anope_devel
+        path: pytest.xml
+  test-solanum-atheme:
     needs:
     - build-solanum
     - build-atheme
@@ -1169,13 +1211,13 @@ jobs:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
-        solanum
+        solanum-atheme
       timeout-minutes: 30
     - if: always()
       name: Publish results
       uses: actions/upload-artifact@v4
       with:
-        name: pytest-results_solanum_devel
+        name: pytest-results_solanum-atheme_devel
         path: pytest.xml
   test-sopel:
     needs: []

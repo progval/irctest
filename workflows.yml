@@ -345,7 +345,7 @@ software:
             cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
             ninja install
 
-    anope-2-0:
+    anope-2-0: # Anope 2.1.15 removes support for Bahamut
         name: Anope 2.0
         repository: anope/anope
         separate_build_job: true
@@ -484,8 +484,11 @@ tests:
     hybrid:
         software: [hybrid, anope]
 
-    solanum:
+    solanum-atheme:
         software: [solanum, atheme]
+
+    solanum-anope:
+        software: [solanum, anope]
 
     ergo:
         software: [ergo]
