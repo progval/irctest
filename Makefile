@@ -197,8 +197,8 @@ inspircd-anope:
 ircu2:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.ircu2 \
+		-n 4 \
 		-m 'not services and not IRCv3 and $(IRCU2_SELECTORS)'
-		-n 4
 
 .PHONY: nefarious
 nefarious:
