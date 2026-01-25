@@ -891,6 +891,40 @@ class SaslTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.skipUnlessHasMechanism("PLAIN")
+    def testRetryAfterInvalidBase64(self):
+        """Tests that authentication can be retried after failure.
+
+        "If authentication fails, a 904 or 905 numeric will be sent and the
+        client MAY retry from the AUTHENTICATE <mechanism> command."
+        -- <https://ircv3.net/specs/extensions/sasl-3.1#the-authenticate-command>
+        """
+        self.controller.registerUser(self, "jilles", "sesame")
+        self.addClient()
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
+
+        # First attempt: wrong password ("millet" instead of "sesame")
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(m, command="AUTHENTICATE", params=["+"])
+        self.sendLine(1, "AUTHENTICATE !!!")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(m, command=ERR_SASLFAIL, params=["*", ANYSTR])
+
+        # Second attempt: correct password
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="After SASL failure, client should be able to retry. "
+            "Server should reply with AUTHENTICATE +, but got: {msg}",
+        )
+        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
+        self.confirmSuccessfulAuth()
+
+    @cases.mark_specifications("IRCv3")
+    @cases.skipUnlessHasMechanism("PLAIN")
     def testRetryAfterFail(self):
         """Tests that authentication can be retried after failure.
 
