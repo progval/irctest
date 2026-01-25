@@ -15,7 +15,7 @@ general {{
     # disable throttling for LIST and similar:
     pace_wait_simple = 0 second;
     pace_wait = 0 second;
-    sasl_service = "SaslServ";
+    sasl_service = "{saslserv}";
 }};
 
 class "server" {{

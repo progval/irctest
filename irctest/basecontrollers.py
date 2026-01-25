@@ -348,6 +348,8 @@ class BaseServerController(_BaseController):
 
 
 class BaseServicesController(_BaseController):
+    saslserv: str = "SaslServ"
+
     def __init__(
         self,
         test_config: TestCaseControllerConfig,
