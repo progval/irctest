@@ -2,7 +2,6 @@ import base64
 import time
 
 from irctest import cases, runner, scram
-from irctest.irc_utils.sasl import sasl_plain_blob
 from irctest.numerics import (
     ERR_SASLALREADY,
     ERR_SASLFAIL,
@@ -91,7 +90,9 @@ class SaslTestCase(cases.BaseServerTestCase):
     @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainNonAscii(self):
         password = "é" * 100
-        authstring = sasl_plain_blob("foo", password)
+        authstring = base64.b64encode(
+            b"\x00".join([b"foo", b"foo", password.encode()])
+        ).decode()
         self.controller.registerUser(self, "foo", password)
         self.addClient()
         self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
@@ -224,7 +225,9 @@ class SaslTestCase(cases.BaseServerTestCase):
         <http://ircv3.net/specs/extensions/sasl-3.1.html#the-authenticate-command>
         """
         self.controller.registerUser(self, "foo", "bar" * 100)
-        authstring = sasl_plain_blob("foo", b"bar" * 100)
+        authstring = base64.b64encode(
+            b"\x00".join([b"foo", b"foo", b"bar" * 100])
+        ).decode()
         self.addClient()
         self.sendLine(1, "CAP LS 302")
         capabilities = self.getCapLs(1)
@@ -291,7 +294,9 @@ class SaslTestCase(cases.BaseServerTestCase):
         <http://ircv3.net/specs/extensions/sasl-3.1.html#the-authenticate-command>
         """
         self.controller.registerUser(self, "foo", "bar" * 97)
-        authstring = sasl_plain_blob("foo", "bar" * 97)
+        authstring = base64.b64encode(
+            b"\x00".join([b"foo", b"foo", b"bar" * 97])
+        ).decode()
         assert len(authstring) == 400, "Bad test"
         self.addClient()
         self.sendLine(1, "CAP LS 302")
@@ -472,7 +477,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.connectClient("user", capabilities=["sasl"], skip_if_cap_nak=True)
 
         # authenticate as foo
-        authstring = sasl_plain_blob("foo", "bar")
+        authstring = base64.b64encode(b"\x00".join([b"foo", b"foo", b"bar"])).decode()
         self.sendLine(1, "AUTHENTICATE PLAIN")
         time.sleep(2)
         m = self.getMessage(1)
