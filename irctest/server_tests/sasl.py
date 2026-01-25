@@ -442,9 +442,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         """
         self.controller.registerUser(self, "jilles", "sesame")
 
-        self.connectClient(
-            "foo", capabilities=["sasl", "cap-notify"], skip_if_cap_nak=True
-        )
+        self.connectClient("foo", capabilities=["sasl"], skip_if_cap_nak=True)
 
         self.sendLine(1, "AUTHENTICATE PLAIN")
         time.sleep(2)
@@ -470,9 +468,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.controller.registerUser(self, "jilles", "sesame")
         self.controller.registerUser(self, "foo", "bar")
 
-        self.connectClient(
-            "user", capabilities=["sasl", "cap-notify"], skip_if_cap_nak=True
-        )
+        self.connectClient("user", capabilities=["sasl"], skip_if_cap_nak=True)
 
         # authenticate as foo
         authstring = base64.b64encode(b"\x00".join([b"foo", b"foo", b"bar"])).decode()
@@ -526,7 +522,7 @@ class SaslTestCase(cases.BaseServerTestCase):
 
         self.connectClient(
             "user",
-            capabilities=["sasl", "cap-notify"],
+            capabilities=["sasl"],
             skip_if_cap_nak=True,
             account="foo",
             password="bar",
