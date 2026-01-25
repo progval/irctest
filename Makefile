@@ -252,14 +252,14 @@ ngircd-anope:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
 		--services-controller=irctest.controllers.anope_services \
-		-m 'services and $(NGIRCD_SELECTORS)"
+		-m "services and $(NGIRCD_SELECTORS)"
 
 .PHONY: ngircd-atheme
 ngircd-atheme:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
 		--services-controller=irctest.controllers.atheme_services \
-		-m 'services and $(NGIRCD_SELECTORS)"
+		-m "services and $(NGIRCD_SELECTORS)"
 
 .PHONY: sable
 sable:
