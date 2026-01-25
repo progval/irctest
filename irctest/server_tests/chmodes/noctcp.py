@@ -55,11 +55,15 @@ class NoctcpModeTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "PRIVMSG #chan :\x01ACTION is testing\x01")
         self.assertEqual(self.getMessages(2), [])
         self.sendLine(2, "PRIVMSG #chan :\x01PING 12345\x01")
-        self.assertMessageMatch(
-            self.getMessage(2),
-            command=ERR_CANNOTSENDTOCHAN,
-            params=["user", "#chan", ANYSTR],
+        fail_response = self.getMessage(2)
+        # ERR_CANNOTSENDTOCHAN is preferred here, but some implementations may send
+        # 492 ERR_NOCTCP, which is more specific but also conflicted.
+        self.assertIn(
+            fail_response.command,
+            [ERR_CANNOTSENDTOCHAN, "492"],
+            "Non-action CTCP must be rejected with a recognized numeric",
         )
+        self.assertMessageMatch(fail_response, params=["user", "#chan", ANYSTR])
 
         self.assertEqual(
             [(m.command, m.params[1]) for m in self.getMessages(1)],
