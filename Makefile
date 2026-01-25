@@ -90,7 +90,6 @@ SABLE_SELECTORS := \
 	and not strict \
 	and not arbitrary_client_tags \
 	and not react_tag \
-	and not list and not lusers and not time and not info \
 	$(EXTRA_SELECTORS)
 
 SOLANUM_SELECTORS := \
@@ -139,190 +138,176 @@ bahamut:
 		-m 'not services' \
 		-n 4 \
 		-vv -s \
-		-k '$(BAHAMUT_SELECTORS)'
+		-m '$(BAHAMUT_SELECTORS)'
 
 .PHONY: bahamut-atheme
 bahamut-atheme:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.bahamut \
 		--services-controller=irctest.controllers.atheme_services \
-		-m 'services' \
-		-k '$(BAHAMUT_SELECTORS)'
+		-m 'services and $(BAHAMUT_SELECTORS)'
 
 .PHONY: bahamut-anope
 bahamut-anope:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.bahamut \
 		--services-controller=irctest.controllers.anope_services \
-		-m 'services' \
-		-k '$(BAHAMUT_SELECTORS)'
+		-m 'services and $(BAHAMUT_SELECTORS)'
 
 .PHONY: charybdis
 charybdis:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.charybdis \
 		--services-controller=irctest.controllers.atheme_services \
-		-k '$(CHARYBDIS_SELECTORS)'
+		-m '$(CHARYBDIS_SELECTORS)'
 
 .PHONY: ergo
 ergo:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ergo \
-		-k "$(ERGO_SELECTORS)"
+		-m "$(ERGO_SELECTORS)"
 
 .PHONY: hybrid
 hybrid:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.hybrid \
 		--services-controller=irctest.controllers.anope_services \
-		-k "$(HYBRID_SELECTORS)"
+		-m "$(HYBRID_SELECTORS)"
 
 .PHONY: inspircd
 inspircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.inspircd \
-		-m 'not services' \
-		-k '$(INSPIRCD_SELECTORS)'
+		-m 'not services and $(INSPIRCD_SELECTORS)'
 
 .PHONY: inspircd-atheme
 inspircd-atheme:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.inspircd \
 		--services-controller=irctest.controllers.atheme_services \
-		-m 'services' \
-		-k '$(INSPIRCD_SELECTORS)'
+		-m 'services and $(INSPIRCD_SELECTORS)'
 
 .PHONY: inspircd-anope
 inspircd-anope:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.inspircd \
 		--services-controller=irctest.controllers.anope_services \
-		-m 'services' \
-		-k '$(INSPIRCD_SELECTORS)'
+		-m 'services and $(INSPIRCD_SELECTORS)'
 
 .PHONY: ircu2
 ircu2:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.ircu2 \
-		-m 'not services and not IRCv3' \
-		-n 4 \
-		-k '$(IRCU2_SELECTORS)'
+		-m 'not services and not IRCv3 and $(IRCU2_SELECTORS)'
+		-n 4
 
 .PHONY: nefarious
 nefarious:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.nefarious \
-		-m 'not services' \
 		-n 4 \
-		-k '$(NEFARIOUS_SELECTORS)'
+		-m 'not services and $(NEFARIOUS_SELECTORS)'
 
 .PHONY: snircd
 snircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.snircd \
-		-m 'not services and not IRCv3' \
 		-n 4 \
-		-k '$(SNIRCD_SELECTORS)'
+		-m 'not services and not IRCv3 and $(SNIRCD_SELECTORS)'
 
 .PHONY: irc2
 irc2:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.irc2 \
-		-m 'not services and not IRCv3' \
 		-n 4 \
-		-k '$(IRC2_SELECTORS)'
+		-m 'not services and not IRCv3 and $(IRC2_SELECTORS)'
 
 .PHONY: limnoria
 limnoria:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.limnoria \
-		-k '$(LIMNORIA_SELECTORS)'
+		-m '$(LIMNORIA_SELECTORS)'
 
 .PHONY: mammon
 mammon:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.mammon \
-		-k '$(MAMMON_SELECTORS)'
+		-m '$(MAMMON_SELECTORS)'
 
 .PHONY: plexus4
 plexus4:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.plexus4 \
 		--services-controller=irctest.controllers.anope_services \
-		-k "$(PLEXUS4_SELECTORS)"
+		-m "$(PLEXUS4_SELECTORS)"
 
 .PHONY: ngircd
 ngircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
-		-m 'not services' \
 		-n 4 \
-		-k "$(NGIRCD_SELECTORS)"
+		-m énot services and $(NGIRCD_SELECTORS)"
 
 .PHONY: ngircd-anope
 ngircd-anope:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
 		--services-controller=irctest.controllers.anope_services \
-		-m 'services' \
-		-k "$(NGIRCD_SELECTORS)"
+		-m 'services and $(NGIRCD_SELECTORS)"
 
 .PHONY: ngircd-atheme
 ngircd-atheme:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
 		--services-controller=irctest.controllers.atheme_services \
-		-m 'services' \
-		-k "$(NGIRCD_SELECTORS)"
+		-m 'services and $(NGIRCD_SELECTORS)"
 
 .PHONY: sable
 sable:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.sable \
+		-k "not list and not lusers and not time and not info" \
 		-n 20 \
-		-k '$(SABLE_SELECTORS)'
+		-m '$(SABLE_SELECTORS)'
 
 .PHONY: solanum
 solanum:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.solanum \
-		-m 'not services' \
-		-k '$(SOLANUM_SELECTORS)'
+		-m 'not services and $(SOLANUM_SELECTORS)'
 
 .PHONY: solanum
 solanum-atheme:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.solanum \
 		--services-controller=irctest.controllers.atheme_services \
-		-m 'services' \
-		-k '$(SOLANUM_SELECTORS)'
+		-m 'services and $(SOLANUM_SELECTORS)'
 
 .PHONY: solanum
 solanum-anope:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.solanum \
 		--services-controller=irctest.controllers.anope_services \
-		-m 'services' \
-		-k '$(SOLANUM_SELECTORS)'
+		-m 'services and $(SOLANUM_SELECTORS)'
 
 .PHONY: sopel
 sopel:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.sopel \
-		-k '$(SOPEL_SELECTORS)'
+		-m '$(SOPEL_SELECTORS)'
 
 .PHONY: thelounge
 thelounge:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.thelounge \
-		-k '$(THELOUNGE_SELECTORS)'
+		-m '$(THELOUNGE_SELECTORS)'
 
 .PHONY: unrealircd
 unrealircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.unrealircd \
 		-m 'not services' \
-		-k '$(UNREALIRCD_SELECTORS)'
+		-m '$(UNREALIRCD_SELECTORS)'
 
 .PHONY: unrealircd-5
 unrealircd-5: unrealircd
@@ -333,20 +318,18 @@ unrealircd-atheme:
 		--controller=irctest.controllers.unrealircd \
 		--services-controller=irctest.controllers.atheme_services \
 		-m 'services' \
-		-k '$(UNREALIRCD_SELECTORS)'
+		-m '$(UNREALIRCD_SELECTORS)'
 
 .PHONY: unrealircd-anope
 unrealircd-anope:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.unrealircd \
 		--services-controller=irctest.controllers.anope_services \
-		-m 'services' \
-		-k '$(UNREALIRCD_SELECTORS)'
+		-m 'services and $(UNREALIRCD_SELECTORS)'
 
 .PHONY: unrealircd-dlk
 unrealircd-dlk:
 	pifpaf run mysql -- $(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.unrealircd \
 		--services-controller=irctest.controllers.dlk_services \
-		-m 'services' \
-		-k '$(UNREALIRCD_SELECTORS)'
+		-m 'services and $(UNREALIRCD_SELECTORS)'
