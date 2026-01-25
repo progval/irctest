@@ -135,10 +135,9 @@ flakes:
 bahamut:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.bahamut \
-		-m 'not services' \
 		-n 4 \
-		-vv -s \
-		-m '$(BAHAMUT_SELECTORS)'
+		-vv \
+		-m 'not services and $(BAHAMUT_SELECTORS)'
 
 .PHONY: bahamut-atheme
 bahamut-atheme:
@@ -246,7 +245,7 @@ ngircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
 		-n 4 \
-		-m énot services and $(NGIRCD_SELECTORS)"
+		-m "not services and $(NGIRCD_SELECTORS)"
 
 .PHONY: ngircd-anope
 ngircd-anope:
@@ -306,8 +305,7 @@ thelounge:
 unrealircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.unrealircd \
-		-m 'not services' \
-		-m '$(UNREALIRCD_SELECTORS)'
+		-m 'not services and $(UNREALIRCD_SELECTORS)'
 
 .PHONY: unrealircd-5
 unrealircd-5: unrealircd
