@@ -3,7 +3,13 @@ import time
 
 from irctest import cases, runner, scram
 from irctest.irc_utils.sasl import sasl_plain_blob
-from irctest.numerics import ERR_SASLFAIL, RPL_LOGGEDIN, RPL_SASLMECHS
+from irctest.numerics import (
+    ERR_SASLALREADY,
+    ERR_SASLFAIL,
+    RPL_LOGGEDIN,
+    RPL_SASLMECHS,
+    RPL_SASLSUCCESS,
+)
 from irctest.patma import ANYSTR
 
 
@@ -102,7 +108,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
-            command="900",
+            command=RPL_LOGGEDIN,
             params=[ANYSTR, ANYSTR, "foo", ANYSTR],
             fail_msg="Unexpected reply to correct SASL authentication: {msg}",
         )
@@ -162,7 +168,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
-            command="900",
+            command=RPL_LOGGEDIN,
             params=[ANYSTR, ANYSTR, "jilles", ANYSTR],
             fail_msg="Unexpected reply to correct SASL authentication: {msg}",
         )
@@ -254,14 +260,14 @@ class SaslTestCase(cases.BaseServerTestCase):
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
-            command="900",
+            command=RPL_LOGGEDIN,
             fail_msg="Expected 900 (RPL_LOGGEDIN) after successful "
             "login, but got: {msg}",
         )
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
-            command="903",
+            command=RPL_SASLSUCCESS,
             fail_msg="Expected 903 (RPL_SASLSUCCESS) after successful "
             "login, but got: {msg}",
         )
@@ -484,10 +490,10 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "AUTHENTICATE PLAIN")
         time.sleep(2)
         m = self.getMessage(1)
-        if m.command == "907":  # ERR_SASLALREADY
+        if m.command == ERR_SASLALREADY:
             self.assertMessageMatch(
                 m,
-                command="907",
+                command=ERR_SASLALREADY,
                 params=["user", ANYSTR],
                 fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
                 "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
@@ -527,10 +533,10 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "AUTHENTICATE PLAIN")
         time.sleep(2)
         m = self.getMessage(1)
-        if m.command == "907":  # ERR_SASLALREADY
+        if m.command == ERR_SASLALREADY:
             self.assertMessageMatch(
                 m,
-                command="907",
+                command=ERR_SASLALREADY,
                 params=["user", ANYSTR],
                 fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
                 "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
