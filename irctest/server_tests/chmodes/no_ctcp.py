@@ -1,6 +1,7 @@
 from irctest import cases, runner
 from irctest.numerics import ERR_CANNOTSENDTOCHAN
 from irctest.patma import ANYSTR
+from irctest.specifications import OptionalBehaviors
 
 
 class NoctcpModeTestCase(cases.BaseServerTestCase):
@@ -18,7 +19,7 @@ class NoctcpModeTestCase(cases.BaseServerTestCase):
         self.connectClient("chanop")
 
         if "C" not in self.server_support.get("CHANMODES", ""):
-            raise runner.NotImplementedByController("+C (noctcp) channel mode")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.NO_CTCP)
 
         # Both users join:
 

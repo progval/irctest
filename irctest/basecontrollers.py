@@ -16,6 +16,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    FrozenSet,
     Iterator,
     List,
     Optional,
@@ -34,6 +35,7 @@ from .irc_utils.filelock import FileLock
 from .irc_utils.junkdrawer import find_hostname_and_port
 from .irc_utils.message_parser import Message
 from .runner import NotImplementedByController
+from .specifications import OptionalBehaviors
 
 
 class ProcessStopped(Exception):
@@ -80,6 +82,8 @@ class _BaseController:
 
     supports_sts: bool
     supported_sasl_mechanisms: Set[str]
+
+    optional_behaviors: FrozenSet[OptionalBehaviors] = frozenset()
 
     proc: Optional[subprocess.Popen]
 

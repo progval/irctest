@@ -120,7 +120,7 @@ class _IrcTestCase(Generic[TController]):
     @staticmethod
     def config() -> TestCaseControllerConfig:
         """Some configuration to pass to the controllers.
-        For example, Oragono only enables its MySQL support if
+        For example, Ergo only enables its MySQL support if
         config()["chathistory"]=True.
         """
         return TestCaseControllerConfig()
