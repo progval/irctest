@@ -136,7 +136,7 @@ def pytest_runtest_call(item):
     """Called by pytest to wrap individual test execution.
 
     We use this to turn some instances of unittest.SkipTest into
-    fatal errors, if the specific implementation being tested is required
+    fatal errors, if the specific implementation being tested is expected
     to support an optional behavior.
     """
     try:
