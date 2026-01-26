@@ -70,6 +70,7 @@ TEMPLATE_CONFIG = """
 <module name="ircv3_servertime">
 <module name="monitor">
 <module name="m_muteban">  # for testing mute extbans
+<module name="noctcp">
 <module name="sasl">
 <module name="uhnames">  # For userhost-in-names
 <module name="alias">  # for the HELP alias
