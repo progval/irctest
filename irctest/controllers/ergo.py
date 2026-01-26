@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Type, Union
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 from irctest.cases import BaseServerTestCase
-from irctest.specifications import OptionalBehaviors
+from irctest.specifications import Capabilities, OptionalBehaviors
 
 # ratified caps we want everyone to request, ideally
 BASE_CAPS = (
@@ -161,11 +161,29 @@ class ErgoController(BaseServerController, DirectoryBasedController):
     supports_sts = True
     extban_mute_char = "m"
 
+    capabilities = frozenset(
+        (
+            Capabilities.ACCOUNT_NOTIFY,
+            Capabilities.ACCOUNT_TAG,
+            Capabilities.AWAY_NOTIFY,
+            Capabilities.BATCH,
+            Capabilities.ECHO_MESSAGE,
+            Capabilities.EXTENDED_JOIN,
+            Capabilities.EXTENDED_MONITOR,
+            Capabilities.LABELED_RESPONSE,
+            Capabilities.MESSAGE_TAGS,
+            Capabilities.MULTILINE,
+            Capabilities.MULTI_PREFIX,
+            Capabilities.SERVER_TIME,
+            Capabilities.SETNAME,
+        ),
+    )
+
     optional_behaviors = frozenset(
-        [
+        (
             OptionalBehaviors.NO_CTCP,
             OptionalBehaviors.CAP_REQ_MINUS,
-        ]
+        )
     )
 
     def create_config(self) -> None:

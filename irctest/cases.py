@@ -682,7 +682,12 @@ class BaseServerTestCase(
                 m.params[1], "ACK", m, fail_msg="Expected CAP ACK, got: {msg}"
             )
         except AssertionError:
-            if skip_if_cap_nak:
+            # if skip_if_cap_nak, and any one of the capabilities is not
+            # in the controller's required set, then skip the test;
+            # otherwise fail
+            if skip_if_cap_nak and any(
+                not self.controller.supports_cap(cap) for cap in capabilities
+            ):
                 raise runner.CapabilityNotSupported(" or ".join(capabilities))
             else:
                 raise
