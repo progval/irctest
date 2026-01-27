@@ -69,3 +69,15 @@ class IsupportTokens(enum.Enum):
             return cls(name.upper())
         except ValueError:
             raise ValueError(name) from None
+
+
+@enum.unique
+class OptionalBehaviors(enum.Enum):
+    # NO_CTCP is the widely implemented +C mode that blocks CTCPs
+    # (other than ACTION) from being sent to a channel.
+    NO_CTCP = "+C no-CTCP mode"
+
+    # CAP_REQ_MINUS is the ability to disable capabilities at runtime:
+    # "Each capability identifier may be prefixed with a dash (-)
+    #  to designate that the capability should be disabled."
+    CAP_REQ_MINUS = "`CAP REQ -capname` to disable `capname`"
