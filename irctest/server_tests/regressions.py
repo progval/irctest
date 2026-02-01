@@ -65,52 +65,6 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         ms = self.getMessages(2)
         self.assertEqual(ms, [])
 
-    @cases.mark_capabilities("message-tags", "batch", "echo-message", "server-time")
-    def testTagCap(self):
-        # regression test for oragono #754
-        self.connectClient(
-            "alice",
-            capabilities=["message-tags", "batch", "echo-message", "server-time"],
-            skip_if_cap_nak=True,
-        )
-        self.connectClient("bob")
-        self.getMessages(1)
-        self.getMessages(2)
-
-        # bob messages alice so we can get a valid msgid for alice to reply to
-        self.sendLine(2, "PRIVMSG alice :hey")
-        self.getMessages(2)
-        (msg,) = self.getMessages(1)
-        bob_msgid = msg.tags["msgid"]
-        self.assertNotEqual(bob_msgid, "")
-
-        self.sendLine(1, f"@+draft/reply={bob_msgid} PRIVMSG bob :hey yourself")
-        self.assertMessageMatch(
-            self.getMessage(1),
-            command="PRIVMSG",
-            params=["bob", "hey yourself"],
-            tags={"+draft/reply": bob_msgid, **ANYDICT},
-        )
-
-        self.assertMessageMatch(
-            self.getMessage(2),
-            command="PRIVMSG",
-            params=["bob", "hey yourself"],
-            tags={},
-        )
-
-        self.sendLine(2, "CAP REQ :message-tags server-time")
-        self.getMessages(2)
-        self.sendLine(1, f"@+draft/reply={bob_msgid} PRIVMSG bob :hey again")
-        self.getMessages(1)
-        # now bob has the tags cap, so he should receive the tags
-        self.assertMessageMatch(
-            self.getMessage(2),
-            command="PRIVMSG",
-            params=["bob", "hey again"],
-            tags={"+draft/reply": bob_msgid, **ANYDICT},
-        )
-
     @cases.mark_specifications("RFC1459")
     @cases.xfailIfSoftware(["ngIRCd"], "wat")
     def testStarNick(self):

@@ -92,6 +92,7 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
 
     software_name = "Anope"
     software_version = None
+    saslserv = "NickServ"
 
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()

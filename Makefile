@@ -286,7 +286,23 @@ sable:
 solanum:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.solanum \
+		-m 'not services' \
+		-k '$(SOLANUM_SELECTORS)'
+
+.PHONY: solanum
+solanum-atheme:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.solanum \
 		--services-controller=irctest.controllers.atheme_services \
+		-m 'services' \
+		-k '$(SOLANUM_SELECTORS)'
+
+.PHONY: solanum
+solanum-anope:
+	$(PYTEST) $(PYTEST_ARGS) \
+		--controller=irctest.controllers.solanum \
+		--services-controller=irctest.controllers.anope_services \
+		-m 'services' \
 		-k '$(SOLANUM_SELECTORS)'
 
 .PHONY: sopel
