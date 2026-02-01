@@ -127,7 +127,12 @@ class InspircdController(BaseServerController, DirectoryBasedController):
     supports_sts = False
     extban_mute_char = "m"
 
-    optional_behaviors = frozenset([OptionalBehaviors.NO_CTCP])
+    optional_behaviors = frozenset(
+        [
+            OptionalBehaviors.NO_CTCP,
+            OptionalBehaviors.INVITE_OVERRIDES_LIMIT,
+        ]
+    )
 
     def create_config(self) -> None:
         super().create_config()

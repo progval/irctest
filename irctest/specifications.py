@@ -81,3 +81,8 @@ class OptionalBehaviors(enum.Enum):
     # "Each capability identifier may be prefixed with a dash (-)
     #  to designate that the capability should be disabled."
     CAP_REQ_MINUS = "`CAP REQ -capname` to disable `capname`"
+
+    # INVITE_OVERRIDES_LIMIT is the behavior where INVITE allows the invited
+    # user to join a channel, even though their JOIN would put the channel
+    # over the user limit count set with the +l channel mode.
+    INVITE_OVERRIDES_LIMIT = "INVITE overrides the +l user limit channel mode"

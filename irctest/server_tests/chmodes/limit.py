@@ -7,10 +7,11 @@ User limit channel mode (`RFC 1459
 
 import pytest
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.exceptions import NoMessageException
 from irctest.numerics import ERR_CHANNELISFULL, ERR_INVALIDMODEPARAM
 from irctest.patma import ANYSTR
+from irctest.specifications import OptionalBehaviors
 
 
 class LimitTestCase(cases.BaseServerTestCase):
@@ -279,6 +280,17 @@ class LimitTestCase(cases.BaseServerTestCase):
 
         # Can now join #chan despite the limit
         self.sendLine("user2", "JOIN #chan")
-        self.assertMessageMatch(
-            self.getMessage("user2"), command="JOIN", params=["#chan"]
-        )
+        response = self.getMessage("user2")
+        if response.command == "JOIN":
+            self.assertMessageMatch(response, command="JOIN", params=["#chan"])
+        elif response.command == ERR_CHANNELISFULL:
+            # ircd does not support INVITE overriding +l,
+            # but should still send a well-formed ERR_CHANNELISFULL
+            self.assertMessageMatch(
+                response, command=ERR_CHANNELISFULL, params=["user2", "#chan", ANYSTR]
+            )
+            raise runner.OptionalBehaviorNotSupported(
+                OptionalBehaviors.INVITE_OVERRIDES_LIMIT
+            )
+        else:
+            raise ValueError("Unexpected response to JOIN: {response.command}")

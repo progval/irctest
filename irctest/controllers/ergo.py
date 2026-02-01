@@ -183,6 +183,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         (
             OptionalBehaviors.NO_CTCP,
             OptionalBehaviors.CAP_REQ_MINUS,
+            OptionalBehaviors.INVITE_OVERRIDES_LIMIT,
         )
     )
 
