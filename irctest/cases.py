@@ -120,7 +120,7 @@ class _IrcTestCase(Generic[TController]):
     @staticmethod
     def config() -> TestCaseControllerConfig:
         """Some configuration to pass to the controllers.
-        For example, Oragono only enables its MySQL support if
+        For example, Ergo only enables its MySQL support if
         config()["chathistory"]=True.
         """
         return TestCaseControllerConfig()
@@ -286,7 +286,7 @@ class _IrcTestCase(Generic[TController]):
     ) -> None:
         if fail_msg:
             msg = fail_msg.format(*extra_format, got=got, expects=expects, msg=msg)
-        assert got >= expects, msg  # type: ignore
+        assert got > expects, msg  # type: ignore
 
     def assertGreaterEqual(
         self,
@@ -444,7 +444,8 @@ class BaseClientTestCase(_IrcTestCase[basecontrollers.BaseClientController]):
             line = self.getLine(*args)
             if not line:
                 raise ConnectionClosed()
-            msg = message_parser.parse_message(line)
+            # strip final "\r\n", then parse
+            msg = message_parser.parse_message(line[:-2])
             if not filter_pred or filter_pred(msg):
                 return msg
 
@@ -681,7 +682,12 @@ class BaseServerTestCase(
                 m.params[1], "ACK", m, fail_msg="Expected CAP ACK, got: {msg}"
             )
         except AssertionError:
-            if skip_if_cap_nak:
+            # if skip_if_cap_nak, and any one of the capabilities is not
+            # in the controller's required set, then skip the test;
+            # otherwise fail
+            if skip_if_cap_nak and any(
+                not self.controller.supports_cap(cap) for cap in capabilities
+            ):
                 raise runner.CapabilityNotSupported(" or ".join(capabilities))
             else:
                 raise
@@ -780,6 +786,43 @@ class BaseServerTestCase(
                 elif msg.command in CHANNEL_JOIN_FAIL_NUMERICS:
                     raise ChannelJoinException(msg.command, msg.params)
 
+    def getBatchMessages(
+        self, client: TClientName, batch_type: str
+    ) -> tuple[str, List[str], List[Message]]:
+        """Extract messages from a batch, verifying batch markers.
+
+        Args:
+            client: The client to get messages from
+            batch_type: The expected batch type (e.g., "metadata", "chathistory")
+
+        Returns:
+            A tuple of (batch_id, batch_params, messages) where:
+            - batch_id is the batch identifier
+            - batch_params is the list of parameters after the batch type
+            - messages are the messages between the batch start and end markers
+        """
+        messages = self.getMessages(client)
+
+        first_msg = messages.pop(0)
+        last_msg = messages.pop(-1)
+        self.assertMessageMatch(
+            first_msg,
+            command="BATCH",
+        )
+
+        # Verify batch type matches
+        if len(first_msg.params) < 2 or first_msg.params[1] != batch_type:
+            raise AssertionError(
+                f"Expected batch type {batch_type!r}, got {first_msg.params[1] if len(first_msg.params) > 1 else 'none'}"
+            )
+
+        batch_id = first_msg.params[0][1:]  # Remove the '+' prefix
+        batch_params = first_msg.params[2:]  # Everything after batch type
+
+        self.assertMessageMatch(last_msg, command="BATCH", params=["-" + batch_id])
+
+        return (batch_id, batch_params, messages)
+
 
 _TSelf = TypeVar("_TSelf", bound="_IrcTestCase")
 _TReturn = TypeVar("_TReturn")
@@ -829,7 +872,10 @@ def xfailIfSoftware(
     names: List[str], reason: str
 ) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
     def pred(testcase: _IrcTestCase, *args: Any, **kwargs: Any) -> bool:
-        return testcase.controller.software_name in names
+        return testcase.controller.software_name in names or (
+            getattr(testcase.controller, "services_controller", None) is not None
+            and testcase.controller.services_controller.software_name in names
+        )
 
     return xfailIf(pred, reason)
 

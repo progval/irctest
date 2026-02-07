@@ -10,7 +10,7 @@ import time
 from irctest import cases
 from irctest.client_mock import ConnectionClosed
 from irctest.numerics import ERR_NEEDMOREPARAMS, ERR_PASSWDMISMATCH
-from irctest.patma import ANYLIST, ANYSTR, OptStrRe, StrRe
+from irctest.patma import ANYLIST, ANYSTR, Either, OptStrRe, StrRe
 
 
 class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
@@ -292,7 +292,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             self.getRegistrationMessage(1),
             command=ERR_NEEDMOREPARAMS,
-            params=[StrRe(r"(\*|foo)"), "USER", ANYSTR],
+            params=[Either("*", "foo"), "USER", ANYSTR],
         )
 
     def testNonutf8Realname(self):

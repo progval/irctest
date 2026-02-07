@@ -33,6 +33,9 @@ software:
             devel: "8.2.x"
             devel_release: null
         path: ircd-hybrid
+        pre_deps:
+            - name: "Install system dependencies"
+              run: "sudo apt-get install atheme-services faketime libjansson-dev"
         separate_build_job: true
         build_script: |
             cd $GITHUB_WORKSPACE/ircd-hybrid/
@@ -78,7 +81,7 @@ software:
         refs:
             # Actually Solanum doesn't have releases; so we just bump this
             # commit hash from time to time
-            stable: 492d560ee13e71dc35403fd676e58c2d5bdcf2a9
+            stable: 9778247c3dca59370b21c4f34f328c52e8b8c669
             release: null
             devel: main
             devel_release: null
@@ -136,7 +139,7 @@ software:
         pre_deps:
             - uses: actions/setup-go@v3
               with:
-                  go-version: '^1.23.0'
+                  go-version: '^1.24.0'
             - run: go version
         separate_build_job: false
         build_script: |
@@ -148,10 +151,10 @@ software:
         name: InspIRCd
         repository: inspircd/inspircd
         refs: &inspircd_refs
-            stable: v3.17.1
+            stable: v4.7.0
             release: null
             devel: master
-            devel_release: insp3
+            devel_release: insp4
         path: inspircd
         prefix: ~/.local/inspircd
         cache: false  # incremental compilation is frequently broken
@@ -249,7 +252,7 @@ software:
         name: Sable
         repository: Libera-Chat/sable
         refs:
-            stable: 034c4d5dd937774099773238d8d5b8054b015607
+            stable: 81544475edd03a4e17bf21130a645827fb0e28d4
             release: null
             devel: master
             devel_release: null
@@ -303,16 +306,17 @@ software:
         name: UnrealIRCd 6
         repository: unrealircd/unrealircd
         refs:
-            stable: a68625454078641ce984eeb197f7e02b1857ab6c # 6.1.7.1
-            release: a68625454078641ce984eeb197f7e02b1857ab6c # 6.1.7.1
+            stable: 806fa83dd7a7130f5763298dd269b4eeab458d38 # 6.2.2
+            release: 806fa83dd7a7130f5763298dd269b4eeab458d38 # 6.2.2
             devel: unreal60_dev
             devel_release: null
         path: unrealircd
         prefix: ~/.local/unrealircd
         separate_build_job: true
-        build_script: &unrealircd_build_script |
+        build_script: |
             cd $GITHUB_WORKSPACE/unrealircd/
             cp $GITHUB_WORKSPACE/data/unreal/* .
+            wget https://raw.githubusercontent.com/progval/unrealircd-contrib/50e839c2e2f1d8b9924126f34bc2f50965c0a557/files/metadata2.c -O src/modules/third/metadata2.c
             # Need to use a specific -march, because GitHub has inconsistent
             # architectures across workers, which result in random SIGILL with some
             # worker combinations
@@ -322,19 +326,6 @@ software:
             make install
             # Prevent download of geoIP database on first startup
             sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
-
-    unrealircd-5:
-        name: UnrealIRCd 5
-        repository: unrealircd/unrealircd
-        refs:
-            stable: 6604856973f713a494f83d38992d7d61ce6b9db4  # 5.2.4
-            release: null
-            devel: unreal52
-            devel_release:
-        path: unrealircd
-        prefix: ~/.local/unrealircd
-        separate_build_job: true
-        build_script: *unrealircd_build_script
 
 
     #############################
@@ -346,8 +337,8 @@ software:
         separate_build_job: true
         path: anope
         refs:
-            stable: "2.0.14"
-            release: "2.1.1"
+            stable: "2.0.18"
+            release: "2.1.17"
             devel: "2.1"
             devel_release: "2.0"
         build_script: |
@@ -356,6 +347,59 @@ software:
             mkdir build && cd build
             cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
             ninja install
+
+    anope-2-0: # Anope 2.1.15 removes support for Bahamut
+        name: Anope 2.0
+        repository: anope/anope
+        separate_build_job: true
+        path: anope
+        refs:
+            stable: "2.0.18"
+            release: null
+            devel: "2.0"
+            devel_release: null
+        build_script: |
+            cd $GITHUB_WORKSPACE/anope/
+            sudo apt-get install ninja-build --no-install-recommends
+            mkdir build && cd build
+            cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
+            ninja install
+
+    atheme:
+        name: Atheme
+        repository: atheme/atheme
+        submodules: recursive
+        separate_build_job: true
+        path: atheme
+        refs:
+            stable: "v7.2.12"
+            release: null
+            devel: "release/7.2"
+            devel_release: null
+        build_script: |
+            sudo apt install gettext --no-install-recommends
+            cd $GITHUB_WORKSPACE/atheme/
+            ./configure --prefix=$HOME/.local/
+            make
+            make install
+
+    atheme-7-3:
+        name: Atheme
+        repository: atheme/atheme
+        submodules: recursive
+        separate_build_job: true
+        path: atheme
+        refs:
+            stable: "22b0a326651d7fba5f7c733012191d74afba8883" # Latest commit as of 2025-08-01
+            release: null
+            devel: "master"
+            devel_release: null
+        build_script: |
+            sudo apt install gettext --no-install-recommends
+            cd $GITHUB_WORKSPACE/atheme/
+            ./configure --prefix=$HOME/.local/
+            make
+            make install
 
     dlk:
         name: Dlk
@@ -370,7 +414,7 @@ software:
         build_script: |
             pip install pifpaf
             wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-            wget -q https://wordpress.org/latest.zip -O wordpress-latest.zip
+            wget -q https://wordpress.org/wordpress-6.7.2.zip -O wordpress-latest.zip
         env: >-
             IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services"
             IRCTEST_WP_CLI_PATH="${{ github.workspace }}/wp-cli.phar"
@@ -432,19 +476,25 @@ tests:
         software: [bahamut]
 
     bahamut-atheme:
-        software: [bahamut]
+        software: [bahamut, atheme]
 
     bahamut-anope:
-        software: [bahamut, anope]
+        software: [bahamut, anope-2-0] # Anope 2.1.15 removes support for Bahamut
 
     charybdis:
-        software: [charybdis]
+        software: [charybdis, atheme]
 
     hybrid:
         software: [hybrid, anope]
 
     solanum:
         software: [solanum]
+
+    solanum-atheme:
+        software: [solanum, atheme]
+
+    solanum-anope:
+        software: [solanum, anope]
 
     ergo:
         software: [ergo]
@@ -453,8 +503,8 @@ tests:
         software: [inspircd]
 
     inspircd-atheme:
-        software: [inspircd]
-        exclude_versions: [devel] # Atheme does not support Insp4 yet, so it fails to connect
+        software: [inspircd, atheme-7-3] # Atheme 7.2 does not support InspIRCd v4 (stable)
+        exclude_versions: [devel] # Atheme 7.3 does not support InspIRCd v5 (master)
 
     inspircd-anope:
         software: [inspircd, anope]
@@ -463,7 +513,7 @@ tests:
         software: [ngircd]
 
     ngircd-atheme:
-        software: [ngircd]
+        software: [ngircd, atheme]
 
     ngircd-anope:
         software: [ngircd, anope]
@@ -487,14 +537,11 @@ tests:
     #snircd:
     #    software: [snircd]
 
-    unrealircd-5:
-        software: [unrealircd-5]
-
     unrealircd:
         software: [unrealircd]
 
     unrealircd-atheme:
-        software: [unrealircd]
+        software: [unrealircd, atheme]
 
     unrealircd-anope:
         software: [unrealircd, anope]

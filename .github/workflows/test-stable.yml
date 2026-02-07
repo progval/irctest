@@ -3,7 +3,7 @@
 
 jobs:
   build-anope:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -21,12 +21,15 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Anope
       uses: actions/checkout@v4
       with:
         path: anope
-        ref: 2.0.14
+        ref: 2.0.18
         repository: anope/anope
+        submodules: ''
     - name: Build Anope
       run: |
         cd $GITHUB_WORKSPACE/anope/
@@ -42,8 +45,137 @@ jobs:
         name: installed-anope
         path: ~/artefacts-*.tar.gz
         retention-days: 1
+  build-anope-2-0:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir -p .local/ go/
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        key: 3-${{ runner.os }}-anope-2-0-stable
+        path: '~/.cache
+
+          ${ github.workspace }/anope
+
+          '
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
+    - name: Checkout Anope 2.0
+      uses: actions/checkout@v4
+      with:
+        path: anope
+        ref: 2.0.18
+        repository: anope/anope
+        submodules: ''
+    - name: Build Anope 2.0
+      run: |
+        cd $GITHUB_WORKSPACE/anope/
+        sudo apt-get install ninja-build --no-install-recommends
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
+        ninja install
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-anope-2-0.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: installed-anope-2-0
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
+  build-atheme:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir -p .local/ go/
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        key: 3-${{ runner.os }}-atheme-stable
+        path: '~/.cache
+
+          ${ github.workspace }/atheme
+
+          '
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
+    - name: Checkout Atheme
+      uses: actions/checkout@v4
+      with:
+        path: atheme
+        ref: v7.2.12
+        repository: atheme/atheme
+        submodules: recursive
+    - name: Build Atheme
+      run: |
+        sudo apt install gettext --no-install-recommends
+        cd $GITHUB_WORKSPACE/atheme/
+        ./configure --prefix=$HOME/.local/
+        make
+        make install
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-atheme.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: installed-atheme
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
+  build-atheme-7-3:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Create directories
+      run: cd ~/; mkdir -p .local/ go/
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        key: 3-${{ runner.os }}-atheme-7-3-stable
+        path: '~/.cache
+
+          ${ github.workspace }/atheme
+
+          '
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
+    - name: Checkout Atheme
+      uses: actions/checkout@v4
+      with:
+        path: atheme
+        ref: 22b0a326651d7fba5f7c733012191d74afba8883
+        repository: atheme/atheme
+        submodules: recursive
+    - name: Build Atheme
+      run: |
+        sudo apt install gettext --no-install-recommends
+        cd $GITHUB_WORKSPACE/atheme/
+        ./configure --prefix=$HOME/.local/
+        make
+        make install
+    - name: Make artefact tarball
+      run: cd ~; tar -czf artefacts-atheme-7-3.tar.gz .local/ go/
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: installed-atheme-7-3
+        path: ~/artefacts-*.tar.gz
+        retention-days: 1
   build-bahamut:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -61,12 +193,15 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Bahamut
       uses: actions/checkout@v4
       with:
         path: Bahamut
         ref: v2.2.4
         repository: DALnet/Bahamut
+        submodules: ''
     - name: Build Bahamut
       run: |
         cd $GITHUB_WORKSPACE/Bahamut/
@@ -96,7 +231,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-charybdis:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -114,12 +249,15 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Charybdis
       uses: actions/checkout@v4
       with:
         path: charybdis
         ref: charybdis-4.1.2
         repository: charybdis-ircd/charybdis
+        submodules: ''
     - name: Build Charybdis
       run: |
         cd $GITHUB_WORKSPACE/charybdis/
@@ -137,7 +275,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-hybrid:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -155,12 +293,17 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Hybrid
       uses: actions/checkout@v4
       with:
         path: ircd-hybrid
         ref: 8.2.39
         repository: ircd-hybrid/ircd-hybrid
+        submodules: ''
+    - name: Install system dependencies
+      run: sudo apt-get install atheme-services faketime libjansson-dev
     - name: Build Hybrid
       run: |
         cd $GITHUB_WORKSPACE/ircd-hybrid/
@@ -176,7 +319,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-inspircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -185,12 +328,15 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout InspIRCd
       uses: actions/checkout@v4
       with:
         path: inspircd
-        ref: v3.17.1
+        ref: v4.7.0
         repository: inspircd/inspircd
+        submodules: ''
     - name: Build InspIRCd
       run: |
         cd $GITHUB_WORKSPACE/inspircd/
@@ -206,7 +352,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-ngircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -224,12 +370,15 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout ngircd
       uses: actions/checkout@v4
       with:
         path: ngircd
         ref: acf8409c60ccc96beed0a1f990c4f9374823c0ce
         repository: ngircd/ngircd
+        submodules: ''
     - name: Build ngircd
       run: |
         cd $GITHUB_WORKSPACE/ngircd
@@ -247,7 +396,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-plexus4:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -265,6 +414,8 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: clone
       run: 'curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar
         | tar -x
@@ -289,7 +440,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-solanum:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -307,12 +458,15 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout Solanum
       uses: actions/checkout@v4
       with:
         path: solanum
-        ref: 492d560ee13e71dc35403fd676e58c2d5bdcf2a9
+        ref: 9778247c3dca59370b21c4f34f328c52e8b8c669
         repository: solanum-ircd/solanum
+        submodules: ''
     - name: Build Solanum
       run: |
         cd $GITHUB_WORKSPACE/solanum/
@@ -329,7 +483,7 @@ jobs:
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   build-unrealircd:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
@@ -347,16 +501,20 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
+    - name: Install system dependencies
+      run: sudo apt-get install libltdl-dev
     - name: Checkout UnrealIRCd 6
       uses: actions/checkout@v4
       with:
         path: unrealircd
-        ref: a68625454078641ce984eeb197f7e02b1857ab6c
+        ref: 806fa83dd7a7130f5763298dd269b4eeab458d38
         repository: unrealircd/unrealircd
+        submodules: ''
     - name: Build UnrealIRCd 6
       run: |
         cd $GITHUB_WORKSPACE/unrealircd/
         cp $GITHUB_WORKSPACE/data/unreal/* .
+        wget https://raw.githubusercontent.com/progval/unrealircd-contrib/50e839c2e2f1d8b9924126f34bc2f50965c0a557/files/metadata2.c -O src/modules/third/metadata2.c
         # Need to use a specific -march, because GitHub has inconsistent
         # architectures across workers, which result in random SIGILL with some
         # worker combinations
@@ -372,52 +530,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: installed-unrealircd
-        path: ~/artefacts-*.tar.gz
-        retention-days: 1
-  build-unrealircd-5:
-    runs-on: ubuntu-22.04
-    steps:
-    - name: Create directories
-      run: cd ~/; mkdir -p .local/ go/
-    - name: Cache dependencies
-      uses: actions/cache@v4
-      with:
-        key: 3-${{ runner.os }}-unrealircd-5-stable
-        path: '~/.cache
-
-          ${ github.workspace }/unrealircd
-
-          '
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.11
-    - name: Checkout UnrealIRCd 5
-      uses: actions/checkout@v4
-      with:
-        path: unrealircd
-        ref: 6604856973f713a494f83d38992d7d61ce6b9db4
-        repository: unrealircd/unrealircd
-    - name: Build UnrealIRCd 5
-      run: |
-        cd $GITHUB_WORKSPACE/unrealircd/
-        cp $GITHUB_WORKSPACE/data/unreal/* .
-        # Need to use a specific -march, because GitHub has inconsistent
-        # architectures across workers, which result in random SIGILL with some
-        # worker combinations
-        sudo apt install libsodium-dev libargon2-dev
-        CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
-        make -j 4
-        make install
-        # Prevent download of geoIP database on first startup
-        sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
-    - name: Make artefact tarball
-      run: cd ~; tar -czf artefacts-unrealircd-5.tar.gz .local/ go/
-    - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: installed-unrealircd-5
         path: ~/artefacts-*.tar.gz
         retention-days: 1
   publish-test-results:
@@ -443,13 +555,14 @@ jobs:
     - test-plexus4
     - test-sable
     - test-solanum
+    - test-solanum-anope
+    - test-solanum-atheme
     - test-sopel
     - test-thelounge
     - test-unrealircd
-    - test-unrealircd-5
     - test-unrealircd-anope
     - test-unrealircd-atheme
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Download Artifacts
@@ -476,7 +589,7 @@ jobs:
   test-bahamut:
     needs:
     - build-bahamut
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -491,11 +604,11 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -511,8 +624,8 @@ jobs:
   test-bahamut-anope:
     needs:
     - build-bahamut
-    - build-anope
-    runs-on: ubuntu-22.04
+    - build-anope-2-0
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -527,16 +640,16 @@ jobs:
     - name: Download build artefacts
       uses: actions/download-artifact@v4
       with:
-        name: installed-anope
+        name: installed-anope-2-0
         path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -552,7 +665,8 @@ jobs:
   test-bahamut-atheme:
     needs:
     - build-bahamut
-    runs-on: ubuntu-22.04
+    - build-atheme
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -564,18 +678,23 @@ jobs:
       with:
         name: installed-bahamut
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-atheme
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
         bahamut-atheme
       timeout-minutes: 30
     - if: always()
@@ -587,7 +706,8 @@ jobs:
   test-charybdis:
     needs:
     - build-charybdis
-    runs-on: ubuntu-22.04
+    - build-atheme
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -599,18 +719,23 @@ jobs:
       with:
         name: installed-charybdis
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-atheme
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  make
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
         charybdis
       timeout-minutes: 30
     - if: always()
@@ -621,7 +746,7 @@ jobs:
         path: pytest.xml
   test-ergo:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -634,9 +759,10 @@ jobs:
         path: ergo
         ref: irctest_stable
         repository: ergochat/ergo
+        submodules: ''
     - uses: actions/setup-go@v3
       with:
-        go-version: ^1.23.0
+        go-version: ^1.24.0
     - run: go version
     - name: Build Ergo
       run: |
@@ -644,11 +770,11 @@ jobs:
         make build
         make install
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -665,7 +791,7 @@ jobs:
     needs:
     - build-hybrid
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -685,11 +811,11 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -705,7 +831,7 @@ jobs:
   test-inspircd:
     needs:
     - build-inspircd
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -720,11 +846,11 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -741,7 +867,7 @@ jobs:
     needs:
     - build-inspircd
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -761,11 +887,11 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -781,7 +907,8 @@ jobs:
   test-inspircd-atheme:
     needs:
     - build-inspircd
-    runs-on: ubuntu-22.04
+    - build-atheme-7-3
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -793,19 +920,24 @@ jobs:
       with:
         name: installed-inspircd
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-atheme-7-3
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
-        make inspircd-atheme
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH  make
+        inspircd-atheme
       timeout-minutes: 30
     - if: always()
       name: Publish results
@@ -815,7 +947,7 @@ jobs:
         path: pytest.xml
   test-irc2:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -828,6 +960,7 @@ jobs:
         path: irc2.11.2p3
         ref: 59649f24c3a5c27bad5648b48774f27475bccfd3
         repository: irc-archive/irc2-mirror
+        submodules: ''
     - name: Build irc2
       run: |
         # Configure
@@ -848,11 +981,11 @@ jobs:
         mkdir -p $HOME/.local/bin
         cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -867,7 +1000,7 @@ jobs:
         path: pytest.xml
   test-ircu2:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -880,6 +1013,7 @@ jobs:
         path: ircu2
         ref: u2.10.12.19
         repository: undernetirc/ircu2
+        submodules: ''
     - name: Build ircu2
       run: |
         cd $GITHUB_WORKSPACE/ircu2
@@ -889,11 +1023,11 @@ jobs:
         make -j 4
         make install
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -908,7 +1042,7 @@ jobs:
         path: pytest.xml
   test-limnoria:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -918,11 +1052,11 @@ jobs:
     - name: Install dependencies
       run: pip install limnoria==2023.5.27 cryptography pyxmpp2-scram
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -937,7 +1071,7 @@ jobs:
         path: pytest.xml
   test-nefarious:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -950,6 +1084,7 @@ jobs:
         path: nefarious
         ref: 985704168ecada12d9e53b46df6087ef9d9fb40b
         repository: evilnet/nefarious2
+        submodules: ''
     - name: Build nefarious
       run: |
         cd $GITHUB_WORKSPACE/nefarious
@@ -958,11 +1093,11 @@ jobs:
         make install
         cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -978,7 +1113,7 @@ jobs:
   test-ngircd:
     needs:
     - build-ngircd
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -993,11 +1128,11 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1014,7 +1149,7 @@ jobs:
     needs:
     - build-ngircd
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1034,11 +1169,11 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1054,7 +1189,8 @@ jobs:
   test-ngircd-atheme:
     needs:
     - build-ngircd
-    runs-on: ubuntu-22.04
+    - build-atheme
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1066,19 +1202,24 @@ jobs:
       with:
         name: installed-ngircd
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-atheme
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH
-        make ngircd-atheme
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local//sbin:~/.local//bin:~/.local/:$PATH  make
+        ngircd-atheme
       timeout-minutes: 30
     - if: always()
       name: Publish results
@@ -1090,7 +1231,7 @@ jobs:
     needs:
     - build-plexus4
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1110,11 +1251,11 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1129,7 +1270,7 @@ jobs:
         path: pytest.xml
   test-sable:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1140,8 +1281,9 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: sable
-        ref: 034c4d5dd937774099773238d8d5b8054b015607
+        ref: 81544475edd03a4e17bf21130a645827fb0e28d4
         repository: Libera-Chat/sable
+        submodules: ''
     - name: Install rust toolchain
       uses: actions-rs/toolchain@v1
       with:
@@ -1160,11 +1302,11 @@ jobs:
         cd $GITHUB_WORKSPACE/sable/
         cargo build
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1181,7 +1323,7 @@ jobs:
   test-solanum:
     needs:
     - build-solanum
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1196,11 +1338,11 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1213,9 +1355,91 @@ jobs:
       with:
         name: pytest-results_solanum_stable
         path: pytest.xml
+  test-solanum-anope:
+    needs:
+    - build-solanum
+    - build-anope
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-solanum
+        path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-anope
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Install system dependencies
+      run: sudo apt-get install faketime
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt pytest-xdist pytest-timeout
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
+        solanum-anope
+      timeout-minutes: 30
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results_solanum-anope_stable
+        path: pytest.xml
+  test-solanum-atheme:
+    needs:
+    - build-solanum
+    - build-atheme
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-solanum
+        path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-atheme
+        path: '~'
+    - name: Unpack artefacts
+      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
+    - name: Install system dependencies
+      run: sudo apt-get install faketime
+    - name: Install irctest dependencies
+      run: |-
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt pytest-xdist pytest-timeout
+    - env:
+        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+      name: Test with pytest
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH   make
+        solanum-atheme
+      timeout-minutes: 30
+    - if: always()
+      name: Publish results
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results_solanum-atheme_stable
+        path: pytest.xml
   test-sopel:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1225,11 +1449,11 @@ jobs:
     - name: Install dependencies
       run: pip install sopel==7.1.8
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1244,7 +1468,7 @@ jobs:
         path: pytest.xml
   test-thelounge:
     needs: []
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1257,6 +1481,7 @@ jobs:
         path: thelounge
         ref: v4.4.0
         repository: thelounge/thelounge
+        submodules: ''
     - name: Build TheLounge
       run: |
         cd $GITHUB_WORKSPACE/thelounge
@@ -1265,11 +1490,11 @@ jobs:
         mkdir -p ~/.local/bin/
         ln -s $(pwd)/index.js ~/.local/bin/thelounge
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1285,7 +1510,7 @@ jobs:
   test-unrealircd:
     needs:
     - build-unrealircd
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1300,11 +1525,11 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1317,46 +1542,11 @@ jobs:
       with:
         name: pytest-results_unrealircd_stable
         path: pytest.xml
-  test-unrealircd-5:
-    needs:
-    - build-unrealircd-5
-    runs-on: ubuntu-22.04
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.11
-    - name: Download build artefacts
-      uses: actions/download-artifact@v4
-      with:
-        name: installed-unrealircd-5
-        path: '~'
-    - name: Unpack artefacts
-      run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
-    - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
-    - name: Install irctest dependencies
-      run: |-
-        python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
-    - env:
-        IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
-      name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
-        make unrealircd-5
-      timeout-minutes: 30
-    - if: always()
-      name: Publish results
-      uses: actions/upload-artifact@v4
-      with:
-        name: pytest-results_unrealircd-5_stable
-        path: pytest.xml
   test-unrealircd-anope:
     needs:
     - build-unrealircd
     - build-anope
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1376,11 +1566,11 @@ jobs:
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
@@ -1396,7 +1586,8 @@ jobs:
   test-unrealircd-atheme:
     needs:
     - build-unrealircd
-    runs-on: ubuntu-22.04
+    - build-atheme
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.11
@@ -1408,19 +1599,24 @@ jobs:
       with:
         name: installed-unrealircd
         path: '~'
+    - name: Download build artefacts
+      uses: actions/download-artifact@v4
+      with:
+        name: installed-atheme
+        path: '~'
     - name: Unpack artefacts
       run: cd ~; find -name 'artefacts-*.tar.gz' -exec tar -xzf '{}' \;
     - name: Install system dependencies
-      run: sudo apt-get install atheme-services faketime
+      run: sudo apt-get install faketime
     - name: Install irctest dependencies
       run: |-
         python -m pip install --upgrade pip
-        pip install pytest pytest-xdist pytest-timeout -r requirements.txt
+        pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
-        make unrealircd-atheme
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH  make
+        unrealircd-atheme
       timeout-minutes: 30
     - if: always()
       name: Publish results

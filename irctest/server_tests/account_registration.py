@@ -199,5 +199,5 @@ class RegisterNoLandGrabsTestCase(cases.BaseServerTestCase):
         msgs = self.getMessages("bar")
         fail_response = [msg for msg in msgs if msg.command == "FAIL"][0]
         self.assertMessageMatch(
-            fail_response, params=["REGISTER", "USERNAME_EXISTS", ANYSTR, ANYSTR]
+            fail_response, params=["REGISTER", "ACCOUNT_EXISTS", ANYSTR, ANYSTR]
         )

@@ -11,7 +11,7 @@ import pytest
 
 from irctest import cases, runner
 from irctest.numerics import RPL_ENDOFWHO, RPL_WHOREPLY, RPL_WHOSPCRPL, RPL_YOUREOPER
-from irctest.patma import ANYSTR, InsensitiveStr, StrRe
+from irctest.patma import ANYSTR, Either, InsensitiveStr, StrRe
 
 
 def realname_regexp(realname):
@@ -60,7 +60,7 @@ class BaseWhoTestCase:
                     "*",  # no chan
                     StrRe("~?" + self.username),
                     StrRe(host_re),
-                    StrRe(r"(My.Little.Server|\*)"),
+                    Either("My.Little.Server", "*"),
                     "coolNick",
                     flags,
                     StrRe(realname_regexp(self.realname)),
@@ -76,7 +76,7 @@ class BaseWhoTestCase:
                     "#chan",
                     StrRe("~?" + self.username),
                     StrRe(host_re),
-                    StrRe(r"(My.Little.Server|\*)"),
+                    Either("My.Little.Server", "*"),
                     "coolNick",
                     flags + "@",
                     StrRe(realname_regexp(self.realname)),
@@ -336,7 +336,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
                 "#chan",
                 StrRe("~?" + self.username),
                 StrRe(host_re),
-                StrRe(r"(My.Little.Server|\*)"),
+                Either("My.Little.Server", "*"),
                 "coolNick",
                 "G@",
                 StrRe(realname_regexp(self.realname)),
@@ -351,7 +351,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
                 "#chan",
                 ANYSTR,
                 ANYSTR,
-                StrRe(r"(My.Little.Server|\*)"),
+                Either("My.Little.Server", "*"),
                 "otherNick",
                 "H",
                 StrRe("[0-9]+ .*"),
@@ -398,7 +398,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
                     chan,
                     ANYSTR,
                     ANYSTR,
-                    StrRe(r"(My.Little.Server|\*)"),
+                    Either("My.Little.Server", "*"),
                     "coolNick",
                     ANYSTR,
                     ANYSTR,
@@ -413,7 +413,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
                     chan,
                     ANYSTR,
                     ANYSTR,
-                    StrRe(r"(My.Little.Server|\*)"),
+                    Either("My.Little.Server", "*"),
                     "otherNick",
                     ANYSTR,
                     ANYSTR,
@@ -475,11 +475,11 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
             params=[
                 "otherNick",
                 "123",
-                StrRe(r"(#chan|\*)"),
+                Either("#chan", "*"),
                 StrRe("~?myusernam"),
                 ANYSTR,
                 ANYSTR,
-                StrRe(r"(My.Little.Server|\*)"),
+                Either("My.Little.Server", "*"),
                 "coolNick",
                 StrRe("H@?"),
                 ANYSTR,  # hopcount

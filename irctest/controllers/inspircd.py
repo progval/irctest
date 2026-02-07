@@ -4,6 +4,7 @@ import subprocess
 from typing import Optional, Type
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
+from irctest.specifications import OptionalBehaviors
 
 TEMPLATE_CONFIG = """
 # Clients:
@@ -19,7 +20,7 @@ TEMPLATE_CONFIG = """
 
 <class
     name="ServerOperators"
-    commands="WALLOPS GLOBOPS"
+    commands="WALLOPS GLOBOPS KILL"
     privs="channels/auspex users/auspex channels/auspex servers/auspex"
     >
 <type
@@ -41,7 +42,7 @@ TEMPLATE_CONFIG = """
 
 # Services:
 <bind address="{services_hostname}" port="{services_port}" type="servers">
-<link name="services.example.org"
+<link name="My.Little.Services"
     ipaddr="{services_hostname}"
     port="{services_port}"
     allowmask="*"
@@ -51,7 +52,7 @@ TEMPLATE_CONFIG = """
 <module name="spanningtree">
 <module name="hidechans">  # Anope errors when missing
 <sasl requiressl="no"
-      target="services.example.org">
+      target="My.Little.Services">
 
 # Protocol:
 <module name="banexception">
@@ -70,6 +71,7 @@ TEMPLATE_CONFIG = """
 <module name="ircv3_servertime">
 <module name="monitor">
 <module name="m_muteban">  # for testing mute extbans
+<module name="noctcp">
 <module name="sasl">
 <module name="uhnames">  # For userhost-in-names
 <module name="alias">  # for the HELP alias
@@ -124,6 +126,8 @@ class InspircdController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
     extban_mute_char = "m"
+
+    optional_behaviors = frozenset([OptionalBehaviors.NO_CTCP])
 
     def create_config(self) -> None:
         super().create_config()

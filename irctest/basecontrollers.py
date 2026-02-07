@@ -18,6 +18,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    FrozenSet,
     Iterator,
     List,
     Optional,
@@ -36,6 +37,7 @@ from .irc_utils.filelock import FileLock
 from .irc_utils.junkdrawer import find_hostname_and_port
 from .irc_utils.message_parser import Message
 from .runner import NotImplementedByController
+from .specifications import Capabilities, OptionalBehaviors
 
 
 class ProcessStopped(Exception):
@@ -85,6 +87,10 @@ class _BaseController:
 
     supports_sts: bool
     supported_sasl_mechanisms: Set[str]
+
+    capabilities: FrozenSet[Capabilities] = frozenset()
+
+    optional_behaviors: FrozenSet[OptionalBehaviors] = frozenset()
 
     proc: Optional[subprocess.Popen]
 
@@ -163,7 +169,7 @@ class _BaseController:
         if kwargs["stdout"] in (None, subprocess.STDOUT):
             kwargs["stdout"] = subprocess.PIPE
 
-            def stream_stdout() -> None:
+            def stream_stdout() -> None:  # noqa
                 assert proc.stdout is not None  # for mypy
                 for line in proc.stdout:
                     prefix = f"{time.time():.3f} {proc_name} ".encode()
@@ -176,7 +182,7 @@ class _BaseController:
         if kwargs["stderr"] in (subprocess.STDOUT, None):
             kwargs["stderr"] = subprocess.PIPE
 
-            def stream_stderr() -> None:
+            def stream_stderr() -> None:  # noqa
                 assert proc.stderr is not None  # for mypy
                 for line in proc.stderr:
                     prefix = f"{time.time():.3f} {proc_name} ".encode()
@@ -390,8 +396,17 @@ class BaseServerController(_BaseController):
             self.services_controller.kill()  # type: ignore
         super().kill()
 
+    def supports_cap(self, capability: str) -> bool:
+        try:
+            cap_enum = Capabilities(capability)
+        except ValueError:
+            return False  # not defined in the Capabilities enum
+        return cap_enum in self.capabilities
+
 
 class BaseServicesController(_BaseController):
+    saslserv: str = "SaslServ"
+
     def __init__(
         self,
         test_config: TestCaseControllerConfig,

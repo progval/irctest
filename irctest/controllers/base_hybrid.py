@@ -51,6 +51,12 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
             )
         else:
             ssl_config = ""
+
+        if hasattr(self, "services_controller_class"):
+            saslserv = self.services_controller_class.saslserv
+        else:
+            saslserv = "irctest_undefined"
+
         binary_path = shutil.which(self.binary_name)
         assert binary_path, f"Could not find '{binary_path}' executable"
         with self.open_file("server.conf") as fd:
@@ -63,6 +69,7 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
                     password_field=password_field,
                     ssl_config=ssl_config,
                     install_prefix=Path(binary_path).parent.parent,
+                    saslserv=saslserv,
                 )
             )
         assert self.directory
