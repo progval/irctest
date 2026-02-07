@@ -10,6 +10,7 @@ from irctest.numerics import (
     RPL_SASLSUCCESS,
 )
 from irctest.patma import ANYSTR
+from irctest.specifications import OptionalBehaviors
 
 
 @cases.mark_services
@@ -504,7 +505,9 @@ class SaslTestCase(cases.BaseServerTestCase):
                 "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
                 "but instead sent: {msg}",
             )
-            raise runner.OptionalExtensionNotSupported("SASL re-authentication")
+            raise runner.OptionalExtensionNotSupported(
+                OptionalBehaviors.SASL_REAUTHENTICATION
+            )
         self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
@@ -547,7 +550,9 @@ class SaslTestCase(cases.BaseServerTestCase):
                 "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
                 "but instead sent: {msg}",
             )
-            raise runner.OptionalExtensionNotSupported("SASL re-authentication")
+            raise runner.OptionalExtensionNotSupported(
+                OptionalBehaviors.SASL_REAUTHENTICATION
+            )
         self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
