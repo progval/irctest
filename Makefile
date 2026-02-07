@@ -135,10 +135,9 @@ flakes:
 bahamut:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.bahamut \
-		-m 'not services' \
 		-n 4 \
-		-vv -s \
-		-m '$(BAHAMUT_SELECTORS)'
+		-vv \
+		-m 'not services and $(BAHAMUT_SELECTORS)'
 
 .PHONY: bahamut-atheme
 bahamut-atheme:
@@ -198,8 +197,8 @@ inspircd-anope:
 ircu2:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.ircu2 \
+		-n 4 \
 		-m 'not services and not IRCv3 and $(IRCU2_SELECTORS)'
-		-n 4
 
 .PHONY: nefarious
 nefarious:
@@ -246,21 +245,21 @@ ngircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
 		-n 4 \
-		-m énot services and $(NGIRCD_SELECTORS)"
+		-m "not services and $(NGIRCD_SELECTORS)"
 
 .PHONY: ngircd-anope
 ngircd-anope:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
 		--services-controller=irctest.controllers.anope_services \
-		-m 'services and $(NGIRCD_SELECTORS)"
+		-m "services and $(NGIRCD_SELECTORS)"
 
 .PHONY: ngircd-atheme
 ngircd-atheme:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
 		--services-controller=irctest.controllers.atheme_services \
-		-m 'services and $(NGIRCD_SELECTORS)"
+		-m "services and $(NGIRCD_SELECTORS)"
 
 .PHONY: sable
 sable:
@@ -306,8 +305,7 @@ thelounge:
 unrealircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.unrealircd \
-		-m 'not services' \
-		-m '$(UNREALIRCD_SELECTORS)'
+		-m 'not services and $(UNREALIRCD_SELECTORS)'
 
 .PHONY: unrealircd-5
 unrealircd-5: unrealircd
