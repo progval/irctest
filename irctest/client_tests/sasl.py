@@ -228,7 +228,7 @@ class SaslTestCase(cases.BaseClientTestCase):
         self.assertEqual(m.params, ["+"], m)
 
     @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
-    def testScramBadPassword(self):
+    def testScramBadPassword(self, server_fakes_success=False, fake_response=None):
         """Test SCRAM-SHA-256 authentication with a bad password."""
         auth = authentication.Authentication(
             mechanisms=[authentication.Mechanisms.scram_sha_256],
@@ -260,6 +260,36 @@ class SaslTestCase(cases.BaseClientTestCase):
         msg = base64.b64decode(m.params[0])
         with self.assertRaises(scram.NotAuthorizedException):
             authenticator.response(msg)
+
+        if server_fakes_success:
+            self.sendLine(f"AUTHENTICATE :{fake_response}")
+
+            m = self.getMessage()
+            while m.command == "PING":
+                self.sendLine(f"PONG server. {m.params[-1]}")
+                m = self.getMessage()
+            self.assertMessageMatch(
+                m,
+                command="AUTHENTICATE",
+                params=["*"],
+                fail_msg="Client did not abort: {msg}",
+            )
+
+    @cases.skipUnlessHasMechanism("SCRAM-SHA-256")
+    @pytest.mark.parametrize(
+        "fake_response",
+        [
+            "",
+            "AAAA",
+            "dj1ubU1mM1FIV2NKUWk5cE1ndHFLU0tQclZueUk2c3FOTzZJN3BFLzBveUdjPQ==",
+        ],
+    )
+    def testScramMaliciousServer(self, fake_response):
+        """Test SCRAM-SHA-256 authentication to a server which pretends to know
+        the password"""
+        self.testScramBadPassword(
+            server_fakes_success=True, fake_response=fake_response
+        )
 
 
 class Irc302SaslTestCase(cases.BaseClientTestCase):

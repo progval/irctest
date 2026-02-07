@@ -1,13 +1,7 @@
 import shutil
-import subprocess
 from typing import Optional, Set, Type
 
-from irctest.basecontrollers import (
-    BaseServerController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
-from irctest.irc_utils.junkdrawer import find_hostname_and_port
+from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
 [Global]
@@ -20,7 +14,7 @@ TEMPLATE_CONFIG = """
     {password_field}
 
 [Server]
-    Name = services.example.org
+    Name = My.Little.Services
     MyPassword = password
     PeerPassword = password
     Passive = yes  # don't connect to it
@@ -28,10 +22,14 @@ TEMPLATE_CONFIG = """
 
 [Options]
     MorePrivacy = no  # by default, always replies to WHOWAS with ERR_WASNOSUCHNICK
+    PAM = no
 
 [Operator]
     Name = operuser
     Password = operpassword
+
+[Limits]
+    MaxNickLength = 32  # defaults to 9
 """
 
 
@@ -53,20 +51,13 @@ class NgircdController(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-        restricted_metadata_keys: Optional[Set[str]] = None,
         faketime: Optional[str],
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
         assert self.proc is None
         self.port = port
         self.hostname = hostname
         self.create_config()
-        (unused_hostname, unused_port) = find_hostname_and_port()
+        (unused_hostname, unused_port) = self.get_hostname_and_port()
 
         password_field = "Password = {}".format(password) if password else ""
 
@@ -103,7 +94,7 @@ class NgircdController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "ngircd",
@@ -111,7 +102,6 @@ class NgircdController(BaseServerController, DirectoryBasedController):
                 "--config",
                 self.directory / "server.conf",
             ],
-            # stdout=subprocess.DEVNULL,
         )
 
         if run_services:

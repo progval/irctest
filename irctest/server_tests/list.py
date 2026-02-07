@@ -389,13 +389,6 @@ class FaketimeListTestCase(_BasedListTestCase):
         ["Plexus4", "Hybrid"],
         "Hybrid and Plexus4 filter on ELIST=C with the opposite meaning",
     )
-    @cases.xfailIf(
-        lambda self: bool(
-            self.controller.software_name == "UnrealIRCd"
-            and self.controller.software_version == 5
-        ),
-        "UnrealIRCd <6.0.3 filters on ELIST=C with the opposite meaning",
-    )
     def testListCreationTime(self):
         """
         " C: Searching based on channel creation time, via the "C<val" and "C>val"
@@ -462,13 +455,6 @@ class FaketimeListTestCase(_BasedListTestCase):
 
     @cases.mark_isupport("ELIST")
     @cases.mark_specifications("Modern")
-    @cases.xfailIf(
-        lambda self: bool(
-            self.controller.software_name == "UnrealIRCd"
-            and self.controller.software_version == 5
-        ),
-        "UnrealIRCd <6.0.3 advertises ELIST=T but does not implement it",
-    )
     def testListTopicTime(self):
         """
         "T: Searching based on topic time, via the "T<val" and "T>val"

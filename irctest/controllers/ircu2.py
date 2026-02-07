@@ -1,6 +1,5 @@
 import shutil
-import subprocess
-from typing import Optional, Set, Type
+from typing import Optional, Type
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -68,14 +67,8 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
         faketime: Optional[str],
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
         if ssl:
             raise NotImplementedByController("TLS")
         if run_services:
@@ -103,7 +96,7 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "ircd",
@@ -113,7 +106,6 @@ class Ircu2Controller(BaseServerController, DirectoryBasedController):
                 "-x",
                 "DEBUG",
             ],
-            # stderr=subprocess.DEVNULL,
         )
 
 

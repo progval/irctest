@@ -14,6 +14,11 @@ class ImplementationChoice(unittest.SkipTest):
         )
 
 
+class OptionalBehaviorNotSupported(unittest.SkipTest):
+    def __str__(self) -> str:
+        return f"Optional behavior not supported: {self.args[0]}"
+
+
 class OptionalCommandNotSupported(unittest.SkipTest):
     def __str__(self) -> str:
         return "Unsupported command: {}".format(self.args[0])

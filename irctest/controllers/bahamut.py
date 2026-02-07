@@ -1,14 +1,8 @@
 from pathlib import Path
 import shutil
-import subprocess
 from typing import Optional, Set, Type
 
-from irctest.basecontrollers import (
-    BaseServerController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
-from irctest.irc_utils.junkdrawer import find_hostname_and_port
+from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 
 TEMPLATE_CONFIG = """
 global {{
@@ -20,7 +14,7 @@ options {{
     network_name    unconfigured;
     allow_split_ops;                # Give ops in empty channels
 
-    services_name   services.example.org;
+    services_name   My.Little.Services;
 
     // if you need to link more than 1 server, uncomment the following line
     servtype        hub;
@@ -50,7 +44,7 @@ class {{
 
 /* for services */
 super {{
-    "services.example.org";
+    "My.Little.Services";
 }};
 
 
@@ -63,7 +57,7 @@ class {{
 
 /* our services */
 connect {{
-    name        services.example.org;
+    name        My.Little.Services;
     host        *@127.0.0.1;  # unfortunately, masks aren't allowed here
     apasswd     password;
     cpasswd     password;
@@ -97,7 +91,7 @@ class BahamutController(BaseServerController, DirectoryBasedController):
     software_name = "Bahamut"
     supported_sasl_mechanisms: Set[str] = set()
     supports_sts = False
-    nickserv = "NickServ@services.example.org"
+    nickserv = "NickServ@My.Little.Services"
 
     def create_config(self) -> None:
         super().create_config()
@@ -112,21 +106,14 @@ class BahamutController(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-        restricted_metadata_keys: Optional[Set[str]] = None,
         faketime: Optional[str],
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
         assert self.proc is None
         self.port = port
         self.hostname = hostname
         self.create_config()
-        (unused_hostname, unused_port) = find_hostname_and_port()
-        (services_hostname, services_port) = find_hostname_and_port()
+        (unused_hostname, unused_port) = self.get_hostname_and_port()
+        (services_hostname, services_port) = self.get_hostname_and_port()
 
         password_field = "passwd {};".format(password) if password else ""
 
@@ -162,7 +149,7 @@ class BahamutController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "ircd",

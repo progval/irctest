@@ -13,7 +13,7 @@ TEMPLATE_DLK_CONFIG = """\
 info {{
     SID "00A";
     network-name "testnetwork";
-    services-name "services.example.org";
+    services-name "My.Little.Services";
     admin-email "admin@example.org";
 }}
 
@@ -200,7 +200,7 @@ class DlkController(BaseServicesController, DirectoryBasedController):
             fd.write(TEMPLATE_DLK_WP_CONFIG.format(**template_vars))
         (dlk_conf_dir / "modules.conf").symlink_to(self.dlk_path / "conf/modules.conf")
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 "php",
                 "src/dalek",

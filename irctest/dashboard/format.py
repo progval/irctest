@@ -16,14 +16,20 @@ from typing import (
     Optional,
     Tuple,
     TypeVar,
+    Union,
 )
 import xml.etree.ElementTree as ET
 
 from defusedxml.ElementTree import parse as parse_xml
 import docutils.core
 
+from .shortxml import Namespace
+
 NETLIFY_CHAR_BLACKLIST = frozenset('":<>|*?\r\n#')
 """Characters not allowed in output filenames"""
+
+
+HTML = Namespace("http://www.w3.org/1999/xhtml")
 
 
 @dataclasses.dataclass
@@ -120,33 +126,43 @@ def iter_job_results(job_file_name: Path, job: ET.ElementTree) -> Iterator[CaseR
 
 def rst_to_element(s: str) -> ET.Element:
     html = docutils.core.publish_parts(s, writer_name="xhtml")["html_body"]
-    htmltree = ET.fromstring(html)
+
+    # Force the HTML namespace on all elements produced by docutils, which are
+    # unqualified
+    tree_builder = ET.TreeBuilder(
+        element_factory=lambda tag, attrib: ET.Element(
+            "{%s}%s" % (HTML.uri, tag),
+            {"{%s}%s" % (HTML.uri, k): v for (k, v) in attrib.items()},
+        )
+    )
+    parser = ET.XMLParser(target=tree_builder)
+
+    htmltree = ET.fromstring(html, parser=parser)
     return htmltree
 
 
-def append_docstring(element: ET.Element, obj: object) -> None:
+def docstring(obj: object) -> Optional[ET.Element]:
     if obj.__doc__ is None:
-        return
+        return None
 
-    element.append(rst_to_element(obj.__doc__))
+    return rst_to_element(obj.__doc__)
 
 
 def build_job_html(job: str, results: List[CaseResult]) -> ET.Element:
     jobs = sorted({result.job for result in results})
-    root = ET.Element("html")
-    head = ET.SubElement(root, "head")
-    ET.SubElement(head, "title").text = job
-    ET.SubElement(head, "link", rel="stylesheet", type="text/css", href="./style.css")
 
-    body = ET.SubElement(root, "body")
+    table = build_test_table(jobs, results, "job-results test-matrix")
 
-    ET.SubElement(body, "h1").text = job
-
-    table = build_test_table(jobs, results)
-    table.set("class", "job-results test-matrix")
-    body.append(table)
-
-    return root
+    return HTML.html(
+        HTML.head(
+            HTML.title(job),
+            HTML.link(rel="stylesheet", type="text/css", href="./style.css"),
+        ),
+        HTML.body(
+            HTML.h1(job),
+            table,
+        ),
+    )
 
 
 def build_module_html(
@@ -154,38 +170,35 @@ def build_module_html(
 ) -> ET.Element:
     module = importlib.import_module(module_name)
 
-    root = ET.Element("html")
-    head = ET.SubElement(root, "head")
-    ET.SubElement(head, "title").text = module_name
-    ET.SubElement(head, "link", rel="stylesheet", type="text/css", href="./style.css")
+    table = build_test_table(jobs, results, "module-results test-matrix")
 
-    body = ET.SubElement(root, "body")
-
-    ET.SubElement(body, "h1").text = module_name
-
-    append_docstring(body, module)
-
-    table = build_test_table(jobs, results)
-    table.set("class", "module-results test-matrix")
-    body.append(table)
-
-    return root
+    return HTML.html(
+        HTML.head(
+            HTML.title(module_name),
+            HTML.link(rel="stylesheet", type="text/css", href="./style.css"),
+        ),
+        HTML.body(
+            HTML.h1(module_name),
+            docstring(module),
+            table,
+        ),
+    )
 
 
-def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
+def build_test_table(
+    jobs: List[str], results: List[CaseResult], class_: str
+) -> ET.Element:
     multiple_modules = len({r.module_name for r in results}) > 1
     results_by_module_and_class = group_by(
         results, lambda r: (r.module_name, r.class_name)
     )
 
-    table = ET.Element("table")
+    job_row = HTML.tr(
+        HTML.th(),  # column of case name
+        [HTML.th(HTML.div(HTML.span(job)), class_="job-name") for job in jobs],
+    )
 
-    job_row = ET.Element("tr")
-    ET.SubElement(job_row, "th")  # column of case name
-    for job in jobs:
-        cell = ET.SubElement(job_row, "th")
-        ET.SubElement(ET.SubElement(cell, "div"), "span").text = job
-        cell.set("class", "job-name")
+    rows = []
 
     for (module_name, class_name), class_results in sorted(
         results_by_module_and_class.items()
@@ -203,20 +216,25 @@ def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
         module = importlib.import_module(module_name)
 
         # Header row: class name
-        header_row = ET.SubElement(table, "tr")
-        th = ET.SubElement(header_row, "th", colspan=str(len(jobs) + 1))
         row_anchor = f"{qualified_class_name}"
-        section_header = ET.SubElement(
-            ET.SubElement(th, "h2"),
-            "a",
-            href=f"#{row_anchor}",
-            id=row_anchor,
+        rows.append(
+            HTML.tr(
+                HTML.th(
+                    HTML.h2(
+                        HTML.a(
+                            qualified_class_name,
+                            href=f"#{row_anchor}",
+                            id=row_anchor,
+                        ),
+                    ),
+                    docstring(getattr(module, class_name)),
+                    colspan=str(len(jobs) + 1),
+                )
+            )
         )
-        section_header.text = qualified_class_name
-        append_docstring(th, getattr(module, class_name))
 
         # Header row: one column for each implementation
-        table.append(job_row)
+        rows.append(job_row)
 
         # One row for each test:
         results_by_test = group_by(class_results, key=lambda r: r.test_name)
@@ -227,43 +245,52 @@ def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
                 # TODO: only hash test parameter
                 row_anchor = md5sum(row_anchor)
 
-            row = ET.SubElement(table, "tr", id=row_anchor)
-
-            cell = ET.SubElement(row, "th")
-            cell.set("class", "test-name")
-            cell_link = ET.SubElement(cell, "a", href=f"#{row_anchor}")
-            cell_link.text = test_name
+            doc = docstring(
+                getattr(getattr(module, class_name), test_name.split("[")[0])
+            )
+            row = HTML.tr(
+                HTML.th(
+                    HTML.details(
+                        HTML.summary(HTML.a(test_name, href=f"#{row_anchor}")),
+                        doc,
+                    )
+                    if doc
+                    else HTML.a(test_name, href=f"#{row_anchor}"),
+                    class_="test-name",
+                ),
+                id=row_anchor,
+            )
+            rows.append(row)
 
             results_by_job = group_by(test_results, key=lambda r: r.job)
             for job_name in jobs:
-                cell = ET.SubElement(row, "td")
                 try:
                     (result,) = results_by_job[job_name]
                 except KeyError:
-                    cell.set("class", "deselected")
-                    cell.text = "d"
+                    row.append(HTML.td("d", class_="deselected"))
                     continue
 
-                text: Optional[str]
+                text: Union[str, None, ET.Element]
+                attrib = {}
 
                 if result.skipped:
-                    cell.set("class", "skipped")
+                    attrib["class"] = "skipped"
                     if result.type == "pytest.skip":
                         text = "s"
                     elif result.type == "pytest.xfail":
                         text = "X"
-                        cell.set("class", "expected-failure")
+                        attrib["class"] = "expected-failure"
                     else:
                         text = result.type
                 elif result.success:
-                    cell.set("class", "success")
+                    attrib["class"] = "success"
                     if result.type:
                         # dead code?
                         text = result.type
                     else:
                         text = "."
                 else:
-                    cell.set("class", "failure")
+                    attrib["class"] = "failure"
                     if result.type:
                         # dead code?
                         text = result.type
@@ -272,14 +299,15 @@ def build_test_table(jobs: List[str], results: List[CaseResult]) -> ET.Element:
 
                 if result.system_out:
                     # There is a log file; link to it.
-                    a = ET.SubElement(cell, "a", href=f"./{result.output_filename()}")
-                    a.text = text or "?"
+                    text = HTML.a(text or "?", href=f"./{result.output_filename()}")
                 else:
-                    cell.text = text or "?"
+                    text = text or "?"
                 if result.message:
-                    cell.set("title", result.message)
+                    attrib["title"] = result.message
 
-    return table
+                row.append(HTML.td(text, attrib))
+
+    return HTML.table(*rows, class_=class_)
 
 
 def write_html_pages(
@@ -355,15 +383,6 @@ def write_test_outputs(output_dir: Path, results: List[CaseResult]) -> None:
 
 
 def write_html_index(output_dir: Path, pages: List[Tuple[str, str, str]]) -> None:
-    root = ET.Element("html")
-    head = ET.SubElement(root, "head")
-    ET.SubElement(head, "title").text = "irctest dashboard"
-    ET.SubElement(head, "link", rel="stylesheet", type="text/css", href="./style.css")
-
-    body = ET.SubElement(root, "body")
-
-    ET.SubElement(body, "h1").text = "irctest dashboard"
-
     module_pages = []
     job_pages = []
     for page_type, title, file_name in sorted(pages):
@@ -374,28 +393,36 @@ def write_html_index(output_dir: Path, pages: List[Tuple[str, str, str]]) -> Non
         else:
             assert False, page_type
 
-    ET.SubElement(body, "h2").text = "Tests by command/specification"
+    page = HTML.html(
+        HTML.head(
+            HTML.title("irctest dashboard"),
+            HTML.link(rel="stylesheet", type="text/css", href="./style.css"),
+        ),
+        HTML.body(
+            HTML.h1("irctest dashboard"),
+            HTML.h2("Tests by command/specification"),
+            HTML.dl(
+                [
+                    (
+                        HTML.dt(HTML.a(module_name, href=f"./{file_name}")),
+                        HTML.dd(docstring(importlib.import_module(module_name))),
+                    )
+                    for module_name, file_name in sorted(module_pages)
+                ],
+                class_="module-index",
+            ),
+            HTML.h2("Tests by implementation"),
+            HTML.ul(
+                [
+                    HTML.li(HTML.a(job, href=f"./{file_name}"))
+                    for job, file_name in sorted(job_pages)
+                ],
+                class_="job-index",
+            ),
+        ),
+    )
 
-    dl = ET.SubElement(body, "dl")
-    dl.set("class", "module-index")
-
-    for module_name, file_name in sorted(module_pages):
-        module = importlib.import_module(module_name)
-
-        link = ET.SubElement(ET.SubElement(dl, "dt"), "a", href=f"./{file_name}")
-        link.text = module_name
-        append_docstring(ET.SubElement(dl, "dd"), module)
-
-    ET.SubElement(body, "h2").text = "Tests by implementation"
-
-    ul = ET.SubElement(body, "ul")
-    ul.set("class", "job-index")
-
-    for job, file_name in sorted(job_pages):
-        link = ET.SubElement(ET.SubElement(ul, "li"), "a", href=f"./{file_name}")
-        link.text = job
-
-    write_xml_file(output_dir / "index.xhtml", root)
+    write_xml_file(output_dir / "index.xhtml", page)
 
 
 def write_assets(output_dir: Path) -> None:
@@ -407,12 +434,12 @@ def write_assets(output_dir: Path) -> None:
 
 
 def write_xml_file(filename: Path, root: ET.Element) -> None:
-    # Hacky: ET expects the namespace to be present in every tag we create instead;
-    # but it would be excessively verbose.
-    root.set("xmlns", "http://www.w3.org/1999/xhtml")
-
     # Serialize
-    s = ET.tostring(root)
+    if sys.version_info >= (3, 8):
+        s = ET.tostring(root, default_namespace=HTML.uri)
+    else:
+        # default_namespace not supported
+        s = ET.tostring(root)
 
     with filename.open("wb") as fd:
         fd.write(s)

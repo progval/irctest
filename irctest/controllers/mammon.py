@@ -1,5 +1,4 @@
 import shutil
-import subprocess
 from typing import Optional, Set, Type
 
 from irctest.basecontrollers import (
@@ -33,10 +32,10 @@ extensions:
 - mammon.ext.ircv3.sasl
 - mammon.ext.misc.nopost
 metadata:
-  restricted_keys:
-{restricted_keys}
+  restricted_keys: []
   whitelist:
-{authorized_keys}
+  - display-name
+  - avatar
 monitor:
   limit: 20
 motd:
@@ -89,9 +88,6 @@ class MammonController(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-        restricted_metadata_keys: Optional[Set[str]] = None,
         faketime: Optional[str],
     ) -> None:
         if password is not None:
@@ -107,8 +103,6 @@ class MammonController(BaseServerController, DirectoryBasedController):
                     directory=self.directory,
                     hostname=hostname,
                     port=port,
-                    authorized_keys=make_list(valid_metadata_keys or set()),
-                    restricted_keys=make_list(restricted_metadata_keys or set()),
                 )
             )
         # with self.open_file('server.yml', 'r') as fd:
@@ -121,7 +115,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
         else:
             faketime_cmd = []
 
-        self.proc = subprocess.Popen(
+        self.proc = self.execute(
             [
                 *faketime_cmd,
                 "mammond",

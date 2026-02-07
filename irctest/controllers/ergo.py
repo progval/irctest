@@ -1,16 +1,23 @@
 import copy
 import json
 import os
-import shutil
 import subprocess
-from typing import Any, Dict, Optional, Set, Type, Union
+from typing import Any, Dict, Optional, Type, Union
 
-from irctest.basecontrollers import (
-    BaseServerController,
-    DirectoryBasedController,
-    NotImplementedByController,
-)
+from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 from irctest.cases import BaseServerTestCase
+from irctest.specifications import Capabilities, OptionalBehaviors
+
+# ratified caps we want everyone to request, ideally
+BASE_CAPS = (
+    "sasl",
+    "server-time",
+    "message-tags",
+    "echo-message",
+    "batch",
+    "labeled-response",
+    "account-tag",
+)
 
 BASE_CONFIG = {
     "network": {"name": "ErgoTest"},
@@ -18,6 +25,7 @@ BASE_CONFIG = {
         "name": "My.Little.Server",
         "listeners": {},
         "max-sendq": "16k",
+        "casemapping": "ascii",
         "connection-limits": {
             "enabled": True,
             "cidr-len-ipv4": 32,
@@ -49,7 +57,7 @@ BASE_CONFIG = {
         "multiclient": {
             "allowed-by-default": True,
             "enabled": True,
-            "always-on": "disabled",
+            "always-on": "opt-in",
         },
         "registration": {
             "bcrypt-cost": 4,
@@ -60,6 +68,11 @@ BASE_CONFIG = {
         "nick-reservation": {
             "enabled": True,
             "method": "strict",
+        },
+        "login-throttling": {
+            "enabled": True,
+            "duration": "1m",
+            "max-attempts": 3,
         },
     },
     "channels": {"registration": {"enabled": True}},
@@ -84,6 +97,9 @@ BASE_CONFIG = {
         "tagmsg-storage": {
             "default": False,
             "whitelist": ["+draft/persist", "+persist"],
+        },
+        "retention": {
+            "allow-individual-delete": True,
         },
     },
     "oper-classes": {
@@ -116,6 +132,11 @@ BASE_CONFIG = {
             "password": "$2a$04$bKb6k5A6yuFA2wx.iJtxcuT2dojHQAjHd5ZPK/I2sjJml7p4spxjG",
         }
     },
+    "metadata": {
+        "enabled": True,
+        "max-subs": 100,
+        "max-keys": 1000,
+    },
 }
 
 LOGGING_CONFIG = {"logging": [{"method": "stderr", "level": "debug", "type": "*"}]}
@@ -130,7 +151,7 @@ def hash_password(password: Union[str, bytes]) -> str:
         ["ergo", "genpasswd"], stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
     out, _ = p.communicate(input_)
-    return out.decode("utf-8")
+    return out.decode("utf-8").strip()
 
 
 class ErgoController(BaseServerController, DirectoryBasedController):
@@ -139,6 +160,33 @@ class ErgoController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {"PLAIN", "SCRAM-SHA-256"}
     supports_sts = True
     extban_mute_char = "m"
+
+    capabilities = frozenset(
+        (
+            Capabilities.ACCOUNT_NOTIFY,
+            Capabilities.ACCOUNT_TAG,
+            Capabilities.AWAY_NOTIFY,
+            Capabilities.BATCH,
+            Capabilities.ECHO_MESSAGE,
+            Capabilities.EXTENDED_JOIN,
+            Capabilities.EXTENDED_MONITOR,
+            Capabilities.LABELED_RESPONSE,
+            Capabilities.MESSAGE_TAGS,
+            Capabilities.MULTILINE,
+            Capabilities.MULTI_PREFIX,
+            Capabilities.SERVER_TIME,
+            Capabilities.SETNAME,
+        ),
+    )
+
+    optional_behaviors = frozenset(
+        (
+            OptionalBehaviors.CAP_REQ_MINUS,
+            OptionalBehaviors.NO_CTCP,
+            OptionalBehaviors.SASL_AFTER_REGISTRATION,
+            OptionalBehaviors.SASL_REAUTHENTICATION,
+        )
+    )
 
     def create_config(self) -> None:
         super().create_config()
@@ -153,20 +201,15 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         password: Optional[str],
         ssl: bool,
         run_services: bool,
-        valid_metadata_keys: Optional[Set[str]] = None,
-        invalid_metadata_keys: Optional[Set[str]] = None,
-        restricted_metadata_keys: Optional[Set[str]] = None,
         faketime: Optional[str],
         config: Optional[Any] = None,
     ) -> None:
-        if valid_metadata_keys or invalid_metadata_keys:
-            raise NotImplementedByController(
-                "Defining valid and invalid METADATA keys."
-            )
-
         self.create_config()
         if config is None:
             config = copy.deepcopy(BASE_CONFIG)
+
+        if self.debug_mode:
+            config = self.addLoggingToConfig(config)
 
         assert self.directory
 
@@ -177,6 +220,16 @@ class ErgoController(BaseServerController, DirectoryBasedController):
 
         if enable_roleplay:
             config["roleplay"] = {"enabled": True}
+
+        if self.test_config.account_registration_before_connect:
+            config["accounts"]["registration"]["allow-before-connect"] = True  # type: ignore
+        if self.test_config.account_registration_requires_email:
+            config["accounts"]["registration"]["email-verification"] = {  # type: ignore
+                "enabled": True,
+                "sender": "test@example.com",
+                "require-tls": True,
+                "helo-domain": "example.com",
+            }
 
         if self.test_config.ergo_config:
             self.test_config.ergo_config(config)
@@ -203,15 +256,19 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         subprocess.call(["ergo", "initdb", "--conf", self._config_path, "--quiet"])
         subprocess.call(["ergo", "mkcerts", "--conf", self._config_path, "--quiet"])
 
-        if faketime and shutil.which("faketime"):
-            faketime_cmd = ["faketime", "-f", faketime]
-            self.faketime_enabled = True
-        else:
-            faketime_cmd = []
+        self._start()
 
-        self.proc = subprocess.Popen(
-            [*faketime_cmd, "ergo", "run", "--conf", self._config_path, "--quiet"]
-        )
+    def _start(self) -> None:
+        args = ["ergo", "run", "--conf", str(self._config_path)]
+        if not self.debug_mode:
+            args.append("--quiet")
+        self.proc = self.execute(args)
+
+    def restart(self) -> None:
+        self.kill_proc()
+        self.port_open = False
+        self._start()
+        self.wait_for_port()
 
     def wait_for_services(self) -> None:
         # Nothing to wait for, they start at the same time as Ergo.
@@ -223,9 +280,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         username: str,
         password: Optional[str] = None,
     ) -> None:
-        # XXX: Move this somewhere else when
-        # https://github.com/ircv3/ircv3-specifications/pull/152 becomes
-        # part of the specification
         if not case.run_services:
             # Ergo does not actually need this, but other controllers do, so we
             # are checking it here as well for tests that aren't tested with other
@@ -278,11 +332,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             "history-database": "ergo_history",
             "timeout": "3s",
         }
-        config["accounts"]["multiclient"] = {
-            "enabled": True,
-            "allowed-by-default": True,
-            "always-on": "disabled",
-        }
         config["history"]["persistent"] = {
             "enabled": True,
             "unregistered-channels": True,
@@ -301,11 +350,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         case.getMessages(client)
         case.sendLine(client, "QUIT")
         case.assertDisconnected(client)
-
-    def enable_debug_logging(self, case: BaseServerTestCase) -> None:
-        config = self.getConfig()
-        config.update(LOGGING_CONFIG)
-        self.rehash(case, config)
 
 
 def get_irctest_controller_class() -> Type[ErgoController]:

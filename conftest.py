@@ -1,4 +1,5 @@
 import importlib
+import unittest
 
 import _pytest.unittest
 import pytest
@@ -15,6 +16,7 @@ from irctest.cases import (  # noqa: E402
     BaseServerTestCase,
     _IrcTestCase,
 )
+from irctest.runner import OptionalBehaviorNotSupported  # noqa: E402
 
 
 def pytest_addoption(parser):
@@ -106,13 +108,10 @@ def pytest_collection_modifyitems(session, config, items):
         assert isinstance(item, _pytest.python.Function)
 
         # unittest-style test functions have the node of UnitTest class as parent
-        assert isinstance(
-            item.parent,
-            (
-                _pytest.python.Class,  # pytest >= 7.0.0
-                _pytest.python.Instance,  # pytest < 7.0.0
-            ),
-        )
+        if tuple(map(int, _pytest.__version__.split("."))) >= (7,):
+            assert isinstance(item.parent, _pytest.python.Class)
+        else:
+            assert isinstance(item.parent, _pytest.python.Instance)
 
         # and that node references the UnitTest class
         assert issubclass(item.parent.cls, _IrcTestCase)
@@ -130,3 +129,24 @@ def pytest_collection_modifyitems(session, config, items):
 
     # Finally, rewrite in-place the list of tests pytest will run
     items[:] = filtered_items
+
+
+@pytest.hookimpl(wrapper=True)
+def pytest_runtest_call(item):
+    """Called by pytest to wrap individual test execution.
+
+    We use this to turn some instances of unittest.SkipTest into
+    fatal errors, if the specific implementation being tested is expected
+    to support an optional behavior.
+    """
+    try:
+        return (yield)
+    except unittest.SkipTest as e:
+        if isinstance(e, OptionalBehaviorNotSupported):
+            behavior = e.args[0]
+            if controller := getattr(item.instance, "controller", None):
+                if behavior in controller.optional_behaviors:
+                    raise Exception(
+                        f"Software {controller.software_name} must support behavior {behavior} but does not"
+                    )
+        raise  # skip the test after all

@@ -35,6 +35,7 @@ class Capabilities(enum.Enum):
     EXTENDED_JOIN = "extended-join"
     EXTENDED_MONITOR = "extended-monitor"
     LABELED_RESPONSE = "labeled-response"
+    MESSAGE_REDACTION = "draft/message-redaction"
     MESSAGE_TAGS = "message-tags"
     MULTILINE = "draft/multiline"
     MULTI_PREFIX = "multi-prefix"
@@ -69,3 +70,34 @@ class IsupportTokens(enum.Enum):
             return cls(name.upper())
         except ValueError:
             raise ValueError(name) from None
+
+
+@enum.unique
+class OptionalBehaviors(enum.Enum):
+    CAP_REQ_MINUS = "`CAP REQ -capname` to disable `capname`"
+    """
+    Ability to disable capabilities at runtime:
+    Each capability identifier may be prefixed with a dash (-)
+    to designate that the capability should be disabled.
+    """
+
+    NO_CTCP = "+C no-CTCP mode"
+    """
+    Widely implemented +C mode that blocks CTCPs
+    (other than ACTION) from being sent to a channel.
+    """
+
+    SASL_AFTER_REGISTRATION = "SASL after registration"
+    """
+    Support for clients sending AUTHENTICATE messages when they are already registered
+    (https://ircv3.net/specs/extensions/sasl-3.2#sasl-reauthentication).
+
+    Not to be confused with SASL_REAUTHENTICATION which is for clients that are both
+    registered and authenticated.
+    """
+
+    SASL_REAUTHENTICATION = "SASL re-authentication"
+    """
+    Support for clients sending AUTHENTICATE messages when they are already authenticated
+    (https://ircv3.net/specs/extensions/sasl-3.2#sasl-reauthentication)
+    """

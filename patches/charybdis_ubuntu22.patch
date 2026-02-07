@@ -1,0 +1,23 @@
+From fa5d445e5e2af735378a1219d2a200ee8aef6561 Mon Sep 17 00:00:00 2001
+From: Sadie Powell <sadie@witchery.services>
+Date: Sun, 25 Jun 2023 21:50:42 +0100
+Subject: [PATCH] Fix Charybdis on Ubuntu 22.04.
+
+---
+ librb/include/rb_lib.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/librb/include/rb_lib.h b/librb/include/rb_lib.h
+index c02dff68..0dd9c378 100644
+--- a/librb/include/rb_lib.h
++++ b/librb/include/rb_lib.h
+@@ -258,4 +258,6 @@ pid_t rb_getpid(void);
+ #include <rb_rawbuf.h>
+ #include <rb_patricia.h>
+ 
++#include <time.h>
++
+ #endif
+-- 
+2.34.1
+

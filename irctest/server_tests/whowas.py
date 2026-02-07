@@ -7,6 +7,7 @@ The WHOSWAS command  (`RFC 1459
 TODO: cross-reference Modern
 """
 
+import time
 
 import pytest
 
@@ -144,12 +145,17 @@ class WhowasTestCase(cases.BaseServerTestCase):
         except ConnectionClosed:
             pass
 
+        time.sleep(1)  # Ergo may take a little while to record the nick as free
+
         self.connectClient("nick2", ident="ident3")
         self.sendLine(3, "QUIT :bye")
         try:
             self.getMessages(3)
         except ConnectionClosed:
             pass
+
+        if self.controller.software_name == "Sable":
+            time.sleep(1)  # may take a little while to record the historical user
 
         self.sendLine(1, whowas_command)
 
@@ -201,10 +207,6 @@ class WhowasTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1967",
-    )
     def testWhowasMultiple(self):
         """
         "The history is searched backward, returning the most recent entry first."
@@ -215,10 +217,6 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2")
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
-    )
     def testWhowasCount1(self):
         """
         "If there are multiple entries, up to <count> replies will be returned"
@@ -229,10 +227,6 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=False, whowas_command="WHOWAS nick2 1")
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
-    )
     def testWhowasCount2(self):
         """
         "If there are multiple entries, up to <count> replies will be returned"
@@ -243,10 +237,6 @@ class WhowasTestCase(cases.BaseServerTestCase):
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS nick2 2")
 
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1968",
-    )
     def testWhowasCountNegative(self):
         """
         "If a non-positive number is passed as being <count>, then a full search
@@ -263,10 +253,6 @@ class WhowasTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
     @cases.xfailIfSoftware(
         ["ircu2"], "Fix not released yet: https://github.com/UndernetIRC/ircu2/pull/19"
-    )
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Feature not released yet: https://github.com/inspircd/inspircd/pull/1967",
     )
     def testWhowasCountZero(self):
         """

@@ -5,10 +5,12 @@ Tests section 4.1 of RFC 1459.
 TODO: cross-reference Modern and RFC 2812 too
 """
 
+import time
+
 from irctest import cases
 from irctest.client_mock import ConnectionClosed
 from irctest.numerics import ERR_NEEDMOREPARAMS, ERR_PASSWDMISMATCH
-from irctest.patma import ANYSTR, StrRe
+from irctest.patma import ANYLIST, ANYSTR, Either, OptStrRe, StrRe
 
 
 class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
@@ -83,6 +85,92 @@ class PasswordedConnectionRegistrationTestCase(cases.BaseServerTestCase):
 
 
 class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
+    def testConnectionRegistration(self):
+        self.addClient()
+        self.sendLine(1, "NICK foo")
+        self.sendLine(1, "USER foo * * :foo")
+
+        for numeric in ("001", "002", "003"):
+            self.assertMessageMatch(
+                self.getRegistrationMessage(1),
+                command=numeric,
+                params=["foo", ANYSTR],
+            )
+
+        self.assertMessageMatch(
+            self.getRegistrationMessage(1),
+            command="004",  # RPL_MYINFO
+            params=[
+                "foo",
+                "My.Little.Server",
+                ANYSTR,  # version
+                StrRe("[a-zA-Z]+"),  # user modes
+                StrRe("[a-zA-Z]+"),  # channel modes
+                OptStrRe("[a-zA-Z]+"),  # channel modes with parameter
+            ],
+        )
+
+        # ISUPPORT
+        m = self.getRegistrationMessage(1)
+        while True:
+            self.assertMessageMatch(
+                m,
+                command="005",
+                params=["foo", *ANYLIST],
+            )
+            m = self.getRegistrationMessage(1)
+            if m.command != "005":
+                break
+
+        if m.command in ("042", "396"):  # RPL_YOURID / RPL_VISIBLEHOST, non-standard
+            m = self.getRegistrationMessage(1)
+
+        # LUSERS
+        while m.command in ("250", "251", "252", "253", "254", "255", "265", "266"):
+            m = self.getRegistrationMessage(1)
+
+        if m.command == "375":  # RPL_MOTDSTART
+            self.assertMessageMatch(
+                m,
+                command="375",
+                params=["foo", ANYSTR],
+            )
+            while (m := self.getRegistrationMessage(1)).command == "372":
+                self.assertMessageMatch(
+                    m,
+                    command="372",  # RPL_MOTD
+                    params=["foo", ANYSTR],
+                )
+            self.assertMessageMatch(
+                m,
+                command="376",  # RPL_ENDOFMOTD
+                params=["foo", ANYSTR],
+            )
+        else:
+            self.assertMessageMatch(
+                m,
+                command="422",  # ERR_NOMOTD
+                params=["foo", ANYSTR],
+            )
+
+        # User mode
+        if m.command == "MODE":
+            self.assertMessageMatch(
+                m,
+                command="MODE",
+                params=["foo", ANYSTR, *ANYLIST],
+            )
+            m = self.getRegistrationMessage(1)
+        elif m.command == "221":  # RPL_UMODEIS
+            self.assertMessageMatch(
+                m,
+                command="221",
+                params=["foo", ANYSTR, *ANYLIST],
+            )
+            m = self.getRegistrationMessage(1)
+        else:
+            print("Warning: missing MODE")
+
     @cases.mark_specifications("RFC1459")
     def testQuitDisconnects(self):
         """“The server must close the connection to a client which sends a
@@ -133,7 +221,7 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.assertNotEqual(
             m.command,
             "001",
-            "Received 001 after registering with the nick of a " "registered user.",
+            "Received 001 after registering with the nick of a registered user.",
         )
 
     def testEarlyNickCollision(self):
@@ -204,5 +292,60 @@ class ConnectionRegistrationTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             self.getRegistrationMessage(1),
             command=ERR_NEEDMOREPARAMS,
-            params=[StrRe(r"(\*|foo)"), "USER", ANYSTR],
+            params=[Either("*", "foo"), "USER", ANYSTR],
         )
+
+    def testNonutf8Realname(self):
+        self.addClient()
+        self.sendLine(1, "NICK foo")
+        line = b"USER username * * :i\xe8rc\xe9\r\n"
+        print("1 -> S (repr): " + repr(line))
+        self.clients[1].conn.sendall(line)
+        for _ in range(10):
+            time.sleep(1)
+            d = self.clients[1].conn.recv(10000)
+            self.assertTrue(d, "Server closed connection")
+            print("S -> 1 (repr): " + repr(d))
+            if b" 001 " in d:
+                break
+            if b"ERROR " in d or b" FAIL " in d:
+                # Rejected; nothing more to test.
+                return
+            for line in d.split(b"\r\n"):
+                if line.startswith(b"PING "):
+                    line = line.replace(b"PING", b"PONG") + b"\r\n"
+                    print("1 -> S (repr): " + repr(line))
+                    self.clients[1].conn.sendall(line)
+        else:
+            self.assertTrue(False, "stuck waiting")
+        self.sendLine(1, "WHOIS foo")
+        time.sleep(3)  # for ngIRCd
+        d = self.clients[1].conn.recv(10000)
+        print("S -> 1 (repr): " + repr(d))
+        self.assertIn(b"username", d)
+
+    def testNonutf8Username(self):
+        self.addClient()
+        self.sendLine(1, "NICK foo")
+        self.sendLine(1, "USER 😊😊😊😊😊😊😊😊😊😊 * * :realname")
+        for _ in range(10):
+            time.sleep(1)
+            d = self.clients[1].conn.recv(10000)
+            self.assertTrue(d, "Server closed connection")
+            print("S -> 1 (repr): " + repr(d))
+            if b" 001 " in d:
+                break
+            if b" 468" in d or b"ERROR " in d:
+                # Rejected; nothing more to test.
+                return
+            for line in d.split(b"\r\n"):
+                if line.startswith(b"PING "):
+                    line = line.replace(b"PING", b"PONG") + b"\r\n"
+                    print("1 -> S (repr): " + repr(line))
+                    self.clients[1].conn.sendall(line)
+        else:
+            self.assertTrue(False, "stuck waiting")
+        self.sendLine(1, "WHOIS foo")
+        d = self.clients[1].conn.recv(10000)
+        print("S -> 1 (repr): " + repr(d))
+        self.assertIn(b"realname", d)

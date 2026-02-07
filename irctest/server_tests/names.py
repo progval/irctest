@@ -11,7 +11,7 @@ from irctest.patma import ANYSTR, StrRe
 
 
 class NamesTestCase(cases.BaseServerTestCase):
-    def _testNames(self, symbol):
+    def _testNames(self, symbol: bool, allow_trailing_space: bool):
         self.connectClient("nick1")
         self.sendLine(1, "JOIN #chan")
         self.getMessages(1)
@@ -31,7 +31,10 @@ class NamesTestCase(cases.BaseServerTestCase):
                 "nick1",
                 *(["="] if symbol else []),
                 "#chan",
-                StrRe("(nick2 @nick1|@nick1 nick2)"),
+                StrRe(
+                    "(nick2 @nick1|@nick1 nick2)"
+                    + (" ?" if allow_trailing_space else "")
+                ),
             ],
         )
 
@@ -44,20 +47,59 @@ class NamesTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("RFC1459", deprecated=True)
     def testNames1459(self):
         """
-        https://modern.ircdocs.horse/#names-message
         https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.5
-        https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5
         """
-        self._testNames(symbol=False)
+        self._testNames(symbol=False, allow_trailing_space=True)
 
-    @cases.mark_specifications("RFC1459", "RFC2812", "Modern")
+    @cases.mark_specifications("RFC2812", "Modern")
     def testNames2812(self):
         """
-        https://modern.ircdocs.horse/#names-message
-        https://datatracker.ietf.org/doc/html/rfc1459#section-4.2.5
         https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5
         """
-        self._testNames(symbol=True)
+        self._testNames(symbol=True, allow_trailing_space=True)
+
+    @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(
+        ["Bahamut", "irc2"], "Bahamut and irc2 send a trailing space in RPL_NAMREPLY"
+    )
+    def testNamesModern(self):
+        """
+        https://modern.ircdocs.horse/#names-message
+        """
+        self._testNames(symbol=True, allow_trailing_space=False)
+
+    @cases.mark_specifications("RFC2812", "Modern")
+    def testNames2812Secret(self):
+        """The symbol sent for a secret channel is `@` instead of `=`:
+        https://datatracker.ietf.org/doc/html/rfc2812#section-3.2.5
+        https://modern.ircdocs.horse/#rplnamreply-353
+        """
+        self.connectClient("nick1")
+        self.sendLine(1, "JOIN #chan")
+        # enable secret channel mode
+        self.sendLine(1, "MODE #chan +s")
+        self.getMessages(1)
+        self.sendLine(1, "NAMES #chan")
+        messages = self.getMessages(1)
+        self.assertMessageMatch(
+            messages[0],
+            command=RPL_NAMREPLY,
+            params=["nick1", "@", "#chan", StrRe("@nick1 ?")],
+        )
+        self.assertMessageMatch(
+            messages[1],
+            command=RPL_ENDOFNAMES,
+            params=["nick1", "#chan", ANYSTR],
+        )
+
+        self.connectClient("nick2")
+        self.sendLine(2, "JOIN #chan")
+        namreplies = [msg for msg in self.getMessages(2) if msg.command == RPL_NAMREPLY]
+        self.assertNotEqual(len(namreplies), 0)
+        for msg in namreplies:
+            self.assertMessageMatch(
+                msg, command=RPL_NAMREPLY, params=["nick2", "@", "#chan", ANYSTR]
+            )
 
     def _testNamesMultipleChannels(self, symbol):
         self.connectClient("nick1")

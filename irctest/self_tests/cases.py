@@ -1,6 +1,6 @@
 """Internal checks of assertion implementations."""
 
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pytest
 
@@ -11,14 +11,16 @@ from irctest.patma import (
     ANYLIST,
     ANYOPTSTR,
     ANYSTR,
+    Either,
     ListRemainder,
     NotStrRe,
+    OptStrRe,
     RemainingKeys,
     StrRe,
 )
 
 # fmt: off
-MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
+MESSAGE_SPECS: List[Tuple[Dict[str, Any], List[str], List[str], List[str]]] = [
     (
         # the specification:
         dict(
@@ -172,7 +174,7 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         ],
         # and they each error with:
         [
-            "expected command to be PRIVMSG, got PRIVMG",
+            "expected command to match PRIVMSG, got PRIVMG",
             "expected tags to match {'tag1': 'bar', RemainingKeys(ANYSTR): ANYOPTSTR}, got {'tag1': 'value1'}",
             "expected params to match ['#chan', 'hello'], got ['#chan', 'hello2']",
             "expected params to match ['#chan', 'hello'], got ['#chan2', 'hello']",
@@ -205,7 +207,7 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         ],
         # and they each error with:
         [
-            "expected command to be PRIVMSG, got PRIVMG",
+            "expected command to match PRIVMSG, got PRIVMG",
             "expected tags to match {StrRe(r'tag[12]'): 'bar', RemainingKeys(ANYSTR): ANYOPTSTR}, got {'tag1': 'value1'}",
             "expected params to match ['#chan', 'hello'], got ['#chan', 'hello2']",
             "expected params to match ['#chan', 'hello'], got ['#chan2', 'hello']",
@@ -234,10 +236,55 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         ],
         # and they each error with:
         [
-            "expected command to be PRIVMSG, got PRIVMG",
+            "expected command to match PRIVMSG, got PRIVMG",
             "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): ANYOPTSTR}, got {'tag1': 'value1'}",
             "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): ANYOPTSTR}, got {'tag1': 'bar', 'tag2': ''}",
             "expected tags to match {'tag1': 'bar', RemainingKeys(NotStrRe(r'tag2')): ANYOPTSTR}, got {'tag1': 'bar', 'tag2': 'baz'}",
+        ]
+    ),
+    (
+        # the specification:
+        dict(
+            command="004",
+            params=["nick", "...", OptStrRe("[a-zA-Z]+")],
+        ),
+        # matches:
+        [
+            "004 nick ... abc",
+            "004 nick ...",
+        ],
+        # and does not match:
+        [
+            "004 nick ... 123",
+            "004 nick ... :",
+        ],
+        # and they each error with:
+        [
+            "expected params to match ['nick', '...', OptStrRe(r'[a-zA-Z]+')], got ['nick', '...', '123']",
+            "expected params to match ['nick', '...', OptStrRe(r'[a-zA-Z]+')], got ['nick', '...', '']",
+        ]
+    ),
+    (
+        # the specification:
+        dict(
+            command="004",
+            params=[Either("nick", "*", "."), "...", "trailer"],  # type: ignore[arg-type]
+        ),
+        # matches:
+        [
+            "004 nick ... trailer",
+            "004 * ... trailer",
+            "004 . ... trailer",
+        ],
+        # and does not match:
+        [
+            "004 foo ... trailer",
+            "004 f ... trailer",
+        ],
+        # and they each error with:
+        [
+            "expected params to match [Either('nick', '*', '.'), '...', 'trailer'], got ['foo', '...', 'trailer']",
+            "expected params to match [Either('nick', '*', '.'), '...', 'trailer'], got ['f', '...', 'trailer']",
         ]
     ),
     (
@@ -322,7 +369,7 @@ MESSAGE_SPECS: List[Tuple[Dict, List[str], List[str], List[str]]] = [
         ],
         # and they each error with:
         [
-            "expected command to be PING, got PONG"
+            "expected command to match PING, got PONG"
         ]
     ),
 ]
