@@ -1119,7 +1119,12 @@ jobs:
     - name: start postgresql
       run: sudo systemctl start postgresql.service
     - name: set postgresql password
-      run: 'sudo -u postgres psql -c "ALTER USER postgres PASSWORD ''root''"
+      run: 'sudo -u postgres psql -c "ALTER USER postgres PASSWORD ''postgres''"
+
+        '
+    - name: check postgresql password
+      run: 'PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "SELECT
+        1;"
 
         '
     - name: Build Sable

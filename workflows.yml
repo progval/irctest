@@ -276,6 +276,9 @@ software:
             - name: set postgresql password
               run: |
                 sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres'"
+            - name: check postgresql password
+              run: |
+                PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "SELECT 1;"
         env: "IRCTEST_POSTGRESQL_URL=postgresql://postgres:postgres@localhost IRCTEST_DEBUG_LOGS=1"
         separate_build_job: false
         build_script: |
