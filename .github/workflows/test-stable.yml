@@ -1296,8 +1296,8 @@ jobs:
         cache-on-failure: true
         workspaces: sable -> target
     - run: rustc --version
-    - run: sudo systemctl start postgresql.service
-    - run: wait-for-it --host=localhost --port=5432 --timeout=15
+    - name: start postgresql
+      run: sudo systemctl start postgresql.service
     - name: Build Sable
       run: |
         cd $GITHUB_WORKSPACE/sable/
@@ -1308,6 +1308,7 @@ jobs:
       run: |-
         python -m pip install --upgrade pip
         pip install -r requirements.txt pytest-xdist pytest-timeout
+        wait-for-it --host=localhost --port=5432 --timeout=15
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
