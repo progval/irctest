@@ -81,7 +81,7 @@ software:
         refs:
             # Actually Solanum doesn't have releases; so we just bump this
             # commit hash from time to time
-            stable: 492d560ee13e71dc35403fd676e58c2d5bdcf2a9
+            stable: 9778247c3dca59370b21c4f34f328c52e8b8c669
             release: null
             devel: main
             devel_release: null

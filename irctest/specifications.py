@@ -73,11 +73,30 @@ class IsupportTokens(enum.Enum):
 
 @enum.unique
 class OptionalBehaviors(enum.Enum):
-    # NO_CTCP is the widely implemented +C mode that blocks CTCPs
-    # (other than ACTION) from being sent to a channel.
-    NO_CTCP = "+C no-CTCP mode"
-
-    # CAP_REQ_MINUS is the ability to disable capabilities at runtime:
-    # "Each capability identifier may be prefixed with a dash (-)
-    #  to designate that the capability should be disabled."
     CAP_REQ_MINUS = "`CAP REQ -capname` to disable `capname`"
+    """
+    Ability to disable capabilities at runtime:
+    Each capability identifier may be prefixed with a dash (-)
+    to designate that the capability should be disabled.
+    """
+
+    NO_CTCP = "+C no-CTCP mode"
+    """
+    Widely implemented +C mode that blocks CTCPs
+    (other than ACTION) from being sent to a channel.
+    """
+
+    SASL_AFTER_REGISTRATION = "SASL after registration"
+    """
+    Support for clients sending AUTHENTICATE messages when they are already registered
+    (https://ircv3.net/specs/extensions/sasl-3.2#sasl-reauthentication).
+
+    Not to be confused with SASL_REAUTHENTICATION which is for clients that are both
+    registered and authenticated.
+    """
+
+    SASL_REAUTHENTICATION = "SASL re-authentication"
+    """
+    Support for clients sending AUTHENTICATE messages when they are already authenticated
+    (https://ircv3.net/specs/extensions/sasl-3.2#sasl-reauthentication)
+    """

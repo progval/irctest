@@ -181,8 +181,10 @@ class ErgoController(BaseServerController, DirectoryBasedController):
 
     optional_behaviors = frozenset(
         (
-            OptionalBehaviors.NO_CTCP,
             OptionalBehaviors.CAP_REQ_MINUS,
+            OptionalBehaviors.NO_CTCP,
+            OptionalBehaviors.SASL_AFTER_REGISTRATION,
+            OptionalBehaviors.SASL_REAUTHENTICATION,
         )
     )
 
