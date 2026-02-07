@@ -271,6 +271,9 @@ software:
                 workspaces: "sable -> target"
                 cache-on-failure: true
             - run: rustc --version
+            - name: setup pg_hba
+              run: |
+                echo "host all all all trust" > /etc/postgresql/*/main/pg_hba.conf
             - name: start postgresql
               run: "sudo systemctl start postgresql.service"
             - name: set postgresql password
