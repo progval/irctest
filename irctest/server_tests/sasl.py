@@ -260,17 +260,20 @@ class SaslTestCase(cases.BaseServerTestCase):
 
     def confirmSuccessfulAuth(self):
         # TODO: check username/etc in this as well, so we can apply it to other tests
-        # TODO: may be in the other order
-        m = self.getRegistrationMessage(1)
+        m1 = self.getRegistrationMessage(1)
+        m2 = self.getRegistrationMessage(1)
+        if m1.command == RPL_SASLSUCCESS and m2.command == RPL_LOGGEDIN:
+            # Seems to happen only for Solanum with Anope.
+            # Order is not guaranteed by the spec so this is fine
+            (m1, m2) = (m2, m1)
         self.assertMessageMatch(
-            m,
+            m1,
             command=RPL_LOGGEDIN,
             fail_msg="Expected 900 (RPL_LOGGEDIN) after successful "
             "login, but got: {msg}",
         )
-        m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
-            m,
+            m2,
             command=RPL_SASLSUCCESS,
             fail_msg="Expected 903 (RPL_SASLSUCCESS) after successful "
             "login, but got: {msg}",
