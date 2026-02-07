@@ -1,17 +1,22 @@
 import base64
+import time
 
 import pytest
 
 from irctest import cases, runner, scram
 from irctest.numerics import (
+    ERR_ALREADYREGISTERED,
     ERR_INPUTTOOLONG,
     ERR_SASLABORTED,
+    ERR_SASLALREADY,
     ERR_SASLFAIL,
     ERR_SASLTOOLONG,
     RPL_LOGGEDIN,
     RPL_SASLMECHS,
+    RPL_SASLSUCCESS,
 )
 from irctest.patma import ANYLIST, ANYSTR, Either, StrRe
+from irctest.specifications import OptionalBehaviors
 
 
 @cases.mark_services
@@ -111,7 +116,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
-            command="900",
+            command=RPL_LOGGEDIN,
             params=[ANYSTR, ANYSTR, "foo", ANYSTR],
             fail_msg="Unexpected reply to correct SASL authentication: {msg}",
         )
@@ -171,7 +176,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
             m,
-            command="900",
+            command=RPL_LOGGEDIN,
             params=[ANYSTR, ANYSTR, "jilles", ANYSTR],
             fail_msg="Unexpected reply to correct SASL authentication: {msg}",
         )
@@ -357,18 +362,21 @@ class SaslTestCase(cases.BaseServerTestCase):
 
     def confirmSuccessfulAuth(self):
         # TODO: check username/etc in this as well, so we can apply it to other tests
-        # TODO: may be in the other order
-        m = self.getRegistrationMessage(1)
+        m1 = self.getRegistrationMessage(1)
+        m2 = self.getRegistrationMessage(1)
+        if m1.command == RPL_SASLSUCCESS and m2.command == RPL_LOGGEDIN:
+            # Seems to happen only for Solanum with Anope.
+            # Order is not guaranteed by the spec so this is fine
+            (m1, m2) = (m2, m1)
         self.assertMessageMatch(
-            m,
-            command="900",
+            m1,
+            command=RPL_LOGGEDIN,
             fail_msg="Expected 900 (RPL_LOGGEDIN) after successful "
             "login, but got: {msg}",
         )
-        m = self.getRegistrationMessage(1)
         self.assertMessageMatch(
-            m,
-            command="903",
+            m2,
+            command=RPL_SASLSUCCESS,
             fail_msg="Expected 903 (RPL_SASLSUCCESS) after successful "
             "login, but got: {msg}",
         )
@@ -902,7 +910,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.addClient()
         self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
 
-        # First attempt: wrong password ("millet" instead of "sesame")
+        # First attempt: invalid base64
         self.sendLine(1, "AUTHENTICATE PLAIN")
         m = self.getRegistrationMessage(1)
         self.assertMessageMatch(m, command="AUTHENTICATE", params=["+"])
@@ -953,6 +961,152 @@ class SaslTestCase(cases.BaseServerTestCase):
             params=["+"],
             fail_msg="After SASL failure, client should be able to retry. "
             "Server should reply with AUTHENTICATE +, but got: {msg}",
+        )
+        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
+        self.confirmSuccessfulAuth()
+
+    @cases.mark_specifications("IRCv3")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    def testPlainPostRegistration(self):
+        """
+        "Servers SHOULD allow a client, authenticated or otherwise, to reauthenticate by sending
+        a new AUTHENTICATE message at any time."
+        -- https://ircv3.net/specs/extensions/sasl-3.2
+        """
+        self.controller.registerUser(self, "jilles", "sesame")
+
+        self.connectClient("foo", capabilities=["sasl"], skip_if_cap_nak=True)
+
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        time.sleep(2)
+        m = self.getMessage(1)
+        if m.command == ERR_ALREADYREGISTERED:
+            raise runner.OptionalExtensionNotSupported(
+                OptionalBehaviors.SASL_AFTER_REGISTRATION
+            )
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
+        self.confirmSuccessfulAuth()
+
+    @cases.xfailIfSoftware(
+        ["Atheme"],
+        "Atheme sends spurious RPL_LOGGEDOUT before RPL_LOGGEDIN when reauthenticating: "
+        "https://github.com/atheme/atheme/issues/952",
+    )
+    @cases.mark_specifications("IRCv3")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    def testPlainPostRegistrationAndReAuthenticate(self):
+        """
+        "Servers SHOULD allow a client, authenticated or otherwise, to reauthenticate by sending
+        a new AUTHENTICATE message at any time."
+        -- https://ircv3.net/specs/extensions/sasl-3.2
+        """
+        self.controller.registerUser(self, "jilles", "sesame")
+        self.controller.registerUser(self, "foo", "bar")
+
+        self.connectClient("user", capabilities=["sasl"], skip_if_cap_nak=True)
+
+        # authenticate as foo
+        authstring = base64.b64encode(b"\x00".join([b"foo", b"foo", b"bar"])).decode()
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        time.sleep(2)
+        m = self.getMessage(1)
+        if m.command == ERR_ALREADYREGISTERED:
+            raise runner.OptionalExtensionNotSupported(
+                OptionalBehaviors.SASL_AFTER_REGISTRATION
+            )
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        self.sendLine(1, "AUTHENTICATE " + authstring)
+        self.confirmSuccessfulAuth()
+
+        # reauthenticate as jilles
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        time.sleep(2)
+        m = self.getMessage(1)
+        if m.command == ERR_SASLALREADY:
+            self.assertMessageMatch(
+                m,
+                command=ERR_SASLALREADY,
+                params=["user", ANYSTR],
+                fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+                "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
+                "but instead sent: {msg}",
+            )
+            raise runner.OptionalExtensionNotSupported(
+                OptionalBehaviors.SASL_REAUTHENTICATION
+            )
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
+        )
+        self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
+        self.confirmSuccessfulAuth()
+
+    @cases.xfailIfSoftware(
+        ["Atheme"],
+        "Atheme sends spurious RPL_LOGGEDOUT before RPL_LOGGEDIN when reauthenticating: "
+        "https://github.com/atheme/atheme/issues/952",
+    )
+    @cases.mark_specifications("IRCv3")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    def testPlainReAuthenticate(self):
+        """
+        "Servers SHOULD allow a client, authenticated or otherwise, to reauthenticate by sending
+        a new AUTHENTICATE message at any time."
+        -- https://ircv3.net/specs/extensions/sasl-3.2
+        """
+        self.controller.registerUser(self, "jilles", "sesame")
+        self.controller.registerUser(self, "foo", "bar")
+
+        self.connectClient(
+            "user",
+            capabilities=["sasl"],
+            skip_if_cap_nak=True,
+            account="foo",
+            password="bar",
+        )
+
+        # reauthenticate as jilles
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        time.sleep(2)
+        m = self.getMessage(1)
+        if m.command == ERR_ALREADYREGISTERED:
+            raise runner.OptionalExtensionNotSupported(
+                OptionalBehaviors.SASL_AFTER_REGISTRATION
+            )
+        elif m.command == ERR_SASLALREADY:
+            self.assertMessageMatch(
+                m,
+                command=ERR_SASLALREADY,
+                params=["user", ANYSTR],
+                fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+                "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
+                "but instead sent: {msg}",
+            )
+            raise runner.OptionalExtensionNotSupported(
+                OptionalBehaviors.SASL_REAUTHENTICATION
+            )
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+            fail_msg="Sent “AUTHENTICATE PLAIN”, server should have "
+            "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
         self.confirmSuccessfulAuth()

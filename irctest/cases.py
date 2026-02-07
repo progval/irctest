@@ -120,7 +120,7 @@ class _IrcTestCase(Generic[TController]):
     @staticmethod
     def config() -> TestCaseControllerConfig:
         """Some configuration to pass to the controllers.
-        For example, Oragono only enables its MySQL support if
+        For example, Ergo only enables its MySQL support if
         config()["chathistory"]=True.
         """
         return TestCaseControllerConfig()
@@ -682,7 +682,12 @@ class BaseServerTestCase(
                 m.params[1], "ACK", m, fail_msg="Expected CAP ACK, got: {msg}"
             )
         except AssertionError:
-            if skip_if_cap_nak:
+            # if skip_if_cap_nak, and any one of the capabilities is not
+            # in the controller's required set, then skip the test;
+            # otherwise fail
+            if skip_if_cap_nak and any(
+                not self.controller.supports_cap(cap) for cap in capabilities
+            ):
                 raise runner.CapabilityNotSupported(" or ".join(capabilities))
             else:
                 raise
@@ -867,7 +872,10 @@ def xfailIfSoftware(
     names: List[str], reason: str
 ) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
     def pred(testcase: _IrcTestCase, *args: Any, **kwargs: Any) -> bool:
-        return testcase.controller.software_name in names
+        return testcase.controller.software_name in names or (
+            getattr(testcase.controller, "services_controller", None) is not None
+            and testcase.controller.services_controller.software_name in names
+        )
 
     return xfailIf(pred, reason)
 

@@ -5,7 +5,8 @@
 
 from irctest import cases
 from irctest.patma import ANYSTR, StrRe
-from irctest.runner import CapabilityNotSupported, ImplementationChoice
+from irctest.runner import CapabilityNotSupported, OptionalBehaviorNotSupported
+from irctest.specifications import OptionalBehaviors
 
 
 class CapTestCase(cases.BaseServerTestCase):
@@ -390,7 +391,7 @@ class CapTestCase(cases.BaseServerTestCase):
             self.assertMessageMatch(
                 m, command="CAP", params=[ANYSTR, "NAK", StrRe(f"-{cap2} ?")]
             )
-            raise ImplementationChoice(f"Does not support CAP REQ -{cap2}")
+            raise OptionalBehaviorNotSupported(OptionalBehaviors.CAP_REQ_MINUS)
 
         # multi-prefix should be disabled
         self.sendLine(1, "CAP LIST")
