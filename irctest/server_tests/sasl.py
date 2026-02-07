@@ -535,6 +535,11 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
         self.confirmSuccessfulAuth()
 
+    @cases.xfailIfSoftware(
+        ["Atheme"],
+        "Atheme sends spurious RPL_LOGGEDOUT before RPL_LOGGEDIN when reauthenticating: "
+        "https://github.com/atheme/atheme/issues/952",
+    )
     @cases.mark_specifications("IRCv3")
     @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainReAuthenticate(self):
