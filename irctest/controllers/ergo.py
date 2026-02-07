@@ -183,6 +183,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         (
             OptionalBehaviors.CAP_REQ_MINUS,
             OptionalBehaviors.NO_CTCP,
+            OptionalBehaviors.SASL_AFTER_REGISTRATION,
             OptionalBehaviors.SASL_REAUTHENTICATION,
         )
     )

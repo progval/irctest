@@ -3,6 +3,7 @@ import time
 
 from irctest import cases, runner, scram
 from irctest.numerics import (
+    ERR_ALREADYREGISTERED,
     ERR_SASLALREADY,
     ERR_SASLFAIL,
     RPL_LOGGEDIN,
@@ -457,6 +458,10 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "AUTHENTICATE PLAIN")
         time.sleep(2)
         m = self.getMessage(1)
+        if m.command == ERR_ALREADYREGISTERED:
+            raise runner.OptionalExtensionNotSupported(
+                OptionalBehaviors.SASL_AFTER_REGISTRATION
+            )
         self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
@@ -490,6 +495,10 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "AUTHENTICATE PLAIN")
         time.sleep(2)
         m = self.getMessage(1)
+        if m.command == ERR_ALREADYREGISTERED:
+            raise runner.OptionalExtensionNotSupported(
+                OptionalBehaviors.SASL_AFTER_REGISTRATION
+            )
         self.assertMessageMatch(
             m,
             command="AUTHENTICATE",
@@ -549,7 +558,11 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "AUTHENTICATE PLAIN")
         time.sleep(2)
         m = self.getMessage(1)
-        if m.command == ERR_SASLALREADY:
+        if m.command == ERR_ALREADYREGISTERED:
+            raise runner.OptionalExtensionNotSupported(
+                OptionalBehaviors.SASL_AFTER_REGISTRATION
+            )
+        elif m.command == ERR_SASLALREADY:
             self.assertMessageMatch(
                 m,
                 command=ERR_SASLALREADY,

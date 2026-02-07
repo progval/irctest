@@ -86,6 +86,15 @@ class OptionalBehaviors(enum.Enum):
     (other than ACTION) from being sent to a channel.
     """
 
+    SASL_AFTER_REGISTRATION = "SASL after registration"
+    """
+    Support for clients sending AUTHENTICATE messages when they are already registered
+    (https://ircv3.net/specs/extensions/sasl-3.2#sasl-reauthentication).
+
+    Not to be confused with SASL_REAUTHENTICATION which is for clients that are both
+    registered and authenticated.
+    """
+
     SASL_REAUTHENTICATION = "SASL re-authentication"
     """
     Support for clients sending AUTHENTICATE messages when they are already authenticated
