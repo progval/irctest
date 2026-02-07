@@ -211,7 +211,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
             *install_steps,
             {
                 "name": "Install system dependencies",
-                "run": "sudo apt-get install faketime wait-for-it",
+                "run": "sudo apt-get install faketime",
             },
             {
                 "name": "Install irctest dependencies",

@@ -273,8 +273,9 @@ software:
             - run: rustc --version
             - name: start postgresql
               run: "sudo systemctl start postgresql.service"
-        extra_deps:
-            - "wait-for-it --host=localhost --port=5432 --timeout=15"
+            - name: set postgresql password
+              run: |
+                sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres'"
         env: "IRCTEST_POSTGRESQL_URL=postgresql://postgres:postgres@localhost IRCTEST_DEBUG_LOGS=1"
         separate_build_job: false
         build_script: |
