@@ -275,7 +275,7 @@ software:
               run: "sudo systemctl start postgresql.service"
         extra_deps:
             - "wait-for-it --host=localhost --port=5432 --timeout=15"
-        env: "IRCTEST_POSTGRESQL_URL=postgresql://postgres@localhost IRCTEST_DEBUG_LOGS=1"
+        env: "IRCTEST_POSTGRESQL_URL=postgresql://postgres:postgres@localhost IRCTEST_DEBUG_LOGS=1"
         separate_build_job: false
         build_script: |
             cd $GITHUB_WORKSPACE/sable/
