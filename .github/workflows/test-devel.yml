@@ -1117,7 +1117,7 @@ jobs:
         workspaces: sable -> target
     - run: rustc --version
     - name: setup pg_hba
-      run: 'echo "host all all all trust" > /etc/postgresql/*/main/pg_hba.conf
+      run: 'echo "host all all all trust" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf
 
         '
     - name: start postgresql
