@@ -107,6 +107,13 @@ class OptionalBehaviors(enum.Enum):
     for context.
     """
 
+    MULTI_KICK = "KICK multiple users with one command"
+    """
+    Ability to KICK multiple channels on a single KICK line, e.g.
+    `KICK #baz alice,bob`; see https://modern.ircdocs.horse/#targmax-parameter
+    for context.
+    """
+
     MULTI_NAMES_COMMAND = "NAMES command supports requesting multiple channels"
     """
     Ability to request membership lists for multiple channels on a single
