@@ -94,6 +94,12 @@ class OptionalBehaviors(enum.Enum):
     invite-only mode).
     """
 
+    INVITE_LIST = "INVITE with no parameters lists active invites"
+    """
+    Some ircd implementations accept INVITE with no parameters and
+    return a list of the user's active invites, using the 336/337 numerics.
+    """
+
     METADATA_BEFORE_CONNECT = "draft/metadata-2=before-connect"
     """
     Optional feature in draft/metadata-2 allowing clients to set metadata
@@ -147,4 +153,40 @@ class OptionalBehaviors(enum.Enum):
     """
     Support for clients sending AUTHENTICATE messages when they are already authenticated
     (https://ircv3.net/specs/extensions/sasl-3.2#sasl-reauthentication)
+    """
+
+    ELIST_M = "ELIST=M (filtering LIST output based on mask)"
+    """
+    Filtering the LIST output based on mask.
+    https://modern.ircdocs.horse/#elist-parameter
+    """
+
+    ELIST_N = "ELIST=N (filtering LIST output based on non-matching mask)"
+    """
+    Filtering the LIST output based on a non-matching mask (the opposite of M).
+    https://modern.ircdocs.horse/#elist-parameter
+    """
+
+    ELIST_U = "ELIST=U (filtering LIST output based on user count)"
+    """
+    Filtering the LIST output based on user count within the channel, via the
+    "<val" and ">val" modifiers to filter for channels that have less or more
+    than val users, respectively.
+    https://modern.ircdocs.horse/#elist-parameter
+    """
+
+    ELIST_C = "ELIST=C (filtering LIST output based on channel creation time)"
+    """
+    Filtering the LIST output based on channel creation time, via the "C<val"
+    and "C>val" modifiers to filter for channels that were created either less
+    than val minutes ago, or more than val minutes ago, respectively.
+    https://modern.ircdocs.horse/#elist-parameter
+    """
+
+    ELIST_T = "ELIST=T (filtering LIST output based on topic set time)"
+    """
+    Filtering the LIST output based on topic set time, via the "T<val" and
+    "T>val" modifiers to filter for channels whose topic was set less than val
+    minutes ago, or more than val minutes ago, respectively.
+    https://modern.ircdocs.horse/#elist-parameter
     """

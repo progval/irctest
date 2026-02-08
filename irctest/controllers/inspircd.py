@@ -131,6 +131,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         [
             OptionalBehaviors.BAN_EXCEPTION_MODE,
             OptionalBehaviors.INVITE_EXCEPTION_MODE,
+            OptionalBehaviors.INVITE_LIST,
             OptionalBehaviors.NO_CTCP,
         ]
     )
