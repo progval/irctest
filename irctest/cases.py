@@ -874,7 +874,10 @@ def xfailIfSoftware(
     names: List[str], reason: str
 ) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
     def pred(testcase: _IrcTestCase, *args: Any, **kwargs: Any) -> bool:
-        return testcase.controller.software_name in names
+        return testcase.controller.software_name in names or (
+            getattr(testcase.controller, "services_controller", None) is not None
+            and testcase.controller.services_controller.software_name in names
+        )
 
     return xfailIf(pred, reason)
 
