@@ -659,6 +659,8 @@ class SableServicesController(BaseServicesController):
             return
         self.server_controller.wait_for_port()
 
+        assert self.proc
+
         c = ClientMock(name="chkSvs", show_io=True)
         c.connect(self.server_controller.hostname, self.server_controller.port)
         c.sendLine("NICK chkSvs")
@@ -676,7 +678,15 @@ class SableServicesController(BaseServicesController):
         timeout = time.time() + 10
         while not self.services_up:
             if time.time() > timeout:
-                raise Exception("Timeout while waiting for services")
+                # if the process crashed, this should display the underlying error
+                try:
+                    self.proc.wait(timeout=0.1)
+                except subprocess.TimeoutExpired:
+                    pass
+
+                # otherwise, raise a generic error
+                raise Exception("Timeout while waiting for sable_services")
+
             c.sendLine("CAP LS 302")
 
             msgs = self.getNickServResponse(c, timeout=1)
@@ -745,6 +755,8 @@ class SableHistoryController(BaseServicesController):
             return
         self.server_controller.wait_for_port()
 
+        assert self.proc
+
         c = ClientMock(name="chkHist", show_io=True)
         c.connect(self.server_controller.hostname, self.server_controller.port)
         c.sendLine("NICK chkHist")
@@ -758,19 +770,25 @@ class SableHistoryController(BaseServicesController):
                 if msg.command in ("376", "422"):  # RPL_ENDOFMOTD / ERR_NOMOTD
                     got_end_of_motd = True
 
-        def wait() -> None:
-            timeout = time.time() + 10
-            while time.time() < timeout:
-                c.sendLine("LINKS")
-                time.sleep(self.server_controller.sync_sleep_time)
-                for msg in c.getMessages(synchronize=False):
-                    if msg.command == "364":  # RPL_LINKS
-                        if msg.params[1] == "My.Little.History":
-                            return
+        timeout = time.time() + 10
+        while not self.services_up:
+            if time.time() > timeout:
+                # if the process crashed, this should display the underlying error
+                try:
+                    self.proc.wait(timeout=0.1)
+                except subprocess.TimeoutExpired:
+                    pass
 
-            raise Exception("History server is not available")
+                # otherwise, raise a generic error
+                raise Exception("Timeout while waiting for sable_services")
 
-        wait()
+            c.sendLine("LINKS")
+            time.sleep(self.server_controller.sync_sleep_time)
+            for msg in c.getMessages(synchronize=False):
+                if msg.command == "364":  # RPL_LINKS
+                    if msg.params[1] == "My.Little.History":
+                        self.services_up = True
+                        break
 
         c.sendLine("QUIT")
         c.getMessages()
