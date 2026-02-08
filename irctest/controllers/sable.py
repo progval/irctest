@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import threading
 import time
-from typing import Any, Optional, Sequence, Type
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Type
 
 from irctest.basecontrollers import (
     BaseServerController,
@@ -18,6 +18,37 @@ from irctest.cases import BaseServerTestCase
 from irctest.client_mock import ClientMock
 from irctest.exceptions import NoMessageException
 from irctest.patma import ANYSTR
+
+
+def run_in_threads_with_exception_handling(
+    callables: List[Tuple[str, Callable[[], None]]]
+) -> None:
+    """Run multiple callables in parallel threads and re-raise any exceptions."""
+    exceptions: List[Exception] = []
+
+    def run_and_collect_exceptions(name: str, func: Callable[[], None]) -> None:
+        try:
+            func()
+        except Exception as e:
+            e.add_note(f"Failed service: {name}")
+            exceptions.append(e)
+
+    threads = []
+    for name, func in callables:
+        thread = threading.Thread(
+            target=run_and_collect_exceptions,
+            args=(name, func),
+            name=f"wait_for_{name}",
+        )
+        thread.start()
+        threads.append(thread)
+
+    for thread in threads:
+        thread.join()
+
+    if exceptions:
+        raise ExceptionGroup("Failed to start services", exceptions)
+
 
 GEN_CERTS = """
 mkdir -p useless_openssl_data/
@@ -559,15 +590,27 @@ class SableController(BaseServerController, DirectoryBasedController):
     def wait_for_services(self) -> None:
         # FIXME: this isn't called when sable_history is enabled but sable_services
         # isn't. This doesn't happen with the existing tests so this isn't an issue yet
+
+        callables: List[Tuple[str, Callable[[], None]]] = []
+
         if self.services_controller is not None:
-            t1 = threading.Thread(target=self.services_controller.wait_for_services)
-            t1.start()
+            callables.append(
+                (
+                    self.services_controller.software_name,
+                    self.services_controller.wait_for_services,
+                )
+            )
+
         if self.history_controller is not None:
-            t2 = threading.Thread(target=self.history_controller.wait_for_services)
-            t2.start()
-            t2.join()
-        if self.services_controller is not None:
-            t1.join()
+            callables.append(
+                (
+                    self.history_controller.software_name,
+                    self.history_controller.wait_for_services,
+                )
+            )
+
+        if callables:
+            run_in_threads_with_exception_handling(callables)
 
 
 class SableServicesController(BaseServicesController):

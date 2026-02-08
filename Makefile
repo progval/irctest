@@ -341,7 +341,7 @@ sable:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.sable \
 		-m '$(SABLE_MARKERS)' \
-		-n 20 \
+		-n 8 \
 		-k '$(SABLE_SELECTORS)'
 
 .PHONY: solanum

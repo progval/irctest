@@ -405,6 +405,7 @@ class BaseServerController(_BaseController):
 
 
 class BaseServicesController(_BaseController):
+    software_name: str  # Class property
     saslserv: str = "SaslServ"
 
     def __init__(
