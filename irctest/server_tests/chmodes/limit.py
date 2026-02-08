@@ -192,6 +192,7 @@ class LimitTestCase(cases.BaseServerTestCase):
         ids=["zero", "negative", "non-numeric", "empty"],
     )
     @cases.mark_specifications("Modern")
+    @cases.xfailIfSoftware(["irc2"], "irc2 accepts negative values for +l")
     def testLimitInvalidValues(self, limit):
         self.connectClient("chanop", name="chanop")
         self.joinChannel("chanop", "#chan")
