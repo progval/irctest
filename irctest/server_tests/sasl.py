@@ -459,7 +459,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         time.sleep(2)
         m = self.getMessage(1)
         if m.command == ERR_ALREADYREGISTERED:
-            raise runner.OptionalExtensionNotSupported(
+            raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.SASL_AFTER_REGISTRATION
             )
         self.assertMessageMatch(
@@ -496,7 +496,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         time.sleep(2)
         m = self.getMessage(1)
         if m.command == ERR_ALREADYREGISTERED:
-            raise runner.OptionalExtensionNotSupported(
+            raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.SASL_AFTER_REGISTRATION
             )
         self.assertMessageMatch(
@@ -522,7 +522,7 @@ class SaslTestCase(cases.BaseServerTestCase):
                 "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
                 "but instead sent: {msg}",
             )
-            raise runner.OptionalExtensionNotSupported(
+            raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.SASL_REAUTHENTICATION
             )
         self.assertMessageMatch(
@@ -564,7 +564,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         time.sleep(2)
         m = self.getMessage(1)
         if m.command == ERR_ALREADYREGISTERED:
-            raise runner.OptionalExtensionNotSupported(
+            raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.SASL_AFTER_REGISTRATION
             )
         elif m.command == ERR_SASLALREADY:
@@ -576,7 +576,7 @@ class SaslTestCase(cases.BaseServerTestCase):
                 "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
                 "but instead sent: {msg}",
             )
-            raise runner.OptionalExtensionNotSupported(
+            raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.SASL_REAUTHENTICATION
             )
         self.assertMessageMatch(

@@ -73,11 +73,52 @@ class IsupportTokens(enum.Enum):
 
 @enum.unique
 class OptionalBehaviors(enum.Enum):
+    BAN_EXCEPTION_MODE = "+e ban exception list channel mode"
+    """
+    Widely implemented channel mode +I, taking a list of NUH masks
+    that are allowed to join the channel even if they match a mask
+    in the +b ban list.
+    """
+
     CAP_REQ_MINUS = "`CAP REQ -capname` to disable `capname`"
     """
     Ability to disable capabilities at runtime:
     Each capability identifier may be prefixed with a dash (-)
     to designate that the capability should be disabled.
+    """
+
+    INVITE_EXCEPTION_MODE = "+I invite exception list channel mode"
+    """
+    Widely implemented channel mode +I, taking a list of NUH masks
+    that are always considered invited to the channel (bypassing the +i
+    invite-only mode).
+    """
+
+    METADATA_BEFORE_CONNECT = "draft/metadata-2=before-connect"
+    """
+    Optional feature in draft/metadata-2 allowing clients to set metadata
+    on themselves before completing connection registration.
+    """
+
+    MULTI_JOIN = "JOIN multiple channels with one command"
+    """
+    Ability to JOIN multiple channels on a single JOIN line, e.g.
+    `JOIN #baz,#bat`; see https://modern.ircdocs.horse/#targmax-parameter
+    for context.
+    """
+
+    MULTI_NAMES_COMMAND = "NAMES command supports requesting multiple channels"
+    """
+    Ability to request membership lists for multiple channels on a single
+    NAMES line, e.g. `NAMES #baz,bat`; see
+    https://modern.ircdocs.horse/#targmax-parameter for context.
+    """
+
+    MULTI_PRIVMSG = "PRIVMSG multiple targets with one command"
+    """
+    Ability to PRIVMSG multiple targets on a single PRIVMSG line, e.g.
+    `PRIVMSG alice,bob :hi there`; see
+    https://modern.ircdocs.horse/#targmax-parameter for context.
     """
 
     NO_CTCP = "+C no-CTCP mode"

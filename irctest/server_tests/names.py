@@ -8,6 +8,7 @@ The NAMES command  (`RFC 1459
 from irctest import cases, runner
 from irctest.numerics import RPL_ENDOFNAMES, RPL_NAMREPLY
 from irctest.patma import ANYSTR, StrRe
+from irctest.specifications import OptionalBehaviors
 
 
 class NamesTestCase(cases.BaseServerTestCase):
@@ -105,7 +106,9 @@ class NamesTestCase(cases.BaseServerTestCase):
         self.connectClient("nick1")
 
         if self.targmax.get("NAMES", "1") == "1":
-            raise runner.OptionalExtensionNotSupported("Multi-target NAMES")
+            raise runner.OptionalBehaviorNotSupported(
+                OptionalBehaviors.MULTI_NAMES_COMMAND
+            )
 
         self.sendLine(1, "JOIN #chan1")
         self.sendLine(1, "JOIN #chan2")
