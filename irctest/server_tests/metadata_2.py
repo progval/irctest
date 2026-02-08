@@ -11,6 +11,7 @@ import pytest
 from irctest import cases, runner
 from irctest.numerics import RPL_METADATASUBOK, RPL_WHOISKEYVALUE
 from irctest.patma import ANYDICT, ANYLIST, ANYSTR, Either
+from irctest.specifications import OptionalBehaviors
 
 CLIENT_NICKS = {
     1: "foo",
@@ -563,8 +564,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "CAP LS 302")
         caps = self.getCapLs(1)
         if "before-connect" not in (caps.get("draft/metadata-2") or "").split(","):
-            raise runner.OptionalExtensionNotSupported(
-                "draft/metadata-2=before-connect"
+            raise runner.OptionalBehaviorNotSupported(
+                OptionalBehaviors.METADATA_BEFORE_CONNECT
             )
 
         self.requestCapabilities(1, ["draft/metadata-2", "batch"], skip_if_cap_nak=True)

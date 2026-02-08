@@ -184,6 +184,12 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
 
+    optional_behaviors = frozenset(
+        [
+            OptionalBehaviors.MULTI_KICK,
+        ]
+    )
+
     extban_mute_char = "quiet" if installed_version() >= 6 else "q"
     software_version = installed_version()
 

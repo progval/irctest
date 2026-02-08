@@ -131,6 +131,10 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         [
             OptionalBehaviors.NO_CTCP,
             OptionalBehaviors.INVITE_OVERRIDES_LIMIT,
+            OptionalBehaviors.BAN_EXCEPTION_MODE,
+            OptionalBehaviors.INVITE_EXCEPTION_MODE,
+            OptionalBehaviors.INVITE_LIST,
+            OptionalBehaviors.NO_CTCP,
         ]
     )
 

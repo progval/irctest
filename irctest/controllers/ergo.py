@@ -181,11 +181,17 @@ class ErgoController(BaseServerController, DirectoryBasedController):
 
     optional_behaviors = frozenset(
         (
+            OptionalBehaviors.BAN_EXCEPTION_MODE,
             OptionalBehaviors.CAP_REQ_MINUS,
             OptionalBehaviors.INVITE_OVERRIDES_LIMIT,
+            OptionalBehaviors.ELIST_U,
+            OptionalBehaviors.INVITE_EXCEPTION_MODE,
+            OptionalBehaviors.MULTI_JOIN,
+            OptionalBehaviors.MULTI_KICK,
+            OptionalBehaviors.MULTI_PRIVMSG,
             OptionalBehaviors.NO_CTCP,
             OptionalBehaviors.SASL_AFTER_REGISTRATION,
-            OptionalBehaviors.SASL_REAUTHENTICATION,
+            # OptionalBehaviors.SASL_REAUTHENTICATION is NOT supported :-)
         )
     )
 
