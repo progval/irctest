@@ -117,6 +117,7 @@ NETWORK_CONFIG = """
 NETWORK_CONFIG_CONFIG = """
 {
     "object_expiry": 60,  // 1 minute
+    "pingout_duration": 600,  // needs to be high for the faketime tests
 
     "opers": [
         {

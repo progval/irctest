@@ -1281,7 +1281,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: sable
-        ref: 81544475edd03a4e17bf21130a645827fb0e28d4
+        ref: b5ef1401e0619dadb7944e00ee83fbfcf7572b06
         repository: Libera-Chat/sable
         submodules: ''
     - name: Install rust toolchain
