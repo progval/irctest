@@ -233,8 +233,6 @@ class KickTestCase(cases.BaseServerTestCase):
         if self.targmax.get("KICK", "1") == "1":
             raise runner.OptionalExtensionNotSupported("Multi-target KICK")
 
-        # TODO: check foo is an operator
-
         # Synchronize
         self.getMessages(1)
         self.getMessages(2)
@@ -245,15 +243,8 @@ class KickTestCase(cases.BaseServerTestCase):
             self.sendLine(1, "KICK #chan,#chan bar,baz :bye")
         else:
             self.sendLine(1, "KICK #chan bar,baz :bye")
-        try:
-            m = self.getMessage(1)
-            if m.command == "482":
-                raise runner.OptionalExtensionNotSupported(
-                    "Channel creators are not opped by default."
-                )
-        except client_mock.NoMessageException:
-            # The RFCs do not say KICK must be echoed
-            pass
+
+        self.getMessages(1)  # synchronize
 
         mgroup = self.getMessages(4)
         self.assertGreaterEqual(len(mgroup), 2, mgroup)
