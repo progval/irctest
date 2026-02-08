@@ -29,11 +29,6 @@ class OptionalCommandNotSupported(unittest.SkipTest):
         return "Unsupported command: {}".format(self.args[0])
 
 
-class OptionalExtensionNotSupported(unittest.SkipTest):
-    def __str__(self) -> str:
-        return "Unsupported extension: {}".format(self.args[0])
-
-
 class OptionalSaslMechanismNotSupported(unittest.SkipTest):
     def __str__(self) -> str:
         return "Unsupported SASL mechanism: {}".format(self.args[0])
