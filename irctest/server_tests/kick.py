@@ -15,6 +15,7 @@ from irctest.numerics import (
     RPL_NAMREPLY,
 )
 from irctest.patma import ANYSTR
+from irctest.specifications import OptionalBehaviors
 
 
 class KickTestCase(cases.BaseServerTestCase):
@@ -231,7 +232,7 @@ class KickTestCase(cases.BaseServerTestCase):
         self.joinChannel(4, "#chan")
 
         if self.targmax.get("KICK", "1") == "1":
-            raise runner.OptionalExtensionNotSupported("Multi-target KICK")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.MULTI_KICK)
 
         # Synchronize
         self.getMessages(1)
