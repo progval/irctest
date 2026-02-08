@@ -6,6 +6,7 @@ and various `tokens <https://modern.ircdocs.horse/#rplisupport-parameters>`__
 import re
 
 from irctest import cases, runner
+from irctest.specifications import IsupportTokens
 
 
 class IsupportTestCase(cases.BaseServerTestCase):
@@ -48,7 +49,7 @@ class IsupportTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
 
         if "PREFIX" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("PREFIX")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.PREFIX)
 
         if self.server_support["PREFIX"] == "":
             # "The value is OPTIONAL and when it is not specified indicates that no
@@ -113,7 +114,7 @@ class IsupportTestCase(cases.BaseServerTestCase):
         self.connectClient("foo")
 
         if "TARGMAX" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("TARGMAX")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.TARGMAX)
 
         parts = self.server_support["TARGMAX"].split(",")
         for part in parts:

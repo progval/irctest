@@ -13,6 +13,7 @@ import pytest
 from irctest import cases, runner
 from irctest.numerics import RPL_ENDOFWHO, RPL_WHOREPLY, RPL_WHOSPCRPL, RPL_YOUREOPER
 from irctest.patma import ANYSTR, Either, InsensitiveStr, StrRe
+from irctest.specifications import IsupportTokens
 
 
 def realname_regexp(realname):
@@ -461,7 +462,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     def _testWhoxFull(self, chars):
         self._init()
         if "WHOX" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("WHOX")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.WHOX)
 
         self.sendLine(2, f"WHO coolNick {chars}")
         messages = self.getMessages(2)
@@ -513,7 +514,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     def testWhoxOneChar(self, char):
         self._init()
         if "WHOX" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("WHOX")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.WHOX)
 
         self.sendLine(2, f"WHO coolNick %{char}")
         messages = self.getMessages(2)
@@ -541,7 +542,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
         """https://github.com/ircv3/ircv3-specifications/pull/482"""
         self._init()
         if "WHOX" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("WHOX")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.WHOX)
 
         self.sendLine(2, "WHO coolNick %tn,321")
         messages = self.getMessages(2)
@@ -574,7 +575,7 @@ class WhoServicesTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     def testWhoxAccount(self):
         self._init(auth=True)
         if "WHOX" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("WHOX")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.WHOX)
 
         self.sendLine(2, "WHO coolNick %na")
         messages = self.getMessages(2)
@@ -604,7 +605,7 @@ class WhoServicesTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     def testWhoxNoAccount(self):
         self._init(auth=False)
         if "WHOX" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("WHOX")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.WHOX)
 
         self.sendLine(2, "WHO coolNick %na")
         messages = self.getMessages(2)

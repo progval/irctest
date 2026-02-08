@@ -15,12 +15,13 @@ from irctest.numerics import (
     RPL_MONONLINE,
 )
 from irctest.patma import ANYSTR, Either, StrRe
+from irctest.specifications import IsupportTokens
 
 
 class _BaseMonitorTestCase(cases.BaseServerTestCase):
     def check_server_support(self):
         if "MONITOR" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("MONITOR")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.MONITOR)
 
     def assertMononline(self, client, nick, m=None):
         if not m:

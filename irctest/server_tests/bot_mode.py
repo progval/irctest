@@ -5,6 +5,7 @@
 from irctest import cases, runner
 from irctest.numerics import RPL_WHOISBOT
 from irctest.patma import ANYDICT, ANYSTR, StrRe
+from irctest.specifications import IsupportTokens
 
 
 @cases.mark_specifications("IRCv3")
@@ -14,7 +15,7 @@ class BotModeTestCase(cases.BaseServerTestCase):
         super().setUp()
         self.connectClient("modegettr")
         if "BOT" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("BOT")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.BOT)
         self._mode_char = self.server_support["BOT"]
 
     def _initBot(self):

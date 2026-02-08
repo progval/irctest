@@ -16,7 +16,10 @@ from irctest.cases import (  # noqa: E402
     BaseServerTestCase,
     _IrcTestCase,
 )
-from irctest.runner import OptionalBehaviorNotSupported  # noqa: E402
+from irctest.runner import (  # noqa: E402
+    IsupportTokenNotSupported,
+    OptionalBehaviorNotSupported,
+)
 
 
 def pytest_addoption(parser):
@@ -148,5 +151,12 @@ def pytest_runtest_call(item):
                 if behavior in controller.optional_behaviors:
                     raise Exception(
                         f"Software {controller.software_name} must support behavior {behavior} but does not"
+                    )
+        elif isinstance(e, IsupportTokenNotSupported):
+            token = e.args[0]
+            if controller := getattr(item.instance, "controller", None):
+                if token in controller.required_isupport_tokens:
+                    raise Exception(
+                        f"Software {controller.software_name} must support ISUPPORT token {token} but does not"
                     )
         raise  # skip the test after all

@@ -7,6 +7,7 @@ TODO: cross-reference Modern
 
 from irctest import cases, runner
 from irctest.numerics import RPL_NAMREPLY
+from irctest.specifications import IsupportTokens
 
 
 class StatusmsgTestCase(cases.BaseServerTestCase):
@@ -30,7 +31,7 @@ class StatusmsgTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
 
         if "@" not in self.server_support.get("STATUSMSG", ""):
-            raise runner.IsupportTokenNotSupported("STATUSMSG")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.STATUSMSG)
 
         self.connectClient("joe")
         self.joinChannel(2, "#chan")
@@ -86,7 +87,7 @@ class StatusmsgTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
 
         if "@" not in self.server_support.get("STATUSMSG", ""):
-            raise runner.IsupportTokenNotSupported("STATUSMSG")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.STATUSMSG)
 
         self.connectClient("joe")
         self.joinChannel(2, "#chan")

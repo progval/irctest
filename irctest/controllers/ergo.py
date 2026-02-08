@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Type, Union
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 from irctest.cases import BaseServerTestCase
-from irctest.specifications import Capabilities, OptionalBehaviors
+from irctest.specifications import Capabilities, IsupportTokens, OptionalBehaviors
 
 # ratified caps we want everyone to request, ideally
 BASE_CAPS = (
@@ -191,6 +191,18 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             OptionalBehaviors.NO_CTCP,
             OptionalBehaviors.SASL_AFTER_REGISTRATION,
             # OptionalBehaviors.SASL_REAUTHENTICATION is NOT supported :-)
+        )
+    )
+
+    required_isupport_tokens = frozenset(
+        (
+            IsupportTokens.BOT,
+            IsupportTokens.MONITOR,
+            IsupportTokens.PREFIX,
+            IsupportTokens.STATUSMSG,
+            IsupportTokens.TARGMAX,
+            IsupportTokens.UTF8ONLY,
+            IsupportTokens.WHOX,
         )
     )
 

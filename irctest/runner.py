@@ -1,6 +1,6 @@
 import unittest
 
-from irctest.specifications import OptionalBehaviors
+from irctest.specifications import IsupportTokens, OptionalBehaviors
 
 
 class NotImplementedByController(unittest.SkipTest, NotImplementedError):
@@ -18,10 +18,10 @@ class ImplementationChoice(unittest.SkipTest):
 
 class OptionalBehaviorNotSupported(unittest.SkipTest):
     def __init__(self, reason: OptionalBehaviors) -> None:
-        super().__init__(reason.value)
+        super().__init__(reason)
 
     def __str__(self) -> str:
-        return f"Optional behavior not supported: {self.args[0]}"
+        return f"Optional behavior not supported: {self.args[0].value}"
 
 
 class OptionalCommandNotSupported(unittest.SkipTest):
@@ -40,8 +40,11 @@ class CapabilityNotSupported(unittest.SkipTest):
 
 
 class IsupportTokenNotSupported(unittest.SkipTest):
+    def __init__(self, reason: IsupportTokens) -> None:
+        super().__init__(reason)
+
     def __str__(self) -> str:
-        return "Unsupported ISUPPORT token: {}".format(self.args[0])
+        return f"Unsupported ISUPPORT token: {self.args[0].value}"
 
 
 class ChannelModeNotSupported(unittest.SkipTest):

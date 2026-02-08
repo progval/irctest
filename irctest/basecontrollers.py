@@ -35,7 +35,7 @@ from .irc_utils.filelock import FileLock
 from .irc_utils.junkdrawer import find_hostname_and_port
 from .irc_utils.message_parser import Message
 from .runner import NotImplementedByController
-from .specifications import Capabilities, OptionalBehaviors
+from .specifications import Capabilities, IsupportTokens, OptionalBehaviors
 
 
 class ProcessStopped(Exception):
@@ -86,6 +86,8 @@ class _BaseController:
     capabilities: FrozenSet[Capabilities] = frozenset()
 
     optional_behaviors: FrozenSet[OptionalBehaviors] = frozenset()
+
+    required_isupport_tokens: FrozenSet[IsupportTokens] = frozenset()
 
     proc: Optional[subprocess.Popen]
 

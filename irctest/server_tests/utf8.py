@@ -7,6 +7,7 @@
 from irctest import cases, runner
 from irctest.numerics import ERR_ERRONEUSNICKNAME
 from irctest.patma import ANYSTR
+from irctest.specifications import IsupportTokens
 
 
 class Utf8TestCase(cases.BaseServerTestCase):
@@ -31,7 +32,7 @@ class Utf8TestCase(cases.BaseServerTestCase):
         self.connectClient("bar")
 
         if "UTF8ONLY" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("UTF8ONLY")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.UTF8ONLY)
 
         self.sendLine(1, "PRIVMSG bar hi")
         self.getMessages(1)  # synchronize
@@ -51,7 +52,7 @@ class Utf8TestCase(cases.BaseServerTestCase):
     def testNonutf8Realname(self):
         self.connectClient("foo")
         if "UTF8ONLY" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("UTF8ONLY")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.UTF8ONLY)
 
         self.addClient()
         self.sendLine(2, "NICK bar")
@@ -76,7 +77,7 @@ class Utf8TestCase(cases.BaseServerTestCase):
     def testNonutf8Username(self):
         self.connectClient("foo")
         if "UTF8ONLY" not in self.server_support:
-            raise runner.IsupportTokenNotSupported("UTF8ONLY")
+            raise runner.IsupportTokenNotSupported(IsupportTokens.UTF8ONLY)
 
         self.addClient()
         self.sendLine(2, "NICK bar")
