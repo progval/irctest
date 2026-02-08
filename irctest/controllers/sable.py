@@ -722,7 +722,7 @@ class SableHistoryController(BaseServicesController):
                 time.sleep(self.server_controller.sync_sleep_time)
                 for msg in c.getMessages(synchronize=False):
                     if msg.command == "364":  # RPL_LINKS
-                        if msg.params[2] == "My.Little.History":
+                        if msg.params[1] == "My.Little.History":
                             return
 
             raise Exception("History server is not available")
