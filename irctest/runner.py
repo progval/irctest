@@ -1,10 +1,6 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
 import unittest
 
-if TYPE_CHECKING:
-    from irctest.specifications import OptionalBehaviors
+from irctest.specifications import OptionalBehaviors
 
 
 class NotImplementedByController(unittest.SkipTest, NotImplementedError):
