@@ -8,6 +8,7 @@ TODO: cross-reference Modern
 """
 
 import time
+import unittest
 
 import pytest
 
@@ -275,7 +276,7 @@ class WhowasTestCase(cases.BaseServerTestCase):
         -- https://modern.ircdocs.horse/#whowas-message
         """
         if self.controller.software_name == "Bahamut":
-            raise runner.OptionalExtensionNotSupported("WHOWAS mask")
+            raise unittest.SkipTest("Bahamut does not support WHOWAS masks")
 
         self._testWhowasMultiple(second_result=True, whowas_command="WHOWAS *ck2")
 

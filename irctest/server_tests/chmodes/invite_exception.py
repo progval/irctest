@@ -9,6 +9,7 @@ who can join an invite-only channel without needing an explicit INVITE.
 from irctest import cases, runner
 from irctest.numerics import ERR_INVITEONLYCHAN, RPL_ENDOFINVEXLIST, RPL_INVEXLIST
 from irctest.patma import ANYSTR, StrRe
+from irctest.specifications import OptionalBehaviors
 
 
 @cases.mark_isupport("INVEX")
@@ -37,8 +38,8 @@ class InviteExceptionTestCase(cases.BaseServerTestCase):
             if self.server_support and "CHANMODES" in self.server_support:
                 chanmodes = self.server_support["CHANMODES"]
                 if chanmodes and "I" not in chanmodes:
-                    raise runner.OptionalExtensionNotSupported(
-                        "Invite exception (or mode letter is not +I)"
+                    raise runner.OptionalBehaviorNotSupported(
+                        OptionalBehaviors.INVITE_EXCEPTION_MODE,
                     )
                 if chanmodes:
                     self.assertIn(
@@ -48,7 +49,9 @@ class InviteExceptionTestCase(cases.BaseServerTestCase):
                         "but 'I' is not in group A",
                     )
             else:
-                raise runner.OptionalExtensionNotSupported("ISUPPORT CHANMODES")
+                raise runner.OptionalBehaviorNotSupported(
+                    OptionalBehaviors.INVITE_EXCEPTION_MODE,
+                )
         return mode
 
     @cases.mark_specifications("Modern")

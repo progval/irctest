@@ -1,4 +1,10 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 import unittest
+
+if TYPE_CHECKING:
+    from irctest.specifications import OptionalBehaviors
 
 
 class NotImplementedByController(unittest.SkipTest, NotImplementedError):
@@ -15,6 +21,9 @@ class ImplementationChoice(unittest.SkipTest):
 
 
 class OptionalBehaviorNotSupported(unittest.SkipTest):
+    def __init__(self, reason: OptionalBehaviors) -> None:
+        super().__init__(reason.value)
+
     def __str__(self) -> str:
         return f"Optional behavior not supported: {self.args[0]}"
 
