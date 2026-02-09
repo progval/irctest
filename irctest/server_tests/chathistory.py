@@ -6,10 +6,11 @@ import dataclasses
 import functools
 import secrets
 import time
+import unittest
 
 import pytest
 
-from irctest import cases, runner
+from irctest import cases
 from irctest.irc_utils.junkdrawer import random_name
 from irctest.patma import ANYSTR, StrRe
 
@@ -24,7 +25,9 @@ def skip_ngircd(f):
     @functools.wraps(f)
     def newf(self, *args, **kwargs):
         if self.controller.software_name == "ngIRCd":
-            raise runner.OptionalExtensionNotSupported("nicks longer 9 characters")
+            raise unittest.SkipTest(
+                "ngIRCd does not support nicks longer than 9 characters"
+            )
         return f(self, *args, **kwargs)
 
     return newf

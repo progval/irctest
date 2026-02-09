@@ -213,9 +213,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase):
         if clienttagdeny:
             parts = clienttagdeny.split(",")
             if "*" in parts and "+draft/reply" not in parts:
-                raise runner.OptionalExtensionNotSupported(
-                    "CLIENTTAGDENY blocks +draft/reply"
-                )
+                raise runner.ImplementationChoice("CLIENTTAGDENY blocks +draft/reply")
 
         self.connectClient("bob")
         self.getMessages(1)

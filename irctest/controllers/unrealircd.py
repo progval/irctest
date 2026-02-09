@@ -8,6 +8,7 @@ import textwrap
 from typing import Callable, ContextManager, Iterator, Optional, Type
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
+from irctest.specifications import OptionalBehaviors
 
 TEMPLATE_CONFIG = """
 include "modules.default.conf";
@@ -182,6 +183,12 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
     software_name = "UnrealIRCd"
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
+
+    optional_behaviors = frozenset(
+        [
+            OptionalBehaviors.MULTI_KICK,
+        ]
+    )
 
     extban_mute_char = "quiet" if installed_version() >= 6 else "q"
     software_version = installed_version()
