@@ -18,7 +18,7 @@ class ImplementationChoice(unittest.SkipTest):
 
 class OptionalBehaviorNotSupported(unittest.SkipTest):
     def __init__(self, reason: OptionalBehaviors) -> None:
-        super().__init__(reason.value)
+        super().__init__(reason)  # type: ignore[arg-type]
 
     def __str__(self) -> str:
         return f"Optional behavior not supported: {self.args[0]}"
