@@ -477,6 +477,11 @@ class SaslTestCase(cases.BaseServerTestCase):
         "Atheme sends spurious RPL_LOGGEDOUT before RPL_LOGGEDIN when reauthenticating: "
         "https://github.com/atheme/atheme/issues/952",
     )
+    @cases.xfailIfSoftware(
+        ["Dlk"],
+        "Dlk-Services crashes when reauthenticating and the initial authentication happened "
+        "after registration: https://github.com/DalekIRC/Dalek-Services/issues/59",
+    )
     @cases.mark_specifications("IRCv3")
     @cases.skipUnlessHasMechanism("PLAIN")
     def testPlainPostRegistrationAndReAuthenticate(self):
