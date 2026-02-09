@@ -183,6 +183,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         (
             OptionalBehaviors.BAN_EXCEPTION_MODE,
             OptionalBehaviors.CAP_REQ_MINUS,
+            OptionalBehaviors.INVITE_OVERRIDES_LIMIT,
             OptionalBehaviors.ELIST_U,
             OptionalBehaviors.INVITE_EXCEPTION_MODE,
             OptionalBehaviors.MULTI_JOIN,

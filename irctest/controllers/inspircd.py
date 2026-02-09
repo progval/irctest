@@ -129,6 +129,8 @@ class InspircdController(BaseServerController, DirectoryBasedController):
 
     optional_behaviors = frozenset(
         [
+            OptionalBehaviors.NO_CTCP,
+            OptionalBehaviors.INVITE_OVERRIDES_LIMIT,
             OptionalBehaviors.BAN_EXCEPTION_MODE,
             OptionalBehaviors.INVITE_EXCEPTION_MODE,
             OptionalBehaviors.INVITE_LIST,

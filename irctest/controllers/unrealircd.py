@@ -193,6 +193,12 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
     extban_mute_char = "quiet" if installed_version() >= 6 else "q"
     software_version = installed_version()
 
+    optional_behaviors = frozenset(
+        [
+            OptionalBehaviors.INVITE_OVERRIDES_LIMIT,
+        ]
+    )
+
     def create_config(self) -> None:
         super().create_config()
         with self.open_file("server.conf"):

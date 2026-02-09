@@ -100,6 +100,13 @@ class OptionalBehaviors(enum.Enum):
     return a list of the user's active invites, using the 336/337 numerics.
     """
 
+    INVITE_OVERRIDES_LIMIT = "INVITE overrides the +l user limit channel mode"
+    """
+    Support for the INVITE command allowing the invited user to join a channel,
+    even though their JOIN would put the channel over the user limit count set
+    with the +l channel mode.
+    """
+
     METADATA_BEFORE_CONNECT = "draft/metadata-2=before-connect"
     """
     Optional feature in draft/metadata-2 allowing clients to set metadata
