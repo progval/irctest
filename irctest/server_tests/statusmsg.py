@@ -10,12 +10,6 @@ from irctest.numerics import RPL_NAMREPLY
 
 
 class StatusmsgTestCase(cases.BaseServerTestCase):
-    @cases.mark_specifications("Ergo")
-    def testInIsupport(self):
-        """Check that the expected STATUSMSG parameter appears in our isupport list."""
-        self.connectClient("foo")  # detects ISUPPORT
-        self.assertEqual(self.server_support["STATUSMSG"], "~&@%+")
-
     @cases.mark_isupport("STATUSMSG")
     @cases.xfailIfSoftware(
         ["ircu2", "Nefarious", "snircd"],

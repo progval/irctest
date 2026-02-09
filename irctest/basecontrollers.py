@@ -29,7 +29,7 @@ from typing import (
 
 import irctest
 
-from . import authentication, tls
+from . import authentication, patma, tls
 from .client_mock import ClientMock
 from .irc_utils.filelock import FileLock
 from .irc_utils.junkdrawer import find_hostname_and_port
@@ -86,6 +86,8 @@ class _BaseController:
     capabilities: FrozenSet[Capabilities] = frozenset()
 
     optional_behaviors: FrozenSet[OptionalBehaviors] = frozenset()
+
+    isupport: Dict[str, Union[str, patma.Operator, None]] = {}
 
     proc: Optional[subprocess.Popen]
 
