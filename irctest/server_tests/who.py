@@ -6,6 +6,7 @@ TODO: cross-reference RFC 1459 and RFC 2812
 """
 
 import re
+import unittest
 
 import pytest
 
@@ -88,7 +89,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoStar(self):
         if self.controller.software_name in ("Bahamut",):
-            raise runner.OptionalExtensionNotSupported("WHO mask")
+            raise unittest.SkipTest("Bahamut does not support WHO mask")
 
         self._init()
 
@@ -119,7 +120,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoNick(self, mask):
         if "*" in mask and self.controller.software_name in ("Bahamut",):
-            raise runner.OptionalExtensionNotSupported("WHO mask")
+            raise unittest.SkipTest("Bahamut does not support WHO mask")
 
         self._init()
 
@@ -149,7 +150,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     )
     def testWhoUsernameRealName(self, mask):
         if "*" in mask and self.controller.software_name in ("Bahamut",):
-            raise runner.OptionalExtensionNotSupported("WHO mask")
+            raise unittest.SkipTest("Bahamut does not support WHO mask")
 
         self._init()
 
@@ -202,7 +203,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoNickAway(self, mask):
         if "*" in mask and self.controller.software_name in ("Bahamut",):
-            raise runner.OptionalExtensionNotSupported("WHO mask")
+            raise unittest.SkipTest("Bahamut does not support WHO mask")
 
         self._init()
 
@@ -236,7 +237,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoNickOper(self, mask):
         if "*" in mask and self.controller.software_name in ("Bahamut",):
-            raise runner.OptionalExtensionNotSupported("WHO mask")
+            raise unittest.SkipTest("Bahamut does not support WHO mask")
 
         self._init()
 
@@ -275,7 +276,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoNickAwayAndOper(self, mask):
         if "*" in mask and self.controller.software_name in ("Bahamut",):
-            raise runner.OptionalExtensionNotSupported("WHO mask")
+            raise unittest.SkipTest("Bahamut does not support WHO mask")
 
         self._init()
 
@@ -309,7 +310,7 @@ class WhoTestCase(BaseWhoTestCase, cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoChan(self, mask):
         if "*" in mask and self.controller.software_name in ("Bahamut",):
-            raise runner.OptionalExtensionNotSupported("WHO mask")
+            raise unittest.SkipTest("Bahamut does not support WHO mask")
 
         self._init()
 
@@ -633,7 +634,7 @@ class WhoInvisibleTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testWhoInvisible(self):
         if self.controller.software_name in ("Bahamut",):
-            raise runner.OptionalExtensionNotSupported("WHO mask")
+            raise unittest.SkipTest("Bahamut does not support WHO mask")
 
         self.connectClient("evan", name="evan")
         self.sendLine("evan", "MODE evan +i")

@@ -981,7 +981,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         time.sleep(2)
         m = self.getMessage(1)
         if m.command == ERR_ALREADYREGISTERED:
-            raise runner.OptionalExtensionNotSupported(
+            raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.SASL_AFTER_REGISTRATION
             )
         self.assertMessageMatch(
@@ -998,6 +998,11 @@ class SaslTestCase(cases.BaseServerTestCase):
         ["Atheme"],
         "Atheme sends spurious RPL_LOGGEDOUT before RPL_LOGGEDIN when reauthenticating: "
         "https://github.com/atheme/atheme/issues/952",
+    )
+    @cases.xfailIfSoftware(
+        ["Dlk"],
+        "Dlk-Services crashes when reauthenticating and the initial authentication happened "
+        "after registration: https://github.com/DalekIRC/Dalek-Services/issues/59",
     )
     @cases.mark_specifications("IRCv3")
     @cases.skipUnlessHasMechanism("PLAIN")
@@ -1018,7 +1023,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         time.sleep(2)
         m = self.getMessage(1)
         if m.command == ERR_ALREADYREGISTERED:
-            raise runner.OptionalExtensionNotSupported(
+            raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.SASL_AFTER_REGISTRATION
             )
         self.assertMessageMatch(
@@ -1044,7 +1049,7 @@ class SaslTestCase(cases.BaseServerTestCase):
                 "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
                 "but instead sent: {msg}",
             )
-            raise runner.OptionalExtensionNotSupported(
+            raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.SASL_REAUTHENTICATION
             )
         self.assertMessageMatch(
@@ -1086,7 +1091,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         time.sleep(2)
         m = self.getMessage(1)
         if m.command == ERR_ALREADYREGISTERED:
-            raise runner.OptionalExtensionNotSupported(
+            raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.SASL_AFTER_REGISTRATION
             )
         elif m.command == ERR_SASLALREADY:
@@ -1098,7 +1103,7 @@ class SaslTestCase(cases.BaseServerTestCase):
                 "replied with “AUTHENTICATE +” or 907 (ERR_SASLALREADY), "
                 "but instead sent: {msg}",
             )
-            raise runner.OptionalExtensionNotSupported(
+            raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.SASL_REAUTHENTICATION
             )
         self.assertMessageMatch(
