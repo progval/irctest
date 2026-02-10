@@ -9,6 +9,7 @@ class Specifications(enum.Enum):
     RFC2812 = "RFC2812"
     IRCv3 = "IRCv3"  # Mark with capabilities whenever possible
     Ergo = "Ergo"
+    SABLE = "Sable"
 
     Ircdocs = "ircdocs"
     """Any document on ircdocs.horse (especially defs.ircdocs.horse),
