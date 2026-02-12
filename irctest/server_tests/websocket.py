@@ -19,7 +19,7 @@ from irctest.patma import StrRe
 
 
 class WebClientMock(ClientMock):
-    conn: ClientConnection
+    conn: "ClientConnection"
 
     def __init__(self, *, subprotocols: List[str], binary: bool, **kwargs):
         super().__init__(**kwargs)
