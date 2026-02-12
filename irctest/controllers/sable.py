@@ -8,6 +8,7 @@ import threading
 import time
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Type
 
+from irctest import runner
 from irctest.basecontrollers import (
     BaseServerController,
     BaseServicesController,
@@ -578,6 +579,10 @@ class SableController(BaseServerController, DirectoryBasedController):
                 msg = case.getMessage(client)
             except NoMessageException:
                 continue
+            if msg.command == "417":
+                raise runner.NotImplementedByController(
+                    "Passwords longer than allowed with REGISTER command"
+                )
             case.assertMessageMatch(
                 msg, command="REGISTER", params=["SUCCESS", username, ANYSTR]
             )

@@ -190,9 +190,8 @@ flakes:
 bahamut:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.bahamut \
-		-m 'not services' \
 		-n 4 \
-		-vv -s \
+		-vv \
 		-m 'not services and $(BAHAMUT_MARKERS)'
 		-k '$(BAHAMUT_SELECTORS)'
 
@@ -201,6 +200,8 @@ bahamut-atheme:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.bahamut \
 		--services-controller=irctest.controllers.atheme_services \
+		-n 4 \
+		-vv \
 		-m 'services and $(BAHAMUT_MARKERS)' \
 		-k '$(BAHAMUT_SELECTORS)'
 
@@ -209,6 +210,8 @@ bahamut-anope:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.bahamut \
 		--services-controller=irctest.controllers.anope_services \
+		-n 4 \
+		-vv \
 		-m 'services and $(BAHAMUT_MARKERS)' \
 		-k '$(BAHAMUT_SELECTORS)'
 
@@ -263,16 +266,15 @@ ircu2:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.ircu2 \
 		-m 'not services and $(IRCU2_MARKERS)' \
-		-n 4 \
-		-k '$(IRCU2_SELECTORS)'
+		-n 4
 
 .PHONY: nefarious
 nefarious:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.nefarious \
 		-m 'not services and $(NEFARIOUS_MARKERS)' \
-		-n 4 \
-		-k '$(NEFARIOUS_SELECTORS)'
+		-k '$(NEFARIOUS_SELECTORS)' \
+		-n 4
 
 .PHONY: snircd
 snircd:
@@ -280,13 +282,13 @@ snircd:
 		--controller=irctest.controllers.snircd \
 		-m 'not services and $(SNIRCD_MARKERS)' \
 		-n 4 \
-		-k '$(SNIRCD_SELECTORS)'
+		-k '$(SNIRCD_MARKERS)'
 
 .PHONY: irc2
 irc2:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller=irctest.controllers.irc2 \
-		-m 'not services and $(IRCU2_MARKERS)' \
+		-m 'not services and $(IRC2_MARKERS)' \
 		-n 4 \
 		-k '$(IRC2_SELECTORS)'
 
@@ -310,15 +312,15 @@ plexus4:
 		--controller irctest.controllers.plexus4 \
 		--services-controller=irctest.controllers.anope_services \
 		-m '$(PLEXUS4_MARKERS)' \
-		-k "$(PLEXUS4_SELECTORS)"
+		-k '$(PLEXUS4_SELECTORS)'
 
 .PHONY: ngircd
 ngircd:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ngircd \
-		-m 'not services and $(NGIRCD_MARKERS)' \
+		-m "not services and $(NGIRCD_MARKERS)" \
 		-n 4 \
-		-k "$(NGIRCD_SELECTORS)"
+		-k '$(NGIRCD_SELECTORS)'
 
 .PHONY: ngircd-anope
 ngircd-anope:
@@ -326,7 +328,7 @@ ngircd-anope:
 		--controller irctest.controllers.ngircd \
 		--services-controller=irctest.controllers.anope_services \
 		-m 'services and $(NGIRCD_MARKERS)' \
-		-k "$(NGIRCD_SELECTORS)"
+		-k '$(NGIRCD_SELECTORS)'
 
 .PHONY: ngircd-atheme
 ngircd-atheme:
@@ -334,7 +336,7 @@ ngircd-atheme:
 		--controller irctest.controllers.ngircd \
 		--services-controller=irctest.controllers.atheme_services \
 		-m 'services and $(NGIRCD_MARKERS)' \
-		-k "$(NGIRCD_SELECTORS)"
+		-k '$(NGIRCD_SELECTORS)'
 
 .PHONY: sable
 sable:
