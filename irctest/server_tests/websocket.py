@@ -261,3 +261,63 @@ class WebsocketTestCase(cases.BaseServerTestCase):
             params=["web", "caf\N{REPLACEMENT CHARACTER}"],
             prefix=StrRe("nonweb!.*@.*"),
         )
+
+    def testSendTruncation(self):
+        self.connectClient("nonweb", websocket=False)
+        self.connectClient(
+            "web", websocket=True, subprotocols=["text.ircv3.net"], binary=False
+        )
+
+        self.sendLine(2, "PRIVMSG nonweb :hello")
+        msg = self.getMessage(1)
+        self.assertMessageMatch(
+            msg,
+            command="PRIVMSG",
+            params=["nonweb", "hello"],
+            prefix=StrRe("web!.*@.*"),
+        )
+
+        prefix = "PRIVMSG nonweb :"
+        sent_payload_len = 510 - len(prefix)
+        self.sendLine(2, prefix + "x" * sent_payload_len)
+
+        overhead = f":{msg.prefix} PRIVMSG nonweb :"
+        received_payload_len = 510 - len(overhead)
+        msg = self.getMessage(1)
+        self.assertMessageMatch(
+            msg,
+            command="PRIVMSG",
+            params=["nonweb", "x" * received_payload_len],
+            prefix=StrRe("web!.*@.*"),
+            fail_msg=f"Sent payload len={sent_payload_len}. Expected to receive payload len={received_payload_len}, got {len(msg.params[1])}",
+        )
+
+    def testReceiveTruncation(self):
+        self.connectClient("nonweb", websocket=False)
+        self.connectClient(
+            "web", websocket=True, subprotocols=["text.ircv3.net"], binary=False
+        )
+
+        self.sendLine(1, "PRIVMSG web :hello")
+        msg = self.getMessage(2)
+        self.assertMessageMatch(
+            msg,
+            command="PRIVMSG",
+            params=["web", "hello"],
+            prefix=StrRe("nonweb!.*@.*"),
+        )
+
+        prefix = "PRIVMSG web :"
+        sent_payload_len = 510 - len(prefix)
+        self.sendLine(1, prefix + "x" * sent_payload_len)
+
+        overhead = f":{msg.prefix} PRIVMSG web :"
+        received_payload_len = 510 - len(overhead)
+        msg = self.getMessage(2)
+        self.assertMessageMatch(
+            msg,
+            command="PRIVMSG",
+            params=["web", "x" * received_payload_len],
+            prefix=StrRe("nonweb!.*@.*"),
+            fail_msg=f"Sent payload len={sent_payload_len}. Expected to receive payload len={received_payload_len}, got {len(msg.params[1])}",
+        )
