@@ -557,21 +557,17 @@ class BaseServerTestCase(
         self.server_support = None
         (self.hostname, self.port) = self.controller.get_hostname_and_port()
 
-        kwargs: Dict[str, Any] = {}
+        websocket_hostname: Optional[str]
+        websocket_port: Optional[int]
         if self.websocket:
             (
                 websocket_hostname,
                 websocket_port,
             ) = self.controller.get_hostname_and_port()
-            kwargs.update(
-                dict(
-                    websocket_hostname=websocket_hostname,
-                    websocket_port=websocket_port,
-                )
-            )
             self.websocket_url = f"ws://{websocket_hostname}:{websocket_port}"
         else:
             self.websocket_url = None
+            websocket_hostname = websocket_port = None
 
         self.controller.run(
             self.hostname,
@@ -580,7 +576,8 @@ class BaseServerTestCase(
             ssl=self.ssl,
             run_services=self.run_services,
             faketime=self.faketime,
-            **kwargs,
+            websocket_hostname=websocket_hostname,
+            websocket_port=websocket_port,
         )
         self.clients: Dict[TClientName, client_mock.ClientMock] = {}
 
