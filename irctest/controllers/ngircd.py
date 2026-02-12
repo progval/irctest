@@ -2,6 +2,7 @@ import shutil
 from typing import Optional, Set, Type
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
+from irctest.runner import NotImplementedByController
 
 TEMPLATE_CONFIG = """
 [Global]
@@ -52,7 +53,11 @@ class NgircdController(BaseServerController, DirectoryBasedController):
         ssl: bool,
         run_services: bool,
         faketime: Optional[str],
+        websocket_hostname: Optional[str],
+        websocket_port: Optional[int],
     ) -> None:
+        if websocket_hostname is not None or websocket_port is not None:
+            raise NotImplementedByController("Websocket")
         assert self.proc is None
         self.port = port
         self.hostname = hostname

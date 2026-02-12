@@ -2,6 +2,7 @@ import os
 from typing import Optional, Tuple, Type
 
 from irctest.basecontrollers import BaseServerController
+from irctest.runner import NotImplementedByController
 
 
 class ExternalServerController(BaseServerController):
@@ -40,8 +41,11 @@ class ExternalServerController(BaseServerController):
         ssl: bool,
         run_services: bool,
         faketime: Optional[str],
+        websocket_hostname: Optional[str],
+        websocket_port: Optional[int],
     ) -> None:
-        pass
+        if websocket_hostname is not None or websocket_port is not None:
+            raise NotImplementedByController("Websocket")
 
 
 def get_irctest_controller_class() -> Type[ExternalServerController]:

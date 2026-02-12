@@ -207,6 +207,8 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         ssl: bool,
         run_services: bool,
         faketime: Optional[str],
+        websocket_hostname: Optional[str],
+        websocket_port: Optional[int],
     ) -> None:
         assert self.proc is None
         self.port = port

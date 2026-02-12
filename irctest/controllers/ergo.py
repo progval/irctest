@@ -207,6 +207,8 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         run_services: bool,
         faketime: Optional[str],
         config: Optional[Any] = None,
+        websocket_hostname: Optional[str],
+        websocket_port: Optional[int],
     ) -> None:
         self.create_config()
         if config is None:

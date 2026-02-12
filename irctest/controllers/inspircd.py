@@ -75,6 +75,7 @@ TEMPLATE_CONFIG = """
 <module name="sasl">
 <module name="uhnames">  # For userhost-in-names
 <module name="alias">  # for the HELP alias
+{websocket_config}
 {version_config}
 
 # Misc:
@@ -149,6 +150,8 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         ssl: bool,
         run_services: bool,
         faketime: Optional[str] = None,
+        websocket_hostname: Optional[str],
+        websocket_port: Optional[int],
     ) -> None:
         assert self.proc is None
         self.port = port
@@ -173,6 +176,17 @@ class InspircdController(BaseServerController, DirectoryBasedController):
         else:
             assert False, f"unexpected version: {installed_version()}"
 
+        if websocket_hostname or websocket_port:
+            websocket_config = f"""
+                <module name="sha1">
+                <module name="websocket">
+                <bind address="{websocket_hostname}" port="{websocket_port}" hook="websocket">
+                <websocket nativeping="no">
+                <wsorigin allow="*">
+            """
+        else:
+            websocket_config = ""
+
         with self.open_file("server.conf") as fd:
             fd.write(
                 TEMPLATE_CONFIG.format(
@@ -183,6 +197,7 @@ class InspircdController(BaseServerController, DirectoryBasedController):
                     password_field=password_field,
                     ssl_config=ssl_config,
                     version_config=version_config,
+                    websocket_config=websocket_config,
                 )
             )
         assert self.directory
