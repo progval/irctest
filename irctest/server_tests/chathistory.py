@@ -2,6 +2,7 @@
 `IRCv3 draft chathistory <https://ircv3.net/specs/extensions/chathistory>`_
 """
 
+import dataclasses
 import functools
 import secrets
 import time
@@ -32,10 +33,22 @@ def skip_ngircd(f):
     return newf
 
 
-@cases.mark_specifications("IRCv3")
-@cases.mark_services
-class ChathistoryTestCase(cases.BaseServerTestCase):
-    def validate_chathistory_batch(self, msgs, target):
+class _BaseChathistoryTests(cases.BaseServerTestCase):
+    def _wait_before_chathistory(self):
+        """Hook for the Sable-specific tests that check the postgresql-based
+        CHATHISTORY implementation is sound. This implementation only kicks in
+        after the in-memory history is cleared, which happens after a 5 min timeout;
+        and this gives a chance to :class:``SablePostgresqlHistoryTestCase`` to
+        wait this timeout.
+
+        For other tests, this does nothing.
+        """
+        raise NotImplementedError("_BaseChathistoryTests._wait_before_chathistory")
+
+    def validate_chathistory_batch(self, user, target):
+        # may need to try again for Sable, as it has a pretty high latency here
+        while not (msgs := self.getMessages(user)):
+            pass
         (start, *inner_msgs, end) = msgs
 
         self.assertMessageMatch(
@@ -95,9 +108,13 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.joinChannel(qux, real_chname)
         self.getMessages(qux)
 
+        self._wait_before_chathistory()
+
         # test a nonexistent channel
         self.sendLine(bar, "CHATHISTORY LATEST #nonexistent_channel * 10")
-        msgs = self.getMessages(bar)
+        while not (msgs := self.getMessages(bar)):
+            # need to retry when Sable has the history server on
+            pass
         msgs = [msg for msg in msgs if msg.command != "MODE"]  # :NickServ MODE +r
         self.assertMessageMatch(
             msgs[0],
@@ -107,7 +124,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
 
         # as should a real channel to which one is not joined:
         self.sendLine(bar, "CHATHISTORY LATEST %s * 10" % (real_chname,))
-        msgs = self.getMessages(bar)
+        while not (msgs := self.getMessages(bar)):
+            # need to retry when Sable has the history server on
+            pass
         self.assertMessageMatch(
             msgs[0],
             command="FAIL",
@@ -176,6 +195,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         messages.append(echo.to_history_message())
         self.assertEqual(echo.to_history_message(), delivery.to_history_message())
 
+        self._wait_before_chathistory()
+
         self.sendLine(bar, "CHATHISTORY LATEST %s * 10" % (bar,))
         replies = [msg for msg in self.getMessages(bar) if msg.command == "PRIVMSG"]
         self.assertEqual([msg.to_history_message() for msg in replies], messages)
@@ -226,9 +247,12 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             echo_messages.extend(
                 msg.to_history_message() for msg in self.getMessages(1)
             )
-            time.sleep(0.002)
+            time.sleep(0.02)
 
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
+
+        self._wait_before_chathistory()
+
         self.validate_chathistory(subcommand, echo_messages, 1, chname)
 
     @skip_ngircd
@@ -264,6 +288,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 msg.to_history_message() for msg in self.getMessages(1)
             )
             time.sleep(0.002)
+
+        self._wait_before_chathistory()
 
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
         self.sendLine(1, "CHATHISTORY LATEST %s * 100" % chname)
@@ -309,6 +335,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
             time.sleep(0.002)
 
         self.validate_echo_messages(NUM_MESSAGES * 2, echo_messages)
+
+        self._wait_before_chathistory()
+
         self.validate_chathistory(subcommand, echo_messages, 1, chname)
 
     @pytest.mark.parametrize("subcommand", SUBCOMMANDS)
@@ -368,6 +397,9 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
 
         self.validate_echo_messages(NUM_MESSAGES, echo_messages)
+
+        self._wait_before_chathistory()
+
         self.validate_chathistory(subcommand, echo_messages, 1, c2)
         self.validate_chathistory(subcommand, echo_messages, 2, c1)
 
@@ -416,6 +448,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         ]
         self.assertEqual(results, new_convo)
 
+        self._wait_before_chathistory()
+
         # additional messages with c3 should not show up in the c1-c2 history:
         self.validate_chathistory(subcommand, echo_messages, 1, c2)
         self.validate_chathistory(subcommand, echo_messages, 2, c1)
@@ -460,15 +494,15 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
     def _validate_chathistory_LATEST(self, echo_messages, user, chname):
         INCLUSIVE_LIMIT = len(echo_messages) * 2
         self.sendLine(user, "CHATHISTORY LATEST %s * %d" % (chname, INCLUSIVE_LIMIT))
-        result = self.validate_chathistory_batch(self.getMessages(user), chname)
+        result = self.validate_chathistory_batch(user, chname)
         self.assertEqual(echo_messages, result)
 
         self.sendLine(user, "CHATHISTORY LATEST %s * %d" % (chname, 5))
-        result = self.validate_chathistory_batch(self.getMessages(user), chname)
+        result = self.validate_chathistory_batch(user, chname)
         self.assertEqual(echo_messages[-5:], result)
 
         self.sendLine(user, "CHATHISTORY LATEST %s * %d" % (chname, 1))
-        result = self.validate_chathistory_batch(self.getMessages(user), chname)
+        result = self.validate_chathistory_batch(user, chname)
         self.assertEqual(echo_messages[-1:], result)
 
         if self._supports_msgid():
@@ -477,7 +511,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY LATEST %s msgid=%s %d"
                 % (chname, echo_messages[4].msgid, INCLUSIVE_LIMIT),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[5:], result)
 
         if self._supports_timestamp():
@@ -486,7 +520,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY LATEST %s timestamp=%s %d"
                 % (chname, echo_messages[4].time, INCLUSIVE_LIMIT),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[5:], result)
 
     def _validate_chathistory_BEFORE(self, echo_messages, user, chname):
@@ -497,7 +531,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY BEFORE %s msgid=%s %d"
                 % (chname, echo_messages[6].msgid, INCLUSIVE_LIMIT),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[:6], result)
 
         if self._supports_timestamp():
@@ -506,7 +540,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY BEFORE %s timestamp=%s %d"
                 % (chname, echo_messages[6].time, INCLUSIVE_LIMIT),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[:6], result)
 
             self.sendLine(
@@ -514,7 +548,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY BEFORE %s timestamp=%s %d"
                 % (chname, echo_messages[6].time, 2),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[4:6], result)
 
     def _validate_chathistory_AFTER(self, echo_messages, user, chname):
@@ -525,7 +559,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY AFTER %s msgid=%s %d"
                 % (chname, echo_messages[3].msgid, INCLUSIVE_LIMIT),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[4:], result)
 
         if self._supports_timestamp():
@@ -534,7 +568,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY AFTER %s timestamp=%s %d"
                 % (chname, echo_messages[3].time, INCLUSIVE_LIMIT),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[4:], result)
 
             self.sendLine(
@@ -542,7 +576,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY AFTER %s timestamp=%s %d"
                 % (chname, echo_messages[3].time, 3),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[4:7], result)
 
     def _validate_chathistory_BETWEEN(self, echo_messages, user, chname):
@@ -559,7 +593,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                     INCLUSIVE_LIMIT,
                 ),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[1:-1], result)
 
             self.sendLine(
@@ -572,7 +606,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                     INCLUSIVE_LIMIT,
                 ),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[1:-1], result)
 
             # BETWEEN forwards and backwards with a limit, should get
@@ -582,7 +616,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"
                 % (chname, echo_messages[0].msgid, echo_messages[-1].msgid, 3),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[1:4], result)
 
             self.sendLine(
@@ -590,7 +624,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY BETWEEN %s msgid=%s msgid=%s %d"
                 % (chname, echo_messages[-1].msgid, echo_messages[0].msgid, 3),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[-4:-1], result)
 
         if self._supports_timestamp():
@@ -605,7 +639,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                     INCLUSIVE_LIMIT,
                 ),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[1:-1], result)
             self.sendLine(
                 user,
@@ -617,21 +651,21 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                     INCLUSIVE_LIMIT,
                 ),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[1:-1], result)
             self.sendLine(
                 user,
                 "CHATHISTORY BETWEEN %s timestamp=%s timestamp=%s %d"
                 % (chname, echo_messages[0].time, echo_messages[-1].time, 3),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[1:4], result)
             self.sendLine(
                 user,
                 "CHATHISTORY BETWEEN %s timestamp=%s timestamp=%s %d"
                 % (chname, echo_messages[-1].time, echo_messages[0].time, 3),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[-4:-1], result)
 
     def _validate_chathistory_AROUND(self, echo_messages, user, chname):
@@ -641,7 +675,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY AROUND %s msgid=%s %d"
                 % (chname, echo_messages[7].msgid, 1),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual([echo_messages[7]], result)
 
             self.sendLine(
@@ -649,7 +683,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY AROUND %s msgid=%s %d"
                 % (chname, echo_messages[7].msgid, 3),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertEqual(echo_messages[6:9], result)
 
         if self._supports_timestamp():
@@ -658,7 +692,7 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
                 "CHATHISTORY AROUND %s timestamp=%s %d"
                 % (chname, echo_messages[7].time, 3),
             )
-            result = self.validate_chathistory_batch(self.getMessages(user), chname)
+            result = self.validate_chathistory_batch(user, chname)
             self.assertIn(echo_messages[7], result)
 
     @pytest.mark.arbitrary_client_tags
@@ -718,6 +752,8 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         relay = self.getMessages(2)
         self.assertEqual(len(relay), 1)
         validate_tagmsg(relay[0], chname, msgid)
+
+        self._wait_before_chathistory()
 
         self.sendLine(1, "CHATHISTORY LATEST %s * 10" % (chname,))
         history_tagmsgs = [
@@ -1062,8 +1098,95 @@ class ChathistoryTestCase(cases.BaseServerTestCase):
         return targets_results
 
 
+@cases.mark_specifications("IRCv3")
+@cases.mark_services
+class ChathistoryTestCase(_BaseChathistoryTests):
+    def _wait_before_chathistory(self):
+        """does nothing"""
+        pass
+
+
 assert {f"_validate_chathistory_{cmd}" for cmd in SUBCOMMANDS} == {
     meth_name
     for meth_name in dir(ChathistoryTestCase)
     if meth_name.startswith("_validate_chathistory_")
 }, "ChathistoryTestCase.validate_chathistory and SUBCOMMANDS are out of sync"
+
+
+@cases.mark_specifications("Sable")
+@cases.mark_services
+class SablePostgresqlHistoryTestCase(_BaseChathistoryTests):
+    # for every wall clock second, 15 seconds pass for the server.
+    # at x30, links between nodes timeout.
+    faketime = "+1y x15"
+
+    @staticmethod
+    def config() -> cases.TestCaseControllerConfig:
+        return dataclasses.replace(  # type: ignore[no-any-return]
+            _BaseChathistoryTests.config(),
+            sable_history_server=True,
+        )
+
+    def _wait_before_chathistory(self):
+        """waits 6 seconds which appears to be a 1.5 min to Sable; which goes over
+        the 1 min timeout for in-memory history (+ 1 min because the cleanup job
+        only runs every min)"""
+        assert self.controller.faketime_enabled, "faketime is not installed"
+        time.sleep(8)
+
+
+@cases.mark_specifications("Sable")
+@cases.mark_services
+class SableExpiringHistoryTestCase(cases.BaseServerTestCase):
+    faketime = "+1y x15"
+
+    def _wait_before_chathistory(self):
+        """waits 6 seconds which appears to be a 1.5 min to Sable; which goes over
+        the 1 min timeout for in-memory history (+ 1 min because the cleanup job
+        only runs every min)"""
+        assert self.controller.faketime_enabled, "faketime is not installed"
+        time.sleep(8)
+
+    def testChathistoryExpired(self):
+        """Checks that Sable forgets about messages if the history server is not available"""
+        self.connectClient(
+            "bar",
+            capabilities=[
+                "message-tags",
+                "server-time",
+                "echo-message",
+                "batch",
+                "labeled-response",
+                "sasl",
+                CHATHISTORY_CAP,
+            ],
+            skip_if_cap_nak=True,
+        )
+        chname = "#chan" + secrets.token_hex(12)
+        self.joinChannel(1, chname)
+        self.getMessages(1)
+        self.getMessages(1)
+
+        self.sendLine(1, f"PRIVMSG {chname} :this is a message")
+        self.getMessages(1)
+
+        self._wait_before_chathistory()
+
+        self.sendLine(1, f"CHATHISTORY LATEST {chname} * 10")
+
+        while not (messages := self.getMessages(1)):
+            # Sable processes CHATHISTORY asynchronously, which can be pretty slow as it
+            # sends cross-server requests. This means we can't just rely on a PING-PONG
+            # or the usual time.sleep(self.controller.sync_sleep_time) to make sure
+            # the ircd replied to us
+            time.sleep(self.controller.sync_sleep_time)
+
+        (start, *middle, end) = messages
+        self.assertMessageMatch(
+            start, command="BATCH", params=[StrRe(r"\+.*"), "chathistory", chname]
+        )
+        batch_tag = start.params[0][1:]
+        self.assertMessageMatch(end, command="BATCH", params=["-" + batch_tag])
+        self.assertEqual(
+            len(middle), 0, f"Got messages that should be expired: {middle}"
+        )
