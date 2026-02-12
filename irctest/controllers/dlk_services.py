@@ -13,7 +13,7 @@ TEMPLATE_DLK_CONFIG = """\
 info {{
     SID "00A";
     network-name "testnetwork";
-    services-name "services.example.org";
+    services-name "My.Little.Services";
     admin-email "admin@example.org";
 }}
 

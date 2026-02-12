@@ -11,6 +11,12 @@ class TimeTestCase(cases.BaseServerTestCase):
         self.connectClient("user")
 
         time_before = math.floor(time.time())
+        if self.controller.software_name == "Bahamut":
+            # Bahamut's io_loop() sets NOW = time(NULL) *then* waits for events,
+            # and reads NOW from the event handlers.
+            # This means that its time can be off by as much as its read timeout.
+            time_before -= 1
+
         self.sendLine(1, "TIME")
 
         msg = self.getMessage(1)

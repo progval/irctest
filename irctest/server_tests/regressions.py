@@ -2,7 +2,7 @@
 Regression tests for bugs in `Ergo <https://ergo.chat/>`_.
 """
 
-from irctest import cases, runner
+from irctest import cases
 from irctest.numerics import (
     ERR_ERRONEUSNICKNAME,
     ERR_NICKNAMEINUSE,
@@ -64,55 +64,6 @@ class RegressionsTestCase(cases.BaseServerTestCase):
         self.assertEqual(ms, [])
         ms = self.getMessages(2)
         self.assertEqual(ms, [])
-
-    @cases.mark_capabilities("message-tags", "batch", "echo-message", "server-time")
-    def testTagCap(self):
-        if self.controller.software_name == "UnrealIRCd":
-            raise runner.ImplementationChoice(
-                "Arbitrary +draft/reply values (TODO: adapt this test to use real "
-                "values so their pass Unreal's validation) "
-                "https://bugs.unrealircd.org/view.php?id=5948"
-            )
-        # regression test for oragono #754
-        self.connectClient(
-            "alice",
-            capabilities=["message-tags", "batch", "echo-message", "server-time"],
-            skip_if_cap_nak=True,
-        )
-        self.connectClient("bob")
-        self.getMessages(1)
-        self.getMessages(2)
-
-        self.sendLine(
-            1, "@+draft/reply=ct95w3xemz8qj9du2h74wp8pee PRIVMSG bob :hey yourself"
-        )
-        self.assertMessageMatch(
-            self.getMessage(1),
-            command="PRIVMSG",
-            params=["bob", "hey yourself"],
-            tags={"+draft/reply": "ct95w3xemz8qj9du2h74wp8pee", **ANYDICT},
-        )
-
-        self.assertMessageMatch(
-            self.getMessage(2),
-            command="PRIVMSG",
-            params=["bob", "hey yourself"],
-            tags={},
-        )
-
-        self.sendLine(2, "CAP REQ :message-tags server-time")
-        self.getMessages(2)
-        self.sendLine(
-            1, "@+draft/reply=tbxqauh9nykrtpa3n6icd9whan PRIVMSG bob :hey again"
-        )
-        self.getMessages(1)
-        # now bob has the tags cap, so he should receive the tags
-        self.assertMessageMatch(
-            self.getMessage(2),
-            command="PRIVMSG",
-            params=["bob", "hey again"],
-            tags={"+draft/reply": "tbxqauh9nykrtpa3n6icd9whan", **ANYDICT},
-        )
 
     @cases.mark_specifications("RFC1459")
     @cases.xfailIfSoftware(["ngIRCd"], "wat")

@@ -8,6 +8,7 @@ import textwrap
 from typing import Callable, ContextManager, Iterator, Optional, Type
 
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
+from irctest.specifications import OptionalBehaviors
 
 TEMPLATE_CONFIG = """
 include "modules.default.conf";
@@ -64,7 +65,7 @@ listen {{
     options {{ serversonly; }}
 }}
 
-link services.example.org {{
+link My.Little.Services {{
     incoming {{
         mask *;
     }}
@@ -72,11 +73,11 @@ link services.example.org {{
     class servers;
 }}
 ulines {{
-    services.example.org;
+    My.Little.Services;
 }}
 
 set {{
-    sasl-server services.example.org;
+    sasl-server My.Little.Services;
     kline-address "example@example.org";
     network-name "ExampleNET";
     default-server "irc.example.org";
@@ -183,6 +184,12 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms = {"PLAIN"}
     supports_sts = False
 
+    optional_behaviors = frozenset(
+        [
+            OptionalBehaviors.MULTI_KICK,
+        ]
+    )
+
     extban_mute_char = "quiet" if installed_version() >= 6 else "q"
     software_version = installed_version()
 
@@ -211,6 +218,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                 """
                 include "snomasks.default.conf";
                 loadmodule "cloak_md5";
+                loadmodule "third/metadata2";
                 """
             )
             set_v6only = SET_V6ONLY

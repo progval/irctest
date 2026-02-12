@@ -8,7 +8,7 @@ from irctest.basecontrollers import BaseServicesController, DirectoryBasedContro
 
 TEMPLATE_CONFIG = """
 serverinfo {{
-    name = "services.example.org"
+    name = "My.Little.Services"
     description = "Anope IRC Services"
     numeric = "00A"
     pid = "services.pid"
@@ -52,7 +52,6 @@ module {{
     maxpasslen = 1000
     minpasslen = 1
 }}
-command {{ service = "NickServ"; name = "HELP"; command = "generic/help"; }}
 
 module {{
     name = "ns_register"
@@ -63,11 +62,16 @@ command {{ service = "NickServ"; name = "REGISTER"; command = "nickserv/register
 options {{
     casemap = "ascii"
     readtimeout = 5s
-    warningtimeout = 4h
 }}
 
-module {{ name = "{module_prefix}sasl" }}
-module {{ name = "enc_bcrypt" }}
+module {{ name = "ns_sasl" }}          # 2.1
+module {{ name = "ns_sasl_external" }} # 2.1
+module {{ name = "ns_sasl_plain" }}    # 2.1
+module {{ name = "m_sasl" }}  # 2.0
+
+module {{ name = "enc_sha2" }}   # 2.1
+module {{ name = "enc_sha256" }} # 2.0
+
 module {{ name = "ns_cert" }}
 
 """
@@ -88,6 +92,7 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
 
     software_name = "Anope"
     software_version = None
+    saslserv = "NickServ"
 
     def run(self, protocol: str, server_hostname: str, server_port: int) -> None:
         self.create_config()
@@ -123,7 +128,6 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
                     protocol=protocol,
                     server_hostname=server_hostname,
                     server_port=server_port,
-                    module_prefix="" if self.software_version >= (2, 1, 2) else "m_",
                 )
             )
 
@@ -144,6 +148,7 @@ class AnopeController(BaseServicesController, DirectoryBasedController):
             [
                 "anope",
                 "--config=services.conf",  # can't be an absolute path in 2.0
+                "--nodb",  # don't write a database
                 "--nofork",  # don't fork
                 "--nopid",  # don't write a pid
                 *extra_args,

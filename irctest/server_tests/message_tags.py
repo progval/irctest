@@ -4,7 +4,7 @@
 
 import pytest
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.irc_utils.message_parser import parse_message
 from irctest.numerics import ERR_INPUTTOOLONG
 from irctest.patma import ANYDICT, ANYSTR, StrRe
@@ -194,3 +194,62 @@ class MessageTagsTestCase(cases.BaseServerTestCase):
         reply = self.getMessage("alice")
         self.assertEqual(reply.command, ERR_INPUTTOOLONG)
         self.assertEqual(self.getMessages("bob"), [])
+
+    @cases.mark_specifications("IRCv3")
+    @cases.mark_capabilities("message-tags", "echo-message")
+    def testRecipientCapability(self):
+        """Checks that PRIVMSG recipients don't get message tags if they did not negotiate
+        the capability, even if the sender has echo-message.
+
+        This serves as a regression test for oragono https://github.com/ergochat/ergo/issues/754
+        """
+        self.connectClient(
+            "alice",
+            capabilities=["message-tags", "echo-message"],
+            skip_if_cap_nak=True,
+        )
+
+        clienttagdeny = self.server_support.get("CLIENTTAGDENY")
+        if clienttagdeny:
+            parts = clienttagdeny.split(",")
+            if "*" in parts and "+draft/reply" not in parts:
+                raise runner.ImplementationChoice("CLIENTTAGDENY blocks +draft/reply")
+
+        self.connectClient("bob")
+        self.getMessages(1)
+        self.getMessages(2)
+
+        # bob messages alice so we can get a valid msgid for alice to reply to
+        self.sendLine(2, "PRIVMSG alice :hey")
+        self.getMessages(2)
+        (msg,) = self.getMessages(1)
+        bob_msgid = msg.tags["msgid"]
+        self.assertNotEqual(bob_msgid, "")
+
+        self.sendLine(1, f"@+draft/reply={bob_msgid} PRIVMSG bob :hey yourself")
+        msg = self.getMessage(1)
+        self.assertMessageMatch(
+            msg,
+            command="PRIVMSG",
+            params=["bob", "hey yourself"],
+            tags={"+draft/reply": bob_msgid, **ANYDICT},
+        )
+
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="PRIVMSG",
+            params=["bob", "hey yourself"],
+            tags={},
+        )
+
+        self.sendLine(2, "CAP REQ :message-tags server-time")
+        self.getMessages(2)
+        self.sendLine(1, f"@+draft/reply={bob_msgid} PRIVMSG bob :hey again")
+        self.getMessages(1)
+        # now bob has the tags cap, so he should receive the tags
+        self.assertMessageMatch(
+            self.getMessage(2),
+            command="PRIVMSG",
+            params=["bob", "hey again"],
+            tags={"+draft/reply": bob_msgid, **ANYDICT},
+        )

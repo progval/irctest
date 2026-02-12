@@ -9,6 +9,7 @@ import time
 
 from irctest import cases, runner
 from irctest.numerics import RPL_LIST, RPL_LISTEND, RPL_LISTSTART
+from irctest.specifications import OptionalBehaviors
 
 
 class _BasedListTestCase(cases.BaseServerTestCase):
@@ -136,7 +137,7 @@ class ListTestCase(_BasedListTestCase):
         self.connectClient("foo")
 
         if "M" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=M")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.ELIST_M)
 
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan1")
@@ -170,7 +171,7 @@ class ListTestCase(_BasedListTestCase):
         self.connectClient("foo")
 
         if "N" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=N")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.ELIST_N)
 
         self.sendLine(1, "JOIN #chan1")
         self.getMessages(1)
@@ -207,7 +208,7 @@ class ListTestCase(_BasedListTestCase):
         self.connectClient("foo")
 
         if "U" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=U")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.ELIST_U)
 
         self.sendLine(1, "JOIN #chan1")
         self.getMessages(1)
@@ -260,13 +261,6 @@ class FaketimeListTestCase(_BasedListTestCase):
         ["Plexus4", "Hybrid"],
         "Hybrid and Plexus4 filter on ELIST=C with the opposite meaning",
     )
-    @cases.xfailIf(
-        lambda self: bool(
-            self.controller.software_name == "UnrealIRCd"
-            and self.controller.software_version == 5
-        ),
-        "UnrealIRCd <6.0.3 filters on ELIST=C with the opposite meaning",
-    )
     def testListCreationTime(self):
         """
         " C: Searching based on channel creation time, via the "C<val" and "C>val"
@@ -292,7 +286,7 @@ class FaketimeListTestCase(_BasedListTestCase):
         self.connectClient("foo")
 
         if "C" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=C")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.ELIST_C)
 
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan1")
@@ -333,13 +327,6 @@ class FaketimeListTestCase(_BasedListTestCase):
 
     @cases.mark_isupport("ELIST")
     @cases.mark_specifications("Modern")
-    @cases.xfailIf(
-        lambda self: bool(
-            self.controller.software_name == "UnrealIRCd"
-            and self.controller.software_version == 5
-        ),
-        "UnrealIRCd <6.0.3 advertises ELIST=T but does not implement it",
-    )
     def testListTopicTime(self):
         """
         "T: Searching based on topic time, via the "T<val" and "T>val"
@@ -358,7 +345,7 @@ class FaketimeListTestCase(_BasedListTestCase):
         self.connectClient("foo")
 
         if "T" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=T")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.ELIST_T)
 
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan1")

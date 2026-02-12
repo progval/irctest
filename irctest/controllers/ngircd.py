@@ -14,7 +14,7 @@ TEMPLATE_CONFIG = """
     {password_field}
 
 [Server]
-    Name = services.example.org
+    Name = My.Little.Services
     MyPassword = password
     PeerPassword = password
     Passive = yes  # don't connect to it
