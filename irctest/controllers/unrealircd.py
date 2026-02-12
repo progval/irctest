@@ -76,6 +76,8 @@ ulines {{
     My.Little.Services;
 }}
 
+{websocket_config}
+
 set {{
     sasl-server My.Little.Services;
     kline-address "example@example.org";
@@ -244,6 +246,21 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
             # Unreal refuses to start without TLS enabled
             (tls_hostname, tls_port) = (unused_hostname, unused_port)
 
+        if websocket_hostname or websocket_port:
+            websocket_config = f"""
+                loadmodule "websocket";
+                loadmodule "webserver";
+                listen {{
+                    ip {websocket_hostname};
+                    port {websocket_port};
+                    options {{
+                       websocket {{ type text; }}
+                    }}
+                }}
+            """
+        else:
+            websocket_config = ""
+
         assert self.directory
 
         with self.open_file("unrealircd.conf") as fd:
@@ -260,6 +277,7 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
                     pem_path=self.pem_path,
                     empty_file=self.directory / "empty.txt",
                     set_v6only=set_v6only,
+                    websocket_config=websocket_config,
                     extras=extras,
                 )
             )
