@@ -44,6 +44,8 @@ class IsupportTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Modern")
     def testValues(self):
         """Test that servers expose the values expected by their controllers."""
+        if not self.controller.isupport:
+            raise pytest.skip("Controller does not expect any ISUPPORT token")
         # connect a client to collect the 005 data:
         self.connectClient("baz")
         # assert on the collected data:
