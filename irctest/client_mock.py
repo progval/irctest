@@ -9,11 +9,12 @@ from .irc_utils import message_parser
 
 
 class ClientMock:
-    def __init__(self, name: Any, show_io: bool):
+    def __init__(self, name: Any, show_io: bool = False):
         self.name = name
         self.show_io = show_io
         self.inbuffer: List[message_parser.Message] = []
         self.ssl = False
+        self.socket_timeout = 1  # TODO: configurable
 
     def connect(self, hostname: str, port: int) -> None:
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,7 +23,7 @@ class ClientMock:
         # the packets to be useful
         self.conn.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
 
-        self.conn.settimeout(1)  # TODO: configurable
+        self.conn.settimeout(self.socket_timeout)
         self.conn.connect((hostname, port))
         if self.show_io:
             print("{:.3f} {}: connects to server.".format(time.time(), self.name))
@@ -86,17 +87,10 @@ class ClientMock:
                         )
                     )
                     raise
+
                 for line in decoded_data.split("\r\n"):
                     if line:
-                        if self.show_io:
-                            print(
-                                "{time:.3f}{ssl} S -> {client}: {line}".format(
-                                    time=time.time(),
-                                    ssl=" (ssl)" if self.ssl else "",
-                                    client=self.name,
-                                    line=line,
-                                )
-                            )
+                        self.logReceivedLine(line)
                         message = message_parser.parse_message(line)
                         if message.command == "PONG" and token in message.params:
                             got_pong = True
@@ -160,6 +154,27 @@ class ClientMock:
             assert ret == len(encoded_line), (ret, repr(encoded_line))
         else:
             assert ret is None, ret
+        self.logSentLine(line)
+
+    def logReceivedLine(self, line: Union[str, bytes]) -> None:
+        if self.show_io:
+            if isinstance(line, bytes):
+                line = repr(line)
+                escaped = " (escaped)"
+            else:
+                line = line
+                escaped = ""
+            print(
+                "{time:.3f}{escaped}{suffix} S -> {client}: {line}".format(
+                    time=time.time(),
+                    escaped=escaped,
+                    suffix=self.logSuffix(),
+                    client=self.name,
+                    line=line,
+                )
+            )
+
+    def logSentLine(self, line: Union[str, bytes]) -> None:
         if self.show_io:
             if isinstance(line, str):
                 escaped_line = line
@@ -168,11 +183,14 @@ class ClientMock:
                 escaped_line = repr(line)
                 escaped = " (escaped)"
             print(
-                "{time:.3f}{escaped}{ssl} {client} -> S: {line}".format(
+                "{time:.3f}{escaped}{suffix} {client} -> S: {line}".format(
                     time=time.time(),
                     escaped=escaped,
-                    ssl=" (ssl)" if self.ssl else "",
+                    suffix=self.logSuffix(),
                     client=self.name,
                     line=escaped_line.strip("\r\n"),
                 )
             )
+
+    def logSuffix(self) -> str:
+        return " (ssl)" if self.ssl else ""

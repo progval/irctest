@@ -5,7 +5,9 @@ and various `tokens <https://modern.ircdocs.horse/#rplisupport-parameters>`__
 
 import re
 
-from irctest import cases, runner
+import pytest
+
+from irctest import cases, patma, runner
 
 
 class IsupportTestCase(cases.BaseServerTestCase):
@@ -40,6 +42,26 @@ class IsupportTestCase(cases.BaseServerTestCase):
         if not param.isascii():
             raise ValueError("Invalid non-ASCII 005 parameter", param)
         # TODO add more validation
+
+    @cases.mark_specifications("Modern")
+    def testValues(self):
+        """Test that servers expose the values expected by their controllers."""
+        if not self.controller.isupport:
+            raise pytest.skip("Controller does not expect any ISUPPORT token")
+        # connect a client to collect the 005 data:
+        self.connectClient("baz")
+        # assert on the collected data:
+        for key, value in self.controller.isupport.items():
+            self.assertIn(
+                key,
+                self.server_support,
+                f"{key} should appear in 005 for {self.controller.software_name}",
+            )
+            got_value = self.server_support[key]
+            self.assertTrue(
+                patma.match_string(got_value, value),
+                f"found value {got_value} for key {key} which does not match {value}",
+            )
 
     @cases.mark_specifications("Modern")
     @cases.mark_isupport("PREFIX")

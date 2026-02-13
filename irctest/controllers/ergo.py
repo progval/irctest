@@ -4,6 +4,7 @@ import os
 import subprocess
 from typing import Any, Dict, Optional, Type, Union
 
+from irctest import patma
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 from irctest.cases import BaseServerTestCase
 from irctest.specifications import Capabilities, OptionalBehaviors
@@ -194,6 +195,20 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         )
     )
 
+    isupport = {
+        "BOT": "B",
+        "CASEMAPPING": "ascii",
+        "ELIST": patma.StrRe(".*U.*"),  # only U is supported for now
+        "INVEX": None,
+        "MONITOR": patma.ANYSTR,
+        "MSGREFTYPES": "msgid,timestamp",
+        "PREFIX": "(qaohv)~&@%+",
+        "STATUSMSG": "~&@%+",
+        "TARGMAX": patma.ANYSTR,
+        "UTF8ONLY": None,
+        "WHOX": None,
+    }
+
     def create_config(self) -> None:
         super().create_config()
         with self.open_file("ircd.yaml"):
@@ -209,6 +224,8 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         run_services: bool,
         faketime: Optional[str],
         config: Optional[Any] = None,
+        websocket_hostname: Optional[str] = None,
+        websocket_port: Optional[int] = None,
     ) -> None:
         self.create_config()
         if config is None:
@@ -248,6 +265,13 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             self.pem_path = self.directory / "ssl.pem"
             listener_conf = {"tls": {"cert": self.pem_path, "key": self.key_path}}
         config["server"]["listeners"][bind_address] = listener_conf  # type: ignore
+
+        if websocket_hostname and websocket_port:
+            ws_bind_address = f"{websocket_hostname}:{websocket_port}"
+            ws_listener_conf: Dict[str, Any] = {"websocket": True}
+            if ssl and listener_conf:
+                ws_listener_conf["tls"] = listener_conf["tls"]
+            config["server"]["listeners"][ws_bind_address] = ws_listener_conf  # type: ignore
 
         config["datastore"]["path"] = str(self.directory / "ircd.db")  # type: ignore
 

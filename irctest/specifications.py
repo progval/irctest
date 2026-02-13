@@ -9,6 +9,7 @@ class Specifications(enum.Enum):
     RFC2812 = "RFC2812"
     IRCv3 = "IRCv3"  # Mark with capabilities whenever possible
     Ergo = "Ergo"
+    Sable = "Sable"
 
     Ircdocs = "ircdocs"
     """Any document on ircdocs.horse (especially defs.ircdocs.horse),
@@ -23,6 +24,9 @@ class Specifications(enum.Enum):
             if spec.value.upper() == name:
                 return spec
         raise ValueError(name)
+
+    def is_implementation_specific(self) -> bool:
+        return self in (Specifications.Ergo, Specifications.Sable)
 
 
 @enum.unique
@@ -139,6 +143,9 @@ class OptionalBehaviors(enum.Enum):
     Widely implemented +C mode that blocks CTCPs
     (other than ACTION) from being sent to a channel.
     """
+
+    NON_UTF8_MESSAGE = "non-UTF8 messages"
+    """Support for arbitrary encodings, mutually exclusive with the UTF8ONLY token"""
 
     SASL_AFTER_REGISTRATION = "SASL after registration"
     """

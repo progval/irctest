@@ -8,8 +8,10 @@ from pathlib import Path
 import shutil
 import socket
 import subprocess
+import sys
 import tempfile
 import textwrap
+import threading
 import time
 from typing import (
     IO,
@@ -29,7 +31,7 @@ from typing import (
 
 import irctest
 
-from . import authentication, tls
+from . import authentication, patma, tls
 from .client_mock import ClientMock
 from .irc_utils.filelock import FileLock
 from .irc_utils.junkdrawer import find_hostname_and_port
@@ -69,6 +71,9 @@ class TestCaseControllerConfig:
     This should be used as little as possible, using the other attributes instead;
     as they are work with any controller."""
 
+    sable_history_server: bool = False
+    """Whether to start Sable's long-term history server"""
+
 
 class _BaseController:
     """Base class for software controllers.
@@ -86,6 +91,8 @@ class _BaseController:
     capabilities: FrozenSet[Capabilities] = frozenset()
 
     optional_behaviors: FrozenSet[OptionalBehaviors] = frozenset()
+
+    isupport: Dict[str, Union[str, patma.Operator, None]] = {}
 
     proc: Optional[subprocess.Popen]
 
@@ -151,10 +158,48 @@ class _BaseController:
                 self._own_ports.remove((hostname, port))
 
     def execute(
-        self, command: Sequence[Union[str, Path]], **kwargs: Any
+        self,
+        command: Sequence[Union[str, Path]],
+        proc_name: Optional[str] = None,
+        **kwargs: Any,
     ) -> subprocess.Popen:
         output_to = None if self.debug_mode else subprocess.DEVNULL
-        return subprocess.Popen(command, stderr=output_to, stdout=output_to, **kwargs)
+        proc_name = proc_name or str(command[0])
+        kwargs.setdefault("stdout", output_to)
+        kwargs.setdefault("stderr", output_to)
+        stream_stdout = stream_stderr = None
+        if kwargs["stdout"] in (None, subprocess.STDOUT):
+            kwargs["stdout"] = subprocess.PIPE
+
+            def stream_stdout() -> None:  # noqa
+                assert proc.stdout is not None  # for mypy
+                for line in proc.stdout:
+                    prefix = f"{time.time():.3f} {proc_name} ".encode()
+                    try:
+                        sys.stdout.buffer.write(prefix + line)
+                    except ValueError:
+                        # "I/O operation on closed file"
+                        pass
+
+        if kwargs["stderr"] in (subprocess.STDOUT, None):
+            kwargs["stderr"] = subprocess.PIPE
+
+            def stream_stderr() -> None:  # noqa
+                assert proc.stderr is not None  # for mypy
+                for line in proc.stderr:
+                    prefix = f"{time.time():.3f} {proc_name} ".encode()
+                    try:
+                        sys.stdout.buffer.write(prefix + line)
+                    except ValueError:
+                        # "I/O operation on closed file"
+                        pass
+
+        proc = subprocess.Popen(command, **kwargs)
+        if stream_stdout is not None:
+            threading.Thread(target=stream_stdout, name="stream_stdout").start()
+        if stream_stderr is not None:
+            threading.Thread(target=stream_stderr, name="stream_stderr").start()
+        return proc
 
 
 class DirectoryBasedController(_BaseController):
@@ -279,6 +324,7 @@ class BaseServerController(_BaseController):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.faketime_enabled = False
+        self.services_controller = None
 
     def run(
         self,
@@ -289,6 +335,8 @@ class BaseServerController(_BaseController):
         ssl: bool,
         run_services: bool,
         faketime: Optional[str],
+        websocket_hostname: Optional[str],
+        websocket_port: Optional[int],
     ) -> None:
         raise NotImplementedError()
 
@@ -361,6 +409,7 @@ class BaseServerController(_BaseController):
 
 
 class BaseServicesController(_BaseController):
+    software_name: str  # Class property
     saslserv: str = "SaslServ"
 
     def __init__(

@@ -89,7 +89,11 @@ class MammonController(BaseServerController, DirectoryBasedController):
         ssl: bool,
         run_services: bool,
         faketime: Optional[str],
+        websocket_hostname: Optional[str],
+        websocket_port: Optional[int],
     ) -> None:
+        if websocket_hostname is not None or websocket_port is not None:
+            raise NotImplementedByController("Websocket")
         if password is not None:
             raise NotImplementedByController("PASS command")
         if ssl:
