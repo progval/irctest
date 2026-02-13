@@ -9,6 +9,7 @@ import time
 
 from irctest import cases, runner
 from irctest.numerics import RPL_LIST, RPL_LISTEND, RPL_LISTSTART
+from irctest.specifications import OptionalBehaviors
 
 
 class _BasedListTestCase(cases.BaseServerTestCase):
@@ -136,7 +137,7 @@ class ListTestCase(_BasedListTestCase):
         self.connectClient("foo")
 
         if "M" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=M")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.ELIST_M)
 
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan1")
@@ -170,7 +171,7 @@ class ListTestCase(_BasedListTestCase):
         self.connectClient("foo")
 
         if "N" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=N")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.ELIST_N)
 
         self.sendLine(1, "JOIN #chan1")
         self.getMessages(1)
@@ -207,7 +208,7 @@ class ListTestCase(_BasedListTestCase):
         self.connectClient("foo")
 
         if "U" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=U")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.ELIST_U)
 
         self.sendLine(1, "JOIN #chan1")
         self.getMessages(1)
@@ -285,7 +286,7 @@ class FaketimeListTestCase(_BasedListTestCase):
         self.connectClient("foo")
 
         if "C" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=C")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.ELIST_C)
 
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan1")
@@ -344,7 +345,7 @@ class FaketimeListTestCase(_BasedListTestCase):
         self.connectClient("foo")
 
         if "T" not in self.server_support.get("ELIST", ""):
-            raise runner.OptionalExtensionNotSupported("ELIST=T")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.ELIST_T)
 
         self.connectClient("bar")
         self.sendLine(1, "JOIN #chan1")

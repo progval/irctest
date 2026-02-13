@@ -79,9 +79,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
     def kill_proc(self) -> None:
         # Mammon does not seem to handle SIGTERM very well, so use SIGKILL
         assert self.proc
-        # Kill the entire process group to handle child processes
         if not self._terminate_process_group(signal.SIGKILL):
-            # Fall back to killing just this process
             self.proc.kill()
         self.proc.wait()
         self.proc = None
@@ -95,7 +93,11 @@ class MammonController(BaseServerController, DirectoryBasedController):
         ssl: bool,
         run_services: bool,
         faketime: Optional[str],
+        websocket_hostname: Optional[str],
+        websocket_port: Optional[int],
     ) -> None:
+        if websocket_hostname is not None or websocket_port is not None:
+            raise NotImplementedByController("Websocket")
         if password is not None:
             raise NotImplementedByController("PASS command")
         if ssl:

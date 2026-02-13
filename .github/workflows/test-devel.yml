@@ -1116,6 +1116,21 @@ jobs:
         cache-on-failure: true
         workspaces: sable -> target
     - run: rustc --version
+    - name: setup pg_hba
+      run: 'echo "host all all all trust" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf
+
+        '
+    - name: start postgresql
+      run: sudo systemctl start postgresql.service
+    - name: set postgresql password
+      run: 'sudo -u postgres psql -c "ALTER USER postgres PASSWORD ''postgres''"
+
+        '
+    - name: check postgresql password
+      run: 'PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "SELECT
+        1;"
+
+        '
     - name: Build Sable
       run: |
         cd $GITHUB_WORKSPACE/sable/
@@ -1129,7 +1144,9 @@ jobs:
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=$GITHUB_WORKSPACE/sable/target/debug/sbin:$GITHUB_WORKSPACE/sable/target/debug/bin:$GITHUB_WORKSPACE/sable/target/debug:$PATH
+      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH
+        IRCTEST_POSTGRESQL_URL=postgresql://postgres:postgres@localhost IRCTEST_DEBUG_LOGS=1
+        PATH=$GITHUB_WORKSPACE/sable/target/debug/sbin:$GITHUB_WORKSPACE/sable/target/debug/bin:$GITHUB_WORKSPACE/sable/target/debug:$PATH
         make sable
       timeout-minutes: 30
     - if: always()

@@ -19,6 +19,7 @@ from irctest.numerics import (
     RPL_INVITING,
 )
 from irctest.patma import ANYSTR, StrRe
+from irctest.specifications import OptionalBehaviors
 
 
 class InviteTestCase(cases.BaseServerTestCase):
@@ -395,7 +396,7 @@ class InviteTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "INVITE")
         m = self.getMessage(2)
         if m.command == ERR_NEEDMOREPARAMS:
-            raise runner.OptionalExtensionNotSupported("INVITE with no parameter")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.INVITE_LIST)
         if m.command != "337":
             # Hybrid always sends an empty list; so skip this.
             self.assertMessageMatch(

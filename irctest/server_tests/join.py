@@ -14,6 +14,7 @@ from irctest.numerics import (
     RPL_NAMREPLY,
 )
 from irctest.patma import ANYSTR, StrRe
+from irctest.specifications import OptionalBehaviors
 
 ERR_BADCHANNAME = "479"  # Hybrid only, and conflicts with others
 
@@ -113,7 +114,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         """TODO: specify this in Modern"""
         self.connectClient("foo")
         if int(self.targmax.get("JOIN") or "4") < 2:
-            raise runner.OptionalExtensionNotSupported("multi-channel JOIN")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.MULTI_JOIN)
 
         self.sendLine(1, "JOIN #valid,inv@lid")
         messages = self.getMessages(1)
@@ -155,7 +156,7 @@ class JoinTestCase(cases.BaseServerTestCase):
             "foo", capabilities=["batch", "labeled-response"], skip_if_cap_nak=True
         )
         if int(self.targmax.get("JOIN") or "4") < 2:
-            raise runner.OptionalExtensionNotSupported("multi-channel JOIN")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.MULTI_JOIN)
 
         self.sendLine(1, "@label=label1 JOIN #valid,inv@lid")
         messages = self.getMessages(1)
@@ -222,7 +223,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         """Joins two channels, both with keys"""
         self.connectClient("chanop")
         if self.targmax.get("JOIN", "1000") == "1":
-            raise runner.OptionalExtensionNotSupported("Multi-target JOIN")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.MULTI_JOIN)
         self.joinChannel(1, "#chan1")
         self.sendLine(1, "MODE #chan1 +k key1")
         self.getMessages(1)
@@ -252,7 +253,7 @@ class JoinTestCase(cases.BaseServerTestCase):
         """Joins two channels, the first one has a key."""
         self.connectClient("chanop")
         if self.targmax.get("JOIN", "1000") == "1":
-            raise runner.OptionalExtensionNotSupported("Multi-target JOIN")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.MULTI_JOIN)
         self.joinChannel(1, "#chan1")
         self.sendLine(1, "MODE #chan1 +k key1")
         self.getMessages(1)

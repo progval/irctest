@@ -3,3 +3,4 @@ pytest != 9.0.0 # https://github.com/pytest-dev/pytest/issues/13895
 # The following dependencies are actually optional:
 ecdsa
 filelock
+websockets

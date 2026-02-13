@@ -43,7 +43,7 @@ from .numerics import (
 )
 from .specifications import Capabilities, IsupportTokens, Specifications
 
-__tracebackhide__ = True  # Hide from pytest tracebacks on test failure.
+# __tracebackhide__ = True  # Hide from pytest tracebacks on test failure.
 
 CHANNEL_JOIN_FAIL_NUMERICS = frozenset(
     [
@@ -541,6 +541,8 @@ class BaseServerTestCase(
     ssl = False
     server_support: Optional[Dict[str, Optional[str]]]
     run_services = False
+    websocket = False
+    websocket_url: Optional[str]
 
     faketime: Optional[str] = None
     """If not None and the controller supports it and libfaketime is available,
@@ -554,6 +556,19 @@ class BaseServerTestCase(
         super().setUp()
         self.server_support = None
         (self.hostname, self.port) = self.controller.get_hostname_and_port()
+
+        websocket_hostname: Optional[str]
+        websocket_port: Optional[int]
+        if self.websocket:
+            (
+                websocket_hostname,
+                websocket_port,
+            ) = self.controller.get_hostname_and_port()
+            self.websocket_url = f"ws://{websocket_hostname}:{websocket_port}"
+        else:
+            self.websocket_url = None
+            websocket_hostname = websocket_port = None
+
         self.controller.run(
             self.hostname,
             self.port,
@@ -561,6 +576,8 @@ class BaseServerTestCase(
             ssl=self.ssl,
             run_services=self.run_services,
             faketime=self.faketime,
+            websocket_hostname=websocket_hostname,
+            websocket_port=websocket_port,
         )
         self.clients: Dict[TClientName, client_mock.ClientMock] = {}
 
@@ -709,16 +726,18 @@ class BaseServerTestCase(
         name: Optional[TClientName] = None,
         capabilities: Optional[List[str]] = None,
         skip_if_cap_nak: bool = False,
-        show_io: Optional[bool] = None,
         account: Optional[str] = None,
         password: Optional[str] = None,
         ident: str = "username",
+        **kwargs: Any,
     ) -> List[Message]:
         """Connections a new client, does the cap negotiation
         and connection registration, and skips to the end of the MOTD.
         Returns the list of all messages received after registration,
-        just like `skipToWelcome`."""
-        client = self.addClient(name, show_io=show_io)
+        just like `skipToWelcome`.
+
+        ``**kwargs`` is passed to ``self.addClient``"""
+        client = self.addClient(name, **kwargs)
         if capabilities:
             self.sendLine(client, "CAP LS 302")
             self.getCapLs(client)
@@ -888,16 +907,22 @@ def mark_services(cls: TClass) -> TClass:
 def mark_specifications(
     *specifications_str: str, deprecated: bool = False, strict: bool = False
 ) -> Callable[[TCallable], TCallable]:
-    specifications = frozenset(
+    specifications = {
         Specifications.from_name(s) if isinstance(s, str) else s
         for s in specifications_str
-    )
+    }
     if None in specifications:
         raise ValueError("Invalid set of specifications: {}".format(specifications))
+
+    is_implementation_specific = all(
+        spec.is_implementation_specific() for spec in specifications
+    )
 
     def decorator(f: TCallable) -> TCallable:
         for specification in specifications:
             f = getattr(pytest.mark, specification.value)(f)
+        if is_implementation_specific:
+            f = getattr(pytest.mark, "implementation-specific")(f)
         if strict:
             f = pytest.mark.strict(f)
         if deprecated:
