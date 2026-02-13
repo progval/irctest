@@ -478,7 +478,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         "https://github.com/atheme/atheme/issues/952",
     )
     @cases.xfailIfSoftware(
-        ["Dlk"],
+        ["Dlk-Services"],
         "Dlk-Services crashes when reauthenticating and the initial authentication happened "
         "after registration: https://github.com/DalekIRC/Dalek-Services/issues/59",
     )
