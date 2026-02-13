@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import socket
 import subprocess
 import sys
@@ -119,7 +120,7 @@ class _BaseController:
     def get_hostname_and_port(self) -> Tuple[str, int]:
         with self._used_ports() as used_ports:
             while True:
-                (hostname, port) = find_hostname_and_port()
+                hostname, port = find_hostname_and_port()
                 if (hostname, port) not in used_ports:
                     # double-checking in self._used_ports to prevent collisions
                     # between controllers starting at the same time.
@@ -136,15 +137,36 @@ class _BaseController:
         if self.proc.returncode is not None:
             raise ProcessStopped(f"process returned {self.proc.returncode}")
 
+    def _terminate_process_group(self, sig: signal.Signals) -> bool:
+        """Try to send a signal to the entire process group.
+
+        Returns True if successful, False if we should fall back to single process.
+        """
+        assert self.proc
+        try:
+            os.killpg(os.getpgid(self.proc.pid), sig)
+            return True
+        except (ProcessLookupError, PermissionError, OSError):
+            return False
+
     def kill_proc(self) -> None:
         """Terminates the controlled process, waits for it to exit, and
-        eventually kills it."""
+        eventually kills it.
+
+        This method kills the entire process group to ensure child processes
+        (e.g., Solanum's authd and ssld helpers) are also terminated.
+        """
         assert self.proc
-        self.proc.terminate()
+
+        if not self._terminate_process_group(signal.SIGTERM):
+            self.proc.terminate()
+
         try:
             self.proc.wait(5)
         except subprocess.TimeoutExpired:
-            self.proc.kill()
+            if not self._terminate_process_group(signal.SIGKILL):
+                self.proc.kill()
+            self.proc.wait(timeout=10)
         self.proc = None
 
     def kill(self) -> None:
@@ -164,6 +186,10 @@ class _BaseController:
         **kwargs: Any,
     ) -> subprocess.Popen:
         output_to = None if self.debug_mode else subprocess.DEVNULL
+        # Start in a new process group so we can kill all children together
+        if "start_new_session" not in kwargs and "preexec_fn" not in kwargs:
+            kwargs["start_new_session"] = True
+
         proc_name = proc_name or str(command[0])
         kwargs.setdefault("stdout", output_to)
         kwargs.setdefault("stderr", output_to)
@@ -221,7 +247,9 @@ class DirectoryBasedController(_BaseController):
     def terminate(self) -> None:
         """Stops the process gracefully, and does not clean its config."""
         assert self.proc
-        self.proc.terminate()
+        # Terminate the entire process group to kill child processes too
+        if not self._terminate_process_group(signal.SIGTERM):
+            self.proc.terminate()
         self.proc.wait()
         self.proc = None
 

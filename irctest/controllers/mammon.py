@@ -1,4 +1,5 @@
 import shutil
+import signal
 from typing import Optional, Set, Type
 
 from irctest.basecontrollers import (
@@ -76,9 +77,12 @@ class MammonController(BaseServerController, DirectoryBasedController):
             pass
 
     def kill_proc(self) -> None:
-        # Mammon does not seem to handle SIGTERM very well
+        # Mammon does not seem to handle SIGTERM very well, so use SIGKILL
         assert self.proc
-        self.proc.kill()
+        if not self._terminate_process_group(signal.SIGKILL):
+            self.proc.kill()
+        self.proc.wait()
+        self.proc = None
 
     def run(
         self,

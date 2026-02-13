@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 import shutil
-import signal
 import subprocess
 import tempfile
 import threading
@@ -525,11 +524,9 @@ class SableController(BaseServerController, DirectoryBasedController):
                 self.directory / "configs/network_config.conf",
             ],
             cwd=self.directory,
-            preexec_fn=os.setsid,
             env={"RUST_BACKTRACE": "1", **os.environ},
             proc_name="sable_ircd    ",
         )
-        self.pgroup_id = os.getpgid(self.proc.pid)
 
         if run_services:
             self.services_controller = SableServicesController(self.test_config, self)
@@ -548,10 +545,6 @@ class SableController(BaseServerController, DirectoryBasedController):
                 server_hostname=history_hostname,
                 server_port=history_port,
             )
-
-    def kill_proc(self) -> None:
-        os.killpg(self.pgroup_id, signal.SIGKILL)
-        super().kill_proc()
 
     def registerUser(
         self,
@@ -646,15 +639,9 @@ class SableServicesController(BaseServicesController):
                 self.server_controller.directory / "configs/network.conf",
             ],
             cwd=self.server_controller.directory,
-            preexec_fn=os.setsid,
             env={"RUST_BACKTRACE": "1", **os.environ},
             proc_name="sable_services",
         )
-        self.pgroup_id = os.getpgid(self.proc.pid)
-
-    def kill_proc(self) -> None:
-        os.killpg(self.pgroup_id, signal.SIGKILL)
-        super().kill_proc()
 
     def wait_for_services(self) -> None:
         # by default, wait_for_services() connects a user that sends a HELP command
@@ -803,10 +790,6 @@ class SableHistoryController(BaseServicesController):
         c.getMessages()
         c.disconnect()
         self.services_up = True
-
-    def kill_proc(self) -> None:
-        os.killpg(self.pgroup_id, signal.SIGKILL)
-        super().kill_proc()
 
 
 def get_irctest_controller_class() -> Type[SableController]:
