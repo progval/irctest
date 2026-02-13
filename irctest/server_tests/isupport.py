@@ -5,6 +5,8 @@ and various `tokens <https://modern.ircdocs.horse/#rplisupport-parameters>`__
 
 import re
 
+import pytest
+
 from irctest import cases, patma, runner
 
 
