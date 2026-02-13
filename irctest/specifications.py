@@ -144,6 +144,9 @@ class OptionalBehaviors(enum.Enum):
     (other than ACTION) from being sent to a channel.
     """
 
+    NON_UTF8_MESSAGE = "non-UTF8 messages"
+    """Support for arbitrary encodings, mutually exclusive with the UTF8ONLY token"""
+
     SASL_AFTER_REGISTRATION = "SASL after registration"
     """
     Support for clients sending AUTHENTICATE messages when they are already registered

@@ -224,6 +224,8 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         run_services: bool,
         faketime: Optional[str],
         config: Optional[Any] = None,
+        websocket_hostname: Optional[str] = None,
+        websocket_port: Optional[int] = None,
     ) -> None:
         self.create_config()
         if config is None:
@@ -263,6 +265,13 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             self.pem_path = self.directory / "ssl.pem"
             listener_conf = {"tls": {"cert": self.pem_path, "key": self.key_path}}
         config["server"]["listeners"][bind_address] = listener_conf  # type: ignore
+
+        if websocket_hostname and websocket_port:
+            ws_bind_address = f"{websocket_hostname}:{websocket_port}"
+            ws_listener_conf: Dict[str, Any] = {"websocket": True}
+            if ssl and listener_conf:
+                ws_listener_conf["tls"] = listener_conf["tls"]
+            config["server"]["listeners"][ws_bind_address] = ws_listener_conf  # type: ignore
 
         config["datastore"]["path"] = str(self.directory / "ircd.db")  # type: ignore
 
