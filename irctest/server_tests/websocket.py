@@ -16,6 +16,7 @@ from irctest import cases, runner
 from irctest.client_mock import ClientMock
 from irctest.exceptions import NoMessageException
 from irctest.irc_utils import message_parser
+from irctest.numerics import ERR_INPUTTOOLONG
 from irctest.patma import ANYSTR, StrRe
 from irctest.specifications import OptionalBehaviors
 
@@ -322,6 +323,17 @@ class WebsocketTestCase(cases.BaseServerTestCase):
         sent_payload_len = 510 - len(prefix)
         self.sendLine(2, prefix + "x" * sent_payload_len)
 
+        try:
+            msg = self.getMessage(2)
+        except NoMessageException:
+            # was accepted
+            pass
+        else:
+            self.assertMessageMatch(
+                msg, command=ERR_INPUTTOOLONG, params=["web", ANYSTR]
+            )
+            return
+
         overhead = f":{msg.prefix} PRIVMSG nonweb :"
         received_payload_len = 510 - len(overhead)
         msg = self.getMessage(1)
@@ -351,6 +363,17 @@ class WebsocketTestCase(cases.BaseServerTestCase):
         prefix = "PRIVMSG web :"
         sent_payload_len = 510 - len(prefix)
         self.sendLine(1, prefix + "x" * sent_payload_len)
+
+        try:
+            msg = self.getMessage(1)
+        except NoMessageException:
+            # was accepted
+            pass
+        else:
+            self.assertMessageMatch(
+                msg, command=ERR_INPUTTOOLONG, params=["nonweb", ANYSTR]
+            )
+            return
 
         overhead = f":{msg.prefix} PRIVMSG web :"
         received_payload_len = 510 - len(overhead)
