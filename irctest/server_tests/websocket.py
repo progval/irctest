@@ -127,6 +127,13 @@ class WebClientMock(ClientMock):
 class WebsocketTestCase(cases.BaseServerTestCase):
     websocket = True
 
+    def setUp(self):
+        if connect is None:
+            raise pytest.skip(
+                "Missing websockets library. Run 'pip install websockets'."
+            )
+        super().setUp()
+
     def addClient(self, name: Optional[int], websocket: bool, **kwargs) -> int:  # type: ignore[override]
         if websocket:
             assert self.websocket_url
