@@ -3,6 +3,7 @@ import fcntl
 import functools
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import textwrap
 from typing import Callable, ContextManager, Iterator, Optional, Type
@@ -288,7 +289,10 @@ class UnrealircdController(BaseServerController, DirectoryBasedController):
         assert self.proc
 
         with _STARTSTOP_LOCK():
-            self.proc.kill()
+            # Kill the entire process group to handle child processes
+            if not self._terminate_process_group(signal.SIGKILL):
+                # Fall back to killing just this process
+                self.proc.kill()
             self.proc.wait(5)  # wait for it to actually die
             self.proc = None
 
