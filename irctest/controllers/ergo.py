@@ -4,6 +4,7 @@ import os
 import subprocess
 from typing import Any, Dict, Optional, Type, Union
 
+from irctest import patma
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 from irctest.cases import BaseServerTestCase
 from irctest.specifications import Capabilities, OptionalBehaviors
@@ -193,6 +194,20 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             # OptionalBehaviors.SASL_REAUTHENTICATION is NOT supported :-)
         )
     )
+
+    isupport = {
+        "BOT": "B",
+        "CASEMAPPING": "ascii",
+        "ELIST": patma.StrRe(".*U.*"),  # only U is supported for now
+        "INVEX": None,
+        "MONITOR": patma.ANYSTR,
+        "MSGREFTYPES": "msgid,timestamp",
+        "PREFIX": "(qaohv)~&@%+",
+        "STATUSMSG": "~&@%+",
+        "TARGMAX": patma.ANYSTR,
+        "UTF8ONLY": None,
+        "WHOX": None,
+    }
 
     def create_config(self) -> None:
         super().create_config()
