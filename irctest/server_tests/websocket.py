@@ -12,10 +12,12 @@ try:
 except ImportError:
     connect = None
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.client_mock import ClientMock
+from irctest.exceptions import NoMessageException
 from irctest.irc_utils import message_parser
-from irctest.patma import StrRe
+from irctest.patma import ANYSTR, StrRe
+from irctest.specifications import OptionalBehaviors
 
 
 class WebClientMock(ClientMock):
@@ -212,8 +214,24 @@ class WebsocketTestCase(cases.BaseServerTestCase):
         ].binary = True  # force the websocket library to send a binary message
         self.sendLine(2, b"PRIVMSG nonweb :caf\xe9")
         self.clients[2].binary = False
-        self.getMessages(2)
-        # TODO: check we did not get an error back
+
+        try:
+            msg = self.getMessage(2)
+        except NoMessageException:
+            # was accepted
+            pass
+        else:
+            self.assertIn(
+                "UTF8ONLY",
+                self.server_support,
+                fail_msg="Server rejected non-UTF8 message but does not advertise UTF8ONLY",
+            )
+            self.assertMessageMatch(
+                msg, command="FAIL", params=["PRIVMSG", "INVALID_UTF8", ANYSTR]
+            )
+            raise runner.OptionalBehaviorNotSupported(
+                OptionalBehaviors.NON_UTF8_MESSAGE
+            )
 
         # if the server accepted the binary message (even though the spec does not explicitly allow it),
         # make sure it successfully sent it to other clients.
@@ -249,8 +267,24 @@ class WebsocketTestCase(cases.BaseServerTestCase):
         )
 
         self.sendLine(1, b"PRIVMSG web :caf\xe9")
-        self.getMessages(1)
-        # TODO: check we did not get an error back
+
+        try:
+            msg = self.getMessage(1)
+        except NoMessageException:
+            # was accepted
+            pass
+        else:
+            self.assertIn(
+                "UTF8ONLY",
+                self.server_support,
+                fail_msg="Server rejected non-UTF8 message but does not advertise UTF8ONLY",
+            )
+            self.assertMessageMatch(
+                msg, command="FAIL", params=["PRIVMSG", "INVALID_UTF8", ANYSTR]
+            )
+            raise runner.OptionalBehaviorNotSupported(
+                OptionalBehaviors.NON_UTF8_MESSAGE
+            )
 
         line = self.getMessage(2, raw=True)
         self.assertTrue(isinstance(line, str), f"Expected text message, got {line!r}")
