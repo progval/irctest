@@ -21,7 +21,7 @@ from irctest.patma import ANYSTR
 
 
 def run_in_threads_with_exception_handling(
-    callables: List[Tuple[str, Callable[[], None]]]
+    callables: List[Tuple[str, Callable[[], None]]],
 ) -> None:
     """Run multiple callables in parallel threads and re-raise any exceptions."""
     exceptions: List[Exception] = []
@@ -735,11 +735,9 @@ class SableHistoryController(BaseServicesController):
                 self.server_controller.directory / "configs/network.conf",
             ],
             cwd=self.server_controller.directory,
-            preexec_fn=os.setsid,
             env={"RUST_BACKTRACE": "1", **os.environ},
             proc_name="sable_history ",
         )
-        self.pgroup_id = os.getpgid(self.proc.pid)
 
     def wait_for_services(self) -> None:
         """Overrides the default implementation, as it relies on

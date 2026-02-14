@@ -247,6 +247,7 @@ class DirectoryBasedController(_BaseController):
     def terminate(self) -> None:
         """Stops the process gracefully, and does not clean its config."""
         assert self.proc
+
         # Terminate the entire process group to kill child processes too
         if not self._terminate_process_group(signal.SIGTERM):
             self.proc.terminate()

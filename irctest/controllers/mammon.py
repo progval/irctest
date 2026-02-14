@@ -79,6 +79,7 @@ class MammonController(BaseServerController, DirectoryBasedController):
     def kill_proc(self) -> None:
         # Mammon does not seem to handle SIGTERM very well, so use SIGKILL
         assert self.proc
+
         if not self._terminate_process_group(signal.SIGKILL):
             self.proc.kill()
         self.proc.wait()
