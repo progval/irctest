@@ -222,9 +222,13 @@ class _BaseController:
 
         proc = subprocess.Popen(command, **kwargs)
         if stream_stdout is not None:
-            threading.Thread(target=stream_stdout, name="stream_stdout").start()
+            threading.Thread(
+                target=stream_stdout, name="stream_stdout", daemon=True
+            ).start()
         if stream_stderr is not None:
-            threading.Thread(target=stream_stderr, name="stream_stderr").start()
+            threading.Thread(
+                target=stream_stderr, name="stream_stderr", daemon=True
+            ).start()
         return proc
 
 
