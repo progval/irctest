@@ -334,8 +334,10 @@ def write_html_pages(
         if job.endswith(("-atheme", "-anope", "-dlk")):
             assert is_server
             job_categories[job] = "server-with-services"
+        elif job in ("ergo", "sable"):
+            job_categories[job] = "server"
         elif is_server:
-            job_categories[job] = "server"  # with or without services
+            job_categories[job] = "server-without-services"
         else:
             assert is_client
             job_categories[job] = "client"
@@ -349,6 +351,11 @@ def write_html_pages(
             for result in results
             if result.module_name == module_name and not result.skipped
         }
+        if (
+            "server-with-services" in module_categories
+            or "server-without-services" in module_categories
+        ):
+            module_categories.add("server")
 
         module_jobs = [job for job in jobs if job_categories[job] in module_categories]
 
