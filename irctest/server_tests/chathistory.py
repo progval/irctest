@@ -802,7 +802,6 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
         c1 = random_name("foo")
         c2 = random_name("bar")
         self.controller.registerUser(self, c1, "sesame1")
-        self.skipUnlessArbitraryClientTags()
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(
             c1,
@@ -818,6 +817,7 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
             password="sesame1",
             skip_if_cap_nak=True,
         )
+        self.skipUnlessArbitraryClientTags()
         self.connectClient(
             c2,
             capabilities=[
