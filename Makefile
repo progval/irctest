@@ -126,13 +126,12 @@ LIMNORIA_SELECTORS := \
 	(foo or not foo) \
 	$(EXTRA_SELECTORS)
 
-# Tests marked with arbitrary_client_tags or react_tag can't pass because Sable does not support client tags yet
+# Tests marked with react_tag can't pass because Sable does not support client tags yet
 # 'SablePostgresqlHistoryTestCase and private_chathistory' disabled because Sable does not (yet?) persist private messages to postgresql
 SABLE_MARKERS := \
 	(Sable or not implementation-specific) \
 	and not deprecated \
 	and not strict \
-	and not arbitrary_client_tags \
 	and not react_tag \
 	$(EXTRA_MARKERS)
 SABLE_SELECTORS := \
@@ -146,7 +145,6 @@ SOLANUM_MARKERS := \
 	and not strict \
 	$(EXTRA_MARKERS)
 SOLANUM_SELECTORS := \
-	not arbitrary_client_tags \
 	$(EXTRA_SELECTORS)
 
 SOPEL_MARKERS := \
@@ -163,7 +161,6 @@ THELOUNGE_SELECTORS := \
 	(foo or not foo) \
 	$(EXTRA_SELECTORS)
 
-# Tests marked with arbitrary_client_tags can't pass because Unreal whitelists which tags it relays
 # Tests marked with react_tag can't pass because Unreal blocks +draft/react https://github.com/unrealircd/unrealircd/pull/149
 # Tests marked with private_chathistory can't pass because Unreal does not implement CHATHISTORY for DMs
 
@@ -171,7 +168,6 @@ UNREALIRCD_MARKERS := \
 	not implementation-specific \
 	and not deprecated \
 	and not strict \
-	and not arbitrary_client_tags \
 	and not react_tag \
 	and not private_chathistory \
 	$(EXTRA_MARKERS)

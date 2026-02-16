@@ -695,13 +695,13 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
             result = self.validate_chathistory_batch(user, chname)
             self.assertIn(echo_messages[7], result)
 
-    @pytest.mark.arbitrary_client_tags
     @skip_ngircd
     def testChathistoryTagmsg(self):
         c1 = random_name("foo")
         c2 = random_name("bar")
         chname = "#chan" + secrets.token_hex(12)
         self.controller.registerUser(self, c1, "sesame1")
+        self.skipUnlessArbitraryClientTags()
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(
             c1,
@@ -795,7 +795,6 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
         ]
         self.assertEqual(len(history_tagmsgs), 0)
 
-    @pytest.mark.arbitrary_client_tags
     @pytest.mark.private_chathistory
     @skip_ngircd
     def testChathistoryDMClientOnlyTags(self):
@@ -803,6 +802,7 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
         c1 = random_name("foo")
         c2 = random_name("bar")
         self.controller.registerUser(self, c1, "sesame1")
+        self.skipUnlessArbitraryClientTags()
         self.controller.registerUser(self, c2, "sesame2")
         self.connectClient(
             c1,

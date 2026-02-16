@@ -85,7 +85,6 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
                     extra_format=(m2,),
                 )
 
-    @pytest.mark.arbitrary_client_tags
     @cases.mark_capabilities(
         "batch", "labeled-response", "echo-message", "message-tags"
     )
@@ -98,6 +97,8 @@ class EchoMessageTestCase(cases.BaseServerTestCase):
             skip_if_cap_nak=True,
         )
         self.getMessages(bar)
+
+        self.skipUnlessArbitraryClientTags()
 
         qux = random_name("qux")
         self.connectClient(
