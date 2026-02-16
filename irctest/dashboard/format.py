@@ -254,7 +254,7 @@ def build_test_table(
                         HTML.summary(HTML.a(test_name, href=f"#{row_anchor}")),
                         doc,
                     )
-                    if doc
+                    if doc is not None
                     else HTML.a(test_name, href=f"#{row_anchor}"),
                     class_="test-name",
                 ),
