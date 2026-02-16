@@ -695,7 +695,6 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
             result = self.validate_chathistory_batch(user, chname)
             self.assertIn(echo_messages[7], result)
 
-    @pytest.mark.arbitrary_client_tags
     @skip_ngircd
     def testChathistoryTagmsg(self):
         c1 = random_name("foo")
@@ -718,6 +717,7 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
             password="sesame1",
             skip_if_cap_nak=True,
         )
+        self.skipUnlessArbitraryClientTags()
         self.connectClient(
             c2,
             capabilities=[
@@ -795,7 +795,6 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
         ]
         self.assertEqual(len(history_tagmsgs), 0)
 
-    @pytest.mark.arbitrary_client_tags
     @pytest.mark.private_chathistory
     @skip_ngircd
     def testChathistoryDMClientOnlyTags(self):
@@ -818,6 +817,7 @@ class _BaseChathistoryTests(cases.BaseServerTestCase):
             password="sesame1",
             skip_if_cap_nak=True,
         )
+        self.skipUnlessArbitraryClientTags()
         self.connectClient(
             c2,
             capabilities=[

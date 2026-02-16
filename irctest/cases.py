@@ -842,6 +842,21 @@ class BaseServerTestCase(
 
         return (batch_id, batch_params, messages)
 
+    def skipUnlessArbitraryClientTags(self) -> None:
+        """Returns whether the servers claims to allow any client tag
+        (ie. does not have ``CLIENTTAGDENY=*``)"""
+        if self.server_support is None:
+            raise Exception(
+                "skipUnlessArbitraryClientTags can only be called after a client connected"
+            )
+        clienttagdeny = self.server_support.get("CLIENTTAGDENY")
+        if clienttagdeny:
+            parts = clienttagdeny.split(",")
+            if "*" in parts:
+                raise runner.ImplementationChoice(
+                    "CLIENTTAGDENY blocks arbitrary client tags"
+                )
+
 
 _TSelf = TypeVar("_TSelf", bound="_IrcTestCase")
 _TReturn = TypeVar("_TReturn")

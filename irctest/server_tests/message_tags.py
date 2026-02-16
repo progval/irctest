@@ -2,8 +2,6 @@
 `IRCv3 message-tags <https://ircv3.net/specs/extensions/message-tags>`_
 """
 
-import pytest
-
 from irctest import cases, runner
 from irctest.irc_utils.message_parser import parse_message
 from irctest.numerics import ERR_INPUTTOOLONG
@@ -11,7 +9,6 @@ from irctest.patma import ANYDICT, ANYSTR, StrRe
 
 
 class MessageTagsTestCase(cases.BaseServerTestCase):
-    @pytest.mark.arbitrary_client_tags
     @cases.mark_capabilities("message-tags")
     def testBasic(self):
         def getAllMessages():
@@ -29,6 +26,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase):
         self.connectClient(
             "alice", name="alice", capabilities=["message-tags"], skip_if_cap_nak=True
         )
+        self.skipUnlessArbitraryClientTags()
         self.joinChannel("alice", "#test")
         self.connectClient(
             "bob", name="bob", capabilities=["message-tags", "echo-message"]
@@ -110,7 +108,6 @@ class MessageTagsTestCase(cases.BaseServerTestCase):
             self.assertNotIn("cat", msg.tags)
         self.assertEqual(alice_msg.tags["msgid"], bob_msg.tags["msgid"])
 
-    @pytest.mark.arbitrary_client_tags
     @cases.mark_capabilities("message-tags")
     @cases.mark_specifications("ircdocs")
     def testLengthLimits(self):
@@ -120,6 +117,7 @@ class MessageTagsTestCase(cases.BaseServerTestCase):
             capabilities=["message-tags", "echo-message"],
             skip_if_cap_nak=True,
         )
+        self.skipUnlessArbitraryClientTags()
         self.joinChannel("alice", "#test")
         self.connectClient("bob", name="bob", capabilities=["message-tags"])
         self.joinChannel("bob", "#test")
