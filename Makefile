@@ -133,10 +133,10 @@ SABLE_MARKERS := \
 	and not deprecated \
 	and not strict \
 	and not react_tag \
-	and not list and not lusers and not time and not info and not limit \
 	$(EXTRA_MARKERS)
 SABLE_SELECTORS := \
-	not (SablePostgresqlHistoryTestCase and private_chathistory) \
+	not list and not lusers and not time and not info and not limit \
+	and not (SablePostgresqlHistoryTestCase and private_chathistory) \
 	$(EXTRA_SELECTORS)
 
 SOLANUM_MARKERS := \
