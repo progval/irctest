@@ -7,7 +7,10 @@ class SolanumController(CharybdisController):
     software_name = "Solanum"
     binary_name = "solanum"
 
-    template_config = 'loadmodule "extensions/tag_message_id";\n' + TEMPLATE_CONFIG
+    template_config = (
+        'loadmodule "extensions/tag_message_id";\n'
+        'loadmodule "extensions/extb_account";\n' + TEMPLATE_CONFIG
+    )
 
 
 def get_irctest_controller_class() -> Type[SolanumController]:
