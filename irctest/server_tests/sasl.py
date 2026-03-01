@@ -721,7 +721,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         while True:
             # can't use self.getMessages() Insp, because it rejects PINGs received
             # in the same iteration of its event loop as CAP END.
-            m = self.getMessageRegistrationMessage(1)
+            m = self.getRegistrationMessage(1)
             if m is not None and m.command == RPL_WELCOME:
                 break
             print("Did not get RPL_WELCOME, waiting...")
