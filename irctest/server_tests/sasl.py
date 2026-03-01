@@ -14,6 +14,7 @@ from irctest.numerics import (
     RPL_LOGGEDIN,
     RPL_SASLMECHS,
     RPL_SASLSUCCESS,
+    RPL_WELCOME,
 )
 from irctest.patma import ANYLIST, ANYSTR, Either, StrRe
 from irctest.specifications import OptionalBehaviors
@@ -717,7 +718,14 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "CAP END")
         # Server may either ignore AUTHENTICATE, send an error, or proceed.
         # We just verify it handles this gracefully (doesn't crash).
-        self.getMessages(1)
+        while True:
+            # can't use self.getMessages() Insp, because it rejects PINGs received
+            # in the same iteration of its event loop as CAP END.
+            m = self.getRegistrationMessage(1)
+            if m is not None and m.command == RPL_WELCOME:
+                break
+            print("Did not get RPL_WELCOME, waiting...")
+            time.sleep(0.1)
         # Either way, we should be able to get messages without error.
         # The server may have responded with AUTHENTICATE + or ignored it.
         # This test mainly ensures graceful handling.
