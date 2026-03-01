@@ -1,4 +1,5 @@
 import shutil
+import signal
 from typing import Optional, Set, Type
 
 from irctest.basecontrollers import (
@@ -76,9 +77,13 @@ class MammonController(BaseServerController, DirectoryBasedController):
             pass
 
     def kill_proc(self) -> None:
-        # Mammon does not seem to handle SIGTERM very well
+        # Mammon does not seem to handle SIGTERM very well, so use SIGKILL
         assert self.proc
-        self.proc.kill()
+
+        if not self._terminate_process_group(signal.SIGKILL):
+            self.proc.kill()
+        self.proc.wait()
+        self.proc = None
 
     def run(
         self,
@@ -89,7 +94,11 @@ class MammonController(BaseServerController, DirectoryBasedController):
         ssl: bool,
         run_services: bool,
         faketime: Optional[str],
+        websocket_hostname: Optional[str],
+        websocket_port: Optional[int],
     ) -> None:
+        if websocket_hostname is not None or websocket_port is not None:
+            raise NotImplementedByController("Websocket")
         if password is not None:
             raise NotImplementedByController("PASS command")
         if ssl:

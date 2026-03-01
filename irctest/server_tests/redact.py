@@ -3,9 +3,7 @@
 <https://ircv3.net/specs/extensions/message-redaction>`_
 """
 
-import pytest
-
-from irctest import cases
+from irctest import cases, runner
 from irctest.irc_utils.junkdrawer import random_name
 from irctest.patma import ANYSTR, StrRe
 from irctest.specifications import Capabilities
@@ -222,13 +220,18 @@ class RedactTestCase(cases.BaseServerTestCase):
             prefix=StrRe(f"{alice}!.*"),
         )
 
-    @pytest.mark.arbitrary_client_tags
     @cases.mark_capabilities(
         "message-tags", "echo-message", "batch", "labeled-response", REDACT_CAP
     )
     def testRedactTagmsg(self):
         """Test redaction of a TAGMSG."""
         alice, bob, channel = self._setupTwoClientsAndChannel()
+
+        clienttagdeny = self.server_support.get("CLIENTTAGDENY")
+        if clienttagdeny:
+            parts = clienttagdeny.split(",")
+            if "*" in parts and "+draft/reply" not in parts:
+                raise runner.ImplementationChoice("CLIENTTAGDENY blocks +draft/reply")
 
         # Send a TAGMSG (e.g., a reaction)
         self.sendLine(alice, f"@+draft/react=👍 TAGMSG {channel}")
