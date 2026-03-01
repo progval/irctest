@@ -135,7 +135,7 @@ SABLE_MARKERS := \
 	and not react_tag \
 	$(EXTRA_MARKERS)
 SABLE_SELECTORS := \
-	not list and not lusers and not time and not info \
+	not list and not lusers and not time and not info and not limit \
 	and not (SablePostgresqlHistoryTestCase and private_chathistory) \
 	$(EXTRA_SELECTORS)
 
@@ -145,6 +145,7 @@ SOLANUM_MARKERS := \
 	and not strict \
 	$(EXTRA_MARKERS)
 SOLANUM_SELECTORS := \
+	(foo or not foo) \
 	$(EXTRA_SELECTORS)
 
 SOPEL_MARKERS := \
