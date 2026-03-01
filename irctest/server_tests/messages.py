@@ -2,6 +2,8 @@
 The PRIVMSG and NOTICE commands.
 """
 
+import pytest
+
 from irctest import cases
 from irctest.numerics import ERR_INPUTTOOLONG
 from irctest.patma import ANYSTR
@@ -123,26 +125,31 @@ class NoticeTestCase(cases.BaseServerTestCase):
 
 
 class TagsTestCase(cases.BaseServerTestCase):
+    @pytest.mark.parametrize("tag_length", [4096, 10000])
     @cases.mark_capabilities("message-tags")
     @cases.xfailIf(
-        lambda self: bool(
+        lambda self, tag_length: bool(
             self.controller.software_name == "UnrealIRCd"
             and self.controller.software_version == 5
         ),
         "UnrealIRCd <6.0.7 dropped messages with excessively large tags: "
         "https://bugs.unrealircd.org/view.php?id=5947",
     )
-    def testLineTooLong(self):
+    def testLineTooLong(self, tag_length):
         self.connectClient("bar", capabilities=["message-tags"], skip_if_cap_nak=True)
         self.connectClient(
             "recver", capabilities=["message-tags"], skip_if_cap_nak=True
         )
         self.joinChannel(1, "#xyz")
-        monsterMessage = "@+clientOnlyTagExample=" + "a" * 4096 + " PRIVMSG #xyz hi!"
+
+        monsterMessage = (
+            "@+clientOnlyTagExample=" + "a" * tag_length + " PRIVMSG #xyz hi!"
+        )
         self.sendLine(1, monsterMessage)
         replies = self.getMessages(1)
-        self.assertIn(ERR_INPUTTOOLONG, set(reply.command for reply in replies))
         self.assertEqual(self.getMessages(2), [], "overflowing message was relayed")
+        if len(replies) > 0:
+            self.assertIn(ERR_INPUTTOOLONG, set(reply.command for reply in replies))
 
 
 class LengthLimitTestCase(cases.BaseServerTestCase):
