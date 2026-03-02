@@ -223,7 +223,7 @@ charybdis:
 ergo:
 	$(PYTEST) $(PYTEST_ARGS) \
 		--controller irctest.controllers.ergo \
-		-m '$(ERGO_MARKERS)'
+		-m '$(ERGO_MARKERS)' \
 		-k "$(ERGO_SELECTORS)"
 
 .PHONY: hybrid

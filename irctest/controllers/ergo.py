@@ -48,6 +48,7 @@ BASE_CONFIG = {
         "lookup-hostnames": False,
         "enforce-utf8": True,
         "relaymsg": {"enabled": True, "separators": "/", "available-to-chanops": True},
+        "proxy-allowed-from": ["localhost"],
         "compatibility": {
             "allow-truncation": False,
         },
@@ -254,9 +255,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
                 "helo-domain": "example.com",
             }
 
-        if self.test_config.ergo_config:
-            self.test_config.ergo_config(config)
-
         self.port = port
         bind_address = "127.0.0.1:%s" % (port,)
         listener_conf = None  # plaintext
@@ -277,6 +275,9 @@ class ErgoController(BaseServerController, DirectoryBasedController):
 
         if password is not None:
             config["server"]["password"] = hash_password(password)  # type: ignore
+
+        if self.test_config.ergo_config:
+            self.test_config.ergo_config(config)
 
         assert self.proc is None
 
