@@ -9,6 +9,17 @@ from irctest import cases
 from irctest.numerics import RPL_WHOISACTUALLY
 
 
+def get_whoisactually_ip(test_case, whois_msgs):
+    actually_msgs = [m for m in whois_msgs if m.command == RPL_WHOISACTUALLY]
+    test_case.assertEqual(
+        len(actually_msgs),
+        1,
+        "Expected exactly 1 RPL_WHOISACTUALLY (338) in WHOIS response",
+    )
+    # RPL_WHOISACTUALLY: <requester> <target> <user@host> <ip> :Actual user@host, Actual IP
+    return actually_msgs[0].params[3]
+
+
 class ProxyProtocolTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("Ergo")
     def test_proxy_v1(self):
@@ -34,21 +45,9 @@ class ProxyProtocolTestCase(cases.BaseServerTestCase):
         # WHOIS self to check the IP the server recorded for this connection.
         self.sendLine(client, "WHOIS proxyclient")
         whois_msgs = self.getMessages(client)
-
-        # Ergo sends RPL_WHOISACTUALLY (338) with the real/proxied IP.
-        actually_msgs = [m for m in whois_msgs if m.command == RPL_WHOISACTUALLY]
-        self.assertNotEqual(
-            actually_msgs,
-            [],
-            "Expected RPL_WHOISACTUALLY (338) in WHOIS response",
-        )
-        actually = actually_msgs[0]
-        # Ergo's 338: <requester> <target> <user@host> <ip> :Actual user@host, Actual IP
+        effective_ip = get_whoisactually_ip(self, whois_msgs)
         self.assertEqual(
-            actually.params[3],
-            proxied_ip,
-            f"Expected proxied IP {proxied_ip!r} in RPL_WHOISACTUALLY params[3], "
-            f"got: {actually.params!r}",
+            effective_ip, proxied_ip, "Proxied IP was not applied successfully"
         )
 
     @cases.mark_specifications("Ergo")
@@ -70,19 +69,11 @@ class ProxyProtocolTestCase(cases.BaseServerTestCase):
 
         self.sendLine(client, "WHOIS proxyclient2")
         whois_msgs = self.getMessages(client)
-
-        actually_msgs = [m for m in whois_msgs if m.command == RPL_WHOISACTUALLY]
+        effective_ip = get_whoisactually_ip(self, whois_msgs)
         self.assertNotEqual(
-            actually_msgs,
-            [],
-            "Expected RPL_WHOISACTUALLY (338) in WHOIS response",
-        )
-        actually = actually_msgs[0]
-        self.assertNotEqual(
-            actually.params[3],
+            effective_ip,
             proxied_ip,
-            f"Server must not use the proxied IP {proxied_ip!r} when the PROXY "
-            f"header was not the first line; got: {actually.params!r}",
+            "Proxied IP was applied successfully, but should not have been",
         )
 
 
@@ -137,17 +128,7 @@ class ProxyProtocolV2TestCase(cases.BaseServerTestCase):
 
         self.sendLine(client, "WHOIS proxyclientv2")
         whois_msgs = self.getMessages(client)
-
-        actually_msgs = [m for m in whois_msgs if m.command == RPL_WHOISACTUALLY]
-        self.assertNotEqual(
-            actually_msgs,
-            [],
-            "Expected RPL_WHOISACTUALLY (338) in WHOIS response",
-        )
-        actually = actually_msgs[0]
+        effective_ip = get_whoisactually_ip(self, whois_msgs)
         self.assertEqual(
-            actually.params[3],
-            proxied_ip,
-            f"Expected proxied IP {proxied_ip!r} in RPL_WHOISACTUALLY params[3], "
-            f"got: {actually.params!r}",
+            effective_ip, proxied_ip, "Proxied IP was not applied successfully"
         )
