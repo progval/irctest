@@ -107,7 +107,7 @@ class ProxyProtocolV2TestCase(cases.BaseServerTestCase):
         # length:          0x000C = 12 bytes of address data follow
         # address data:    src-ip (4) dst-ip (4) src-port (2) dst-port (2)
         header = (
-            b"\x0D\x0A\x0D\x0A\x00\x0D\x0A\x51\x55\x49\x54\x0A"  # signature
+            b"\r\n\r\n\x00\r\nQUIT\n"  # signature
             b"\x21"  # version 2 | command PROXY
             b"\x11"  # AF_INET   | STREAM (TCP4)
             b"\x00\x0C"  # address block length = 12 bytes
