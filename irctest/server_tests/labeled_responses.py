@@ -9,10 +9,10 @@ import re
 
 import pytest
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.numerics import ERR_UNKNOWNCOMMAND
 from irctest.patma import ANYDICT, ANYOPTSTR, NotStrRe, RemainingKeys, StrRe
-from irctest.runner import OptionalExtensionNotSupported
+from irctest.specifications import OptionalBehaviors
 
 
 class LabeledResponsesTestCase(cases.BaseServerTestCase):
@@ -24,7 +24,7 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase):
             skip_if_cap_nak=True,
         )
         if int(self.targmax.get("PRIVMSG", "1") or "4") < 3:
-            raise OptionalExtensionNotSupported("PRIVMSG to multiple targets")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.MULTI_PRIVMSG)
         self.getMessages(1)
 
         self.connectClient(

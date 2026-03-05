@@ -71,13 +71,6 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
             self.assertLessEqual(commands, {ERR_NOSUCHNICK, ERR_USERNOTINCHANNEL})
 
     @cases.mark_specifications("Modern")
-    @cases.xfailIf(
-        lambda self: bool(
-            self.controller.software_name == "UnrealIRCd"
-            and self.controller.software_version == 5
-        ),
-        "UnrealIRCd <6.1.7 returns ERR_NOSUCHNICK on non-existent channel",
-    )
     def testChannelOperatorModeChannelDoesNotExist(self):
         """Test that +o targeting a nonexistent channel fails as expected.
 
@@ -92,13 +85,6 @@ class ChannelOperatorModeTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(messages[0], command=ERR_NOSUCHCHANNEL)
 
     @cases.mark_specifications("Modern")
-    @cases.xfailIf(
-        lambda self: bool(
-            self.controller.software_name == "UnrealIRCd"
-            and self.controller.software_version == 5
-        ),
-        "UnrealIRCd <6.1.7 returns ERR_NOSUCHNICK on non-existent channel",
-    )
     def testChannelOperatorModeChannelAndTargetDoNotExist(self):
         """Test that +o targeting a nonexistent channel and nickname
         fails as expected."""

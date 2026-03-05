@@ -1,12 +1,24 @@
 import copy
 import json
 import os
-import shutil
 import subprocess
 from typing import Any, Dict, Optional, Type, Union
 
+from irctest import patma
 from irctest.basecontrollers import BaseServerController, DirectoryBasedController
 from irctest.cases import BaseServerTestCase
+from irctest.specifications import Capabilities, OptionalBehaviors
+
+# ratified caps we want everyone to request, ideally
+BASE_CAPS = (
+    "sasl",
+    "server-time",
+    "message-tags",
+    "echo-message",
+    "batch",
+    "labeled-response",
+    "account-tag",
+)
 
 BASE_CONFIG = {
     "network": {"name": "ErgoTest"},
@@ -36,6 +48,7 @@ BASE_CONFIG = {
         "lookup-hostnames": False,
         "enforce-utf8": True,
         "relaymsg": {"enabled": True, "separators": "/", "available-to-chanops": True},
+        "proxy-allowed-from": ["localhost"],
         "compatibility": {
             "allow-truncation": False,
         },
@@ -46,7 +59,7 @@ BASE_CONFIG = {
         "multiclient": {
             "allowed-by-default": True,
             "enabled": True,
-            "always-on": "disabled",
+            "always-on": "opt-in",
         },
         "registration": {
             "bcrypt-cost": 4,
@@ -86,6 +99,9 @@ BASE_CONFIG = {
         "tagmsg-storage": {
             "default": False,
             "whitelist": ["+draft/persist", "+persist"],
+        },
+        "retention": {
+            "allow-individual-delete": True,
         },
     },
     "oper-classes": {
@@ -147,6 +163,53 @@ class ErgoController(BaseServerController, DirectoryBasedController):
     supports_sts = True
     extban_mute_char = "m"
 
+    capabilities = frozenset(
+        (
+            Capabilities.ACCOUNT_NOTIFY,
+            Capabilities.ACCOUNT_TAG,
+            Capabilities.AWAY_NOTIFY,
+            Capabilities.BATCH,
+            Capabilities.ECHO_MESSAGE,
+            Capabilities.EXTENDED_JOIN,
+            Capabilities.EXTENDED_MONITOR,
+            Capabilities.LABELED_RESPONSE,
+            Capabilities.MESSAGE_TAGS,
+            Capabilities.MULTILINE,
+            Capabilities.MULTI_PREFIX,
+            Capabilities.SERVER_TIME,
+            Capabilities.SETNAME,
+        ),
+    )
+
+    optional_behaviors = frozenset(
+        (
+            OptionalBehaviors.BAN_EXCEPTION_MODE,
+            OptionalBehaviors.CAP_REQ_MINUS,
+            OptionalBehaviors.ELIST_U,
+            OptionalBehaviors.INVITE_EXCEPTION_MODE,
+            OptionalBehaviors.MULTI_JOIN,
+            OptionalBehaviors.MULTI_KICK,
+            OptionalBehaviors.MULTI_PRIVMSG,
+            OptionalBehaviors.NO_CTCP,
+            OptionalBehaviors.SASL_AFTER_REGISTRATION,
+            # OptionalBehaviors.SASL_REAUTHENTICATION is NOT supported :-)
+        )
+    )
+
+    isupport = {
+        "BOT": "B",
+        "CASEMAPPING": "ascii",
+        "ELIST": patma.StrRe(".*U.*"),  # only U is supported for now
+        "INVEX": None,
+        "MONITOR": patma.ANYSTR,
+        "MSGREFTYPES": "msgid,timestamp",
+        "PREFIX": "(qaohv)~&@%+",
+        "STATUSMSG": "~&@%+",
+        "TARGMAX": patma.ANYSTR,
+        "UTF8ONLY": None,
+        "WHOX": None,
+    }
+
     def create_config(self) -> None:
         super().create_config()
         with self.open_file("ircd.yaml"):
@@ -162,10 +225,15 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         run_services: bool,
         faketime: Optional[str],
         config: Optional[Any] = None,
+        websocket_hostname: Optional[str] = None,
+        websocket_port: Optional[int] = None,
     ) -> None:
         self.create_config()
         if config is None:
             config = copy.deepcopy(BASE_CONFIG)
+
+        if self.debug_mode:
+            config = self.addLoggingToConfig(config)
 
         assert self.directory
 
@@ -187,9 +255,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
                 "helo-domain": "example.com",
             }
 
-        if self.test_config.ergo_config:
-            self.test_config.ergo_config(config)
-
         self.port = port
         bind_address = "127.0.0.1:%s" % (port,)
         listener_conf = None  # plaintext
@@ -199,10 +264,20 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             listener_conf = {"tls": {"cert": self.pem_path, "key": self.key_path}}
         config["server"]["listeners"][bind_address] = listener_conf  # type: ignore
 
+        if websocket_hostname and websocket_port:
+            ws_bind_address = f"{websocket_hostname}:{websocket_port}"
+            ws_listener_conf: Dict[str, Any] = {"websocket": True}
+            if ssl and listener_conf:
+                ws_listener_conf["tls"] = listener_conf["tls"]
+            config["server"]["listeners"][ws_bind_address] = ws_listener_conf  # type: ignore
+
         config["datastore"]["path"] = str(self.directory / "ircd.db")  # type: ignore
 
         if password is not None:
             config["server"]["password"] = hash_password(password)  # type: ignore
+
+        if self.test_config.ergo_config:
+            self.test_config.ergo_config(config)
 
         assert self.proc is None
 
@@ -212,15 +287,19 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         subprocess.call(["ergo", "initdb", "--conf", self._config_path, "--quiet"])
         subprocess.call(["ergo", "mkcerts", "--conf", self._config_path, "--quiet"])
 
-        if faketime and shutil.which("faketime"):
-            faketime_cmd = ["faketime", "-f", faketime]
-            self.faketime_enabled = True
-        else:
-            faketime_cmd = []
+        self._start()
 
-        self.proc = self.execute(
-            [*faketime_cmd, "ergo", "run", "--conf", self._config_path, "--quiet"]
-        )
+    def _start(self) -> None:
+        args = ["ergo", "run", "--conf", str(self._config_path)]
+        if not self.debug_mode:
+            args.append("--quiet")
+        self.proc = self.execute(args)
+
+    def restart(self) -> None:
+        self.kill_proc()
+        self.port_open = False
+        self._start()
+        self.wait_for_port()
 
     def wait_for_services(self) -> None:
         # Nothing to wait for, they start at the same time as Ergo.
@@ -284,11 +363,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             "history-database": "ergo_history",
             "timeout": "3s",
         }
-        config["accounts"]["multiclient"] = {
-            "enabled": True,
-            "allowed-by-default": True,
-            "always-on": "disabled",
-        }
         config["history"]["persistent"] = {
             "enabled": True,
             "unregistered-channels": True,
@@ -307,11 +381,6 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         case.getMessages(client)
         case.sendLine(client, "QUIT")
         case.assertDisconnected(client)
-
-    def enable_debug_logging(self, case: BaseServerTestCase) -> None:
-        config = self.getConfig()
-        config.update(LOGGING_CONFIG)
-        self.rehash(case, config)
 
 
 def get_irctest_controller_class() -> Type[ErgoController]:

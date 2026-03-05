@@ -9,6 +9,7 @@ and ban exception (`Modern <https://modern.ircdocs.horse/#exception-channel-mode
 from irctest import cases, runner
 from irctest.numerics import ERR_BANNEDFROMCHAN, RPL_BANLIST, RPL_ENDOFBANLIST
 from irctest.patma import ANYSTR, StrRe
+from irctest.specifications import OptionalBehaviors
 
 
 class BanModeTestCase(cases.BaseServerTestCase):
@@ -105,8 +106,8 @@ class BanModeTestCase(cases.BaseServerTestCase):
             mode = "e"
             if "CHANMODES" in self.server_support:
                 if "e" not in self.server_support["CHANMODES"]:
-                    raise runner.OptionalExtensionNotSupported(
-                        "Ban exception (or mode letter is not +e)"
+                    raise runner.OptionalBehaviorNotSupported(
+                        OptionalBehaviors.BAN_EXCEPTION_MODE,
                     )
                 self.assertIn(
                     mode,
@@ -115,7 +116,9 @@ class BanModeTestCase(cases.BaseServerTestCase):
                     "but 'e' is not in group A",
                 )
             else:
-                raise runner.OptionalExtensionNotSupported("ISUPPORT CHANMODES")
+                raise runner.OptionalBehaviorNotSupported(
+                    OptionalBehaviors.BAN_EXCEPTION_MODE,
+                )
 
         self.sendLine("chanop", "JOIN #chan")
         self.getMessages("chanop")

@@ -9,8 +9,9 @@ import itertools
 import pytest
 
 from irctest import cases, runner
-from irctest.numerics import RPL_METADATASUBOK
-from irctest.patma import ANYDICT, ANYLIST, ANYOPTSTR, ANYSTR, Either, StrRe
+from irctest.numerics import RPL_METADATASUBOK, RPL_WHOISKEYVALUE
+from irctest.patma import ANYDICT, ANYLIST, ANYSTR, Either
+from irctest.specifications import OptionalBehaviors
 
 CLIENT_NICKS = {
     1: "foo",
@@ -19,19 +20,15 @@ CLIENT_NICKS = {
 
 
 class MetadataTestCase(cases.BaseServerTestCase):
-    def getBatchMessages(self, client):
-        messages = self.getMessages(client)
+    def getMetadataBatchMessages(self, client):
+        """Get messages from a metadata batch.
 
-        first_msg = messages.pop(0)
-        last_msg = messages.pop(-1)
-        # TODO: s/ANYOPTSTR/ANYSTR/, as per spec update to require a batch parameter
-        # indicating the target
-        self.assertMessageMatch(
-            first_msg, command="BATCH", params=[StrRe(r"\+.*"), "metadata", ANYOPTSTR]
-        )
-        batch_id = first_msg.params[0][1:]
-        self.assertMessageMatch(last_msg, command="BATCH", params=["-" + batch_id])
-
+        Returns:
+            A tuple of (batch_id, messages)
+        """
+        (batch_id, batch_params, messages) = self.getBatchMessages(client, "metadata")
+        # TODO: validate that there is exactly 1 batch parameter indicating the target,
+        # pending spec update
         return (batch_id, messages)
 
     def sub(self, client, keys):
@@ -58,7 +55,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
         self.sendLine(1, "METADATA * GET display-name")
 
-        (batch_id, messages) = self.getBatchMessages(1)
+        (batch_id, messages) = self.getMetadataBatchMessages(1)
         self.assertEqual(len(messages), 1, fail_msg="Expected one ERR_NOMATCHINGKEY")
         self.assertMessageMatch(
             messages[0],
@@ -78,7 +75,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
         self.sendLine(1, "METADATA * GET display-name avatar")
-        (batch_id, messages) = self.getBatchMessages(1)
+        (batch_id, messages) = self.getMetadataBatchMessages(1)
         self.assertEqual(len(messages), 2, fail_msg="Expected two ERR_NOMATCHINGKEY")
         self.assertMessageMatch(
             messages[0],
@@ -116,7 +113,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
         )
         self.sendLine(1, "METADATA * LIST")
-        (batch_id, messages) = self.getBatchMessages(1)
+        (batch_id, messages) = self.getMetadataBatchMessages(1)
         self.assertEqual(len(messages), 0, fail_msg="Expected empty batch")
 
     @cases.mark_specifications("IRCv3")
@@ -182,7 +179,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         if before_connect:
             nick = Either("*", nick)
 
-        (batch_id, messages) = self.getBatchMessages(client)
+        (batch_id, messages) = self.getMetadataBatchMessages(client)
         self.assertEqual(len(messages), 1, fail_msg="Expected one RPL_KEYVALUE")
         self.assertMessageMatch(
             messages[0],
@@ -196,7 +193,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         if target == "*":
             target = Either("*", CLIENT_NICKS[client])
 
-        (batch_id, messages) = self.getBatchMessages(client)
+        (batch_id, messages) = self.getMetadataBatchMessages(client)
         self.assertEqual(len(messages), 1, fail_msg="Expected one RPL_KEYVALUE")
         self.assertMessageMatch(
             messages[0],
@@ -265,6 +262,47 @@ class MetadataTestCase(cases.BaseServerTestCase):
             fail_msg="Unexpected messages after other user used METADATA SET: {got}",
         )
         self.assertGetValue(2, "foo", "display-name", "Foo The First")
+
+    @cases.mark_specifications("IRCv3")
+    @cases.xfailIfSoftware(
+        ["UnrealIRCd"],
+        "Not implemented yet in Unreal metadata module",
+    )
+    def testWhoisKeyValue(self):
+        self.connectClient(
+            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+        )
+
+        # As of 2023-04-15, the Unreal module requires users to share a channel for
+        # metadata to be visible to each other
+        self.joinChannel(1, "#chan")
+        self.joinChannel(2, "#chan")
+        self.getMessages(1)
+
+        self.assertSetValue(1, "*", "display-name", "Foo The First")
+        self.assertEqual(
+            self.getMessages(2),
+            [],
+            fail_msg="Unexpected messages after other user used METADATA SET: {got}",
+        )
+
+        self.sendLine(2, "WHOIS foo")
+        response = [
+            msg for msg in self.getMessages(2) if msg.command == RPL_WHOISKEYVALUE
+        ]
+        self.assertEqual(
+            len(response),
+            1,
+            fail_msg="Should receive exactly one RPL_WHOISKEYVALUE response: got {got}",
+        )
+        self.assertMessageMatch(
+            response[0],
+            command=RPL_WHOISKEYVALUE,
+            params=["bar", "foo", "display-name", ANYSTR, "Foo The First"],
+        )
 
     @cases.mark_specifications("IRCv3")
     def testSetOtherUser(self):
@@ -526,8 +564,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "CAP LS 302")
         caps = self.getCapLs(1)
         if "before-connect" not in (caps.get("draft/metadata-2") or "").split(","):
-            raise runner.OptionalExtensionNotSupported(
-                "draft/metadata-2=before-connect"
+            raise runner.OptionalBehaviorNotSupported(
+                OptionalBehaviors.METADATA_BEFORE_CONNECT
             )
 
         self.requestCapabilities(1, ["draft/metadata-2", "batch"], skip_if_cap_nak=True)

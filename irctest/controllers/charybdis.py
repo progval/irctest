@@ -15,7 +15,7 @@ general {{
     # disable throttling for LIST and similar:
     pace_wait_simple = 0 second;
     pace_wait = 0 second;
-    sasl_service = "SaslServ";
+    sasl_service = "{saslserv}";
 }};
 
 class "server" {{
@@ -45,7 +45,7 @@ channel {{
 }};
 
 connect "My.Little.Services" {{
-    host = "localhost";  # Used to validate incoming connection
+    host = "127.0.0.1";  # Used to validate incoming connection
     port = 0;  # We don't need servers to connect to services
     send_password = "password";
     accept_password = "password";

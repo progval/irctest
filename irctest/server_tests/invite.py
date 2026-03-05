@@ -19,6 +19,7 @@ from irctest.numerics import (
     RPL_INVITING,
 )
 from irctest.patma import ANYSTR, StrRe
+from irctest.specifications import OptionalBehaviors
 
 
 class InviteTestCase(cases.BaseServerTestCase):
@@ -395,7 +396,7 @@ class InviteTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "INVITE")
         m = self.getMessage(2)
         if m.command == ERR_NEEDMOREPARAMS:
-            raise runner.OptionalExtensionNotSupported("INVITE with no parameter")
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.INVITE_LIST)
         if m.command != "337":
             # Hybrid always sends an empty list; so skip this.
             self.assertMessageMatch(
@@ -408,50 +409,6 @@ class InviteTestCase(cases.BaseServerTestCase):
             m,
             command="337",
             params=["bar", ANYSTR],
-        )
-
-    @cases.mark_isupport("INVEX")
-    @cases.mark_specifications("Modern")
-    def testInvexList(self):
-        self.connectClient("foo")
-        self.getMessages(1)
-
-        if "INVEX" in self.server_support:
-            invex = self.server_support.get("INVEX") or "I"
-        else:
-            raise runner.IsupportTokenNotSupported("INVEX")
-
-        self.sendLine(1, "JOIN #chan")
-        self.getMessages(1)
-
-        self.sendLine(1, f"MODE #chan +{invex} bar!*@*")
-        self.getMessages(1)
-
-        self.sendLine(1, f"MODE #chan +{invex}")
-        m = self.getMessage(1)
-        if len(m.params) == 3:
-            # Old format
-            self.assertMessageMatch(
-                m,
-                command="346",
-                params=["foo", "#chan", "bar!*@*"],
-            )
-        else:
-            self.assertMessageMatch(
-                m,
-                command="346",
-                params=[
-                    "foo",
-                    "#chan",
-                    "bar!*@*",
-                    StrRe("foo(!.*@.*)?"),
-                    StrRe("[0-9]+"),
-                ],
-            )
-        self.assertMessageMatch(
-            self.getMessage(1),
-            command="347",
-            params=["foo", "#chan", ANYSTR],
         )
 
     @cases.mark_specifications("Ergo")

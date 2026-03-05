@@ -15,6 +15,7 @@ from irctest.numerics import (
     RPL_NAMREPLY,
 )
 from irctest.patma import ANYSTR
+from irctest.specifications import OptionalBehaviors
 
 
 class KickTestCase(cases.BaseServerTestCase):
@@ -231,9 +232,7 @@ class KickTestCase(cases.BaseServerTestCase):
         self.joinChannel(4, "#chan")
 
         if self.targmax.get("KICK", "1") == "1":
-            raise runner.OptionalExtensionNotSupported("Multi-target KICK")
-
-        # TODO: check foo is an operator
+            raise runner.OptionalBehaviorNotSupported(OptionalBehaviors.MULTI_KICK)
 
         # Synchronize
         self.getMessages(1)
@@ -245,15 +244,8 @@ class KickTestCase(cases.BaseServerTestCase):
             self.sendLine(1, "KICK #chan,#chan bar,baz :bye")
         else:
             self.sendLine(1, "KICK #chan bar,baz :bye")
-        try:
-            m = self.getMessage(1)
-            if m.command == "482":
-                raise runner.OptionalExtensionNotSupported(
-                    "Channel creators are not opped by default."
-                )
-        except client_mock.NoMessageException:
-            # The RFCs do not say KICK must be echoed
-            pass
+
+        self.getMessages(1)  # synchronize
 
         mgroup = self.getMessages(4)
         self.assertGreaterEqual(len(mgroup), 2, mgroup)

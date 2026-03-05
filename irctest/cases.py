@@ -43,7 +43,7 @@ from .numerics import (
 )
 from .specifications import Capabilities, IsupportTokens, Specifications
 
-__tracebackhide__ = True  # Hide from pytest tracebacks on test failure.
+# __tracebackhide__ = True  # Hide from pytest tracebacks on test failure.
 
 CHANNEL_JOIN_FAIL_NUMERICS = frozenset(
     [
@@ -120,7 +120,7 @@ class _IrcTestCase(Generic[TController]):
     @staticmethod
     def config() -> TestCaseControllerConfig:
         """Some configuration to pass to the controllers.
-        For example, Oragono only enables its MySQL support if
+        For example, Ergo only enables its MySQL support if
         config()["chathistory"]=True.
         """
         return TestCaseControllerConfig()
@@ -444,7 +444,8 @@ class BaseClientTestCase(_IrcTestCase[basecontrollers.BaseClientController]):
             line = self.getLine(*args)
             if not line:
                 raise ConnectionClosed()
-            msg = message_parser.parse_message(line)
+            # strip final "\r\n", then parse
+            msg = message_parser.parse_message(line[:-2])
             if not filter_pred or filter_pred(msg):
                 return msg
 
@@ -540,6 +541,8 @@ class BaseServerTestCase(
     ssl = False
     server_support: Optional[Dict[str, Optional[str]]]
     run_services = False
+    websocket = False
+    websocket_url: Optional[str]
 
     faketime: Optional[str] = None
     """If not None and the controller supports it and libfaketime is available,
@@ -553,6 +556,19 @@ class BaseServerTestCase(
         super().setUp()
         self.server_support = None
         (self.hostname, self.port) = self.controller.get_hostname_and_port()
+
+        websocket_hostname: Optional[str]
+        websocket_port: Optional[int]
+        if self.websocket:
+            (
+                websocket_hostname,
+                websocket_port,
+            ) = self.controller.get_hostname_and_port()
+            self.websocket_url = f"ws://{websocket_hostname}:{websocket_port}"
+        else:
+            self.websocket_url = None
+            websocket_hostname = websocket_port = None
+
         self.controller.run(
             self.hostname,
             self.port,
@@ -560,6 +576,8 @@ class BaseServerTestCase(
             ssl=self.ssl,
             run_services=self.run_services,
             faketime=self.faketime,
+            websocket_hostname=websocket_hostname,
+            websocket_port=websocket_port,
         )
         self.clients: Dict[TClientName, client_mock.ClientMock] = {}
 
@@ -681,7 +699,12 @@ class BaseServerTestCase(
                 m.params[1], "ACK", m, fail_msg="Expected CAP ACK, got: {msg}"
             )
         except AssertionError:
-            if skip_if_cap_nak:
+            # if skip_if_cap_nak, and any one of the capabilities is not
+            # in the controller's required set, then skip the test;
+            # otherwise fail
+            if skip_if_cap_nak and any(
+                not self.controller.supports_cap(cap) for cap in capabilities
+            ):
                 raise runner.CapabilityNotSupported(" or ".join(capabilities))
             else:
                 raise
@@ -703,16 +726,18 @@ class BaseServerTestCase(
         name: Optional[TClientName] = None,
         capabilities: Optional[List[str]] = None,
         skip_if_cap_nak: bool = False,
-        show_io: Optional[bool] = None,
         account: Optional[str] = None,
         password: Optional[str] = None,
         ident: str = "username",
+        **kwargs: Any,
     ) -> List[Message]:
         """Connections a new client, does the cap negotiation
         and connection registration, and skips to the end of the MOTD.
         Returns the list of all messages received after registration,
-        just like `skipToWelcome`."""
-        client = self.addClient(name, show_io=show_io)
+        just like `skipToWelcome`.
+
+        ``**kwargs`` is passed to ``self.addClient``"""
+        client = self.addClient(name, **kwargs)
         if capabilities:
             self.sendLine(client, "CAP LS 302")
             self.getCapLs(client)
@@ -780,6 +805,58 @@ class BaseServerTestCase(
                 elif msg.command in CHANNEL_JOIN_FAIL_NUMERICS:
                     raise ChannelJoinException(msg.command, msg.params)
 
+    def getBatchMessages(
+        self, client: TClientName, batch_type: str
+    ) -> tuple[str, List[str], List[Message]]:
+        """Extract messages from a batch, verifying batch markers.
+
+        Args:
+            client: The client to get messages from
+            batch_type: The expected batch type (e.g., "metadata", "chathistory")
+
+        Returns:
+            A tuple of (batch_id, batch_params, messages) where:
+            - batch_id is the batch identifier
+            - batch_params is the list of parameters after the batch type
+            - messages are the messages between the batch start and end markers
+        """
+        messages = self.getMessages(client)
+
+        first_msg = messages.pop(0)
+        last_msg = messages.pop(-1)
+        self.assertMessageMatch(
+            first_msg,
+            command="BATCH",
+        )
+
+        # Verify batch type matches
+        if len(first_msg.params) < 2 or first_msg.params[1] != batch_type:
+            raise AssertionError(
+                f"Expected batch type {batch_type!r}, got {first_msg.params[1] if len(first_msg.params) > 1 else 'none'}"
+            )
+
+        batch_id = first_msg.params[0][1:]  # Remove the '+' prefix
+        batch_params = first_msg.params[2:]  # Everything after batch type
+
+        self.assertMessageMatch(last_msg, command="BATCH", params=["-" + batch_id])
+
+        return (batch_id, batch_params, messages)
+
+    def skipUnlessArbitraryClientTags(self) -> None:
+        """Returns whether the servers claims to allow any client tag
+        (ie. does not have ``CLIENTTAGDENY=*``)"""
+        if self.server_support is None:
+            raise Exception(
+                "skipUnlessArbitraryClientTags can only be called after a client connected"
+            )
+        clienttagdeny = self.server_support.get("CLIENTTAGDENY")
+        if clienttagdeny:
+            parts = clienttagdeny.split(",")
+            if "*" in parts:
+                raise runner.ImplementationChoice(
+                    "CLIENTTAGDENY blocks arbitrary client tags"
+                )
+
 
 _TSelf = TypeVar("_TSelf", bound="_IrcTestCase")
 _TReturn = TypeVar("_TReturn")
@@ -829,7 +906,10 @@ def xfailIfSoftware(
     names: List[str], reason: str
 ) -> Callable[[Callable[..., _TReturn]], Callable[..., _TReturn]]:
     def pred(testcase: _IrcTestCase, *args: Any, **kwargs: Any) -> bool:
-        return testcase.controller.software_name in names
+        return testcase.controller.software_name in names or (
+            getattr(testcase.controller, "services_controller", None) is not None
+            and testcase.controller.services_controller.software_name in names
+        )
 
     return xfailIf(pred, reason)
 
@@ -842,16 +922,22 @@ def mark_services(cls: TClass) -> TClass:
 def mark_specifications(
     *specifications_str: str, deprecated: bool = False, strict: bool = False
 ) -> Callable[[TCallable], TCallable]:
-    specifications = frozenset(
+    specifications = {
         Specifications.from_name(s) if isinstance(s, str) else s
         for s in specifications_str
-    )
+    }
     if None in specifications:
         raise ValueError("Invalid set of specifications: {}".format(specifications))
+
+    is_implementation_specific = all(
+        spec.is_implementation_specific() for spec in specifications
+    )
 
     def decorator(f: TCallable) -> TCallable:
         for specification in specifications:
             f = getattr(pytest.mark, specification.value)(f)
+        if is_implementation_specific:
+            f = getattr(pytest.mark, "implementation-specific")(f)
         if strict:
             f = pytest.mark.strict(f)
         if deprecated:

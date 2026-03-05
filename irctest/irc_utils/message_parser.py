@@ -2,9 +2,28 @@ import dataclasses
 import re
 from typing import Any, Dict, List, Optional
 
-from .junkdrawer import MultipleReplacer
+"""
+Stolen from supybot:
+"""
 
-# http://ircv3.net/specs/core/message-tags-3.2.html#escaping-values
+
+class MultipleReplacer:
+    """Return a callable that replaces all dict keys by the associated
+    value. More efficient than multiple .replace()."""
+
+    # We use an object instead of a lambda function because it avoids the
+    # need for using the staticmethod() on the lambda function if assigning
+    # it to a class in Python 3.
+    def __init__(self, dict_: Dict[str, str]):
+        self._dict = dict_
+        dict_ = dict([(re.escape(key), val) for key, val in dict_.items()])
+        self._matcher = re.compile("|".join(dict_.keys()))
+
+    def __call__(self, s: str) -> str:
+        return self._matcher.sub(lambda m: self._dict[m.group(0)], s)
+
+
+# https://ircv3.net/specs/extensions/message-tags.html#escaping-values
 TAG_ESCAPE = [
     ("\\", "\\\\"),  # \ -> \\
     (" ", r"\s"),
@@ -54,12 +73,21 @@ class Message:
         )
 
 
+_forbidden_codepoints_re = re.compile(r"[\x00\r\n]")
+
+
 def parse_message(s: str) -> Message:
     """Parse a message according to
     http://tools.ietf.org/html/rfc1459#section-2.3.1
     and
-    http://ircv3.net/specs/core/message-tags-3.2.html"""
-    s = s.rstrip("\r\n")
+    http://ircv3.net/specs/core/message-tags-3.2.html
+
+    We assume that the terminating \r\n was stripped already.
+    """
+    if match := _forbidden_codepoints_re.search(s):
+        raise ValueError(
+            f"Message {s!r} contains forbidden codepoint {match.group()!r}"
+        )
     if s.startswith("@"):
         (tags_str, s) = s.split(" ", 1)
         tags = parse_tags(tags_str[1:])
