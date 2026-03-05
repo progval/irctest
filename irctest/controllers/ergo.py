@@ -377,17 +377,16 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         return config
 
     def addPostgresToConfig(self, config: Optional[Dict] = None) -> Dict:
-        postgres_password = os.getenv("IRCTEST_ERGO_POSTGRESQL_PASSWORD")
+        history_db_url = os.environ.get("PIFPAF_POSTGRESQL_URL") or os.environ.get(
+            "IRCTEST_POSTGRESQL_URL"
+        )
         if config is None:
             config = self.baseConfig()
-        if not postgres_password:
+        if not history_db_url:
             return config
         config["datastore"]["postgresql"] = {
             "enabled": True,
-            "host": "localhost",
-            "user": "ergo",
-            "password": postgres_password,
-            "history-database": "ergo_history",
+            "uri": history_db_url,
             "timeout": "3s",
         }
         config = self.addPersistentHistoryToConfig(config)
