@@ -241,6 +241,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         enable_roleplay = self.test_config.ergo_roleplay
         if enable_chathistory or enable_roleplay:
             config = self.addMysqlToConfig(config)
+            config = self.addPostgresToConfig(config)
 
         if enable_roleplay:
             config["roleplay"] = {"enabled": True}
@@ -349,8 +350,17 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         config.update(LOGGING_CONFIG)
         return config
 
+    def addPersistentHistoryToConfig(self, config: Dict) -> Dict:
+        config["history"]["persistent"] = {
+            "enabled": True,
+            "unregistered-channels": True,
+            "registered-channels": "opt-out",
+            "direct-messages": "opt-out",
+        }
+        return config
+
     def addMysqlToConfig(self, config: Optional[Dict] = None) -> Dict:
-        mysql_password = os.getenv("MYSQL_PASSWORD")
+        mysql_password = os.getenv("IRCTEST_ERGO_MYSQL_PASSWORD")
         if config is None:
             config = self.baseConfig()
         if not mysql_password:
@@ -363,12 +373,23 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             "history-database": "ergo_history",
             "timeout": "3s",
         }
-        config["history"]["persistent"] = {
+        config = self.addPersistentHistoryToConfig(config)
+        return config
+
+    def addPostgresToConfig(self, config: Optional[Dict] = None) -> Dict:
+        history_db_url = os.environ.get("PIFPAF_POSTGRESQL_URL") or os.environ.get(
+            "IRCTEST_POSTGRESQL_URL"
+        )
+        if config is None:
+            config = self.baseConfig()
+        if not history_db_url:
+            return config
+        config["datastore"]["postgresql"] = {
             "enabled": True,
-            "unregistered-channels": True,
-            "registered-channels": "opt-out",
-            "direct-messages": "opt-out",
+            "uri": history_db_url,
+            "timeout": "3s",
         }
+        config = self.addPersistentHistoryToConfig(config)
         return config
 
     def rehash(self, case: BaseServerTestCase, config: Dict) -> None:
