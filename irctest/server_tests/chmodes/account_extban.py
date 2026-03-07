@@ -93,6 +93,11 @@ class AccountExtbanTestCase(cases.BaseServerTestCase):
             "ACCOUNTEXTBAN present but EXTBAN missing",
         )
 
+    @cases.xfailIfSoftware(
+        ["Dlk-Services"],
+        "Dlk-Services crashes on mode account extbans: "
+        "https://github.com/DalekIRC/Dalek-Services/issues/60",
+    )
     @cases.mark_specifications("IRCv3")
     def testAccountExtbanJoin(self):
         """Test that an account extban prevents the matching account from
@@ -144,6 +149,11 @@ class AccountExtbanTestCase(cases.BaseServerTestCase):
             with self._connect_bob(authenticated=False):
                 self._assert_join_allowed(chan)
 
+    @cases.xfailIfSoftware(
+        ["Dlk-Services"],
+        "Dlk-Services crashes on mode account extbans: "
+        "https://github.com/DalekIRC/Dalek-Services/issues/60",
+    )
     @cases.mark_specifications("IRCv3")
     def testAccountExtbanException(self):
         """Test that a ban exception (+e) with an account extban allows a
@@ -185,6 +195,11 @@ class AccountExtbanTestCase(cases.BaseServerTestCase):
             with self._connect_bob():
                 self._assert_join_allowed(chan)
 
+    @cases.xfailIfSoftware(
+        ["Dlk-Services"],
+        "Dlk-Services crashes on mode account extbans: "
+        "https://github.com/DalekIRC/Dalek-Services/issues/60",
+    )
     @cases.mark_specifications("IRCv3")
     def testAccountExtbanInviteException(self):
         """Test that an invite exception (+I) with an account extban allows
