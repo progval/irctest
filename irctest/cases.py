@@ -35,6 +35,7 @@ from .irc_utils.sasl import sasl_plain_blob
 from .numerics import (
     ERR_BADCHANNELKEY,
     ERR_BANNEDFROMCHAN,
+    ERR_CHANNELISFULL,
     ERR_INVITEONLYCHAN,
     ERR_NEEDREGGEDNICK,
     ERR_NOSUCHCHANNEL,
@@ -53,6 +54,7 @@ CHANNEL_JOIN_FAIL_NUMERICS = frozenset(
         ERR_INVITEONLYCHAN,
         ERR_BANNEDFROMCHAN,
         ERR_NEEDREGGEDNICK,
+        ERR_CHANNELISFULL,
     ]
 )
 
