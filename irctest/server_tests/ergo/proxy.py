@@ -77,7 +77,12 @@ class ProxyProtocolTestCase(cases.BaseServerTestCase):
         )
 
 
-class ProxyProtocolV2TestCase(cases.BaseServerTestCase):
+class ProxyProtocolListenerTestCase(cases.BaseServerTestCase):
+    """Test Ergo's support for `proxy: true` in listener configuration,
+    which requires that a PROXY header (either v1 or v2) be sent ahead
+    of the connection data.
+    """
+
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
         def ergo_config(config: dict) -> None:
@@ -88,6 +93,33 @@ class ProxyProtocolV2TestCase(cases.BaseServerTestCase):
                 config["server"]["listeners"][addr] = conf
 
         return cases.TestCaseControllerConfig(ergo_config=ergo_config)
+
+    @cases.mark_specifications("Ergo")
+    def test_proxy_v1(self):
+        """Test that Ergo accepts a PROXY protocol v1 ASCII header as the
+        first bytes on the connection and records the proxied IP as the
+        client's apparent address, visible in RPL_WHOISACTUALLY (338).
+        """
+        proxied_ip = "1.1.1.1"
+
+        # Open a raw TCP connection without sending any IRC commands yet.
+        client = self.addClient()
+        # Send PROXY v1 (ASCII) header as first line.
+        self.sendLine(client, f"PROXY TCP4 {proxied_ip} 127.0.0.1 65533 6667")
+
+        # Complete normal IRC registration.
+        self.sendLine(client, "NICK proxyclient")
+        self.sendLine(client, "USER proxy * * :Proxy Test User")
+        self.skipToWelcome(client)
+        self.getMessages(client)
+
+        # WHOIS self to check the IP the server recorded for this connection.
+        self.sendLine(client, "WHOIS proxyclient")
+        whois_msgs = self.getMessages(client)
+        effective_ip = get_whoisactually_ip(self, whois_msgs)
+        self.assertEqual(
+            effective_ip, proxied_ip, "Proxied IP was not applied successfully"
+        )
 
     @cases.mark_specifications("Ergo")
     def test_proxy_v2(self):
@@ -132,3 +164,12 @@ class ProxyProtocolV2TestCase(cases.BaseServerTestCase):
         self.assertEqual(
             effective_ip, proxied_ip, "Proxied IP was not applied successfully"
         )
+
+    @cases.mark_specifications("Ergo")
+    def test_no_proxy_header(self):
+        """Test if a listener is configured with `proxy: true`,
+        connections that do not send a valid proxy header are rejected.
+        """
+        client = self.addClient()
+        self.sendLine(client, "NICK proxyclient")
+        self.assertDisconnected(client)
