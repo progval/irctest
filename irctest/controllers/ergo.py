@@ -243,6 +243,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
         if enable_chathistory or enable_roleplay:
             config = self.addMysqlToConfig(config)
             config = self.addPostgresToConfig(config)
+            config = self.addSqliteToConfig(config)
 
         if enable_roleplay:
             config["roleplay"] = {"enabled": True}
@@ -274,6 +275,8 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             config["server"]["listeners"][ws_bind_address] = ws_listener_conf  # type: ignore
 
         config["datastore"]["path"] = str(self.directory / "ircd.db")  # type: ignore
+        if "sqlite" in config["datastore"]:  # type: ignore[operator]
+            config["datastore"]["sqlite"]["database-path"] = str(self.directory / "ergo_history.db")  # type: ignore
 
         if password is not None:
             config["server"]["password"] = hash_password(password)  # type: ignore
@@ -389,6 +392,20 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             "enabled": True,
             "uri": history_db_url,
             "timeout": "3s",
+        }
+        config = self.addPersistentHistoryToConfig(config)
+        return config
+
+    def addSqliteToConfig(self, config: Optional[Dict] = None) -> Dict:
+        sqlite_env = os.getenv("IRCTEST_ERGO_SQLITE_ENABLED")
+        if config is None:
+            config = self.baseConfig()
+        if not sqlite_env or sqlite_env.lower() in ("0", "false"):
+            return config
+        config["datastore"]["sqlite"] = {
+            "enabled": True,
+            "database-path": None,  # fill in later
+            "busy-timeout": "5s",
         }
         config = self.addPersistentHistoryToConfig(config)
         return config
