@@ -1090,7 +1090,7 @@ jobs:
         cd $GITHUB_WORKSPACE/nefarious
         ./configure --prefix=$HOME/.local/ --enable-debug
         make -j 4
-        make install
+        echo -e "N\n\n\n\n\n\n\n\n" | make install
         cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
     - name: Install system dependencies
       run: sudo apt-get install faketime
