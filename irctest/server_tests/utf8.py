@@ -6,7 +6,7 @@
 
 from irctest import cases, runner
 from irctest.numerics import ERR_ERRONEUSNICKNAME
-from irctest.patma import ANYSTR
+from irctest.patma import ANYSTR, Either
 
 
 class Utf8TestCase(cases.BaseServerTestCase):
@@ -21,7 +21,7 @@ class Utf8TestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             self.getMessage(1),
             command="FAIL",
-            params=["PRIVMSG", "INVALID_UTF8", ANYSTR],
+            params=[Either("*", "PRIVMSG"), "INVALID_UTF8", ANYSTR],
             tags={"label": "xyz"},
         )
 
@@ -46,7 +46,9 @@ class Utf8TestCase(cases.BaseServerTestCase):
         assert m.command in ("FAIL", "WARN", "ERROR")
 
         if m.command in ("FAIL", "WARN"):
-            self.assertMessageMatch(m, params=["PRIVMSG", "INVALID_UTF8", ANYSTR])
+            self.assertMessageMatch(
+                m, params=[Either("*", "PRIVMSG"), "INVALID_UTF8", ANYSTR]
+            )
 
     def testNonutf8Realname(self):
         self.connectClient("foo")
