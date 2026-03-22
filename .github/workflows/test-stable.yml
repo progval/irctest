@@ -471,7 +471,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/solanum/
         ./autogen.sh
-        ./configure --prefix=$HOME/.local/
+        ./configure --prefix=$HOME/.local/ --enable-fhs-paths
         make -j 4
         make install
     - name: Make artefact tarball
