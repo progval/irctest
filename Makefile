@@ -143,6 +143,7 @@ SOLANUM_MARKERS := \
 	not implementation-specific \
 	and not deprecated \
 	and not strict \
+	and not react_tag \
 	$(EXTRA_MARKERS)
 SOLANUM_SELECTORS := \
 	(foo or not foo) \
