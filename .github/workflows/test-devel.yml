@@ -830,7 +830,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: ircu2
-        ref: u2_10_12_branch
+        ref: main
         repository: undernetirc/ircu2
         submodules: ''
     - name: Build ircu2

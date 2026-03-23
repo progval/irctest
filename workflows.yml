@@ -200,7 +200,7 @@ software:
         refs:
             stable: "u2.10.12.19"
             release: null
-            devel: "u2_10_12_branch"
+            devel: "main"
             devel_release: null
         path: ircu2
         separate_build_job: false
