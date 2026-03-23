@@ -62,7 +62,9 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(m4, command="PRIVMSG", tags={})
 
         self.assertMessageMatch(
-            m, command="BATCH", fail_msg="No BATCH echo received after sending one out"
+            m,
+            command="BATCH",
+            fail_msg="No BATCH echo received after sending PRIVMSG to multiple users",
         )
 
     @cases.mark_capabilities("echo-message", "batch", "labeled-response")
