@@ -1011,12 +1011,13 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: ircu2
-        ref: u2.10.12.19
+        ref: ffbf28a5b9a324e4f06a0f3622cc19a9872558b2
         repository: undernetirc/ircu2
         submodules: ''
     - name: Build ircu2
       run: |
         cd $GITHUB_WORKSPACE/ircu2
+        ./autogen.sh
         # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
         # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
         ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
