@@ -205,6 +205,7 @@ software:
         path: ircu2
         separate_build_job: false
         build_script: |
+            sudo apt-get install -y autoconf
             cd $GITHUB_WORKSPACE/ircu2
             ./autogen.sh
             # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
