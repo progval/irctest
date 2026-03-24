@@ -1016,8 +1016,8 @@ jobs:
         submodules: ''
     - name: Build ircu2
       run: |
-        sudo apt-get install -y autoconf
         cd $GITHUB_WORKSPACE/ircu2
+        patch autoconf.ac < $GITHUB_WORKSPACE/patches/ircu2_ubuntu24.patch
         ./autogen.sh
         # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
         # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
