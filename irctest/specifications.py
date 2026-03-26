@@ -42,6 +42,7 @@ class Capabilities(enum.Enum):
     MESSAGE_REDACTION = "draft/message-redaction"
     MESSAGE_TAGS = "message-tags"
     MULTILINE = "draft/multiline"
+    READ_MARKER = "draft/read-marker"
     MULTI_PREFIX = "multi-prefix"
     SERVER_TIME = "server-time"
     SETNAME = "setname"
