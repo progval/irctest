@@ -93,6 +93,7 @@ class BahamutController(BaseServerController, DirectoryBasedController):
     supported_sasl_mechanisms: Set[str] = set()
     supports_sts = False
     nickserv = "NickServ@My.Little.Services"
+    sync_sleep_time = 1.0
 
     def create_config(self) -> None:
         super().create_config()
@@ -136,17 +137,17 @@ class BahamutController(BaseServerController, DirectoryBasedController):
         shutil.copy(self.key_path, self.directory / "ircd.key")
 
         with self.open_file("server.conf") as fd:
-            fd.write(
-                TEMPLATE_CONFIG.format(
-                    hostname=hostname,
-                    port=port,
-                    services_hostname=services_hostname,
-                    services_port=services_port,
-                    password_field=password_field,
-                    # key_path=self.key_path,
-                    # pem_path=self.pem_path,
-                )
+            conf = TEMPLATE_CONFIG.format(
+                hostname=hostname,
+                port=port,
+                services_hostname=services_hostname,
+                services_port=services_port,
+                password_field=password_field,
+                # key_path=self.key_path,
+                # pem_path=self.pem_path,
             )
+            # print(conf)
+            fd.write(conf)
 
         if faketime and shutil.which("faketime"):
             faketime_cmd = ["faketime", "-f", faketime]
@@ -157,8 +158,14 @@ class BahamutController(BaseServerController, DirectoryBasedController):
         self.proc = self.execute(
             [
                 *faketime_cmd,
+                "strace",
+                "-f",
+                "-e",
+                "file",
                 "ircd",
                 "-t",  # don't fork
+                "-x",
+                "10",  # debug log level
                 "-f",
                 self.directory / "server.conf",
             ],
