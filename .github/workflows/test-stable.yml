@@ -13,7 +13,7 @@ jobs:
         key: 3-${{ runner.os }}-anope-stable
         path: '~/.cache
 
-          ${ github.workspace }/anope
+          /tmp/anope
 
           '
     - uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
     - name: Checkout Anope
       uses: actions/checkout@v4
       with:
-        path: ../anope
+        path: /tmp/anope
         ref: 2.0.18
         repository: anope/anope
         submodules: ''
@@ -36,7 +36,7 @@ jobs:
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
         ninja install
-      working-directory: ../anope
+      working-directory: /tmp/anope
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -56,7 +56,7 @@ jobs:
         key: 3-${{ runner.os }}-anope-2-0-stable
         path: '~/.cache
 
-          ${ github.workspace }/anope
+          /tmp/anope
 
           '
     - uses: actions/checkout@v4
@@ -69,7 +69,7 @@ jobs:
     - name: Checkout Anope 2.0
       uses: actions/checkout@v4
       with:
-        path: ../anope
+        path: /tmp/anope
         ref: 2.0.18
         repository: anope/anope
         submodules: ''
@@ -79,7 +79,7 @@ jobs:
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
         ninja install
-      working-directory: ../anope
+      working-directory: /tmp/anope
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope-2-0.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -99,7 +99,7 @@ jobs:
         key: 3-${{ runner.os }}-atheme-stable
         path: '~/.cache
 
-          ${ github.workspace }/atheme
+          /tmp/atheme
 
           '
     - uses: actions/checkout@v4
@@ -112,7 +112,7 @@ jobs:
     - name: Checkout Atheme
       uses: actions/checkout@v4
       with:
-        path: ../atheme
+        path: /tmp/atheme
         ref: v7.2.12
         repository: atheme/atheme
         submodules: recursive
@@ -122,7 +122,7 @@ jobs:
         ./configure --prefix=$HOME/.local/
         make
         make install
-      working-directory: ../atheme
+      working-directory: /tmp/atheme
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-atheme.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -142,7 +142,7 @@ jobs:
         key: 3-${{ runner.os }}-atheme-7-3-stable
         path: '~/.cache
 
-          ${ github.workspace }/atheme
+          /tmp/atheme
 
           '
     - uses: actions/checkout@v4
@@ -155,7 +155,7 @@ jobs:
     - name: Checkout Atheme
       uses: actions/checkout@v4
       with:
-        path: ../atheme
+        path: /tmp/atheme
         ref: 22b0a326651d7fba5f7c733012191d74afba8883
         repository: atheme/atheme
         submodules: recursive
@@ -165,7 +165,7 @@ jobs:
         ./configure --prefix=$HOME/.local/
         make
         make install
-      working-directory: ../atheme
+      working-directory: /tmp/atheme
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-atheme-7-3.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -185,7 +185,7 @@ jobs:
         key: 3-${{ runner.os }}-bahamut-stable
         path: '~/.cache
 
-          ${ github.workspace }/Bahamut
+          /tmp/Bahamut
 
           '
     - uses: actions/checkout@v4
@@ -198,7 +198,7 @@ jobs:
     - name: Checkout Bahamut
       uses: actions/checkout@v4
       with:
-        path: ../Bahamut
+        path: /tmp/Bahamut
         ref: v2.2.4
         repository: DALnet/Bahamut
         submodules: ''
@@ -221,7 +221,7 @@ jobs:
         make install
         mkdir -p $HOME/.local/bin/
         cp $HOME/.local/ircd $HOME/.local/bin/ircd
-      working-directory: ../Bahamut
+      working-directory: /tmp/Bahamut
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-bahamut.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -241,7 +241,7 @@ jobs:
         key: 3-${{ runner.os }}-charybdis-stable
         path: '~/.cache
 
-          ${ github.workspace }/charybdis
+          /tmp/charybdis
 
           '
     - uses: actions/checkout@v4
@@ -254,7 +254,7 @@ jobs:
     - name: Checkout Charybdis
       uses: actions/checkout@v4
       with:
-        path: ../charybdis
+        path: /tmp/charybdis
         ref: charybdis-4.1.2
         repository: charybdis-ircd/charybdis
         submodules: ''
@@ -265,7 +265,7 @@ jobs:
         ./configure --prefix=$HOME/.local/
         make -j 4
         make install
-      working-directory: ../charybdis
+      working-directory: /tmp/charybdis
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-charybdis.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -285,7 +285,7 @@ jobs:
         key: 3-${{ runner.os }}-hybrid-stable
         path: '~/.cache
 
-          ${ github.workspace }/ircd-hybrid
+          /tmp/ircd-hybrid
 
           '
     - uses: actions/checkout@v4
@@ -298,7 +298,7 @@ jobs:
     - name: Checkout Hybrid
       uses: actions/checkout@v4
       with:
-        path: ../ircd-hybrid
+        path: /tmp/ircd-hybrid
         ref: 8.2.39
         repository: ircd-hybrid/ircd-hybrid
         submodules: ''
@@ -309,7 +309,7 @@ jobs:
         ./configure --prefix=$HOME/.local/
         make -j 4
         make install
-      working-directory: ../ircd-hybrid
+      working-directory: /tmp/ircd-hybrid
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-hybrid.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -333,7 +333,7 @@ jobs:
     - name: Checkout InspIRCd
       uses: actions/checkout@v4
       with:
-        path: ../inspircd
+        path: /tmp/inspircd
         ref: v4.7.0
         repository: inspircd/inspircd
         submodules: ''
@@ -342,7 +342,7 @@ jobs:
         ./configure --prefix=$HOME/.local/inspircd --development
         CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
         make install
-      working-directory: ../inspircd
+      working-directory: /tmp/inspircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-inspircd.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -362,7 +362,7 @@ jobs:
         key: 3-${{ runner.os }}-ngircd-stable
         path: '~/.cache
 
-          ${ github.workspace }/ngircd
+          /tmp/ngircd
 
           '
     - uses: actions/checkout@v4
@@ -375,7 +375,7 @@ jobs:
     - name: Checkout ngircd
       uses: actions/checkout@v4
       with:
-        path: ../ngircd
+        path: /tmp/ngircd
         ref: acf8409c60ccc96beed0a1f990c4f9374823c0ce
         repository: ngircd/ngircd
         submodules: ''
@@ -386,7 +386,7 @@ jobs:
         ./configure --prefix=$HOME/.local/
         make -j 4
         make install
-      working-directory: ../ngircd
+      working-directory: /tmp/ngircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-ngircd.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -406,7 +406,7 @@ jobs:
         key: 3-${{ runner.os }}-plexus4-stable
         path: '~/.cache
 
-          ${ github.workspace }/placeholder
+          placeholder
 
           '
     - uses: actions/checkout@v4
@@ -448,7 +448,7 @@ jobs:
         key: 3-${{ runner.os }}-solanum-stable
         path: '~/.cache
 
-          ${ github.workspace }/solanum
+          /tmp/solanum
 
           '
     - uses: actions/checkout@v4
@@ -461,7 +461,7 @@ jobs:
     - name: Checkout Solanum
       uses: actions/checkout@v4
       with:
-        path: ../solanum
+        path: /tmp/solanum
         ref: 9778247c3dca59370b21c4f34f328c52e8b8c669
         repository: solanum-ircd/solanum
         submodules: ''
@@ -471,7 +471,7 @@ jobs:
         ./configure --prefix=$HOME/.local/ --enable-fhs-paths
         make -j 4
         make install
-      working-directory: ../solanum
+      working-directory: /tmp/solanum
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-solanum.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -491,7 +491,7 @@ jobs:
         key: 3-${{ runner.os }}-unrealircd-stable
         path: '~/.cache
 
-          ${ github.workspace }/unrealircd
+          /tmp/unrealircd
 
           '
     - uses: actions/checkout@v4
@@ -504,7 +504,7 @@ jobs:
     - name: Checkout UnrealIRCd 6
       uses: actions/checkout@v4
       with:
-        path: ../unrealircd
+        path: /tmp/unrealircd
         ref: 2d145b0f2ca320652037217c860159b4beef37e4
         repository: unrealircd/unrealircd
         submodules: ''
@@ -521,7 +521,7 @@ jobs:
         make install
         # Prevent download of geoIP database on first startup
         sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
-      working-directory: ../unrealircd
+      working-directory: /tmp/unrealircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -754,7 +754,7 @@ jobs:
     - name: Checkout Ergo
       uses: actions/checkout@v4
       with:
-        path: ../ergo
+        path: /tmp/ergo
         ref: irctest_stable
         repository: ergochat/ergo
         submodules: ''
@@ -766,7 +766,7 @@ jobs:
       run: |
         make build
         make install
-      working-directory: ../ergo
+      working-directory: /tmp/ergo
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -955,7 +955,7 @@ jobs:
     - name: Checkout irc2
       uses: actions/checkout@v4
       with:
-        path: ../irc2.11.2p3
+        path: /tmp/irc2.11.2p3
         ref: 59649f24c3a5c27bad5648b48774f27475bccfd3
         repository: irc-archive/irc2-mirror
         submodules: ''
@@ -977,7 +977,7 @@ jobs:
         make install
         mkdir -p $HOME/.local/bin
         cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
-      working-directory: ../irc2.11.2p3
+      working-directory: /tmp/irc2.11.2p3
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -1008,7 +1008,7 @@ jobs:
     - name: Checkout ircu2
       uses: actions/checkout@v4
       with:
-        path: ../ircu2
+        path: /tmp/ircu2
         ref: 0a8a73f344e4ef5bcdab6d899dd9030bf2b32a8e
         repository: undernetirc/ircu2
         submodules: ''
@@ -1020,7 +1020,7 @@ jobs:
         ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
         make -j 4
         make install
-      working-directory: ../ircu2
+      working-directory: /tmp/ircu2
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -1080,7 +1080,7 @@ jobs:
     - name: Checkout nefarious
       uses: actions/checkout@v4
       with:
-        path: ../nefarious
+        path: /tmp/nefarious
         ref: 985704168ecada12d9e53b46df6087ef9d9fb40b
         repository: evilnet/nefarious2
         submodules: ''
@@ -1090,7 +1090,7 @@ jobs:
         make -j 4
         echo -e "N\n\n\n\n\n\n\n\n" | make install
         cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
-      working-directory: ../nefarious
+      working-directory: /tmp/nefarious
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -1279,7 +1279,7 @@ jobs:
     - name: Checkout Sable
       uses: actions/checkout@v4
       with:
-        path: ../sable
+        path: /tmp/sable
         ref: 70e61b4cc015537d8906da5286f062a8199fb432
         repository: Libera-Chat/sable
         submodules: ''
@@ -1313,7 +1313,7 @@ jobs:
     - name: Build Sable
       run: |
         cargo build
-      working-directory: ../sable
+      working-directory: /tmp/sable
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -1492,7 +1492,7 @@ jobs:
     - name: Checkout TheLounge
       uses: actions/checkout@v4
       with:
-        path: ../thelounge
+        path: /tmp/thelounge
         ref: v4.4.0
         repository: thelounge/thelounge
         submodules: ''
@@ -1502,7 +1502,7 @@ jobs:
         NODE_ENV=production yarn build
         mkdir -p ~/.local/bin/
         ln -s $(pwd)/index.js ~/.local/bin/thelounge
-      working-directory: ../thelounge
+      working-directory: /tmp/thelounge
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies

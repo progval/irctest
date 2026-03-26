@@ -61,7 +61,7 @@ def get_install_steps(*, software_config, software_id, version_flavor):
         ref = software_config["refs"][version_flavor.value]
         if ref is None:
             return None
-        path = f"../{software_config['path']}"
+        path = f"/tmp/{software_config['path']}"
         install_steps = [
             {
                 "name": f"Checkout {name}",
@@ -90,7 +90,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
     if "install_steps" in software_config:
         path = "placeholder"  # TODO: remove this
     else:
-        path = software_config["path"]
+        path = f"/tmp/{software_config['path']}"
 
     if software_config.get("cache", True):
         cache = [
@@ -98,7 +98,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "name": "Cache dependencies",
                 "uses": "actions/cache@v4",
                 "with": {
-                    "path": f"~/.cache\n${{ github.workspace }}/{path}\n",
+                    "path": f"~/.cache\n{path}\n",
                     "key": "3-${{ runner.os }}-"
                     + software_id
                     + "-"
