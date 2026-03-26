@@ -429,6 +429,7 @@ jobs:
         make -j 4
 
         make install'
+      working-directory: plexus4
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-plexus4.tar.gz .local/ go/
     - name: Upload build artefacts

@@ -57,6 +57,7 @@ software:
                       ./configure --prefix=$HOME/.local/
                       make -j 4
                       make install
+                  working-directory: plexus4
             release: null
             devel:
                 - name: clone
@@ -69,6 +70,7 @@ software:
                       ./configure --prefix=$HOME/.local/
                       make -j 4
                       make install
+                  working-directory: plexus4
             devel_release: null
 
     solanum:
