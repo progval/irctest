@@ -61,7 +61,7 @@ def get_install_steps(*, software_config, software_id, version_flavor):
         ref = software_config["refs"][version_flavor.value]
         if ref is None:
             return None
-        path = software_config["path"]
+        path = f"../{software_config['path']}"
         install_steps = [
             {
                 "name": f"Checkout {name}",
@@ -77,6 +77,7 @@ def get_install_steps(*, software_config, software_id, version_flavor):
             {
                 "name": f"Build {name}",
                 "run": script(software_config["build_script"]),
+                "working-directory": path,
             },
         ]
 
