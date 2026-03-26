@@ -13,7 +13,7 @@ jobs:
         key: 3-${{ runner.os }}-anope-devel_release
         path: '~/.cache
 
-          anope
+          ${ github.workspace }/anope
 
           '
     - uses: actions/checkout@v4

@@ -98,7 +98,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "name": "Cache dependencies",
                 "uses": "actions/cache@v4",
                 "with": {
-                    "path": f"~/.cache\n{path}\n",
+                    "path": f"~/.cache\n${{ github.workspace }}/{path}\n",
                     "key": "3-${{ runner.os }}-"
                     + software_id
                     + "-"

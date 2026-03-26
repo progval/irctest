@@ -13,7 +13,7 @@ jobs:
         key: 3-${{ runner.os }}-anope-stable
         path: '~/.cache
 
-          anope
+          ${ github.workspace }/anope
 
           '
     - uses: actions/checkout@v4
@@ -56,7 +56,7 @@ jobs:
         key: 3-${{ runner.os }}-anope-2-0-stable
         path: '~/.cache
 
-          anope
+          ${ github.workspace }/anope
 
           '
     - uses: actions/checkout@v4
@@ -99,7 +99,7 @@ jobs:
         key: 3-${{ runner.os }}-atheme-stable
         path: '~/.cache
 
-          atheme
+          ${ github.workspace }/atheme
 
           '
     - uses: actions/checkout@v4
@@ -142,7 +142,7 @@ jobs:
         key: 3-${{ runner.os }}-atheme-7-3-stable
         path: '~/.cache
 
-          atheme
+          ${ github.workspace }/atheme
 
           '
     - uses: actions/checkout@v4
@@ -185,7 +185,7 @@ jobs:
         key: 3-${{ runner.os }}-bahamut-stable
         path: '~/.cache
 
-          Bahamut
+          ${ github.workspace }/Bahamut
 
           '
     - uses: actions/checkout@v4
@@ -241,7 +241,7 @@ jobs:
         key: 3-${{ runner.os }}-charybdis-stable
         path: '~/.cache
 
-          charybdis
+          ${ github.workspace }/charybdis
 
           '
     - uses: actions/checkout@v4
@@ -285,7 +285,7 @@ jobs:
         key: 3-${{ runner.os }}-hybrid-stable
         path: '~/.cache
 
-          ircd-hybrid
+          ${ github.workspace }/ircd-hybrid
 
           '
     - uses: actions/checkout@v4
@@ -362,7 +362,7 @@ jobs:
         key: 3-${{ runner.os }}-ngircd-stable
         path: '~/.cache
 
-          ngircd
+          ${ github.workspace }/ngircd
 
           '
     - uses: actions/checkout@v4
@@ -406,7 +406,7 @@ jobs:
         key: 3-${{ runner.os }}-plexus4-stable
         path: '~/.cache
 
-          placeholder
+          ${ github.workspace }/placeholder
 
           '
     - uses: actions/checkout@v4
@@ -449,7 +449,7 @@ jobs:
         key: 3-${{ runner.os }}-solanum-stable
         path: '~/.cache
 
-          solanum
+          ${ github.workspace }/solanum
 
           '
     - uses: actions/checkout@v4
@@ -492,7 +492,7 @@ jobs:
         key: 3-${{ runner.os }}-unrealircd-stable
         path: '~/.cache
 
-          unrealircd
+          ${ github.workspace }/unrealircd
 
           '
     - uses: actions/checkout@v4

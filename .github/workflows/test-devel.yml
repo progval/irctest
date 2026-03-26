@@ -13,7 +13,7 @@ jobs:
         key: 3-${{ runner.os }}-anope-devel
         path: '~/.cache
 
-          anope
+          ${ github.workspace }/anope
 
           '
     - uses: actions/checkout@v4
@@ -56,7 +56,7 @@ jobs:
         key: 3-${{ runner.os }}-anope-2-0-devel
         path: '~/.cache
 
-          anope
+          ${ github.workspace }/anope
 
           '
     - uses: actions/checkout@v4
@@ -99,7 +99,7 @@ jobs:
         key: 3-${{ runner.os }}-atheme-devel
         path: '~/.cache
 
-          atheme
+          ${ github.workspace }/atheme
 
           '
     - uses: actions/checkout@v4
@@ -142,7 +142,7 @@ jobs:
         key: 3-${{ runner.os }}-atheme-7-3-devel
         path: '~/.cache
 
-          atheme
+          ${ github.workspace }/atheme
 
           '
     - uses: actions/checkout@v4
@@ -185,7 +185,7 @@ jobs:
         key: 3-${{ runner.os }}-bahamut-devel
         path: '~/.cache
 
-          Bahamut
+          ${ github.workspace }/Bahamut
 
           '
     - uses: actions/checkout@v4
@@ -241,7 +241,7 @@ jobs:
         key: 3-${{ runner.os }}-hybrid-devel
         path: '~/.cache
 
-          ircd-hybrid
+          ${ github.workspace }/ircd-hybrid
 
           '
     - uses: actions/checkout@v4
@@ -318,7 +318,7 @@ jobs:
         key: 3-${{ runner.os }}-ngircd-devel
         path: '~/.cache
 
-          ngircd
+          ${ github.workspace }/ngircd
 
           '
     - uses: actions/checkout@v4
@@ -362,7 +362,7 @@ jobs:
         key: 3-${{ runner.os }}-plexus4-devel
         path: '~/.cache
 
-          placeholder
+          ${ github.workspace }/placeholder
 
           '
     - uses: actions/checkout@v4
@@ -405,7 +405,7 @@ jobs:
         key: 3-${{ runner.os }}-solanum-devel
         path: '~/.cache
 
-          solanum
+          ${ github.workspace }/solanum
 
           '
     - uses: actions/checkout@v4
@@ -448,7 +448,7 @@ jobs:
         key: 3-${{ runner.os }}-unrealircd-devel
         path: '~/.cache
 
-          unrealircd
+          ${ github.workspace }/unrealircd
 
           '
     - uses: actions/checkout@v4
