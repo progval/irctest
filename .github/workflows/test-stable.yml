@@ -973,7 +973,6 @@ jobs:
         echo "#define fork() (0)" >> config.h
 
         # Compile and install
-        cd x86*
         make -j 4 all
         make install
         mkdir -p $HOME/.local/bin
