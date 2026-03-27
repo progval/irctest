@@ -246,10 +246,8 @@ class ReadMarkerServiceTestCase(_BaseReadMarkerTestCase):
             "Expected MARKREAD on reconnect after always-on rejoin",
         )
         # Find the MARKREAD for #test specifically
-        channel_markread = [
-            m for m in markread_msgs if m.params and m.params[0].lower() == "#test"
-        ]
-        self.assertTrue(len(channel_markread) >= 1, channel_markread)
+        channel_markread = [m for m in markread_msgs if m.params[0] == "#test"]
+        self.assertEqual(len(channel_markread), 1, channel_markread)
         self.assertMessageMatch(
             channel_markread[0],
             command="MARKREAD",
