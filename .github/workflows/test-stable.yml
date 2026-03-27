@@ -1014,6 +1014,9 @@ jobs:
         submodules: ''
     - name: Build ircu2
       run: |
+        # ircu2's tests use pytest, and we don't want them to be collected by our pytest
+        rm -r tests/
+
         ./autogen.sh
         # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
         # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
