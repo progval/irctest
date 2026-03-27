@@ -30,20 +30,7 @@ class ReadMarkerTestCase(_BaseReadMarkerTestCase):
         )
 
     @cases.mark_capabilities("draft/read-marker")
-    def testSetReadMarker(self):
-        """MARKREAD set command stores the timestamp and echoes it back."""
-        self.connectClient("alice", capabilities=[CAP_NAME], skip_if_cap_nak=True)
-        self.joinChannel(1, "#test")
-        self.getMessages(1)
-
-        ts = "2019-01-04T14:33:26.123Z"
-        self.sendLine(1, f"MARKREAD #test timestamp={ts}")
-        self.assertMessageMatch(
-            self.getMarkread(1), command="MARKREAD", params=["#test", f"timestamp={ts}"]
-        )
-
-    @cases.mark_capabilities("draft/read-marker")
-    def testGetAfterSet(self):
+    def testSetAndGet(self):
         """MARKREAD get after a set returns the stored timestamp."""
         self.connectClient("alice", capabilities=[CAP_NAME], skip_if_cap_nak=True)
         self.joinChannel(1, "#test")
