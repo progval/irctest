@@ -77,6 +77,7 @@ def get_install_steps(*, software_config, software_id, version_flavor):
             {
                 "name": f"Build {name}",
                 "run": script(software_config["build_script"]),
+                "working-directory": path,
             },
         ]
 

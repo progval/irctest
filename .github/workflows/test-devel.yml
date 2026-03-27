@@ -32,11 +32,11 @@ jobs:
         submodules: ''
     - name: Build Anope
       run: |
-        cd $GITHUB_WORKSPACE/anope/
         sudo apt-get install ninja-build --no-install-recommends
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
         ninja install
+      working-directory: anope
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -75,11 +75,11 @@ jobs:
         submodules: ''
     - name: Build Anope 2.0
       run: |
-        cd $GITHUB_WORKSPACE/anope/
         sudo apt-get install ninja-build --no-install-recommends
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
         ninja install
+      working-directory: anope
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope-2-0.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -119,10 +119,10 @@ jobs:
     - name: Build Atheme
       run: |
         sudo apt install gettext --no-install-recommends
-        cd $GITHUB_WORKSPACE/atheme/
         ./configure --prefix=$HOME/.local/
         make
         make install
+      working-directory: atheme
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-atheme.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -162,10 +162,10 @@ jobs:
     - name: Build Atheme
       run: |
         sudo apt install gettext --no-install-recommends
-        cd $GITHUB_WORKSPACE/atheme/
         ./configure --prefix=$HOME/.local/
         make
         make install
+      working-directory: atheme
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-atheme-7-3.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -204,7 +204,6 @@ jobs:
         submodules: ''
     - name: Build Bahamut
       run: |
-        cd $GITHUB_WORKSPACE/Bahamut/
         patch src/s_user.c < $GITHUB_WORKSPACE/patches/bahamut_localhost.patch
         patch src/s_bsd.c < $GITHUB_WORKSPACE/patches/bahamut_mainloop.patch
 
@@ -222,6 +221,7 @@ jobs:
         make install
         mkdir -p $HOME/.local/bin/
         cp $HOME/.local/ircd $HOME/.local/bin/ircd
+      working-directory: Bahamut
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-bahamut.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -262,10 +262,10 @@ jobs:
       run: sudo apt-get install atheme-services faketime libjansson-dev
     - name: Build Hybrid
       run: |
-        cd $GITHUB_WORKSPACE/ircd-hybrid/
         ./configure --prefix=$HOME/.local/
         make -j 4
         make install
+      working-directory: ircd-hybrid
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-hybrid.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -295,10 +295,10 @@ jobs:
         submodules: ''
     - name: Build InspIRCd
       run: |
-        cd $GITHUB_WORKSPACE/inspircd/
         ./configure --prefix=$HOME/.local/inspircd --development
         CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
         make install
+      working-directory: inspircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-inspircd.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -337,12 +337,12 @@ jobs:
         submodules: ''
     - name: Build ngircd
       run: |
-        cd $GITHUB_WORKSPACE/ngircd
         patch src/ngircd/client.c < $GITHUB_WORKSPACE/patches/ngircd_whowas_delay.patch
         ./autogen.sh
         ./configure --prefix=$HOME/.local/
         make -j 4
         make install
+      working-directory: ngircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-ngircd.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -378,15 +378,14 @@ jobs:
 
         mv plexus4* plexus4'
     - name: build
-      run: 'cd $GITHUB_WORKSPACE/plexus4
-
-        ./autogen.sh
+      run: './autogen.sh
 
         ./configure --prefix=$HOME/.local/
 
         make -j 4
 
         make install'
+      working-directory: plexus4
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-plexus4.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -425,11 +424,11 @@ jobs:
         submodules: ''
     - name: Build Solanum
       run: |
-        cd $GITHUB_WORKSPACE/solanum/
         ./autogen.sh
         ./configure --prefix=$HOME/.local/ --enable-fhs-paths
         make -j 4
         make install
+      working-directory: solanum
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-solanum.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -468,7 +467,6 @@ jobs:
         submodules: ''
     - name: Build UnrealIRCd 6
       run: |
-        cd $GITHUB_WORKSPACE/unrealircd/
         cp $GITHUB_WORKSPACE/data/unreal/* .
         wget https://raw.githubusercontent.com/progval/unrealircd-contrib/50e839c2e2f1d8b9924126f34bc2f50965c0a557/files/metadata2.c -O src/modules/third/metadata2.c
         # Need to use a specific -march, because GitHub has inconsistent
@@ -480,6 +478,7 @@ jobs:
         make install
         # Prevent download of geoIP database on first startup
         sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
+      working-directory: unrealircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -679,9 +678,9 @@ jobs:
     - run: go version
     - name: Build Ergo
       run: |
-        cd $GITHUB_WORKSPACE/ergo/
         make build
         make install
+      working-directory: ergo
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -835,14 +834,16 @@ jobs:
         submodules: ''
     - name: Build ircu2
       run: |
-        cd $GITHUB_WORKSPACE/ircu2
-        patch configure.ac < $GITHUB_WORKSPACE/patches/ircu2_ubuntu24.patch
+        # ircu2's tests use pytest, and we don't want them to be collected by our pytest
+        rm -r tests/
+
         ./autogen.sh
         # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
         # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
         ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
         make -j 4
         make install
+      working-directory: ircu2
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -909,11 +910,11 @@ jobs:
         submodules: ''
     - name: Build nefarious
       run: |
-        cd $GITHUB_WORKSPACE/nefarious
         ./configure --prefix=$HOME/.local/ --enable-debug
         make -j 4
         echo -e "N\n\n\n\n\n\n\n\n" | make install
         cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
+      working-directory: nefarious
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -1135,8 +1136,8 @@ jobs:
         '
     - name: Build Sable
       run: |
-        cd $GITHUB_WORKSPACE/sable/
         cargo build
+      working-directory: sable
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -1321,11 +1322,11 @@ jobs:
         submodules: ''
     - name: Build TheLounge
       run: |
-        cd $GITHUB_WORKSPACE/thelounge
         yarn install
         NODE_ENV=production yarn build
         mkdir -p ~/.local/bin/
         ln -s $(pwd)/index.js ~/.local/bin/thelounge
+      working-directory: thelounge
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -1490,6 +1491,7 @@ jobs:
         pip install pifpaf
         wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
         wget -q https://wordpress.org/wordpress-6.7.2.zip -O wordpress-latest.zip
+      working-directory: Dlk-Services
     - name: Install system dependencies
       run: sudo apt-get install faketime
     - name: Install irctest dependencies
@@ -1501,8 +1503,8 @@ jobs:
       name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services" IRCTEST_WP_CLI_PATH="${{
-        github.workspace }}/wp-cli.phar" IRCTEST_WP_ZIP_PATH="${{ github.workspace
-        }}/wordpress-latest.zip" make unrealircd-dlk
+        github.workspace }}/Dlk-Services/wp-cli.phar" IRCTEST_WP_ZIP_PATH="${{ github.workspace
+        }}/Dlk-Services/wordpress-latest.zip" make unrealircd-dlk
       timeout-minutes: 30
     - if: always()
       name: Publish results

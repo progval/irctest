@@ -88,6 +88,7 @@ class BaseHybridController(BaseServerController, DirectoryBasedController):
         self.proc = self.execute(
             [
                 *faketime_cmd,
+                # "strace", "-f", "-e", "file",
                 self.binary_name,
                 "-foreground",
                 "-configfile",
