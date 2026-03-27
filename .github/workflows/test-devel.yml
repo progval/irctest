@@ -1503,8 +1503,8 @@ jobs:
       name: Test with pytest
       run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/unrealircd/sbin:~/.local/unrealircd/bin:~/.local/unrealircd:$PATH
         IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services" IRCTEST_WP_CLI_PATH="${{
-        github.workspace }}/wp-cli.phar" IRCTEST_WP_ZIP_PATH="${{ github.workspace
-        }}/wordpress-latest.zip" make unrealircd-dlk
+        github.workspace }}/Dlk-Services/wp-cli.phar" IRCTEST_WP_ZIP_PATH="${{ github.workspace
+        }}/Dlk-Services/wordpress-latest.zip" make unrealircd-dlk
       timeout-minutes: 30
     - if: always()
       name: Publish results
