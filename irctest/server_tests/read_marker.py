@@ -231,15 +231,14 @@ class ReadMarkerServiceTestCase(_BaseReadMarkerTestCase):
         # burst.
         self.removeClient(1)
 
-        welcome = self.connectClient(
+        msgs = self.connectClient(
             nick,
             name=2,
             capabilities=[CAP_NAME, "sasl"],
             password=pw,
         )
         # Drain any remaining messages after the welcome burst
-        remaining = self.getMessages(2)
-        msgs = welcome + remaining
+        msgs.extend(self.getMessages(2))
 
         markread_msgs = [m for m in msgs if m.command == "MARKREAD"]
         self.assertTrue(
