@@ -206,14 +206,13 @@ class ReadMarkerTestCase(_BaseReadMarkerTestCase):
 
 @cases.mark_services
 class ReadMarkerServiceTestCase(_BaseReadMarkerTestCase):
-    """Tests requiring account registration.
-
-    Uses always-on opt-out so that read markers persist across reconnects
-    (in Ergo, persistence requires always-on to be enabled).
-    """
+    """Tests requiring account registration."""
 
     @staticmethod
     def config() -> cases.TestCaseControllerConfig:
+        """Make always-on the default so that read markers persist across reconnects
+        (in Ergo, persistence requires always-on to be enabled).
+        """
         return cases.TestCaseControllerConfig(
             ergo_config=lambda config: config["accounts"]["multiclient"].update(
                 {"always-on": "opt-out"}
@@ -240,9 +239,9 @@ class ReadMarkerServiceTestCase(_BaseReadMarkerTestCase):
         self.sendLine(1, f"MARKREAD #test timestamp={ts}")
         self.getMessages(1)
 
-        # Disconnect and reconnect. With always-on enabled, Ergo automatically
-        # re-joins the user to their channels during the connection burst, and
-        # MARKREAD is sent as part of that automatic rejoin.
+        # Disconnect and reconnect. A persistent client should be re-joined
+        # to its channels, receiving JOIN and MARKREAD at the end of the connection
+        # burst.
         self.removeClient(1)
 
         welcome = self.connectClient(
