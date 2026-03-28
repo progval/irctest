@@ -17,6 +17,7 @@ from irctest.basecontrollers import (
 from irctest.cases import BaseServerTestCase
 from irctest.client_mock import ClientMock
 from irctest.exceptions import NoMessageException
+from irctest.numerics import ERR_ERRONEUSNICKNAME
 from irctest.patma import ANYSTR
 
 
@@ -563,8 +564,12 @@ class SableController(BaseServerController, DirectoryBasedController):
         client = case.addClient(show_io=True)
         case.sendLine(client, "NICK " + username)
         case.sendLine(client, "USER r e g :user")
-        while case.getRegistrationMessage(client).command != "001":
-            pass
+        while True:
+            msg = case.getRegistrationMessage(client)
+            if msg.command == "001":
+                pass
+            if msg.command == ERR_ERRONEUSNICKNAME:
+                raise ValueError(f"Cannot not register {username}: {msg.params[-1]}")
         case.getMessages(client)
         case.sendLine(
             client,
