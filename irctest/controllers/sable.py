@@ -567,7 +567,7 @@ class SableController(BaseServerController, DirectoryBasedController):
         while True:
             msg = case.getRegistrationMessage(client)
             if msg.command == "001":
-                pass
+                break
             if msg.command == ERR_ERRONEUSNICKNAME:
                 raise ValueError(f"Cannot not register {username}: {msg.params[-1]}")
         case.getMessages(client)
