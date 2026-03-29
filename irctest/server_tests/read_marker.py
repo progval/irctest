@@ -209,7 +209,7 @@ class ReadMarkerServiceTestCase(_BaseReadMarkerTestCase):
     @cases.mark_capabilities("draft/read-marker")
     def testReadMarkerPersistsAcrossReconnect(self):
         """Read marker set in one session persists when reconnecting."""
-        nick = random_name("alice")
+        nick = random_name("alys")
         pw = random_name("pw")
         self.controller.registerUser(self, nick, pw)
 
@@ -258,7 +258,7 @@ class ReadMarkerServiceTestCase(_BaseReadMarkerTestCase):
     def testReadMarkerPropagatedToOtherSessions(self):
         """When a user sets a read marker, the server SHOULD send MARKREAD to
         all other sessions of the same user that have the capability negotiated."""
-        nick = random_name("alice")
+        nick = random_name("alys")
         pw = random_name("pw")
         self.controller.registerUser(self, nick, pw)
 
