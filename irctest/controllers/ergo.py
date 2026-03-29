@@ -176,6 +176,7 @@ class ErgoController(BaseServerController, DirectoryBasedController):
             Capabilities.MESSAGE_TAGS,
             Capabilities.MULTILINE,
             Capabilities.MULTI_PREFIX,
+            Capabilities.READ_MARKER,
             Capabilities.SERVER_TIME,
             Capabilities.SETNAME,
         ),
