@@ -17,7 +17,6 @@ software:
         path: charybdis
         separate_build_job: true
         build_script: |
-            cd $GITHUB_WORKSPACE/charybdis/
             patch -p1 < $GITHUB_WORKSPACE/patches/charybdis_ubuntu22.patch
             ./autogen.sh
             ./configure --prefix=$HOME/.local/
@@ -38,7 +37,6 @@ software:
               run: "sudo apt-get install atheme-services faketime libjansson-dev"
         separate_build_job: true
         build_script: |
-            cd $GITHUB_WORKSPACE/ircd-hybrid/
             ./configure --prefix=$HOME/.local/
             make -j 4
             make install
@@ -55,11 +53,11 @@ software:
                       mv plexus* plexus4
                 - name: build
                   run: |-
-                      cd $GITHUB_WORKSPACE/plexus4
                       ./autogen.sh
                       ./configure --prefix=$HOME/.local/
                       make -j 4
                       make install
+                  working-directory: plexus4
             release: null
             devel:
                 - name: clone
@@ -68,11 +66,11 @@ software:
                       mv plexus4* plexus4
                 - name: build
                   run: |-
-                      cd $GITHUB_WORKSPACE/plexus4
                       ./autogen.sh
                       ./configure --prefix=$HOME/.local/
                       make -j 4
                       make install
+                  working-directory: plexus4
             devel_release: null
 
     solanum:
@@ -88,7 +86,6 @@ software:
         path: solanum
         separate_build_job: true
         build_script: |
-            cd $GITHUB_WORKSPACE/solanum/
             ./autogen.sh
             ./configure --prefix=$HOME/.local/ --enable-fhs-paths
             make -j 4
@@ -107,7 +104,6 @@ software:
         path: Bahamut
         separate_build_job: true
         build_script: |
-            cd $GITHUB_WORKSPACE/Bahamut/
             patch src/s_user.c < $GITHUB_WORKSPACE/patches/bahamut_localhost.patch
             patch src/s_bsd.c < $GITHUB_WORKSPACE/patches/bahamut_mainloop.patch
 
@@ -143,7 +139,6 @@ software:
             - run: go version
         separate_build_job: false
         build_script: |
-            cd $GITHUB_WORKSPACE/ergo/
             make build
             make install
 
@@ -160,7 +155,6 @@ software:
         cache: false  # incremental compilation is frequently broken
         separate_build_job: true
         build_script: &inspircd_build_script |
-            cd $GITHUB_WORKSPACE/inspircd/
             ./configure --prefix=$HOME/.local/inspircd --development
             CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
             make install
@@ -177,7 +171,6 @@ software:
             devel_release: null
         build_script: |
             # Configure
-            cd $GITHUB_WORKSPACE/irc2.11.2p3
             ./configure --prefix=$HOME/.local/
             cd x86*
             echo "#define CMDLINE_CONFIG/" >> config.h
@@ -188,7 +181,6 @@ software:
             echo "#define fork() (0)" >> config.h
 
             # Compile and install
-            cd $GITHUB_WORKSPACE/irc2.11.2p3/x86*
             make -j 4 all
             make install
             mkdir -p $HOME/.local/bin
@@ -198,15 +190,16 @@ software:
         name: ircu2
         repository: undernetirc/ircu2
         refs:
-            stable: "ffbf28a5b9a324e4f06a0f3622cc19a9872558b2"
+            stable: "0a8a73f344e4ef5bcdab6d899dd9030bf2b32a8e"
             release: null
             devel: "main"
             devel_release: null
         path: ircu2
         separate_build_job: false
         build_script: |
-            cd $GITHUB_WORKSPACE/ircu2
-            patch configure.ac < $GITHUB_WORKSPACE/patches/ircu2_ubuntu24.patch
+            # ircu2's tests use pytest, and we don't want them to be collected by our pytest
+            rm -r tests/
+
             ./autogen.sh
             # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
             # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
@@ -225,7 +218,6 @@ software:
         path: nefarious
         separate_build_job: false
         build_script: |
-            cd $GITHUB_WORKSPACE/nefarious
             ./configure --prefix=$HOME/.local/ --enable-debug
             make -j 4
             echo -e "N\n\n\n\n\n\n\n\n" | make install
@@ -243,7 +235,6 @@ software:
         prefix: ~/.local/
         separate_build_job: true
         build_script: |
-            cd $GITHUB_WORKSPACE/ngircd
             patch src/ngircd/client.c < $GITHUB_WORKSPACE/patches/ngircd_whowas_delay.patch
             ./autogen.sh
             ./configure --prefix=$HOME/.local/
@@ -287,7 +278,6 @@ software:
         env: "IRCTEST_POSTGRESQL_URL=postgresql://postgres:postgres@localhost IRCTEST_DEBUG_LOGS=1"
         separate_build_job: false
         build_script: |
-            cd $GITHUB_WORKSPACE/sable/
             cargo build
 
     snircd:
@@ -301,7 +291,6 @@ software:
         path: snircd
         separate_build_job: false
         build_script: |
-            cd $GITHUB_WORKSPACE/snircd
 
             # Work around an issue with liblex detection
             rm configure
@@ -325,7 +314,6 @@ software:
         prefix: ~/.local/unrealircd
         separate_build_job: true
         build_script: |
-            cd $GITHUB_WORKSPACE/unrealircd/
             cp $GITHUB_WORKSPACE/data/unreal/* .
             wget https://raw.githubusercontent.com/progval/unrealircd-contrib/50e839c2e2f1d8b9924126f34bc2f50965c0a557/files/metadata2.c -O src/modules/third/metadata2.c
             # Need to use a specific -march, because GitHub has inconsistent
@@ -353,7 +341,6 @@ software:
             devel: "2.1"
             devel_release: "2.0"
         build_script: |
-            cd $GITHUB_WORKSPACE/anope/
             sudo apt-get install ninja-build --no-install-recommends
             mkdir build && cd build
             cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
@@ -370,7 +357,6 @@ software:
             devel: "2.0"
             devel_release: null
         build_script: |
-            cd $GITHUB_WORKSPACE/anope/
             sudo apt-get install ninja-build --no-install-recommends
             mkdir build && cd build
             cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
@@ -389,7 +375,6 @@ software:
             devel_release: null
         build_script: |
             sudo apt install gettext --no-install-recommends
-            cd $GITHUB_WORKSPACE/atheme/
             ./configure --prefix=$HOME/.local/
             make
             make install
@@ -407,7 +392,6 @@ software:
             devel_release: null
         build_script: |
             sudo apt install gettext --no-install-recommends
-            cd $GITHUB_WORKSPACE/atheme/
             ./configure --prefix=$HOME/.local/
             make
             make install
@@ -428,8 +412,8 @@ software:
             wget -q https://wordpress.org/wordpress-6.7.2.zip -O wordpress-latest.zip
         env: >-
             IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services"
-            IRCTEST_WP_CLI_PATH="${{ github.workspace }}/wp-cli.phar"
-            IRCTEST_WP_ZIP_PATH="${{ github.workspace }}/wordpress-latest.zip"
+            IRCTEST_WP_CLI_PATH="${{ github.workspace }}/Dlk-Services/wp-cli.phar"
+            IRCTEST_WP_ZIP_PATH="${{ github.workspace }}/Dlk-Services/wordpress-latest.zip"
 
 
     #############################
@@ -476,7 +460,6 @@ software:
             devel_release: null
         path: thelounge
         build_script: |
-            cd $GITHUB_WORKSPACE/thelounge
             yarn install
             NODE_ENV=production yarn build
             mkdir -p ~/.local/bin/

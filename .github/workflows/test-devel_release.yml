@@ -32,11 +32,11 @@ jobs:
         submodules: ''
     - name: Build Anope
       run: |
-        cd $GITHUB_WORKSPACE/anope/
         sudo apt-get install ninja-build --no-install-recommends
         mkdir build && cd build
         cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
         ninja install
+      working-directory: anope
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
     - name: Upload build artefacts
@@ -66,10 +66,10 @@ jobs:
         submodules: ''
     - name: Build InspIRCd
       run: |
-        cd $GITHUB_WORKSPACE/inspircd/
         ./configure --prefix=$HOME/.local/inspircd --development
         CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
         make install
+      working-directory: inspircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-inspircd.tar.gz .local/ go/
     - name: Upload build artefacts
