@@ -58,6 +58,7 @@ class Capabilities(enum.Enum):
 
 @enum.unique
 class IsupportTokens(enum.Enum):
+    ACCOUNTEXTBAN = "ACCOUNTEXTBAN"
     BOT = "BOT"
     ELIST = "ELIST"
     INVEX = "INVEX"
