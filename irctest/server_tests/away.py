@@ -3,7 +3,7 @@ AWAY command (`RFC 2812 <https://datatracker.ietf.org/doc/html/rfc2812#section-4
 `Modern <https://modern.ircdocs.horse/#away-message>`__)
 """
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.numerics import (
     RPL_AWAY,
     RPL_NOWAWAY,
@@ -181,3 +181,45 @@ class AwayTestCase(cases.BaseServerTestCase):
         replies = self.getMessages("qux")
         self.assertIn(RPL_WHOISUSER, [msg.command for msg in replies])
         self.assertNotIn(RPL_AWAY, [msg.command for msg in replies])
+
+    @cases.mark_specifications("Modern")
+    @cases.mark_isupport("AWAYLEN")
+    def testAwaylen(self):
+        """
+        "AWAYLEN=<number>
+        The AWAYLEN parameter indicates the maximum length for the <reason> of an AWAY command."
+        -- https://modern.ircdocs.horse/#awaylen-parameter
+        """
+        self.connectClient("foo")
+
+        if "AWAYLEN" not in self.server_support:
+            raise runner.IsupportTokenNotSupported("AWAYLEN")
+
+        awaylen = int(self.server_support["AWAYLEN"])
+
+        # Set away message at exactly the limit
+        valid_away = "a" * awaylen
+        self.sendLine(1, f"AWAY :{valid_away}")
+        self.assertMessageMatch(
+            self.getMessage(1), command="306", params=["foo", ANYSTR]
+        )  # RPL_NOWAWAY
+
+        # Set away message longer than the limit
+        long_away = "b" * (awaylen + 50)
+        self.sendLine(1, f"AWAY :{long_away}")
+        self.getMessages(1)
+
+        # Check the away message
+        self.connectClient("bar")
+        self.sendLine(2, "WHOIS foo")
+        msgs = self.getMessages(2)
+
+        away_msgs = [m for m in msgs if m.command == "301"]
+        self.assertMessageMatch(
+            away_msgs[0], command="301", params=["bar", "foo", ANYSTR]
+        )
+        self.assertLessEqual(
+            len(away_msgs[0].params[2]),
+            awaylen,
+            f"Server sent away message longer than AWAYLEN {awaylen}",
+        )
