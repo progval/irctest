@@ -146,7 +146,7 @@ software:
         name: InspIRCd
         repository: inspircd/inspircd
         refs: &inspircd_refs
-            stable: v4.7.0
+            stable: v4.10.0
             release: null
             devel: master
             devel_release: insp4
