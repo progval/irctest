@@ -334,7 +334,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: inspircd
-        ref: v4.7.0
+        ref: v4.10.0
         repository: inspircd/inspircd
         submodules: ''
     - name: Build InspIRCd

@@ -101,6 +101,7 @@ TEMPLATE_V3_CONFIG = """
 TEMPLATE_V4_CONFIG = """
 <module name="account">
 <module name="multiprefix"> # For multi-prefix
+<module name="ircv3_utf8only">
 <module name="services">
 
 # HELP/HELPOP
