@@ -529,6 +529,37 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
+    def testClearChannel(self):
+        """METADATA CLEAR by the channel op removes all channel metadata."""
+        self.connectClient(
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
+        )
+
+        self.joinChannel(1, "#chan")
+
+        self.assertSetValue(1, "#chan", "display-name", "Hash Channel")
+        self.assertSetValue(1, "#chan", "avatar", "https://example.com/chan.png")
+        self.getMessages(1)
+
+        self.sendLine(1, "METADATA #chan CLEAR")
+        (_, messages) = self.getMetadataBatchMessages(1)
+        # one RPL_KEYVALUE per cleared key, echoing the value that was removed
+        cleared_values = {}
+        for m in messages:
+            self.assertMessageMatch(
+                m,
+                command="761",  # RPL_KEYVALUE
+                fail_msg="Expected RPL_KEYVALUE for each cleared key, got: {msg}",
+            )
+            cleared_values[m.params[2]] = m.params[4]
+        self.assertEqual(
+            cleared_values,
+            {"display-name": "Hash Channel", "avatar": "https://example.com/chan.png"},
+        )
+
+        self.assertEqual(self.listMetadata(1, "#chan"), {})
+
+    @cases.mark_specifications("IRCv3")
     def testSetGetChannelNotOp(self):
         self.connectClient(
             "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
