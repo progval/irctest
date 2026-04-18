@@ -405,7 +405,6 @@ class SaslTestCase(cases.BaseServerTestCase):
             command=ERR_SASLFAIL,
             fail_msg="Server did not complain about 400kB-long auth string: {msg}",
         )
-        assert False
 
     def confirmSuccessfulAuth(self):
         # TODO: check username/etc in this as well, so we can apply it to other tests
