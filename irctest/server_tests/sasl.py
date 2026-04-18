@@ -329,9 +329,6 @@ class SaslTestCase(cases.BaseServerTestCase):
 
     @cases.mark_specifications("IRCv3")
     @cases.skipUnlessHasMechanism("PLAIN")
-    @cases.xfailIfSoftware(
-        ["Sable"], "Sable does not support multiple lines of AUTHENTICATE"
-    )
     def testSaslTooLong(self):
         """Tests that the server rejects AUTHENTICATE payloads over 400 bytes.
 
@@ -403,10 +400,10 @@ class SaslTestCase(cases.BaseServerTestCase):
             self.controller.check_is_alive()
             return
 
-        # TODO: does any server reach this point? if yes, check for their error messages
-        self.assertTrue(
-            m is not None,
-            fail_msg="Server did not complain about 400kB-long auth string",
+        self.assertMessageMatch(
+            m,
+            command=ERR_SASLFAIL,
+            fail_msg="Server did not complain about 400kB-long auth string: {msg}",
         )
         assert False
 
