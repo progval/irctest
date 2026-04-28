@@ -155,9 +155,22 @@ software:
         cache: false  # incremental compilation is frequently broken
         separate_build_job: true
         build_script: &inspircd_build_script |
-            ./configure --prefix=$HOME/.local/inspircd --development
-            CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
-            make install
+            export CXXFLAGS="-DINSPIRCD_UNLIMITED_MAINLOOP"
+            if [ -f CMakeLists.txt ]
+            then
+                # We are building v5 or newer
+                sudo apt-get install ninja-build --no-install-recommends
+                cmake -B build \
+                      -D CMAKE_BUILD_TYPE=Debug \
+                      -D CMAKE_INSTALL_PREFIX=$HOME/.local/inspircd \
+                      -D CMAKE_UNITY_BUILD=ON \
+                      -G Ninja
+                ninja -C build install
+            else
+                # We are building v4 or older
+               ./configure --prefix=$HOME/.local/inspircd --development
+                make -j $(nproc) install
+            fi
     irc2:
         name: irc2
         separate_build_job: false
