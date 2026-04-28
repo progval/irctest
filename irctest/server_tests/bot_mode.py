@@ -86,7 +86,7 @@ class BotModeTestCase(cases.BaseServerTestCase):
             self.getMessage("user"),
             command="PRIVMSG",
             params=["usernick", "beep boop"],
-            tags={StrRe("(draft/)?bot"): None, **ANYDICT},
+            tags={"bot": None, **ANYDICT},
         )
 
     def testBotChannelMessage(self):
@@ -108,7 +108,7 @@ class BotModeTestCase(cases.BaseServerTestCase):
             self.getMessage("user"),
             command="PRIVMSG",
             params=["#chan", "beep boop"],
-            tags={StrRe("(draft/)?bot"): None, **ANYDICT},
+            tags={"bot": None, **ANYDICT},
         )
 
     def testBotEchoMessage(self):
@@ -124,7 +124,7 @@ class BotModeTestCase(cases.BaseServerTestCase):
             echo,
             command="PRIVMSG",
             params=["usernick", "beep boop"],
-            tags={StrRe("(draft/)?bot"): None, **ANYDICT},
+            tags={"bot": None, **ANYDICT},
         )
 
     def testBotWhox(self):
