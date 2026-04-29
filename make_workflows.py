@@ -135,6 +135,10 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "name": "Install system dependencies",
                 "run": "sudo apt-get install libltdl-dev",
             },
+            {
+                "name": "Calculate job count",
+                "run": "echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV",
+            },
             *install_steps,
             *upload_steps(software_id),
         ],
