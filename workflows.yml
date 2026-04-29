@@ -20,7 +20,7 @@ software:
             patch -p1 < $GITHUB_WORKSPACE/patches/charybdis_ubuntu22.patch
             ./autogen.sh
             ./configure --prefix=$HOME/.local/
-            make -j 4
+            make
             make install
 
     hybrid:
@@ -38,7 +38,7 @@ software:
         separate_build_job: true
         build_script: |
             ./configure --prefix=$HOME/.local/
-            make -j 4
+            make
             make install
 
     plexus4:
@@ -55,7 +55,7 @@ software:
                   run: |-
                       ./autogen.sh
                       ./configure --prefix=$HOME/.local/
-                      make -j 4
+                      make
                       make install
                   working-directory: plexus4
             release: null
@@ -68,7 +68,7 @@ software:
                   run: |-
                       ./autogen.sh
                       ./configure --prefix=$HOME/.local/
-                      make -j 4
+                      make
                       make install
                   working-directory: plexus4
             devel_release: null
@@ -88,7 +88,7 @@ software:
         build_script: |
             ./autogen.sh
             ./configure --prefix=$HOME/.local/ --enable-fhs-paths
-            make -j 4
+            make
             make install
 
     #############################
@@ -117,7 +117,7 @@ software:
             automake --force-missing --add-missing || true
             autoreconf
             ./configure --prefix=$HOME/.local/
-            make -j 4
+            make
             make install
             mkdir -p $HOME/.local/bin/
             cp $HOME/.local/ircd $HOME/.local/bin/ircd
@@ -169,7 +169,7 @@ software:
             else
                 # We are building v4 or older
                ./configure --prefix=$HOME/.local/inspircd --development
-                make -j $(nproc) install
+                make install
             fi
     irc2:
         name: irc2
@@ -194,7 +194,7 @@ software:
             echo "#define fork() (0)" >> config.h
 
             # Compile and install
-            make -j 4 all
+            make all
             make install
             mkdir -p $HOME/.local/bin
             cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
@@ -217,7 +217,7 @@ software:
             # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
             # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
             ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
-            make -j 4
+            make
             make install
 
     nefarious:
@@ -232,7 +232,7 @@ software:
         separate_build_job: false
         build_script: |
             ./configure --prefix=$HOME/.local/ --enable-debug
-            make -j 4
+            make
             echo -e "N\n\n\n\n\n\n\n\n" | make install
             cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
 
@@ -251,7 +251,7 @@ software:
             patch src/ngircd/client.c < $GITHUB_WORKSPACE/patches/ngircd_whowas_delay.patch
             ./autogen.sh
             ./configure --prefix=$HOME/.local/
-            make -j 4
+            make
             make install
 
     sable:
@@ -312,7 +312,7 @@ software:
             # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
             # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
             ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
-            make -j 4
+            make
             make install
 
     unrealircd:
@@ -334,7 +334,7 @@ software:
             # worker combinations
             sudo apt install libsodium-dev libargon2-dev
             CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
-            make -j 4
+            make
             make install
             # Prevent download of geoIP database on first startup
             sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf

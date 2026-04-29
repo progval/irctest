@@ -23,6 +23,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope
       uses: actions/checkout@v4
       with:
@@ -66,6 +68,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope 2.0
       uses: actions/checkout@v4
       with:
@@ -109,6 +113,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Atheme
       uses: actions/checkout@v4
       with:
@@ -152,6 +158,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Atheme
       uses: actions/checkout@v4
       with:
@@ -195,6 +203,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Bahamut
       uses: actions/checkout@v4
       with:
@@ -217,7 +227,7 @@ jobs:
         automake --force-missing --add-missing || true
         autoreconf
         ./configure --prefix=$HOME/.local/
-        make -j 4
+        make
         make install
         mkdir -p $HOME/.local/bin/
         cp $HOME/.local/ircd $HOME/.local/bin/ircd
@@ -251,6 +261,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Charybdis
       uses: actions/checkout@v4
       with:
@@ -263,7 +275,7 @@ jobs:
         patch -p1 < $GITHUB_WORKSPACE/patches/charybdis_ubuntu22.patch
         ./autogen.sh
         ./configure --prefix=$HOME/.local/
-        make -j 4
+        make
         make install
       working-directory: charybdis
     - name: Make artefact tarball
@@ -295,6 +307,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Hybrid
       uses: actions/checkout@v4
       with:
@@ -307,7 +321,7 @@ jobs:
     - name: Build Hybrid
       run: |
         ./configure --prefix=$HOME/.local/
-        make -j 4
+        make
         make install
       working-directory: ircd-hybrid
     - name: Make artefact tarball
@@ -330,6 +344,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout InspIRCd
       uses: actions/checkout@v4
       with:
@@ -353,7 +369,7 @@ jobs:
         else
             # We are building v4 or older
            ./configure --prefix=$HOME/.local/inspircd --development
-            make -j $(nproc) install
+            make install
         fi
       working-directory: inspircd
     - name: Make artefact tarball
@@ -385,6 +401,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout ngircd
       uses: actions/checkout@v4
       with:
@@ -397,7 +415,7 @@ jobs:
         patch src/ngircd/client.c < $GITHUB_WORKSPACE/patches/ngircd_whowas_delay.patch
         ./autogen.sh
         ./configure --prefix=$HOME/.local/
-        make -j 4
+        make
         make install
       working-directory: ngircd
     - name: Make artefact tarball
@@ -429,6 +447,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: clone
       run: 'curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar
         | tar -x
@@ -439,7 +459,7 @@ jobs:
 
         ./configure --prefix=$HOME/.local/
 
-        make -j 4
+        make
 
         make install'
       working-directory: plexus4
@@ -472,6 +492,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Solanum
       uses: actions/checkout@v4
       with:
@@ -483,7 +505,7 @@ jobs:
       run: |
         ./autogen.sh
         ./configure --prefix=$HOME/.local/ --enable-fhs-paths
-        make -j 4
+        make
         make install
       working-directory: solanum
     - name: Make artefact tarball
@@ -515,6 +537,8 @@ jobs:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout UnrealIRCd 6
       uses: actions/checkout@v4
       with:
@@ -531,7 +555,7 @@ jobs:
         # worker combinations
         sudo apt install libsodium-dev libargon2-dev
         CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
-        make -j 4
+        make
         make install
         # Prevent download of geoIP database on first startup
         sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
@@ -986,7 +1010,7 @@ jobs:
         echo "#define fork() (0)" >> config.h
 
         # Compile and install
-        make -j 4 all
+        make all
         make install
         mkdir -p $HOME/.local/bin
         cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
@@ -1034,7 +1058,7 @@ jobs:
         # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
         # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
         ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
-        make -j 4
+        make
         make install
       working-directory: ircu2
     - name: Install system dependencies
@@ -1103,7 +1127,7 @@ jobs:
     - name: Build nefarious
       run: |
         ./configure --prefix=$HOME/.local/ --enable-debug
-        make -j 4
+        make
         echo -e "N\n\n\n\n\n\n\n\n" | make install
         cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
       working-directory: nefarious
