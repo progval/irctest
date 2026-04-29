@@ -1536,6 +1536,9 @@ jobs:
         ref: v4.4.0
         repository: thelounge/thelounge
         submodules: ''
+    - uses: actions/setup-node@v6
+      with:
+        node-version: lts/*
     - name: Build TheLounge
       run: |
         yarn install
