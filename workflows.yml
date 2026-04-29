@@ -472,6 +472,10 @@ software:
             devel: "master"
             devel_release: null
         path: thelounge
+        pre_deps:
+            - uses: actions/setup-node@v6
+              with:
+                node-version: 'lts/*'
         build_script: |
             yarn install
             NODE_ENV=production yarn build
