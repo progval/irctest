@@ -65,7 +65,7 @@ def get_install_steps(*, software_config, software_id, version_flavor):
         install_steps = [
             {
                 "name": f"Checkout {name}",
-                "uses": "actions/checkout@v4",
+                "uses": "actions/checkout@v5",
                 "with": {
                     "repository": software_config["repository"],
                     "ref": ref,
@@ -96,7 +96,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
         cache = [
             {
                 "name": "Cache dependencies",
-                "uses": "actions/cache@v4",
+                "uses": "actions/cache@v5",
                 "with": {
                     "path": f"~/.cache\n${{ github.workspace }}/{path}\n",
                     "key": "3-${{ runner.os }}-"
@@ -125,10 +125,10 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "run": "cd ~/; mkdir -p .local/ go/",
             },
             *cache,
-            {"uses": "actions/checkout@v4"},
+            {"uses": "actions/checkout@v5"},
             {
                 "name": "Set up Python 3.11",
-                "uses": "actions/setup-python@v5",
+                "uses": "actions/setup-python@v6",
                 "with": {"python-version": 3.11},
             },
             {
@@ -170,7 +170,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
             downloads.append(
                 {
                     "name": "Download build artefacts",
-                    "uses": "actions/download-artifact@v4",
+                    "uses": "actions/download-artifact@v8",
                     "with": {"name": f"installed-{software_id}", "path": "~"},
                 }
             )
@@ -205,7 +205,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
         "runs-on": "ubuntu-24.04",
         "needs": needs,
         "steps": [
-            {"uses": "actions/checkout@v4"},
+            {"uses": "actions/checkout@v5"},
             {
                 "name": "Set up Python 3.11",
                 "uses": "actions/setup-python@v5",
@@ -245,7 +245,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
             {
                 "name": "Publish results",
                 "if": "always()",
-                "uses": "actions/upload-artifact@v4",
+                "uses": "actions/upload-artifact@v7",
                 "with": {
                     "name": f"pytest-results_{test_id}_{version_flavor.value}",
                     "path": "pytest.xml",
@@ -264,7 +264,7 @@ def upload_steps(software_id):
         },
         {
             "name": "Upload build artefacts",
-            "uses": "actions/upload-artifact@v4",
+            "uses": "actions/upload-artifact@v7",
             "with": {
                 "name": f"installed-{software_id}",
                 "path": "~/artefacts-*.tar.gz",
@@ -330,10 +330,10 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         # this job then
         "if": "success() || failure()",
         "steps": [
-            {"uses": "actions/checkout@v4"},
+            {"uses": "actions/checkout@v5"},
             {
                 "name": "Download Artifacts",
-                "uses": "actions/download-artifact@v4",
+                "uses": "actions/download-artifact@v8",
                 "with": {"path": "artifacts"},
             },
             {

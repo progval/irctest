@@ -8,7 +8,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-anope-devel_release
         path: '~/.cache
@@ -16,9 +16,9 @@ jobs:
           ${ github.workspace }/anope
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
@@ -26,7 +26,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: anope
         ref: '2.0'
@@ -42,7 +42,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-anope
         path: ~/artefacts-*.tar.gz
@@ -52,9 +52,9 @@ jobs:
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
@@ -62,7 +62,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout InspIRCd
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: inspircd
         ref: insp4
@@ -90,7 +90,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-inspircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-inspircd
         path: ~/artefacts-*.tar.gz
@@ -103,9 +103,9 @@ jobs:
     - test-inspircd-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Download Artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         path: artifacts
     - name: Install dashboard dependencies
@@ -130,13 +130,13 @@ jobs:
     - build-inspircd
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-inspircd
         path: '~'
@@ -156,7 +156,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_inspircd_devel_release
         path: pytest.xml
@@ -166,18 +166,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-inspircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-anope
         path: '~'
@@ -197,7 +197,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_inspircd-anope_devel_release
         path: pytest.xml
