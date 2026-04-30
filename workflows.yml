@@ -164,6 +164,7 @@ software:
                       -D CMAKE_BUILD_TYPE=Debug \
                       -D CMAKE_INSTALL_PREFIX=$HOME/.local/inspircd \
                       -D CMAKE_UNITY_BUILD=ON \
+                      -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
                       -G Ninja
                 ninja -C build install
             else
@@ -355,9 +356,15 @@ software:
             devel_release: "2.0"
         build_script: |
             sudo apt-get install ninja-build --no-install-recommends
-            mkdir build && cd build
-            cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
-            ninja install
+            cmake -B build \
+                  -D CMAKE_BUILD_TYPE=Debug \
+                  -D CMAKE_INSTALL_PREFIX=$HOME/.local \
+                  -D CMAKE_UNITY_BUILD=ON \
+                  -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
+                  -D PROGRAM_NAME=anope \
+                  -D USE_PCH=ON \
+                  -G Ninja
+            ninja -C build install
 
     anope-2-0: # Anope 2.1.15 removes support for Bahamut
         name: Anope 2.0
@@ -371,9 +378,15 @@ software:
             devel_release: null
         build_script: |
             sudo apt-get install ninja-build --no-install-recommends
-            mkdir build && cd build
-            cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
-            ninja install
+            cmake -B build \
+                  -D CMAKE_BUILD_TYPE=Debug \
+                  -D CMAKE_INSTALL_PREFIX=$HOME/.local \
+                  -D CMAKE_UNITY_BUILD=ON \
+                  -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
+                  -D PROGRAM_NAME=anope \
+                  -D USE_PCH=ON \
+                  -G Ninja
+            ninja -C build install
 
     atheme:
         name: Atheme
