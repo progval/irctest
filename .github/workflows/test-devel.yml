@@ -35,9 +35,15 @@ jobs:
     - name: Build Anope
       run: |
         sudo apt-get install ninja-build --no-install-recommends
-        mkdir build && cd build
-        cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
-        ninja install
+        cmake -B build \
+              -D CMAKE_BUILD_TYPE=Debug \
+              -D CMAKE_INSTALL_PREFIX=$HOME/.local \
+              -D CMAKE_UNITY_BUILD=ON \
+              -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
+              -D PROGRAM_NAME=anope \
+              -D USE_PCH=ON \
+              -G Ninja
+        ninja -C build install
       working-directory: anope
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
@@ -80,9 +86,15 @@ jobs:
     - name: Build Anope 2.0
       run: |
         sudo apt-get install ninja-build --no-install-recommends
-        mkdir build && cd build
-        cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
-        ninja install
+        cmake -B build \
+              -D CMAKE_BUILD_TYPE=Debug \
+              -D CMAKE_INSTALL_PREFIX=$HOME/.local \
+              -D CMAKE_UNITY_BUILD=ON \
+              -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
+              -D PROGRAM_NAME=anope \
+              -D USE_PCH=ON \
+              -G Ninja
+        ninja -C build install
       working-directory: anope
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope-2-0.tar.gz .local/ go/
@@ -318,6 +330,7 @@ jobs:
                   -D CMAKE_BUILD_TYPE=Debug \
                   -D CMAKE_INSTALL_PREFIX=$HOME/.local/inspircd \
                   -D CMAKE_UNITY_BUILD=ON \
+                  -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
                   -G Ninja
             ninja -C build install
         else
