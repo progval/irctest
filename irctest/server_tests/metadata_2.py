@@ -543,21 +543,20 @@ class MetadataTestCase(cases.BaseServerTestCase):
 
         self.sendLine(1, "METADATA #chan CLEAR")
         (_, messages) = self.getMetadataBatchMessages(1)
-        # one RPL_KEYVALUE per cleared key, echoing the value that was removed
-        cleared_values = {}
+        # one RPL_KEYNOTSET per cleared key
+        cleared_keys = []
         for m in messages:
             self.assertMessageMatch(
                 m,
-                command="761",  # RPL_KEYVALUE
-                fail_msg="Expected RPL_KEYVALUE for each cleared key, got: {msg}",
+                command="766",  # RPL_KEYNOTSET
+                params=["foo", "#chan", ANYSTR, ANYSTR],  # nick, target, key, trailing
+                fail_msg="Expected RPL_KEYNOTSET for each cleared key, got: {msg}",
             )
-            cleared_values[m.params[2]] = m.params[4]
+            cleared_keys.append(m.params[2])
         self.assertEqual(
-            cleared_values,
-            {"display-name": "Hash Channel", "avatar": "https://example.com/chan.png"},
+            sorted(cleared_keys),
+            ["avatar", "display-name"],
         )
-
-        self.assertEqual(self.listMetadata(1, "#chan"), {})
 
     @cases.mark_specifications("IRCv3")
     def testSetGetChannelNotOp(self):
