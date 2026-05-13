@@ -139,7 +139,7 @@ class MultilineTestCase(cases.BaseServerTestCase):
     @cases.mark_capabilities("draft/multiline")
     def testInvalidBatchTag(self):
         """Test that an unexpected change of batch tag results in
-        FAIL BATCH MULTILINE_INVALID."""
+        FAIL BATCH INVALID_REFTAG."""
 
         self.connectClient(
             "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
@@ -152,7 +152,7 @@ class MultilineTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             self.getMessage(1),
             command="FAIL",
-            params=["BATCH", "MULTILINE_INVALID", ANYSTR],
+            params=["BATCH", "INVALID_REFTAG", "231", ANYSTR],
         )
 
     @cases.mark_capabilities("draft/multiline")
