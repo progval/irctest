@@ -550,12 +550,21 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase):
             # InspIRCd closes connection without echoeing anything
             print("Connection closed")
         else:
-            self.assertMessageMatch(
-                m,
-                command="QUIT",
-                params=[StrRe(".*foo out.*")],
-                tags={"label": "deadbeef"},
-            )
+            if m.command == "ERROR":
+                # Sable and UnrealIRCd
+                self.assertMessageMatch(
+                    m,
+                    command="ERROR",
+                    params=[StrRe("(Client quit|.*foo out.*)")],
+                    tags={"label": "deadbeef"},
+                )
+            else:
+                self.assertMessageMatch(
+                    m,
+                    command="QUIT",
+                    params=[StrRe(".*foo out.*")],
+                    tags={"label": "deadbeef"},
+                )
 
         m = self.getMessage(2)
         self.assertMessageMatch(
