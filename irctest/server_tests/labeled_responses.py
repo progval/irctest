@@ -10,6 +10,7 @@ import re
 import pytest
 
 from irctest import cases, runner
+from irctest.exceptions import ConnectionClosed
 from irctest.numerics import ERR_UNKNOWNCOMMAND
 from irctest.patma import ANYDICT, ANYOPTSTR, NotStrRe, RemainingKeys, StrRe
 from irctest.specifications import OptionalBehaviors
@@ -543,10 +544,18 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
 
         self.sendLine(1, "@label=deadbeef QUIT :foo out")
-        m = self.getMessage(1)
-        self.assertMessageMatch(
-            m, command="QUIT", params=[StrRe(".*foo out.*")], tags={"label": "deadbeef"}
-        )
+        try:
+            m = self.getMessage(1)
+        except ConnectionClosed:
+            # InspIRCd closes connection without echoeing anything
+            print("Connection closed")
+        else:
+            self.assertMessageMatch(
+                m,
+                command="QUIT",
+                params=[StrRe(".*foo out.*")],
+                tags={"label": "deadbeef"},
+            )
 
         m = self.getMessage(2)
         self.assertMessageMatch(
