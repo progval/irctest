@@ -17,7 +17,7 @@ class ChannelCaseSensitivityTestCase(cases.BaseServerTestCase):
             ("rfc1459", "#F}o\\o[", "#f]o|o{"),
         ],
     )
-    @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testChannelsEquivalent(self, casemapping, name1, name2):
         self.connectClient("foo")
         self.connectClient("bar")
@@ -42,7 +42,7 @@ class ChannelCaseSensitivityTestCase(cases.BaseServerTestCase):
             ("rfc1459", "#Foo", "#fooa"),
         ],
     )
-    @cases.mark_specifications("RFC1459", "RFC2812", strict=True)
+    @cases.mark_specifications("RFC1459", "RFC2812")
     def testChannelsNotEquivalent(self, casemapping, name1, name2):
         self.connectClient("foo")
         self.connectClient("bar")
