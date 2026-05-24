@@ -8,7 +8,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-anope-stable
         path: '~/.cache
@@ -16,15 +16,17 @@ jobs:
           ${ github.workspace }/anope
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: anope
         ref: 2.0.18
@@ -33,14 +35,20 @@ jobs:
     - name: Build Anope
       run: |
         sudo apt-get install ninja-build --no-install-recommends
-        mkdir build && cd build
-        cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
-        ninja install
+        cmake -B build \
+              -D CMAKE_BUILD_TYPE=Debug \
+              -D CMAKE_INSTALL_PREFIX=$HOME/.local \
+              -D CMAKE_UNITY_BUILD=ON \
+              -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
+              -D PROGRAM_NAME=anope \
+              -D USE_PCH=ON \
+              -G Ninja
+        ninja -C build install
       working-directory: anope
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-anope
         path: ~/artefacts-*.tar.gz
@@ -51,7 +59,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-anope-2-0-stable
         path: '~/.cache
@@ -59,15 +67,17 @@ jobs:
           ${ github.workspace }/anope
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope 2.0
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: anope
         ref: 2.0.18
@@ -76,14 +86,20 @@ jobs:
     - name: Build Anope 2.0
       run: |
         sudo apt-get install ninja-build --no-install-recommends
-        mkdir build && cd build
-        cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
-        ninja install
+        cmake -B build \
+              -D CMAKE_BUILD_TYPE=Debug \
+              -D CMAKE_INSTALL_PREFIX=$HOME/.local \
+              -D CMAKE_UNITY_BUILD=ON \
+              -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
+              -D PROGRAM_NAME=anope \
+              -D USE_PCH=ON \
+              -G Ninja
+        ninja -C build install
       working-directory: anope
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope-2-0.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-anope-2-0
         path: ~/artefacts-*.tar.gz
@@ -94,7 +110,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-atheme-stable
         path: '~/.cache
@@ -102,15 +118,17 @@ jobs:
           ${ github.workspace }/atheme
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Atheme
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: atheme
         ref: v7.2.12
@@ -126,7 +144,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-atheme.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-atheme
         path: ~/artefacts-*.tar.gz
@@ -137,7 +155,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-atheme-7-3-stable
         path: '~/.cache
@@ -145,15 +163,17 @@ jobs:
           ${ github.workspace }/atheme
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Atheme
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: atheme
         ref: 22b0a326651d7fba5f7c733012191d74afba8883
@@ -169,7 +189,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-atheme-7-3.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-atheme-7-3
         path: ~/artefacts-*.tar.gz
@@ -180,7 +200,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-bahamut-stable
         path: '~/.cache
@@ -188,15 +208,17 @@ jobs:
           ${ github.workspace }/Bahamut
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Bahamut
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: Bahamut
         ref: v2.2.4
@@ -217,7 +239,7 @@ jobs:
         automake --force-missing --add-missing || true
         autoreconf
         ./configure --prefix=$HOME/.local/
-        make -j 4
+        make
         make install
         mkdir -p $HOME/.local/bin/
         cp $HOME/.local/ircd $HOME/.local/bin/ircd
@@ -225,7 +247,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-bahamut.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-bahamut
         path: ~/artefacts-*.tar.gz
@@ -236,7 +258,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-charybdis-stable
         path: '~/.cache
@@ -244,15 +266,17 @@ jobs:
           ${ github.workspace }/charybdis
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Charybdis
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: charybdis
         ref: charybdis-4.1.2
@@ -263,13 +287,13 @@ jobs:
         patch -p1 < $GITHUB_WORKSPACE/patches/charybdis_ubuntu22.patch
         ./autogen.sh
         ./configure --prefix=$HOME/.local/
-        make -j 4
+        make
         make install
       working-directory: charybdis
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-charybdis.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-charybdis
         path: ~/artefacts-*.tar.gz
@@ -280,7 +304,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-hybrid-stable
         path: '~/.cache
@@ -288,15 +312,17 @@ jobs:
           ${ github.workspace }/ircd-hybrid
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Hybrid
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: ircd-hybrid
         ref: 8.2.39
@@ -307,13 +333,13 @@ jobs:
     - name: Build Hybrid
       run: |
         ./configure --prefix=$HOME/.local/
-        make -j 4
+        make
         make install
       working-directory: ircd-hybrid
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-hybrid.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-hybrid
         path: ~/artefacts-*.tar.gz
@@ -323,15 +349,17 @@ jobs:
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout InspIRCd
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: inspircd
         ref: v4.10.0
@@ -339,14 +367,28 @@ jobs:
         submodules: ''
     - name: Build InspIRCd
       run: |
-        ./configure --prefix=$HOME/.local/inspircd --development
-        CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
-        make install
+        export CXXFLAGS="-DINSPIRCD_UNLIMITED_MAINLOOP"
+        if [ -f CMakeLists.txt ]
+        then
+            # We are building v5 or newer
+            sudo apt-get install ninja-build --no-install-recommends
+            cmake -B build \
+                  -D CMAKE_BUILD_TYPE=Debug \
+                  -D CMAKE_INSTALL_PREFIX=$HOME/.local/inspircd \
+                  -D CMAKE_UNITY_BUILD=ON \
+                  -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
+                  -G Ninja
+            ninja -C build install
+        else
+            # We are building v4 or older
+           ./configure --prefix=$HOME/.local/inspircd --development
+            make install
+        fi
       working-directory: inspircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-inspircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-inspircd
         path: ~/artefacts-*.tar.gz
@@ -357,7 +399,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-ngircd-stable
         path: '~/.cache
@@ -365,15 +407,17 @@ jobs:
           ${ github.workspace }/ngircd
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout ngircd
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: ngircd
         ref: acf8409c60ccc96beed0a1f990c4f9374823c0ce
@@ -384,13 +428,13 @@ jobs:
         patch src/ngircd/client.c < $GITHUB_WORKSPACE/patches/ngircd_whowas_delay.patch
         ./autogen.sh
         ./configure --prefix=$HOME/.local/
-        make -j 4
+        make
         make install
       working-directory: ngircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-ngircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-ngircd
         path: ~/artefacts-*.tar.gz
@@ -401,7 +445,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-plexus4-stable
         path: '~/.cache
@@ -409,13 +453,15 @@ jobs:
           ${ github.workspace }/placeholder
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: clone
       run: 'curl https://gitlab.com/rizon/plexus4/-/archive/20211115_0-611/plexus4-20211115_0-611.tar
         | tar -x
@@ -426,14 +472,14 @@ jobs:
 
         ./configure --prefix=$HOME/.local/
 
-        make -j 4
+        make
 
         make install'
       working-directory: plexus4
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-plexus4.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-plexus4
         path: ~/artefacts-*.tar.gz
@@ -444,7 +490,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-solanum-stable
         path: '~/.cache
@@ -452,15 +498,17 @@ jobs:
           ${ github.workspace }/solanum
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Solanum
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: solanum
         ref: 9778247c3dca59370b21c4f34f328c52e8b8c669
@@ -470,13 +518,13 @@ jobs:
       run: |
         ./autogen.sh
         ./configure --prefix=$HOME/.local/ --enable-fhs-paths
-        make -j 4
+        make
         make install
       working-directory: solanum
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-solanum.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-solanum
         path: ~/artefacts-*.tar.gz
@@ -487,7 +535,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-unrealircd-stable
         path: '~/.cache
@@ -495,15 +543,17 @@ jobs:
           ${ github.workspace }/unrealircd
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout UnrealIRCd 6
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: unrealircd
         ref: 2d145b0f2ca320652037217c860159b4beef37e4
@@ -518,7 +568,7 @@ jobs:
         # worker combinations
         sudo apt install libsodium-dev libargon2-dev
         CFLAGS="-O0 -march=x86-64" CXXFLAGS="$CFLAGS" ./Config -quick
-        make -j 4
+        make
         make install
         # Prevent download of geoIP database on first startup
         sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
@@ -526,7 +576,7 @@ jobs:
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-unrealircd
         path: ~/artefacts-*.tar.gz
@@ -563,9 +613,9 @@ jobs:
     - test-unrealircd-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Download Artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         path: artifacts
     - name: Install dashboard dependencies
@@ -590,13 +640,13 @@ jobs:
     - build-bahamut
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-bahamut
         path: '~'
@@ -616,7 +666,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_bahamut_stable
         path: pytest.xml
@@ -626,18 +676,18 @@ jobs:
     - build-anope-2-0
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-bahamut
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-anope-2-0
         path: '~'
@@ -657,7 +707,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_bahamut-anope_stable
         path: pytest.xml
@@ -667,18 +717,18 @@ jobs:
     - build-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-bahamut
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-atheme
         path: '~'
@@ -698,7 +748,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_bahamut-atheme_stable
         path: pytest.xml
@@ -708,18 +758,18 @@ jobs:
     - build-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-charybdis
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-atheme
         path: '~'
@@ -739,7 +789,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_charybdis_stable
         path: pytest.xml
@@ -747,13 +797,13 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout Ergo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: ergo
         ref: irctest_stable
@@ -782,7 +832,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_ergo_stable
         path: pytest.xml
@@ -792,18 +842,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-hybrid
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-anope
         path: '~'
@@ -823,7 +873,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_hybrid_stable
         path: pytest.xml
@@ -832,13 +882,13 @@ jobs:
     - build-inspircd
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-inspircd
         path: '~'
@@ -858,7 +908,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_inspircd_stable
         path: pytest.xml
@@ -868,18 +918,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-inspircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-anope
         path: '~'
@@ -899,7 +949,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_inspircd-anope_stable
         path: pytest.xml
@@ -909,18 +959,18 @@ jobs:
     - build-atheme-7-3
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-inspircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-atheme-7-3
         path: '~'
@@ -940,7 +990,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_inspircd-atheme_stable
         path: pytest.xml
@@ -948,13 +998,13 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout irc2
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: irc2.11.2p3
         ref: 59649f24c3a5c27bad5648b48774f27475bccfd3
@@ -973,7 +1023,7 @@ jobs:
         echo "#define fork() (0)" >> config.h
 
         # Compile and install
-        make -j 4 all
+        make all
         make install
         mkdir -p $HOME/.local/bin
         cp $HOME/.local/sbin/ircd $HOME/.local/bin/ircd
@@ -992,7 +1042,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_irc2_stable
         path: pytest.xml
@@ -1000,13 +1050,13 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout ircu2
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: ircu2
         ref: 0a8a73f344e4ef5bcdab6d899dd9030bf2b32a8e
@@ -1021,7 +1071,7 @@ jobs:
         # We need --with-maxcon, to set MAXCONNECTIONS so that it's much lower than
         # NN_MAX_CLIENT, or ircu2 crashes with a somewhat cryptic error on startup.
         ./configure --prefix=$HOME/.local/ --with-maxcon=1024 --enable-debug
-        make -j 4
+        make
         make install
       working-directory: ircu2
     - name: Install system dependencies
@@ -1038,7 +1088,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_ircu2_stable
         path: pytest.xml
@@ -1046,7 +1096,7 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1067,7 +1117,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_limnoria_stable
         path: pytest.xml
@@ -1075,13 +1125,13 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout nefarious
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: nefarious
         ref: 985704168ecada12d9e53b46df6087ef9d9fb40b
@@ -1090,7 +1140,7 @@ jobs:
     - name: Build nefarious
       run: |
         ./configure --prefix=$HOME/.local/ --enable-debug
-        make -j 4
+        make
         echo -e "N\n\n\n\n\n\n\n\n" | make install
         cp $GITHUB_WORKSPACE/data/nefarious/* $HOME/.local/lib
       working-directory: nefarious
@@ -1108,7 +1158,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_nefarious_stable
         path: pytest.xml
@@ -1117,13 +1167,13 @@ jobs:
     - build-ngircd
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-ngircd
         path: '~'
@@ -1143,7 +1193,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_ngircd_stable
         path: pytest.xml
@@ -1153,18 +1203,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-ngircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-anope
         path: '~'
@@ -1184,7 +1234,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_ngircd-anope_stable
         path: pytest.xml
@@ -1194,18 +1244,18 @@ jobs:
     - build-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-ngircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-atheme
         path: '~'
@@ -1225,7 +1275,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_ngircd-atheme_stable
         path: pytest.xml
@@ -1235,18 +1285,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-plexus4
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-anope
         path: '~'
@@ -1266,7 +1316,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_plexus4_stable
         path: pytest.xml
@@ -1274,13 +1324,13 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout Sable
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: sable
         ref: 70e61b4cc015537d8906da5286f062a8199fb432
@@ -1333,7 +1383,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_sable_stable
         path: pytest.xml
@@ -1342,13 +1392,13 @@ jobs:
     - build-solanum
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-solanum
         path: '~'
@@ -1368,7 +1418,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_solanum_stable
         path: pytest.xml
@@ -1378,18 +1428,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-solanum
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-anope
         path: '~'
@@ -1409,7 +1459,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_solanum-anope_stable
         path: pytest.xml
@@ -1419,18 +1469,18 @@ jobs:
     - build-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-solanum
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-atheme
         path: '~'
@@ -1450,7 +1500,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_solanum-atheme_stable
         path: pytest.xml
@@ -1458,7 +1508,7 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1479,7 +1529,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_sopel_stable
         path: pytest.xml
@@ -1487,18 +1537,21 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout TheLounge
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: thelounge
         ref: v4.4.0
         repository: thelounge/thelounge
         submodules: ''
+    - uses: actions/setup-node@v6
+      with:
+        node-version: lts/*
     - name: Build TheLounge
       run: |
         yarn install
@@ -1520,7 +1573,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_thelounge_stable
         path: pytest.xml
@@ -1529,13 +1582,13 @@ jobs:
     - build-unrealircd
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-unrealircd
         path: '~'
@@ -1555,7 +1608,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_unrealircd_stable
         path: pytest.xml
@@ -1565,18 +1618,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-unrealircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-anope
         path: '~'
@@ -1596,7 +1649,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_unrealircd-anope_stable
         path: pytest.xml
@@ -1606,18 +1659,18 @@ jobs:
     - build-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-unrealircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-atheme
         path: '~'
@@ -1637,7 +1690,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_unrealircd-atheme_stable
         path: pytest.xml

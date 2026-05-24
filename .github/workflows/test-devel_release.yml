@@ -8,7 +8,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         key: 3-${{ runner.os }}-anope-devel_release
         path: '~/.cache
@@ -16,15 +16,17 @@ jobs:
           ${ github.workspace }/anope
 
           '
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: anope
         ref: '2.0'
@@ -33,14 +35,20 @@ jobs:
     - name: Build Anope
       run: |
         sudo apt-get install ninja-build --no-install-recommends
-        mkdir build && cd build
-        cmake -DCMAKE_INSTALL_PREFIX=$HOME/.local/ -DPROGRAM_NAME=anope -DUSE_PCH=ON -GNinja ..
-        ninja install
+        cmake -B build \
+              -D CMAKE_BUILD_TYPE=Debug \
+              -D CMAKE_INSTALL_PREFIX=$HOME/.local \
+              -D CMAKE_UNITY_BUILD=ON \
+              -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
+              -D PROGRAM_NAME=anope \
+              -D USE_PCH=ON \
+              -G Ninja
+        ninja -C build install
       working-directory: anope
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-anope.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-anope
         path: ~/artefacts-*.tar.gz
@@ -50,15 +58,17 @@ jobs:
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3.11
     - name: Install system dependencies
       run: sudo apt-get install libltdl-dev
+    - name: Calculate job count
+      run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout InspIRCd
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         path: inspircd
         ref: insp4
@@ -66,14 +76,28 @@ jobs:
         submodules: ''
     - name: Build InspIRCd
       run: |
-        ./configure --prefix=$HOME/.local/inspircd --development
-        CXXFLAGS=-DINSPIRCD_UNLIMITED_MAINLOOP make -j 4
-        make install
+        export CXXFLAGS="-DINSPIRCD_UNLIMITED_MAINLOOP"
+        if [ -f CMakeLists.txt ]
+        then
+            # We are building v5 or newer
+            sudo apt-get install ninja-build --no-install-recommends
+            cmake -B build \
+                  -D CMAKE_BUILD_TYPE=Debug \
+                  -D CMAKE_INSTALL_PREFIX=$HOME/.local/inspircd \
+                  -D CMAKE_UNITY_BUILD=ON \
+                  -D CMAKE_UNITY_BUILD_BATCH_SIZE=0 \
+                  -G Ninja
+            ninja -C build install
+        else
+            # We are building v4 or older
+           ./configure --prefix=$HOME/.local/inspircd --development
+            make install
+        fi
       working-directory: inspircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-inspircd.tar.gz .local/ go/
     - name: Upload build artefacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: installed-inspircd
         path: ~/artefacts-*.tar.gz
@@ -86,9 +110,9 @@ jobs:
     - test-inspircd-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Download Artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         path: artifacts
     - name: Install dashboard dependencies
@@ -113,13 +137,13 @@ jobs:
     - build-inspircd
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-inspircd
         path: '~'
@@ -139,7 +163,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_inspircd_devel_release
         path: pytest.xml
@@ -149,18 +173,18 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-inspircd
         path: '~'
     - name: Download build artefacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: installed-anope
         path: '~'
@@ -180,7 +204,7 @@ jobs:
       timeout-minutes: 30
     - if: always()
       name: Publish results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pytest-results_inspircd-anope_devel_release
         path: pytest.xml

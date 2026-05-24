@@ -17,7 +17,7 @@ class BotModeTestCase(cases.BaseServerTestCase):
             raise runner.IsupportTokenNotSupported("BOT")
         self._mode_char = self.server_support["BOT"]
 
-    def _initBot(self):
+    def _initBot(self, capabilities=()):
         self.assertEqual(
             len(self._mode_char),
             1,
@@ -27,7 +27,12 @@ class BotModeTestCase(cases.BaseServerTestCase):
             ),
         )
 
-        self.connectClient("botnick", "bot")
+        self.connectClient(
+            "botnick",
+            "bot",
+            capabilities=list(capabilities),
+            skip_if_cap_nak=True,
+        )
 
         self.sendLine("bot", f"MODE botnick +{self._mode_char}")
 
@@ -67,10 +72,6 @@ class BotModeTestCase(cases.BaseServerTestCase):
             message, command=RPL_WHOISBOT, params=["usernick", "botnick", ANYSTR]
         )
 
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Uses only vendor tags for now: https://github.com/inspircd/inspircd/pull/1910",
-    )
     def testBotPrivateMessage(self):
         self._initBot()
 
@@ -85,13 +86,9 @@ class BotModeTestCase(cases.BaseServerTestCase):
             self.getMessage("user"),
             command="PRIVMSG",
             params=["usernick", "beep boop"],
-            tags={StrRe("(draft/)?bot"): None, **ANYDICT},
+            tags={"bot": None, **ANYDICT},
         )
 
-    @cases.xfailIfSoftware(
-        ["InspIRCd"],
-        "Uses only vendor tags for now: https://github.com/inspircd/inspircd/pull/1910",
-    )
     def testBotChannelMessage(self):
         self._initBot()
 
@@ -111,7 +108,23 @@ class BotModeTestCase(cases.BaseServerTestCase):
             self.getMessage("user"),
             command="PRIVMSG",
             params=["#chan", "beep boop"],
-            tags={StrRe("(draft/)?bot"): None, **ANYDICT},
+            tags={"bot": None, **ANYDICT},
+        )
+
+    def testBotEchoMessage(self):
+        """Bot clients with echo-message should receive the bot tag on echoed messages."""
+        self._initBot(capabilities=["echo-message", "message-tags"])
+
+        self.connectClient("usernick", "user")
+        self.getMessages("bot")  # Clear any pending messages
+
+        self.sendLine("bot", "PRIVMSG usernick :beep boop")
+        echo = self.getMessage("bot")
+        self.assertMessageMatch(
+            echo,
+            command="PRIVMSG",
+            params=["usernick", "beep boop"],
+            tags={"bot": None, **ANYDICT},
         )
 
     def testBotWhox(self):

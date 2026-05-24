@@ -4,6 +4,7 @@ import time
 import pytest
 
 from irctest import cases, runner, scram
+from irctest.exceptions import ConnectionClosed
 from irctest.numerics import (
     ERR_ALREADYREGISTERED,
     ERR_INPUTTOOLONG,
@@ -359,6 +360,50 @@ class SaslTestCase(cases.BaseServerTestCase):
             params=["*", ANYSTR],
             fail_msg="Sent oversized AUTHENTICATE (500 bytes in one message), "
             "expected 905 (ERR_SASLTOOLONG) or 417 (ERR_INPUTTOOLONG), but got: {msg}",
+        )
+
+    @cases.mark_specifications("IRCv3")
+    @cases.skipUnlessHasMechanism("PLAIN")
+    def testPlainInfiniteMessages(self):
+        """Test an excessively large number of AUTHENTICATE messages, which force
+        the server to waste memory storing it"""
+        self.controller.registerUser(self, "foo", "sesame")
+
+        authstring = base64.b64encode(
+            b"\x00".join([b"foo", b"foo", ("x" * 400).encode()])
+        ).decode()
+
+        self.addClient()
+        self.sendLine(1, "CAP LS 302")
+        capabilities = self.getCapLs(1)
+        self.assertIn("sasl", capabilities)
+        self.requestCapabilities(1, ["sasl"], skip_if_cap_nak=False)
+        self.sendLine(1, "AUTHENTICATE PLAIN")
+        m = self.getRegistrationMessage(1)
+        self.assertMessageMatch(
+            m,
+            command="AUTHENTICATE",
+            params=["+"],
+        )
+        # Send first 400 bytes
+        self.sendLine(1, "AUTHENTICATE {}".format(authstring[0:400]))
+
+        # repeat nonsense
+        payload = base64.b64encode(("x" * 400).encode()).decode()[0:400]
+        try:
+            for _ in range(1000):
+                self.sendLine(1, "AUTHENTICATE {}".format(payload))
+
+            m = self.getRegistrationMessage(1)
+        except (ConnectionResetError, ConnectionClosed):
+            # acceptable, as long as we didn't crash the whole server
+            self.controller.check_is_alive()
+            return
+
+        self.assertMessageMatch(
+            m,
+            command=ERR_SASLFAIL,
+            fail_msg="Server did not complain about 400kB-long auth string: {msg}",
         )
 
     def confirmSuccessfulAuth(self):
