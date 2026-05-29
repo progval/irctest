@@ -2,7 +2,7 @@
 `Draft IRCv3 multiline <https://ircv3.net/specs/extensions/multiline>`_
 """
 
-from irctest import cases
+from irctest import cases, runner
 from irctest.patma import ANYDICT, ANYSTR, StrRe
 
 CAP_NAME = "draft/multiline"
@@ -91,6 +91,26 @@ class MultilineTestCase(cases.BaseServerTestCase):
         self.connectClient(
             "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
         )
+
+        self._testBlankLines(False)
+
+    @cases.mark_capabilities("draft/multiline")
+    def testBlankLinesWithTag(self):
+        self.connectClient(
+            "alice", capabilities=(base_caps + [CAP_NAME]), skip_if_cap_nak=True
+        )
+
+        clienttagdeny = self.server_support.get("CLIENTTAGDENY")
+        if clienttagdeny:
+            parts = clienttagdeny.split(",")
+            if "*" in parts:
+                raise runner.ImplementationChoice(
+                    "CLIENTTAGDENY blocks arbitrary client tags"
+                )
+
+        self._testBlankLines(True)
+
+    def _testBlankLines(self, client_tag: bool):
         self.joinChannel(1, "#test")
         self.connectClient("bob", capabilities=(base_caps + [CAP_NAME]))
         self.joinChannel(2, "#test")
@@ -101,9 +121,12 @@ class MultilineTestCase(cases.BaseServerTestCase):
         self.getMessages(2)
         self.getMessages(3)
 
-        self.sendLine(
-            1, "@label=xyz;+client-only-tag BATCH +123 %s #test" % (BATCH_TYPE,)
-        )
+        if client_tag:
+            self.sendLine(
+                1, "@label=xyz;+client-only-tag BATCH +123 %s #test" % (BATCH_TYPE,)
+            )
+        else:
+            self.sendLine(1, "@label=xyz BATCH +123 %s #test" % (BATCH_TYPE,))
         self.sendLine(1, "@batch=123 PRIVMSG #test :")
         self.sendLine(1, "@batch=123 PRIVMSG #test :#how is ")
         self.sendLine(1, "@batch=123;%s PRIVMSG #test :everyone?" % (CONCAT_TAG,))
@@ -121,7 +144,8 @@ class MultilineTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             privmsgs[2], command="PRIVMSG", params=["#test", "everyone?"]
         )
-        self.assertIn("+client-only-tag", batch_start.tags)
+        if client_tag:
+            self.assertIn("+client-only-tag", batch_start.tags)
         msgid = batch_start.tags["msgid"]
 
         fallback_relay = self.getMessages(3)
@@ -132,8 +156,9 @@ class MultilineTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             fallback_relay[1], command="PRIVMSG", params=["#test", "everyone?"]
         )
-        self.assertIn("+client-only-tag", fallback_relay[0].tags)
-        self.assertIn("+client-only-tag", fallback_relay[1].tags)
+        if client_tag:
+            self.assertIn("+client-only-tag", fallback_relay[0].tags)
+            self.assertIn("+client-only-tag", fallback_relay[1].tags)
         self.assertEqual(fallback_relay[0].tags["msgid"], msgid)
 
     @cases.mark_capabilities("draft/multiline")
