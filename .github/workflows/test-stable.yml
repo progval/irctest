@@ -511,7 +511,7 @@ jobs:
       uses: actions/checkout@v5
       with:
         path: solanum
-        ref: 9778247c3dca59370b21c4f34f328c52e8b8c669
+        ref: eb62eb9cab93ce0519c0ca2c8fa10e688054434d
         repository: solanum-ircd/solanum
         submodules: ''
     - name: Build Solanum
