@@ -13,6 +13,8 @@ from irctest.numerics import RPL_METADATASUBOK, RPL_WHOISKEYVALUE
 from irctest.patma import ANYDICT, ANYLIST, ANYSTR, Either
 from irctest.specifications import OptionalBehaviors
 
+METADATA_CAP_NAME = "draft/metadata-2"
+
 CLIENT_NICKS = {
     1: "foo",
     2: "bar",
@@ -51,7 +53,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
     def testGetOneUnsetValid(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html#metadata-get>"""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.sendLine(1, "METADATA * GET display-name")
 
@@ -72,7 +74,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-get>
         """
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.sendLine(1, "METADATA * GET display-name avatar")
         (batch_id, messages) = self.getMetadataBatchMessages(1)
@@ -110,7 +112,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-list>
         """
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.sendLine(1, "METADATA * LIST")
         (batch_id, messages) = self.getMetadataBatchMessages(1)
@@ -122,7 +124,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         -- <http://ircv3.net/specs/core/metadata-3.2.html#metadata-list>
         """
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.sendLine(1, "METADATA foobar LIST")
         m = self.getMessage(1)
@@ -209,6 +211,20 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertUnsetValue(client, target, key)
         self.assertValueNotSet(client, target, key)
 
+    def listMetadata(self, client, target):
+        """Send METADATA <target> LIST and return the results as a {key: value} dict."""
+        self.sendLine(client, f"METADATA {target} LIST")
+        (_, messages) = self.getMetadataBatchMessages(client)
+        result = {}
+        for m in messages:
+            self.assertMessageMatch(
+                m,
+                command="761",  # RPL_KEYVALUE
+                fail_msg="Expected only RPL_KEYVALUE in LIST batch, got: {msg}",
+            )
+            result[m.params[2]] = m.params[4]
+        return result
+
     @pytest.mark.parametrize(
         "set_target,get_target", itertools.product(["*", "foo"], ["*", "foo"])
     )
@@ -216,7 +232,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
     def testSetGetUser(self, set_target, get_target):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.assertSetGetValue(1, set_target, "display-name", "Foo The First")
 
@@ -224,7 +240,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
     def testSetGetUserAgain(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.assertSetGetValue(1, "*", "display-name", "Foo The First")
         self.assertSetGetValue(1, "*", "display-name", "Foo The Second")
@@ -233,7 +249,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
     def testSetUnsetUser(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.assertSetGetValue(1, "*", "display-name", "Foo The First")
         self.assertUnsetGetValue(1, "*", "display-name")
@@ -241,10 +257,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("IRCv3")
     def testGetOtherUser(self):
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
 
         # As of 2023-04-15, the Unreal module requires users to share a channel for
@@ -270,10 +286,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
     )
     def testWhoisKeyValue(self):
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
 
         # As of 2023-04-15, the Unreal module requires users to share a channel for
@@ -305,23 +321,24 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
-    def testSetOtherUser(self):
-        """Not required by the spec, but it makes little sense to allow anyone to
-        write a channel's metadata"""
+    def testSetClearOtherUser(self):
+        """Unprivileged users cannot modify another user's metadata with SET or CLEAR,"""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
 
         # As of 2023-04-15, the Unreal module requires users to share a channel for
         # metadata to be visible to each other.
-        self.sendLine(1, "JOIN #chan")
-        self.sendLine(2, "JOIN #chan")
+        self.joinChannel(1, "#chan")
+        self.joinChannel(2, "#chan")
         self.getMessages(1)
+
+        # Give bar some metadata so there is something for foo to attempt to clear
+        self.assertSetValue(2, "*", "color", "#c90076")
         self.getMessages(2)
-        self.getMessages(1)
 
         self.sendLine(1, "METADATA bar SET display-name :Totally Not Foo")
         self.assertMessageMatch(
@@ -329,21 +346,38 @@ class MetadataTestCase(cases.BaseServerTestCase):
             command="FAIL",
             params=["METADATA", "KEY_NO_PERMISSION", "bar", "display-name", ANYSTR],
         )
-
         self.assertEqual(
             self.getMessages(2),
             [],
             fail_msg="Unexpected messages after other user used METADATA SET: {got}",
         )
 
+        self.sendLine(1, "METADATA bar CLEAR")
+        self.assertMessageMatch(
+            self.getMessage(1),
+            command="FAIL",
+            params=["METADATA", "KEY_NO_PERMISSION", "bar", "*", ANYSTR],
+        )
+        self.assertEqual(
+            self.getMessages(2),
+            [],
+            fail_msg="Unexpected messages after other user used METADATA CLEAR: {got}",
+        )
+
+        # check that metadata was not modified
+        self.assertEqual(
+            self.listMetadata(2, "*"),
+            {"color": "#c90076"},
+        )
+
     @cases.mark_specifications("IRCv3")
     def testSubUser(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
 
         self.sub(2, ["avatar", "display-name"])
@@ -379,10 +413,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
     def testSubUserSetBeforeJoin(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
 
         self.sub(2, ["display-name", "avatar"])
@@ -418,10 +452,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
     @cases.mark_specifications("IRCv3")
     def testSetGetChannel(self):
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
 
         self.joinChannel(1, "#chan")
@@ -440,10 +474,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
     def testSetUnsetChannel(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
 
         self.joinChannel(1, "#chan")
@@ -460,12 +494,77 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertValueNotSet(2, "#chan", "display-name")
 
     @cases.mark_specifications("IRCv3")
-    def testSetGetChannelNotOp(self):
+    def testListChannel(self):
+        """METADATA LIST on a channel returns all set keys, and reflects unsets."""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
+        )
+
+        self.joinChannel(1, "#chan")
+        self.joinChannel(2, "#chan")
+        self.getMessages(1)
+
+        self.assertSetValue(1, "#chan", "display-name", "Hash Channel")
+        self.assertSetValue(1, "#chan", "avatar", "https://example.com/chan.png")
+        self.getMessages(1)
+
+        # Both keys should appear in LIST, for both the op and a regular member
+        self.assertEqual(
+            self.listMetadata(1, "#chan"),
+            {"display-name": "Hash Channel", "avatar": "https://example.com/chan.png"},
+        )
+        self.assertEqual(
+            self.listMetadata(2, "#chan"),
+            {"display-name": "Hash Channel", "avatar": "https://example.com/chan.png"},
+        )
+
+        # After unsetting one key it should no longer appear
+        self.assertUnsetValue(1, "#chan", "display-name")
+        self.assertEqual(
+            self.listMetadata(1, "#chan"),
+            {"avatar": "https://example.com/chan.png"},
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testClearChannel(self):
+        """METADATA CLEAR by the channel op removes all channel metadata."""
+        self.connectClient(
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
+        )
+
+        self.joinChannel(1, "#chan")
+
+        self.assertSetValue(1, "#chan", "display-name", "Hash Channel")
+        self.assertSetValue(1, "#chan", "avatar", "https://example.com/chan.png")
+        self.getMessages(1)
+
+        self.sendLine(1, "METADATA #chan CLEAR")
+        (_, messages) = self.getMetadataBatchMessages(1)
+        # one RPL_KEYNOTSET per cleared key
+        cleared_keys = []
+        for m in messages:
+            self.assertMessageMatch(
+                m,
+                command="766",  # RPL_KEYNOTSET
+                params=["foo", "#chan", ANYSTR, ANYSTR],  # nick, target, key, trailing
+                fail_msg="Expected RPL_KEYNOTSET for each cleared key, got: {msg}",
+            )
+            cleared_keys.append(m.params[2])
+        self.assertEqual(
+            sorted(cleared_keys),
+            ["avatar", "display-name"],
+        )
+
+    @cases.mark_specifications("IRCv3")
+    def testSetGetChannelNotOp(self):
+        self.connectClient(
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
 
         self.joinChannel(1, "#chan")
@@ -486,13 +585,52 @@ class MetadataTestCase(cases.BaseServerTestCase):
         )
 
     @cases.mark_specifications("IRCv3")
+    def testGetListSyncInviteOnlyChannel(self):
+        """Users not in an invite-only channel cannot read its metadata with
+        GET, LIST, or SYNC."""
+        self.connectClient(
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
+        )
+
+        # bar subscribes to display-name so that SYNC could potentially return it
+        self.sub(2, ["display-name"])
+
+        self.joinChannel(1, "#chan")
+        self.assertSetValue(1, "#chan", "display-name", "Invite Only Chan")
+        self.getMessages(1)
+
+        self.sendLine(1, "MODE #chan +i")
+        self.getMessages(1)
+
+        # bar is not in the channel; none of GET, LIST, or SYNC should leak the value
+        for subcommand in ("GET display-name", "LIST", "SYNC"):
+            self.sendLine(2, f"METADATA #chan {subcommand}")
+            messages = self.getMessages(2)
+            for m in messages:
+                self.assertNotIn(
+                    "Invite Only Chan",
+                    m.params,
+                    fail_msg="Metadata value leaked to non-member of invite-only channel "
+                    f"via {subcommand.split()[0]}: {{msg}}",
+                )
+            self.assertNotEqual(
+                messages,
+                [],
+                fail_msg=f"Expected some response to METADATA {subcommand.split()[0]} "
+                "on invite-only channel, got nothing",
+            )
+
+    @cases.mark_specifications("IRCv3")
     def testSubChannel(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
 
         self.sub(2, ["avatar", "display-name"])
@@ -519,10 +657,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
     def testSubChannelSetBeforeJoin(self):
         """<http://ircv3.net/specs/core/metadata-3.2.html>"""
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
 
         self.sub(2, ["display-name", "avatar"])
@@ -563,12 +701,12 @@ class MetadataTestCase(cases.BaseServerTestCase):
 
         self.sendLine(1, "CAP LS 302")
         caps = self.getCapLs(1)
-        if "before-connect" not in (caps.get("draft/metadata-2") or "").split(","):
+        if "before-connect" not in (caps.get(METADATA_CAP_NAME) or "").split(","):
             raise runner.OptionalBehaviorNotSupported(
                 OptionalBehaviors.METADATA_BEFORE_CONNECT
             )
 
-        self.requestCapabilities(1, ["draft/metadata-2", "batch"], skip_if_cap_nak=True)
+        self.requestCapabilities(1, [METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True)
 
         self.assertSetValue(
             1, "*", "display-name", "Foo The First", before_connect=True
@@ -617,7 +755,7 @@ class MetadataTestCase(cases.BaseServerTestCase):
         """
         heart = b"\xf0\x9f\x92\x9c".decode()
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.assertSetGetValue(
             1,
@@ -628,10 +766,10 @@ class MetadataTestCase(cases.BaseServerTestCase):
 
     def _testSetInvalidValue(self, value):
         self.connectClient(
-            "foo", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "foo", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.connectClient(
-            "bar", capabilities=["draft/metadata-2", "batch"], skip_if_cap_nak=True
+            "bar", capabilities=[METADATA_CAP_NAME, "batch"], skip_if_cap_nak=True
         )
         self.joinChannel(1, "#chan")
         self.joinChannel(2, "#chan")
