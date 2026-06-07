@@ -29,7 +29,7 @@ jobs:
       uses: actions/checkout@v5
       with:
         path: anope
-        ref: 2.0.18
+        ref: 2.0.20
         repository: anope/anope
         submodules: ''
     - name: Build Anope
@@ -362,7 +362,7 @@ jobs:
       uses: actions/checkout@v5
       with:
         path: inspircd
-        ref: v4.10.0
+        ref: v4.11.0
         repository: inspircd/inspircd
         submodules: ''
     - name: Build InspIRCd
@@ -572,6 +572,9 @@ jobs:
         make install
         # Prevent download of geoIP database on first startup
         sed -i 's/loadmodule "geoip_classic";//' ~/.local/unrealircd/conf/modules.default.conf
+
+        # In Unreal >= 6.2.6, 'make install' no longer copies these files from the source dir to the conf dir
+        cp $GITHUB_WORKSPACE/data/unreal/{server.req.pem,server.key.pem,server.cert.pem} ~/.local/unrealircd/conf/tls/
       working-directory: unrealircd
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-unrealircd.tar.gz .local/ go/
