@@ -169,6 +169,7 @@ class MultilineTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "BATCH +123 %s #test" % (BATCH_TYPE,))
         self.sendLine(1, "@batch=123 PRIVMSG #test :hi")
         self.sendLine(1, "@batch=123;%s PRIVMSG #test :" % (CONCAT_TAG,))
+        self.sendLine(1, "BATCH -123")
         self.assertMessageMatch(
             self.getMessage(1),
             command="FAIL",
