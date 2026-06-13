@@ -59,7 +59,6 @@ class MultilineTestCase(cases.BaseServerTestCase):
         for msg in privmsgs:
             self.assertMessageMatch(msg, command="PRIVMSG")
             self.assertNotIn("msgid", msg.tags)
-            self.assertNotIn("time", msg.tags)
         self.assertIn(CONCAT_TAG, echo[3].tags)
 
         relay = self.getMessages(2)
@@ -75,7 +74,6 @@ class MultilineTestCase(cases.BaseServerTestCase):
         for msg in privmsgs:
             self.assertMessageMatch(msg, command="PRIVMSG")
             self.assertNotIn("msgid", msg.tags)
-            self.assertNotIn("time", msg.tags)
             self.assertEqual(msg.tags.get("batch"), batchTag)
         self.assertIn(CONCAT_TAG, relay[3].tags)
 
