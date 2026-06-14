@@ -136,7 +136,7 @@ class MultilineTestCase(cases.BaseServerTestCase):
         self.assertIn("+client-only-tag", fallback_relay[1].tags)
         self.assertEqual(fallback_relay[0].tags["msgid"], msgid)
 
-    @cases.mark_capabilities("draft/multiline")
+    @cases.mark_specifications("Ergo")
     def testInvalidBatchTag(self):
         """Test that an unexpected change of batch tag results in
         FAIL BATCH MULTILINE_INVALID."""
