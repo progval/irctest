@@ -289,7 +289,9 @@ software:
             - name: check postgresql password
               run: |
                 PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "SELECT 1;"
-        env: "IRCTEST_POSTGRESQL_URL=postgresql://postgres:postgres@localhost IRCTEST_DEBUG_LOGS=1"
+        env:
+            IRCTEST_POSTGRESQL_URL: postgresql://postgres:postgres@localhost
+            IRCTEST_DEBUG_LOGS: 1
         separate_build_job: false
         build_script: |
             cargo build
@@ -439,10 +441,10 @@ software:
             pip install pifpaf
             wget -q https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
             wget -q https://wordpress.org/wordpress-6.7.2.zip -O wordpress-latest.zip
-        env: >-
-            IRCTEST_DLK_PATH="${{ github.workspace }}/Dlk-Services"
-            IRCTEST_WP_CLI_PATH="${{ github.workspace }}/Dlk-Services/wp-cli.phar"
-            IRCTEST_WP_ZIP_PATH="${{ github.workspace }}/Dlk-Services/wordpress-latest.zip"
+        env:
+            IRCTEST_DLK_PATH: ${{ github.workspace }}/Dlk-Services
+            IRCTEST_WP_CLI_PATH: ${{ github.workspace }}/Dlk-Services/wp-cli.phar
+            IRCTEST_WP_ZIP_PATH: ${{ github.workspace }}/Dlk-Services/wordpress-latest.zip
 
 
     #############################
