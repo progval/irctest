@@ -8,7 +8,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-anope-stable
         path: '~/.cache
@@ -16,7 +16,7 @@ jobs:
           ${ github.workspace }/anope
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -26,7 +26,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: anope
         ref: 2.0.20
@@ -59,7 +59,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-anope-2-0-stable
         path: '~/.cache
@@ -67,7 +67,7 @@ jobs:
           ${ github.workspace }/anope
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -77,7 +77,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope 2.0
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: anope
         ref: 2.0.18
@@ -110,7 +110,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-atheme-stable
         path: '~/.cache
@@ -118,7 +118,7 @@ jobs:
           ${ github.workspace }/atheme
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -128,7 +128,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Atheme
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: atheme
         ref: v7.2.12
@@ -155,7 +155,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-atheme-7-3-stable
         path: '~/.cache
@@ -163,7 +163,7 @@ jobs:
           ${ github.workspace }/atheme
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -173,7 +173,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Atheme
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: atheme
         ref: 22b0a326651d7fba5f7c733012191d74afba8883
@@ -200,7 +200,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-bahamut-stable
         path: '~/.cache
@@ -208,7 +208,7 @@ jobs:
           ${ github.workspace }/Bahamut
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -218,7 +218,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Bahamut
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: Bahamut
         ref: v2.2.4
@@ -258,7 +258,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-charybdis-stable
         path: '~/.cache
@@ -266,7 +266,7 @@ jobs:
           ${ github.workspace }/charybdis
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -276,7 +276,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Charybdis
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: charybdis
         ref: charybdis-4.1.2
@@ -304,7 +304,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-hybrid-stable
         path: '~/.cache
@@ -312,7 +312,7 @@ jobs:
           ${ github.workspace }/ircd-hybrid
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -322,7 +322,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Hybrid
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: ircd-hybrid
         ref: 8.2.39
@@ -349,7 +349,7 @@ jobs:
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -359,7 +359,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout InspIRCd
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: inspircd
         ref: v4.11.0
@@ -399,7 +399,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-ngircd-stable
         path: '~/.cache
@@ -407,7 +407,7 @@ jobs:
           ${ github.workspace }/ngircd
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -417,7 +417,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout ngircd
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: ngircd
         ref: acf8409c60ccc96beed0a1f990c4f9374823c0ce
@@ -445,7 +445,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-plexus4-stable
         path: '~/.cache
@@ -453,7 +453,7 @@ jobs:
           ${ github.workspace }/placeholder
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -490,7 +490,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-solanum-stable
         path: '~/.cache
@@ -498,7 +498,7 @@ jobs:
           ${ github.workspace }/solanum
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -508,7 +508,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Solanum
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: solanum
         ref: eb62eb9cab93ce0519c0ca2c8fa10e688054434d
@@ -535,7 +535,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-unrealircd-stable
         path: '~/.cache
@@ -543,7 +543,7 @@ jobs:
           ${ github.workspace }/unrealircd
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -553,7 +553,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout UnrealIRCd 6
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: unrealircd
         ref: 2d145b0f2ca320652037217c860159b4beef37e4
@@ -616,7 +616,7 @@ jobs:
     - test-unrealircd-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Download Artifacts
       uses: actions/download-artifact@v8
       with:
@@ -643,7 +643,7 @@ jobs:
     - build-bahamut
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -679,7 +679,7 @@ jobs:
     - build-anope-2-0
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -720,7 +720,7 @@ jobs:
     - build-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -761,7 +761,7 @@ jobs:
     - build-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -800,19 +800,19 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout Ergo
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: ergo
         ref: irctest_stable
         repository: ergochat/ergo
         submodules: ''
-    - uses: actions/setup-go@v3
+    - uses: actions/setup-go@v6
       with:
         go-version: ^1.24.0
     - run: go version
@@ -845,7 +845,7 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -885,7 +885,7 @@ jobs:
     - build-inspircd
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -921,7 +921,7 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -962,7 +962,7 @@ jobs:
     - build-atheme-7-3
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1001,13 +1001,13 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout irc2
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: irc2.11.2p3
         ref: 59649f24c3a5c27bad5648b48774f27475bccfd3
@@ -1053,13 +1053,13 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout ircu2
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: ircu2
         ref: 0a8a73f344e4ef5bcdab6d899dd9030bf2b32a8e
@@ -1099,7 +1099,7 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1128,13 +1128,13 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout nefarious
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: nefarious
         ref: 985704168ecada12d9e53b46df6087ef9d9fb40b
@@ -1170,7 +1170,7 @@ jobs:
     - build-ngircd
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1206,7 +1206,7 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1247,7 +1247,7 @@ jobs:
     - build-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1288,7 +1288,7 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1327,13 +1327,13 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout Sable
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: sable
         ref: 70e61b4cc015537d8906da5286f062a8199fb432
@@ -1395,7 +1395,7 @@ jobs:
     - build-solanum
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1431,7 +1431,7 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1472,7 +1472,7 @@ jobs:
     - build-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1511,7 +1511,7 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1540,13 +1540,13 @@ jobs:
     needs: []
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: 3.11
     - name: Checkout TheLounge
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: thelounge
         ref: v4.4.0
@@ -1585,7 +1585,7 @@ jobs:
     - build-unrealircd
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1621,7 +1621,7 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -1662,7 +1662,7 @@ jobs:
     - build-atheme
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
