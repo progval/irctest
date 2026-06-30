@@ -8,7 +8,7 @@ jobs:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
     - name: Cache dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: 3-${{ runner.os }}-anope-devel_release
         path: '~/.cache
@@ -16,7 +16,7 @@ jobs:
           ${ github.workspace }/anope
 
           '
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -26,7 +26,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: anope
         ref: '2.0'
@@ -58,7 +58,7 @@ jobs:
     steps:
     - name: Create directories
       run: cd ~/; mkdir -p .local/ go/
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v6
       with:
@@ -68,7 +68,7 @@ jobs:
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout InspIRCd
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
       with:
         path: inspircd
         ref: insp4
@@ -110,7 +110,7 @@ jobs:
     - test-inspircd-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Download Artifacts
       uses: actions/download-artifact@v8
       with:
@@ -137,7 +137,7 @@ jobs:
     - build-inspircd
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -173,7 +173,7 @@ jobs:
     - build-anope
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v7
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:

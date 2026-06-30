@@ -65,7 +65,7 @@ def get_install_steps(*, software_config, software_id, version_flavor):
         install_steps = [
             {
                 "name": f"Checkout {name}",
-                "uses": "actions/checkout@v5",
+                "uses": "actions/checkout@v7",
                 "with": {
                     "repository": software_config["repository"],
                     "ref": ref,
@@ -96,7 +96,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
         cache = [
             {
                 "name": "Cache dependencies",
-                "uses": "actions/cache@v5",
+                "uses": "actions/cache@v6",
                 "with": {
                     "path": f"~/.cache\n${{ github.workspace }}/{path}\n",
                     "key": "3-${{ runner.os }}-"
@@ -125,7 +125,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "run": "cd ~/; mkdir -p .local/ go/",
             },
             *cache,
-            {"uses": "actions/checkout@v5"},
+            {"uses": "actions/checkout@v7"},
             {
                 "name": "Set up Python 3.11",
                 "uses": "actions/setup-python@v6",
@@ -205,7 +205,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
         "runs-on": "ubuntu-24.04",
         "needs": needs,
         "steps": [
-            {"uses": "actions/checkout@v5"},
+            {"uses": "actions/checkout@v7"},
             {
                 "name": "Set up Python 3.11",
                 "uses": "actions/setup-python@v5",
@@ -330,7 +330,7 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         # this job then
         "if": "success() || failure()",
         "steps": [
-            {"uses": "actions/checkout@v5"},
+            {"uses": "actions/checkout@v7"},
             {
                 "name": "Download Artifacts",
                 "uses": "actions/download-artifact@v8",
