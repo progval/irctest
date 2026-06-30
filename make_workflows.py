@@ -149,20 +149,25 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
     if version_flavor.value in test_config.get("exclude_versions", []):
         return None
 
-    env = ""
+    env = {
+        "IRCTEST_DEBUG_LOGS": "${{ runner.debug }}",
+        "PYTEST_ARGS": "--junit-xml pytest.xml --timeout 300",
+    }
+    paths = ["~/.local/bin"]
     needs = []
     downloads = []
     install_steps = []
     for software_id in test_config.get("software", []):
         software_config = config["software"][software_id]
 
-        env += software_config.get("env", "") + " "
+        env |= software_config.get("env", {})
         if "prefix" in software_config:
-            env += (
-                f"PATH={software_config['prefix']}/sbin"
-                f":{software_config['prefix']}/bin"
-                f":{software_config['prefix']}"
-                f":$PATH "
+            paths.extend(
+                [
+                    f"{software_config['prefix']}/sbin",
+                    f"{software_config['prefix']}/bin",
+                    software_config["prefix"],
+                ]
             )
 
         if software_config["separate_build_job"]:
@@ -233,13 +238,10 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
             {
                 "name": "Test with pytest",
                 "timeout-minutes": 30,
-                "env": {
-                    "IRCTEST_DEBUG_LOGS": "${{ runner.debug }}",
-                },
-                "run": (
-                    f"PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' "
-                    f"PATH=$HOME/.local/bin:$PATH "
-                    f"{env}make {test_id}"
+                "env": env,
+                "run": script(
+                    f'export PATH={":".join(dict.fromkeys(p for p in paths))}:$PATH',
+                    f"make {test_id}",
                 ),
             },
             {

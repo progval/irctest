@@ -157,8 +157,10 @@ jobs:
         pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+        PYTEST_ARGS: --junit-xml pytest.xml --timeout 300
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
+      run: |-
+        export PATH=~/.local/bin:~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
         make inspircd
       timeout-minutes: 30
     - if: always()
@@ -198,9 +200,11 @@ jobs:
         pip install -r requirements.txt pytest-xdist pytest-timeout
     - env:
         IRCTEST_DEBUG_LOGS: ${{ runner.debug }}
+        PYTEST_ARGS: --junit-xml pytest.xml --timeout 300
       name: Test with pytest
-      run: PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' PATH=$HOME/.local/bin:$PATH  PATH=~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH  make
-        inspircd-anope
+      run: |-
+        export PATH=~/.local/bin:~/.local/inspircd/sbin:~/.local/inspircd/bin:~/.local/inspircd:$PATH
+        make inspircd-anope
       timeout-minutes: 30
     - if: always()
       name: Publish results
