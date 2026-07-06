@@ -112,9 +112,9 @@ class OptionalBehaviors(enum.Enum):
     with the +l channel mode.
     """
 
-    METADATA_BEFORE_CONNECT = "draft/metadata-2=before-connect"
+    METADATA_BEFORE_CONNECT = "draft/metadata-3=before-connect"
     """
-    Optional feature in draft/metadata-2 allowing clients to set metadata
+    Optional feature in draft/metadata-3 allowing clients to set metadata
     on themselves before completing connection registration.
     """
 
