@@ -32,12 +32,25 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "USER a 0 * a")
         self.sendLine(2, "CAP REQ :server-time message-tags")
         self.sendLine(2, "CAP END")
-        messages = self.getMessages(2)
-        welcomes = [message for message in messages if message.command == RPL_WELCOME]
-        self.assertEqual(len(welcomes), 1)
-        # should see a regburst for testnick
-        self.assertMessageMatch(welcomes[0], params=["testnick", ANYSTR])
+        self._waitForWelcome(2, "testnick")
         self.joinChannel(2, "#chan")
+
+    def _waitForWelcome(self, client, nick):
+        """Waits for numeric 001, and returns every message after that."""
+        while True:
+            messages = iter(self.getMessages(client, synchronize=False))
+            for message in messages:
+                if message.command == "001":
+                    # should see a regburst for testnick
+                    self.assertMessageMatch(message, params=[nick, ANYSTR])
+
+                    messages_after_welcome = list(messages)
+                    messages_after_welcome += self.getMessages(client)
+
+                    # check there is no other 001
+                    for message in messages_after_welcome:
+                        self.assertNotEqual(message.command, "001")
+                    return messages_after_welcome
 
     def _connectClient3(self):
         self.addClient()
@@ -48,11 +61,8 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self.sendLine(3, "USER a 0 * a")
         self.sendLine(3, "CAP REQ :server-time message-tags account-tag")
         self.sendLine(3, "CAP END")
-        messages = self.getMessages(3)
-        welcomes = [message for message in messages if message.command == RPL_WELCOME]
-        self.assertEqual(len(welcomes), 1)
         # should see the *same* regburst for testnick
-        self.assertMessageMatch(welcomes[0], params=["testnick", ANYSTR])
+        messages = self._waitForWelcome(3, "testnick")
         joins = [message for message in messages if message.command == "JOIN"]
         # we should be automatically joined to #chan
         self.assertMessageMatch(joins[0], params=["#chan"])
@@ -68,16 +78,15 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self.sendLine(4, "USER a 0 * a")
         self.sendLine(4, "CAP REQ server-time")
         self.sendLine(4, "CAP END")
-        messages = self.getMessages(4)
-        welcomes = [message for message in messages if message.command == RPL_WELCOME]
-        self.assertEqual(len(welcomes), 1)
+        # should see the *same* regburst for testnick
+        self._waitForWelcome(4, "testnick")
 
-    @cases.mark_specifications("Ergo")
+    @cases.mark_specifications("Ergo", "Sable")
     def testAutomaticResumption(self):
         """Test logging into an account that already has a client joins the client's session"""
         self._connectClient3()
 
-    @cases.mark_specifications("Ergo")
+    @cases.mark_specifications("Ergo", "Sable")
     def testChannelMessageFromOther(self):
         """Test that all clients attached to a session get messages sent by someone else
         to a channel"""
@@ -111,7 +120,7 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self.assertNotIn("account", messageforfour.tags)
         self.assertNotIn("msgid", messageforfour.tags)
 
-    @cases.mark_specifications("Ergo")
+    @cases.mark_specifications("Ergo", "Sable")
     def testChannelMessageFromSelf(self):
         """Test that all clients attached to a session get messages sent by an other client
 
@@ -149,7 +158,7 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self.assertNotIn("account", messageforfour.tags)
         self.assertNotIn("msgid", messageforfour.tags)
 
-    @cases.mark_specifications("Ergo")
+    @cases.mark_specifications("Ergo", "Sable")
     def testDirectMessageFromOther(self):
         """Test that all clients attached to a session get copies of messages sent
         by an other client of that session directly to an other user"""
@@ -167,7 +176,7 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self.assertEqual(messagefortwo.params, messageforthree.params)
         self.assertEqual(messagefortwo.tags["msgid"], messageforthree.tags["msgid"])
 
-    @cases.mark_specifications("Ergo")
+    @cases.mark_specifications("Ergo", "Sable")
     def testDirectMessageFromSelf(self):
         """Test that all clients attached to a session get copies of messages sent
         by an other client of that session directly to an other user"""
@@ -187,7 +196,7 @@ class BouncerTestCase(cases.BaseServerTestCase):
             messageForRecipient.tags["msgid"], copyForOtherSession.tags["msgid"]
         )
 
-    @cases.mark_specifications("Ergo")
+    @cases.mark_specifications("Ergo", "Sable")
     def testQuit(self):
         """Test that a single client of a session does not make the whole user quit
         (and is generally not visible to anyone else, not even their other sessions),
@@ -195,9 +204,12 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self._connectClient3()
         self._connectClient4()
         self.sendLine(2, "QUIT :two out")
-        quitLines = [msg for msg in self.getMessages(2) if msg.command == "QUIT"]
+        quitLines = [
+            msg for msg in self.getMessages(2) if msg.command in ("QUIT", "ERROR")
+        ]
         self.assertEqual(len(quitLines), 1)
-        self.assertMessageMatch(quitLines[0], params=[StrRe(".*two out.*")])
+        if quitLines[0].command == "QUIT":
+            self.assertMessageMatch(quitLines[0], params=[StrRe(".*two out.*")])
         # neither the observer nor the other attached session should see a quit here
         quitLines = [msg for msg in self.getMessages(1) if msg.command == "QUIT"]
         self.assertEqual(quitLines, [])
@@ -218,9 +230,12 @@ class BouncerTestCase(cases.BaseServerTestCase):
         self.sendLine(4, "QUIT :four out")
         self.getMessages(4)
         self.sendLine(3, "QUIT :three out")
-        quitLines = [msg for msg in self.getMessages(3) if msg.command == "QUIT"]
+        quitLines = [
+            msg for msg in self.getMessages(3) if msg.command in ("QUIT", "ERROR")
+        ]
         self.assertEqual(len(quitLines), 1)
-        self.assertMessageMatch(quitLines[0], params=[StrRe(".*three out.*")])
+        if quitLines[0].command == "QUIT":
+            self.assertMessageMatch(quitLines[0], params=[StrRe(".*three out.*")])
         # observer should see *this* quit
         quitLines = [msg for msg in self.getMessages(1) if msg.command == "QUIT"]
         self.assertEqual(len(quitLines), 1)
