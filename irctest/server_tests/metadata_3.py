@@ -9,11 +9,17 @@ import itertools
 import pytest
 
 from irctest import cases, runner
-from irctest.numerics import RPL_METADATASUBOK, RPL_WHOISKEYVALUE
+from irctest.numerics import (
+    RPL_KEYNOTSET,
+    RPL_KEYVALUE,
+    RPL_METADATASUBOK,
+    RPL_METADATASYNCLATER,
+    RPL_WHOISKEYVALUE,
+)
 from irctest.patma import ANYDICT, ANYLIST, ANYSTR, Either
 from irctest.specifications import OptionalBehaviors
 
-METADATA_CAP_NAME = "draft/metadata-2"
+METADATA_CAP_NAME = "draft/metadata-3"
 
 CLIENT_NICKS = {
     1: "foo",
@@ -37,6 +43,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "METADATA * SUB " + " ".join(keys))
         acknowledged_subs = []
         for m in self.getMessages(2):
+            if m.command == RPL_METADATASYNCLATER:
+                continue
             self.assertMessageMatch(
                 m,
                 command="770",  # RPL_METADATASUBOK
@@ -391,22 +399,22 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertSetGetValue(1, "*", "display-name", "Foo The First")
         self.assertMessageMatch(
             self.getMessage(2),
-            command="METADATA",
-            params=["foo", "display-name", ANYSTR, "Foo The First"],
+            command=RPL_KEYVALUE,
+            params=[ANYSTR, "foo", "display-name", ANYSTR, "Foo The First"],
         )
 
         self.assertSetGetValue(1, "*", "display-name", "Foo The Second")
         self.assertMessageMatch(
             self.getMessage(2),
-            command="METADATA",
-            params=["foo", "display-name", ANYSTR, "Foo The Second"],
+            command=RPL_KEYVALUE,
+            params=[ANYSTR, "foo", "display-name", ANYSTR, "Foo The Second"],
         )
 
         self.assertUnsetGetValue(1, "*", "display-name")
         self.assertMessageMatch(
             self.getMessage(2),
-            command="METADATA",
-            params=["foo", "display-name", ANYSTR],
+            command=RPL_KEYNOTSET,
+            params=[ANYSTR, "foo", "display-name", ANYSTR],
         )
 
     @cases.mark_specifications("IRCv3")
@@ -434,19 +442,19 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "JOIN #chan")
 
         messages = self.getMessages(2)
-        metadata_messages = [m for m in messages if m.command == "METADATA"]
+        metadata_messages = [m for m in messages if m.command == RPL_KEYVALUE]
 
         self.assertEqual(
             len(metadata_messages),
             1,
-            fail_msg="Expected exactly one METADATA message when joining a channel, "
+            fail_msg="Expected exactly one RPL_KEYVALUE message when joining a channel, "
             "got: {got}",
         )
 
         self.assertMessageMatch(
             metadata_messages[0],
-            command="METADATA",
-            params=["foo", "display-name", ANYSTR, "Foo The First"],
+            command=RPL_KEYVALUE,
+            params=[ANYSTR, "foo", "display-name", ANYSTR, "Foo The First"],
         )
 
     @cases.mark_specifications("IRCv3")
@@ -642,15 +650,15 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.assertSetGetValue(1, "#chan", "display-name", "Hash Channel")
         self.assertMessageMatch(
             self.getMessage(2),
-            command="METADATA",
-            params=["#chan", "display-name", ANYSTR, "Hash Channel"],
+            command=RPL_KEYVALUE,
+            params=[ANYSTR, "#chan", "display-name", ANYSTR, "Hash Channel"],
         )
 
         self.assertSetGetValue(1, "#chan", "display-name", "Harsh Channel")
         self.assertMessageMatch(
             self.getMessage(2),
-            command="METADATA",
-            params=["#chan", "display-name", ANYSTR, "Harsh Channel"],
+            command=RPL_KEYVALUE,
+            params=[ANYSTR, "#chan", "display-name", ANYSTR, "Harsh Channel"],
         )
 
     @cases.mark_specifications("IRCv3")
@@ -679,19 +687,19 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.sendLine(2, "JOIN #chan")
 
         messages = self.getMessages(2)
-        metadata_messages = [m for m in messages if m.command == "METADATA"]
+        metadata_messages = [m for m in messages if m.command == RPL_KEYVALUE]
 
         self.assertEqual(
             len(metadata_messages),
             1,
-            fail_msg="Expected exactly one METADATA message when joining a channel, "
+            fail_msg="Expected exactly one RPL_KEYVALUE message when joining a channel, "
             "got: {got}",
         )
 
         self.assertMessageMatch(
             metadata_messages[0],
-            command="METADATA",
-            params=["#chan", "display-name", ANYSTR, "Hash Channel"],
+            command=RPL_KEYVALUE,
+            params=[ANYSTR, "#chan", "display-name", ANYSTR, "Hash Channel"],
         )
 
     @cases.mark_specifications("IRCv3")
@@ -733,14 +741,14 @@ class MetadataTestCase(cases.BaseServerTestCase):
                 else:
                     burst_batch.append(msg)
         self.assertGreater(
-            len(burst_batch), 0, "Must receive METADATA lines for pre-set metadata"
+            len(burst_batch), 0, "Must receive RPL_KEYVALUE lines for pre-set metadata"
         )
         self.assertTrue(
             any(
                 self.messageEqual(
                     msg,
-                    command="METADATA",
-                    params=["foo", "display-name", ANYSTR, "Foo The First"],
+                    command=RPL_KEYVALUE,
+                    params=[ANYSTR, "foo", "display-name", ANYSTR, "Foo The First"],
                 )
                 for msg in burst_batch
             )
@@ -776,9 +784,8 @@ class MetadataTestCase(cases.BaseServerTestCase):
         self.getMessages(1)
         self.sendLine(2, "METADATA * SUB display-name")
         sub_replies = self.getMessages(2)
-        self.assertEqual(
-            len(sub_replies), 1, "Successful sub should get exactly 1 reply"
-        )
+        # subscription after registration MUST receive some response beyond
+        # RPL_METADATASUBOK; RPL_METADATASYNCLATER is most likely
         self.assertMessageMatch(
             sub_replies[0],
             command=RPL_METADATASUBOK,
@@ -809,13 +816,25 @@ class MetadataTestCase(cases.BaseServerTestCase):
             "Invalid METADATA value should produce exactly one FAIL message",
         )
         failMessage = messages[0]
-        self.assertMessageMatch(
-            failMessage,
-            command="FAIL",
-            params=["METADATA", ANYSTR, ANYSTR],
-        )
-        # VALUE_INVALID as per the metadata spec, INVALID_UTF8 as per the UTF8ONLY spec
-        self.assertIn(failMessage.params[1], ("VALUE_INVALID", "INVALID_UTF8"))
+        if failMessage.params[1] == "INVALID_VALUE":
+            self.assertMessageMatch(
+                failMessage,
+                command="FAIL",
+                # FAIL METADATA INVALID_VALUE key :trailing
+                params=["METADATA", "INVALID_VALUE", ANYSTR, ANYSTR],
+            )
+        elif failMessage.params[1] == "INVALID_UTF8":
+            # INVALID_UTF8 as per the UTF8ONLY spec
+            self.assertMessageMatch(
+                failMessage,
+                command="FAIL",
+                # FAIL METADATA INVALID_UTF8 :trailing
+                params=["METADATA", "INVALID_UTF8", ANYSTR],
+            )
+        else:
+            raise ValueError("Invalid FAIL code for SET", failMessage)
+
+        # INVALID_VALUE as per the metadata spec, INVALID_UTF8 as per the UTF8ONLY spec
         # friends should not receive anything
         self.assertEqual(
             self.getMessages(2), [], "Unsuccessful metadata update must not be relayed"
