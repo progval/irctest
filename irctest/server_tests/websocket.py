@@ -215,7 +215,6 @@ class WebsocketTestCase(cases.BaseServerTestCase):
             2
         ].binary = True  # force the websocket library to send a binary message
         self.sendLine(2, b"PRIVMSG nonweb :caf\xe9")
-        self.getMessages(2)  # synchronize
         self.clients[2].binary = False
 
         try:
