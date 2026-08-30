@@ -9,6 +9,9 @@ class SolanumController(CharybdisController):
 
     template_config = (
         'loadmodule "extensions/tag_message_id";\n'
+        'loadmodule "extensions/botmode";\n'
+        'loadmodule "extensions/multiline";\n'
+        "general {{ multiline_max_lines = 10; multiline_max_bytes = 2000; }}\n"
         'loadmodule "extensions/extb_account";\n' + TEMPLATE_CONFIG
     )
 

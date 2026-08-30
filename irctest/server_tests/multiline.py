@@ -156,6 +156,8 @@ class MultilineTestCase(cases.BaseServerTestCase):
         # invalid batch tag:
         self.sendLine(1, "BATCH +123 %s #test" % (BATCH_TYPE,))
         self.sendLine(1, "@batch=231 PRIVMSG #test :hi")
+        self.sendLine(1, "@batch=123 PRIVMSG #test :sup")
+        self.sendLine(1, "BATCH -123")
         self.assertMessageMatch(
             self.getMessage(1),
             command="FAIL",
