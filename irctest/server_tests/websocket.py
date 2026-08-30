@@ -189,6 +189,7 @@ class WebsocketTestCase(cases.BaseServerTestCase):
         self.assertEqual(self.clients[2].conn.subprotocol, expected_subprotocol)
 
         self.sendLine(2, "PRIVMSG nonweb :hello")
+        self.getMessages(2)  # synchronize
         self.assertMessageMatch(
             self.getMessage(1),
             command="PRIVMSG",
@@ -214,6 +215,7 @@ class WebsocketTestCase(cases.BaseServerTestCase):
             2
         ].binary = True  # force the websocket library to send a binary message
         self.sendLine(2, b"PRIVMSG nonweb :caf\xe9")
+        self.getMessages(2)  # synchronize
         self.clients[2].binary = False
 
         try:
@@ -315,6 +317,7 @@ class WebsocketTestCase(cases.BaseServerTestCase):
         )
 
         self.sendLine(2, "PRIVMSG nonweb :hello")
+        self.getMessages(2)  # synchronize
         msg = self.getMessage(1)
         self.assertMessageMatch(
             msg,
