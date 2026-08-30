@@ -5,7 +5,7 @@
 
 from irctest import cases, runner
 from irctest.irc_utils.junkdrawer import random_name
-from irctest.patma import ANYSTR, StrRe
+from irctest.patma import ANYDICT, ANYSTR, Either, StrRe
 from irctest.specifications import Capabilities
 
 REDACT_CAP = Capabilities.MESSAGE_REDACTION.value
@@ -142,6 +142,66 @@ class RedactTestCase(cases.BaseServerTestCase):
             params=[channel, bob_msgid, "spam"],
             prefix=StrRe(f"{alice}!.*"),
         )
+
+    @cases.mark_specifications("Ergo")
+    @cases.mark_capabilities(
+        "message-tags", "echo-message", "batch", "labeled-response", REDACT_CAP
+    )
+    def testOperCanRedactInUnjoinedChannel(self):
+        """Tests that an IRC operator can redact a message in a channel they
+        are not joined to."""
+        alice, bob, channel = self._setupTwoClientsAndChannel()
+
+        ircop = random_name("ircop")
+        self.connectClient(
+            ircop,
+            name=ircop,
+            capabilities=[
+                "message-tags",
+                "echo-message",
+                "batch",
+                "labeled-response",
+                REDACT_CAP,
+            ],
+        )
+        self.getMessages(ircop)
+
+        self.sendLine(ircop, "OPER operuser operpassword")
+        self.getMessages(ircop)
+
+        # Bob sends a message in the channel
+        self.sendLine(bob, f"PRIVMSG {channel} :Hi Alice")
+        bob_echo = self.getMessage(bob)
+        alice_delivery = self.getMessage(alice)
+
+        bob_msgid = bob_echo.tags.get("msgid")
+        assert bob_msgid, "Server did not send a msgid tag"
+
+        for msg in (bob_echo, alice_delivery):
+            self.assertMessageMatch(
+                msg,
+                command="PRIVMSG",
+                params=[channel, "Hi Alice"],
+                tags={"msgid": bob_msgid, **ANYDICT},
+            )
+
+        # The IRC operator, who is not joined to the channel, can still
+        # redact Bob's message. The REDACT is relayed to the channel's
+        # members (alice and bob), as well as to the operator themselves,
+        # even though they are not a member of the channel.
+        self.sendLine(ircop, f"REDACT {channel} {bob_msgid} :spam")
+
+        ircop_redact = self.getMessage(ircop)
+        alice_redact = self.getMessage(alice)
+        bob_redact = self.getMessage(bob)
+
+        for msg in (ircop_redact, alice_redact, bob_redact):
+            self.assertMessageMatch(
+                msg,
+                command="REDACT",
+                params=[channel, bob_msgid, "spam"],
+                prefix=StrRe(f"{ircop}!.*"),
+            )
 
     @cases.mark_capabilities(
         "message-tags", "echo-message", "batch", "labeled-response", REDACT_CAP
@@ -646,3 +706,141 @@ class RedactWithServicesTestCase(cases.BaseServerTestCase):
             params=[bob, msgid],
             prefix=StrRe(f"{alice}!.*"),
         )
+
+    @cases.mark_capabilities(
+        "message-tags", "echo-message", "batch", "labeled-response", REDACT_CAP
+    )
+    def testOpInOtherChannelCanRedactOwnButNotOthers(self):
+        """Tests that being a channel operator in one channel does not grant
+        redaction privileges in another channel: alice can still redact her
+        own messages in #bob, but cannot redact bob's messages there."""
+        alice = random_name("alys")
+        bob = random_name("bob")
+        alice_channel = random_name("#alice")
+        bob_channel = random_name("#bob")
+
+        # Redacting one's own messages requires an authenticated account
+        self.controller.registerUser(self, alice, "alice_password")
+
+        self.connectClient(
+            alice,
+            name=alice,
+            account=alice,
+            password="alice_password",
+            capabilities=[
+                "sasl",
+                "message-tags",
+                "echo-message",
+                "batch",
+                "labeled-response",
+                REDACT_CAP,
+            ],
+            skip_if_cap_nak=True,
+        )
+        # Alice joins her own channel first and becomes channel operator there
+        self.joinChannel(alice, alice_channel)
+        self.getMessages(alice)
+
+        self.connectClient(
+            bob,
+            name=bob,
+            capabilities=[
+                "message-tags",
+                "echo-message",
+                "batch",
+                "labeled-response",
+                REDACT_CAP,
+            ],
+        )
+        # Bob joins his own channel first and becomes channel operator there
+        self.joinChannel(bob, bob_channel)
+        self.getMessages(bob)
+
+        # Alice joins bob's channel afterward, so she is not an operator there
+        self.joinChannel(alice, bob_channel)
+        self.getMessages(alice)
+        self.getMessages(bob)
+
+        # Alice sends a message in bob's channel and can redact her own message,
+        # even though she is not a channel operator there
+        self.sendLine(alice, f"PRIVMSG {bob_channel} :Hello from alice")
+        alice_echo = self.getMessage(alice)
+        bob_delivery = self.getMessage(bob)
+
+        self.assertMessageMatch(
+            alice_echo,
+            command="PRIVMSG",
+            params=[bob_channel, "Hello from alice"],
+            tags={"msgid": ANYSTR, **ANYDICT},
+        )
+        alice_msgid = alice_echo.tags["msgid"]
+        self.assertMessageMatch(
+            bob_delivery,
+            command="PRIVMSG",
+            params=[bob_channel, "Hello from alice"],
+            tags={"msgid": alice_msgid, **ANYDICT},
+        )
+
+        self.sendLine(alice, f"REDACT {bob_channel} {alice_msgid}")
+        alice_redact = self.getMessage(alice)
+        bob_redact = self.getMessage(bob)
+
+        for msg in (alice_redact, bob_redact):
+            self.assertMessageMatch(
+                msg,
+                command="REDACT",
+                params=[bob_channel, alice_msgid],
+                prefix=StrRe(f"{alice}!.*"),
+            )
+
+        # Bob sends a message in his own channel
+        self.sendLine(bob, f"PRIVMSG {bob_channel} :Hello from bob")
+        bob_echo = self.getMessage(bob)
+        alice_delivery = self.getMessage(alice)
+
+        self.assertMessageMatch(
+            bob_echo, command="PRIVMSG", params=[bob_channel, "Hello from bob"]
+        )
+        self.assertMessageMatch(
+            alice_delivery, command="PRIVMSG", params=[bob_channel, "Hello from bob"]
+        )
+
+        bob_msgid = bob_echo.tags.get("msgid")
+        assert bob_msgid, "Server did not send a msgid tag"
+
+        # Alice cannot redact bob's message: she is a channel operator in
+        # #alice, but not in #bob
+        self.sendLine(alice, f"REDACT {bob_channel} {bob_msgid}")
+        alice_fail = self.getMessage(alice)
+
+        self.assertMessageMatch(
+            alice_fail,
+            command="FAIL",
+            params=["REDACT", "REDACT_FORBIDDEN", bob_channel, bob_msgid, ANYSTR],
+        )
+
+        # Bob should not receive a REDACT (the redaction was rejected)
+        bob_msgs = self.getMessages(bob)
+        self.assertEqual(bob_msgs, [])
+
+        # Alice cannot redact bob's message by claiming it belongs to
+        # #alice, the channel where she *is* a channel operator: her
+        # operator status there does not carry over to bob's message
+        self.sendLine(alice, f"REDACT {alice_channel} {bob_msgid}")
+        alice_fail_wrong_channel = self.getMessage(alice)
+
+        self.assertMessageMatch(
+            alice_fail_wrong_channel,
+            command="FAIL",
+            params=[
+                "REDACT",
+                Either("REDACT_FORBIDDEN", "UNKNOWN_MSGID"),
+                alice_channel,
+                bob_msgid,
+                ANYSTR,
+            ],
+        )
+
+        # Bob should not receive a REDACT (the redaction was rejected)
+        bob_msgs = self.getMessages(bob)
+        self.assertEqual(bob_msgs, [])

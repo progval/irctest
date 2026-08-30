@@ -61,7 +61,7 @@ class SaslTestCase(cases.BaseServerTestCase):
             "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
-        m = self.getRegistrationMessage(1)
+        m = self.getRegistrationMessage(1, ignore_cap_new=True)
         self.assertMessageMatch(
             m,
             command=RPL_LOGGEDIN,
@@ -115,7 +115,7 @@ class SaslTestCase(cases.BaseServerTestCase):
             "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(1, "AUTHENTICATE " + authstring)
-        m = self.getRegistrationMessage(1)
+        m = self.getRegistrationMessage(1, ignore_cap_new=True)
         self.assertMessageMatch(
             m,
             command=RPL_LOGGEDIN,
@@ -175,7 +175,7 @@ class SaslTestCase(cases.BaseServerTestCase):
             "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(1, "AUTHENTICATE AGppbGxlcwBzZXNhbWU=")
-        m = self.getRegistrationMessage(1)
+        m = self.getRegistrationMessage(1, ignore_cap_new=True)
         self.assertMessageMatch(
             m,
             command=RPL_LOGGEDIN,
@@ -408,8 +408,8 @@ class SaslTestCase(cases.BaseServerTestCase):
 
     def confirmSuccessfulAuth(self):
         # TODO: check username/etc in this as well, so we can apply it to other tests
-        m1 = self.getRegistrationMessage(1)
-        m2 = self.getRegistrationMessage(1)
+        m1 = self.getRegistrationMessage(1, ignore_cap_new=True)
+        m2 = self.getRegistrationMessage(1, ignore_cap_new=True)
         if m1.command == RPL_SASLSUCCESS and m2.command == RPL_LOGGEDIN:
             # Seems to happen only for Solanum with Anope.
             # Order is not guaranteed by the spec so this is fine
@@ -904,7 +904,7 @@ class SaslTestCase(cases.BaseServerTestCase):
         self.sendLine(1, "NICK foo")
         self.sendLine(1, "USER foo * * :Test")
         self.sendLine(1, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
-        m = self.getRegistrationMessage(1)
+        m = self.getRegistrationMessage(1, ignore_cap_new=True)
         self.assertMessageMatch(
             m,
             command=RPL_LOGGEDIN,

@@ -543,7 +543,7 @@ class AuthenticatedExtendedMonitorTestCase(_BaseExtendedMonitorTestCase):
             "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(2, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
-        m = self.getRegistrationMessage(2)
+        m = self.getRegistrationMessage(2, ignore_cap_new=True)
         self.assertMessageMatch(
             m,
             command="900",
@@ -597,7 +597,7 @@ class AuthenticatedExtendedMonitorTestCase(_BaseExtendedMonitorTestCase):
             "replied with “AUTHENTICATE +”, but instead sent: {msg}",
         )
         self.sendLine(2, "AUTHENTICATE amlsbGVzAGppbGxlcwBzZXNhbWU=")
-        m = self.getRegistrationMessage(2)
+        m = self.getRegistrationMessage(2, ignore_cap_new=True)
         self.assertMessageMatch(
             m,
             command="900",

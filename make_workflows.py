@@ -65,7 +65,7 @@ def get_install_steps(*, software_config, software_id, version_flavor):
         install_steps = [
             {
                 "name": f"Checkout {name}",
-                "uses": "actions/checkout@v4",
+                "uses": "actions/checkout@v7",
                 "with": {
                     "repository": software_config["repository"],
                     "ref": ref,
@@ -96,7 +96,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
         cache = [
             {
                 "name": "Cache dependencies",
-                "uses": "actions/cache@v4",
+                "uses": "actions/cache@v6",
                 "with": {
                     "path": f"~/.cache\n${{ github.workspace }}/{path}\n",
                     "key": "3-${{ runner.os }}-"
@@ -125,15 +125,19 @@ def get_build_job(*, software_config, software_id, version_flavor):
                 "run": "cd ~/; mkdir -p .local/ go/",
             },
             *cache,
-            {"uses": "actions/checkout@v4"},
+            {"uses": "actions/checkout@v7"},
             {
                 "name": "Set up Python 3.11",
-                "uses": "actions/setup-python@v5",
+                "uses": "actions/setup-python@v6",
                 "with": {"python-version": 3.11},
             },
             {
                 "name": "Install system dependencies",
                 "run": "sudo apt-get install libltdl-dev",
+            },
+            {
+                "name": "Calculate job count",
+                "run": "echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV",
             },
             *install_steps,
             *upload_steps(software_id),
@@ -145,20 +149,25 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
     if version_flavor.value in test_config.get("exclude_versions", []):
         return None
 
-    env = ""
+    env = {
+        "IRCTEST_DEBUG_LOGS": "${{ runner.debug }}",
+        "PYTEST_ARGS": "--junit-xml pytest.xml --timeout 300",
+    }
+    paths = ["~/.local/bin"]
     needs = []
     downloads = []
     install_steps = []
     for software_id in test_config.get("software", []):
         software_config = config["software"][software_id]
 
-        env += software_config.get("env", "") + " "
+        env |= software_config.get("env", {})
         if "prefix" in software_config:
-            env += (
-                f"PATH={software_config['prefix']}/sbin"
-                f":{software_config['prefix']}/bin"
-                f":{software_config['prefix']}"
-                f":$PATH "
+            paths.extend(
+                [
+                    f"{software_config['prefix']}/sbin",
+                    f"{software_config['prefix']}/bin",
+                    software_config["prefix"],
+                ]
             )
 
         if software_config["separate_build_job"]:
@@ -166,7 +175,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
             downloads.append(
                 {
                     "name": "Download build artefacts",
-                    "uses": "actions/download-artifact@v4",
+                    "uses": "actions/download-artifact@v8",
                     "with": {"name": f"installed-{software_id}", "path": "~"},
                 }
             )
@@ -201,7 +210,7 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
         "runs-on": "ubuntu-24.04",
         "needs": needs,
         "steps": [
-            {"uses": "actions/checkout@v4"},
+            {"uses": "actions/checkout@v7"},
             {
                 "name": "Set up Python 3.11",
                 "uses": "actions/setup-python@v5",
@@ -229,19 +238,16 @@ def get_test_job(*, config, test_config, test_id, version_flavor, jobs):
             {
                 "name": "Test with pytest",
                 "timeout-minutes": 30,
-                "env": {
-                    "IRCTEST_DEBUG_LOGS": "${{ runner.debug }}",
-                },
-                "run": (
-                    f"PYTEST_ARGS='--junit-xml pytest.xml --timeout 300' "
-                    f"PATH=$HOME/.local/bin:$PATH "
-                    f"{env}make {test_id}"
+                "env": env,
+                "run": script(
+                    f'export PATH={":".join(dict.fromkeys(p for p in paths))}:$PATH',
+                    f"make {test_id}",
                 ),
             },
             {
                 "name": "Publish results",
                 "if": "always()",
-                "uses": "actions/upload-artifact@v4",
+                "uses": "actions/upload-artifact@v7",
                 "with": {
                     "name": f"pytest-results_{test_id}_{version_flavor.value}",
                     "path": "pytest.xml",
@@ -260,7 +266,7 @@ def upload_steps(software_id):
         },
         {
             "name": "Upload build artefacts",
-            "uses": "actions/upload-artifact@v4",
+            "uses": "actions/upload-artifact@v7",
             "with": {
                 "name": f"installed-{software_id}",
                 "path": "~/artefacts-*.tar.gz",
@@ -326,10 +332,10 @@ def generate_workflow(config: dict, version_flavor: VersionFlavor):
         # this job then
         "if": "success() || failure()",
         "steps": [
-            {"uses": "actions/checkout@v4"},
+            {"uses": "actions/checkout@v7"},
             {
                 "name": "Download Artifacts",
-                "uses": "actions/download-artifact@v4",
+                "uses": "actions/download-artifact@v8",
                 "with": {"path": "artifacts"},
             },
             {

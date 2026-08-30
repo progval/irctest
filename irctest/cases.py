@@ -623,7 +623,9 @@ class BaseServerTestCase(
             time.sleep(self.controller.sync_sleep_time)
         return self.clients[client].getMessage(**kwargs)
 
-    def getRegistrationMessage(self, client: TClientName) -> Message:
+    def getRegistrationMessage(
+        self, client: TClientName, ignore_cap_new: bool = False
+    ) -> Message:
         """Filter notices, do not send pings."""
         while True:
             msg = self.getMessage(
@@ -634,6 +636,10 @@ class BaseServerTestCase(
             if msg.command == "PING":
                 # Hi Unreal
                 self.sendLine(client, "PONG :" + msg.params[0])
+            elif ignore_cap_new and (msg.command == "CAP" and msg.params[1] == "NEW"):
+                # Unreal sends 'CAP * NEW :draft/multiline=max-bytes=5250,max-lines=15'
+                # when upon authentification
+                continue
             else:
                 return msg
 
@@ -718,7 +724,7 @@ class BaseServerTestCase(
         m = self.getRegistrationMessage(client)
         self.assertMessageMatch(m, command="AUTHENTICATE", params=["+"])
         self.sendLine(client, sasl_plain_blob(account, password))
-        m = self.getRegistrationMessage(client)
+        m = self.getRegistrationMessage(client, ignore_cap_new=True)
         self.assertIn(m.command, ["900", "903"], str(m))
 
     @retry
