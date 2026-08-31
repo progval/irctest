@@ -525,3 +525,47 @@ class LabeledResponsesTestCase(cases.BaseServerTestCase):
         self.assertMessageMatch(
             unknowncommand, command=ERR_UNKNOWNCOMMAND, tags={"label": "deadbeef"}
         )
+
+    @cases.mark_capabilities("labeled-response")
+    def testQuit(self):
+        """Regression test for Solanum crashing on labeled QUIT:
+        https://github.com/solanum-ircd/solanum/pull/526"""
+        self.connectClient(
+            "foo", capabilities=["batch", "labeled-response"], skip_if_cap_nak=True
+        )
+        self.connectClient(
+            "bar", capabilities=["batch", "labeled-response"], skip_if_cap_nak=True
+        )
+        self.joinChannel(1, "#chan")
+        self.joinChannel(2, "#chan")
+
+        self.getMessages(2)
+        self.getMessages(1)
+
+        self.sendLine(1, "@label=deadbeef QUIT :foo out")
+        m = self.getMessage(1)
+        if m.command == "ERROR":
+            # InspIRCd, Sable, and UnrealIRCd
+            self.assertMessageMatch(
+                m,
+                command="ERROR",
+                params=[StrRe("(Client quit|.*foo out.*)")],
+                tags={"label": "deadbeef"},
+            )
+        else:
+            self.assertMessageMatch(
+                m,
+                command="QUIT",
+                params=[StrRe(".*foo out.*")],
+                tags={"label": "deadbeef"},
+            )
+
+        m = self.getMessage(2)
+        self.assertMessageMatch(
+            m, command="QUIT", params=[StrRe(".*foo out.*")], tags={}
+        )
+
+        # check the server didn't crash (the QUIT may be buffered on the client side)
+        self.sendLine(2, "@label=76T893 PRIVMSG #chan :hello")
+        m = self.getMessage(2)
+        self.assertMessageMatch(m, command="ACK", params=[], tags={"label": "76T893"})
