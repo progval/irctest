@@ -27,7 +27,7 @@ software:
         name: Hybrid
         repository: ircd-hybrid/ircd-hybrid
         refs:
-            stable: "8.2.39"
+            stable: "8.2.47"
             release: null
             devel: "8.2.x"
             devel_release: null

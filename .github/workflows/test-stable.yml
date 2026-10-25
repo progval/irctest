@@ -325,7 +325,7 @@ jobs:
       uses: actions/checkout@v7
       with:
         path: ircd-hybrid
-        ref: 8.2.39
+        ref: 8.2.47
         repository: ircd-hybrid/ircd-hybrid
         submodules: ''
     - name: Install system dependencies
