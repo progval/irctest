@@ -18,7 +18,6 @@ serverinfo {{
 
 general {{
     throttle_count = 100;  # We need to connect lots of clients quickly
-    sasl_service = "SaslServ";
 
     # Allow PART/QUIT reasons quickly
     anti_spam_exit_message_time = 0;
@@ -29,7 +28,7 @@ general {{
 }};
 
 listen {{
-    defer_accept = yes;
+    flags = defer;
 
     host = "{hostname}";
     port = {port};
@@ -64,9 +63,9 @@ operator {{
     user = "*@*";
     password = "operpassword";
     encrypted = no;
-    umodes = locops, servnotice, wallop;
+    umodes = "+fls";
     flags = admin, connect, connect:remote, die, globops, kill, kill:remote,
-            kline, module, rehash, restart, set, unkline, unxline, wallops, xline;
+    \tkline, module, rehash, restart, set, unkline, unxline, xline;
 }};
 """
 
