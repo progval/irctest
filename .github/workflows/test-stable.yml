@@ -22,7 +22,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope
@@ -73,7 +73,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope 2.0
@@ -124,7 +124,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Atheme
@@ -169,7 +169,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Atheme
@@ -214,7 +214,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Bahamut
@@ -272,7 +272,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Charybdis
@@ -318,7 +318,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Hybrid
@@ -355,7 +355,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout InspIRCd
@@ -413,7 +413,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout ngircd
@@ -459,7 +459,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: clone
@@ -504,22 +504,20 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Solanum
       uses: actions/checkout@v7
       with:
         path: solanum
-        ref: 30f74b2cfa70aff2bad65c8afc62956d95699639
+        ref: 2f67280c53ffb98b8a02d9a24cffeed212b2673f
         repository: solanum-ircd/solanum
         submodules: ''
     - name: Build Solanum
       run: |
-        ./autogen.sh
-        ./configure --prefix=$HOME/.local/ --enable-fhs-paths
-        make
-        make install
+        meson setup build/ --prefix $HOME/.local/ -Dfhs_paths=true -Dbuildtype=debug
+        meson install -C build/
       working-directory: solanum
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-solanum.tar.gz .local/ go/
@@ -549,7 +547,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout UnrealIRCd 6
