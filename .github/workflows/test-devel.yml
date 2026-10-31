@@ -470,10 +470,8 @@ jobs:
         submodules: ''
     - name: Build Solanum
       run: |
-        ./autogen.sh
-        ./configure --prefix=$HOME/.local/ --enable-fhs-paths
-        make
-        make install
+        meson setup build/ --prefix $HOME/.local/ -Dfhs_paths=true -Dbuildtype=debug
+        meson install -C build/
       working-directory: solanum
     - name: Make artefact tarball
       run: cd ~; tar -czf artefacts-solanum.tar.gz .local/ go/

@@ -79,17 +79,15 @@ software:
         refs:
             # Actually Solanum doesn't have releases; so we just bump this
             # commit hash from time to time
-            stable: 30f74b2cfa70aff2bad65c8afc62956d95699639
+            stable: 2f67280c53ffb98b8a02d9a24cffeed212b2673f
             release: null
             devel: main
             devel_release: null
         path: solanum
         separate_build_job: true
         build_script: |
-            ./autogen.sh
-            ./configure --prefix=$HOME/.local/ --enable-fhs-paths
-            make
-            make install
+          meson setup build/ --prefix $HOME/.local/ -Dfhs_paths=true -Dbuildtype=debug
+          meson install -C build/
 
     #############################
     # Other servers:
