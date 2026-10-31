@@ -133,7 +133,7 @@ def get_build_job(*, software_config, software_id, version_flavor):
             },
             {
                 "name": "Install system dependencies",
-                "run": "sudo apt-get install libltdl-dev",
+                "run": "sudo apt-get install libltdl-dev meson",
             },
             {
                 "name": "Calculate job count",

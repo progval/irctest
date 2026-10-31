@@ -22,7 +22,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope
@@ -73,7 +73,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Anope 2.0
@@ -124,7 +124,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Atheme
@@ -169,7 +169,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Atheme
@@ -214,7 +214,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Bahamut
@@ -272,7 +272,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Hybrid
@@ -309,7 +309,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout InspIRCd
@@ -367,7 +367,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout ngircd
@@ -413,7 +413,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: clone
@@ -458,7 +458,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout Solanum
@@ -501,7 +501,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install system dependencies
-      run: sudo apt-get install libltdl-dev
+      run: sudo apt-get install libltdl-dev meson
     - name: Calculate job count
       run: echo MAKEFLAGS=-j$(($(getconf _NPROCESSORS_ONLN) + 1)) >> $GITHUB_ENV
     - name: Checkout UnrealIRCd 6
